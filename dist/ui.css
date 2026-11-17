@@ -1,0 +1,368 @@
+/* Layout and controls for the map, units and touch interaction. */
+.game-layout {
+  grid-template-rows: auto 1fr;
+}
+.map-panel {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  position: sticky;
+  top: 12px;
+  min-width: 0;
+}
+.game-layout > .turn-panel {
+  grid-column: 2;
+  grid-row: 1;
+}
+.game-layout > aside {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+}
+.map-scroll {
+  height: clamp(330px, calc(100dvh - 270px), 600px);
+  overscroll-behavior: contain;
+}
+.board {
+  margin-inline: auto;
+}
+.board-row {
+  display: contents;
+}
+.cell.active-pawn {
+  outline: 3px solid #476d4b;
+  outline-offset: 1px;
+  z-index: 2;
+}
+.cell.selected {
+  outline: 3px solid var(--gold);
+}
+.cell:focus-visible {
+  outline: 3px solid #284e82;
+  outline-offset: 1px;
+  z-index: 5;
+}
+.cell.reachable {
+  box-shadow: inset 0 0 0 2px #bd984b;
+}
+.board-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.board-modes {
+  display: flex;
+  gap: 5px;
+}
+.board-modes button {
+  font-size: 11px;
+  padding: 8px 10px;
+}
+.board-modes .selected {
+  background: #e3e9d8;
+  border-color: #9fac8b;
+}
+.keyboard-hint {
+  font-size: 9px;
+  color: var(--muted);
+}
+.unit-control-label {
+  font-size: 10px;
+  display: block;
+  margin: 12px 0 5px;
+  color: #dbe5d4;
+}
+#active-unit-control {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid #72816c;
+  border-radius: 5px;
+  background: #f6f4ea;
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+}
+.steps {
+  flex-wrap: wrap;
+  margin-top: 13px;
+}
+.action-chip {
+  border: 1px solid #5f7765;
+  border-radius: 5px;
+  padding: 5px 7px;
+  font-size: 9px;
+  color: #e2e8d7;
+}
+.turn-panel[data-owner="1"] {
+  background: #245243;
+}
+.turn-panel .disabled-reason {
+  color: #d3dbc9;
+  display: block;
+  margin-top: 10px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+.disabled-reason {
+  font-size: 10px;
+  line-height: 1.5;
+  color: #80624d;
+}
+.training-option {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 4px;
+  max-width: 100%;
+}
+.selection {
+  scroll-margin-top: 12px;
+  min-height: 100px;
+}
+.selection-reason {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: #805d43;
+  line-height: 1.5;
+}
+.tile-diagram {
+  display: block;
+  position: relative;
+  flex-shrink: 0;
+  margin-inline: auto;
+}
+.diagram-cell {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  border: 1px solid #ffffff88;
+  border-radius: 2px;
+  font-style: normal;
+}
+.diagram-cell.entry::after {
+  content: "";
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  background: #fff6cb;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #53683d;
+}
+.building-card .tile-diagram {
+  margin-inline: 0;
+}
+.tile-card small {
+  line-height: 1.5;
+}
+.tile-card small span {
+  display: block;
+  font-size: 9px;
+  opacity: 0.8;
+}
+.tile-card {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.empty-state,
+.worker-summary {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.tile-market .empty-state {
+  grid-column: 1/-1;
+}
+.game-notice {
+  background: #f1e6c8;
+  color: #64552f;
+  border: 1px solid #d9c68f;
+  padding: 13px 16px;
+  border-radius: 7px;
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+.game-notice[hidden] {
+  display: none;
+}
+.save-unavailable {
+  color: #a35a3d;
+}
+.loading-status {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 16px;
+  z-index: 99;
+}
+.startup-error {
+  margin: 20px 0;
+  white-space: pre-wrap;
+  color: #9b4935;
+}
+main > button.primary {
+  margin-top: 20px;
+}
+.resources {
+  flex-wrap: wrap;
+}
+.legend {
+  flex-wrap: wrap;
+}
+button {
+  touch-action: manipulation;
+}
+#unit-list {
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+}
+@media (max-width: 850px) {
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .game-layout > .turn-panel,
+  .map-panel,
+  .game-layout > aside {
+    width: 100%;
+    grid-column: auto;
+    grid-row: auto;
+  }
+  .game-layout > .turn-panel {
+    order: 0;
+  }
+  .map-panel {
+    order: 1;
+    position: static;
+  }
+  .game-layout > aside {
+    order: 2;
+  }
+  .turn-panel {
+    padding: 16px;
+  }
+  .turn-panel h2 {
+    margin: 5px 0 8px;
+    font-size: 25px;
+  }
+  .turn-panel p {
+    margin: 10px 0;
+    min-height: 0;
+  }
+  .map-scroll {
+    height: 440px;
+  }
+  .keyboard-hint {
+    display: none;
+  }
+  .board-toolbar {
+    padding: 10px 12px;
+  }
+  .selection {
+    min-height: 95px;
+  }
+}
+@media (max-width: 520px) {
+  main {
+    padding-inline: 12px;
+  }
+  .topbar {
+    padding-inline: 12px;
+  }
+  .map-scroll {
+    height: 365px;
+    padding: 12px;
+  }
+  .page-heading {
+    margin-bottom: 18px;
+  }
+  .page-heading h1 {
+    font-size: 31px;
+  }
+  .player-name h2 {
+    font-size: 17px;
+  }
+  .player-name small {
+    line-height: 1.6;
+  }
+  .turn-actions button {
+    min-height: 44px;
+    font-size: 11px;
+  }
+  .tile-controls button {
+    font-size: 11px;
+    padding: 9px;
+  }
+  .panel-heading h2 {
+    font-size: 21px;
+  }
+  .panel-heading h2 span {
+    display: inline;
+    font-size: 9px;
+    margin-left: 7px;
+  }
+  .tile-card small {
+    font-size: 10px;
+  }
+  .building-info .pattern-description {
+    font-size: 10px;
+  }
+  .building-info small {
+    font-size: 10px;
+  }
+  .market-panel .section-desc {
+    font-size: 11px;
+  }
+  .selection button {
+    min-height: 40px;
+  }
+  .map-tools button {
+    min-width: 34px;
+    min-height: 34px;
+  }
+  .board-modes button {
+    min-height: 38px;
+  }
+  .round {
+    padding-left: 8px;
+  }
+  #save-status {
+    max-width: 170px;
+    line-height: 1.5;
+    text-align: right;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+/* Markets flank the board; management follows below. */
+.game-layout { grid-template-columns: minmax(210px, 1fr) minmax(400px, 2.5fr) minmax(250px, 1.2fr); grid-template-rows: auto auto auto; align-items: start; }
+.game-layout > .land-shop { grid-column: 1; grid-row: 1; min-width: 0; }
+.game-layout > .map-panel { grid-column: 2; grid-row: 1; position: static; }
+.game-layout > .building-shop { grid-column: 3; grid-row: 1; min-width: 0; }
+.game-layout > .turn-panel { grid-column: 1 / -1; grid-row: 2; }
+.game-layout > aside { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+[draggable="true"] { cursor: grab; touch-action: auto; }
+[draggable="true"]:active { cursor: grabbing; }
+@media(max-width:1050px) {
+ .game-layout { grid-template-columns: repeat(2,minmax(0,1fr)); }
+ .game-layout > .map-panel { grid-column: 1 / -1; grid-row: 1; }
+ .game-layout > .land-shop { grid-column: 1; grid-row: 2; }
+ .game-layout > .building-shop { grid-column: 2; grid-row: 2; }
+ .game-layout > .turn-panel { grid-row: 3; }
+ .game-layout > aside { grid-row: 4; grid-template-columns: 1fr; }
+}
+@media(max-width:540px) { .game-layout { display: flex; flex-direction: column; } .game-layout > * { width:100%; box-sizing:border-box; } }

@@ -1,0 +1,301 @@
+import { CONFIG } from "./configuration.js";
+import {
+  createGame,
+  migrateGame,
+  RULES,
+  TERRAINS,
+  BUILDINGS,
+  UNIT_DEFINITIONS,
+} from "./engine.js";
+import { inside, key, isRotation } from "./geometry.js";
+
+export const SAVE_KEY = "kingbuilder-save-v1";
+const record = (value) =>
+  value !== null && typeof value === "object" && !Array.isArray(value);
+const nonnegative = (value) => Number.isSafeInteger(value) && value >= 0;
+function requireValid(condition, message) {
+  if (!condition) throw Error(`Sauvegarde incompatible : ${message}`);
+}
+function validateTiles(tiles) {
+  requireValid(Array.isArray(tiles), "pioche de terrains absente.");
+  for (const tile of tiles) {
+    requireValid(
+      Array.isArray(tile?.cells) && tile.cells.length > 0,
+      "tuile vide.",
+    );
+    requireValid(
+      tile.cells.every(
+        (c) =>
+          Number.isSafeInteger(c.x) &&
+          Number.isSafeInteger(c.y) &&
+          TERRAINS[c.terrain],
+      ),
+      "terrain de tuile incorrect.",
+    );
+    requireValid(
+      new Set(tile.cells.map((c) => key(c.x, c.y))).size === tile.cells.length,
+      "cases répétées dans une tuile.",
+    );
+    requireValid(
+      tile.name === undefined || typeof tile.name === "string",
+      "nom de tuile incorrect.",
+    );
+  }
+}
+export function validateGame(game, { legacy = false } = {}) {
+  requireValid(
+    record(game) && [1, 2, 3, 4].includes(game.version),
+    "version inconnue.",
+  );
+  requireValid(
+    game.boardSize === undefined || game.boardSize === RULES.size,
+    "dimensions du plateau modifiées.",
+  );
+  requireValid(
+    Array.isArray(game.players) && game.players.length === 2,
+    "deux joueurs sont requis.",
+  );
+  requireValid(
+    [0, 1].includes(game.active) &&
+      Number.isSafeInteger(game.round) &&
+      game.round >= 1 &&
+      game.round <= RULES.rounds,
+    "tour incorrect.",
+  );
+  requireValid(
+    nonnegative(game.moves) &&
+      game.moves <= 2 &&
+      ["acted", "recruited", "finished"].every(
+        (k) => typeof game[k] === "boolean",
+      ),
+    "actions incorrectes.",
+  );
+  requireValid(
+    Array.isArray(game.log) &&
+      game.log.every((text) => typeof text === "string"),
+    "chronique incorrecte.",
+  );
+  requireValid(record(game.board), "plateau absent.");
+  for (const [position, cell] of Object.entries(game.board)) {
+    const [x, y] = position.split(",").map(Number);
+    requireValid(
+      inside(x, y, RULES.size) &&
+        key(x, y) === position &&
+        record(cell) &&
+        TERRAINS[cell.terrain],
+      "case incorrecte.",
+    );
+    if (cell.building) {
+      const b = cell.building;
+      requireValid(
+        record(b) && BUILDINGS[b.type] && [0, 1].includes(b.owner),
+        "bâtiment inconnu.",
+      );
+      requireValid(
+        b.rotation === undefined || isRotation(b.rotation),
+        "orientation incorrecte.",
+      );
+      for (const field of ["trainingRound", "trainedCount"])
+        requireValid(
+          b[field] === undefined || nonnegative(b[field]),
+          "quota de caserne incorrect.",
+        );
+    }
+    if (cell.overlay)
+      requireValid(
+        record(cell.overlay) &&
+          typeof cell.overlay.anchor === "string" &&
+          typeof cell.overlay.role === "string" &&
+          game.board[cell.overlay.anchor]?.building,
+        "tuile bâtiment sans entrée.",
+      );
+  }
+  for (const player of game.players) {
+    requireValid(
+      record(player) &&
+        typeof player.name === "string" &&
+        inside(player.x, player.y, RULES.size) &&
+        game.board[key(player.x, player.y)],
+      "position du roi incorrecte.",
+    );
+    requireValid(
+      record(player.resources) &&
+        Object.values(player.resources).every(nonnegative) &&
+        nonnegative(player.workers) &&
+        nonnegative(player.revealed),
+      "ressources ou population incorrectes.",
+    );
+    if (!legacy || game.version === 4) {
+      requireValid(
+        Array.isArray(player.workerAssignments) &&
+          player.workerAssignments.length === player.workers,
+        "population d’ouvriers incohérente.",
+      );
+      const ids = new Set();
+      for (const w of player.workerAssignments) {
+        requireValid(
+          nonnegative(w.id) &&
+            !ids.has(w.id) &&
+            (w.building === null || typeof w.building === "string"),
+          "affectation incorrecte.",
+        );
+        ids.add(w.id);
+      }
+    }
+    if (player.units !== undefined) {
+      requireValid(Array.isArray(player.units), "liste d’unités incorrecte.");
+      const ids = new Set();
+      for (const unit of player.units) {
+        requireValid(
+          UNIT_DEFINITIONS[unit.type] &&
+            nonnegative(unit.id) &&
+            !ids.has(unit.id) &&
+            inside(unit.x, unit.y, RULES.size) &&
+            game.board[key(unit.x, unit.y)] &&
+            nonnegative(unit.moves) &&
+            typeof unit.acted === "boolean" &&
+            (unit.ended === undefined || typeof unit.ended === "boolean"),
+          "unité incorrecte.",
+        );
+        ids.add(unit.id);
+      }
+    }
+  }
+  requireValid(
+    Array.isArray(game.tileMarket) &&
+      game.tileMarket.length <= 3 &&
+      Array.isArray(game.buildingMarket) &&
+      game.buildingMarket.length <= 3 &&
+      Array.isArray(game.buildingDeck) &&
+      [...game.buildingMarket, ...game.buildingDeck].every(
+        (id) => typeof id === "string",
+      ),
+    "marché incorrect.",
+  );
+  if (game.missions !== undefined) {
+    const missions = game.missions;
+    requireValid(
+      record(missions) &&
+        Array.isArray(missions.market) &&
+        missions.market.length <= 3 &&
+        Array.isArray(missions.deck) &&
+        Array.isArray(missions.claimed),
+      "missions incorrectes.",
+    );
+    requireValid(
+      missions.claimed.every(
+        (c) =>
+          record(c) &&
+          [0, 1].includes(c.owner) &&
+          nonnegative(c.round) &&
+          c.round >= 1 &&
+          c.round <= game.round,
+      ),
+      "mission attribuée incorrecte.",
+    );
+    const ids = [
+      ...missions.market,
+      ...missions.deck,
+      ...missions.claimed.map((c) => c.id),
+    ];
+    requireValid(
+      ids.every((id) => Object.hasOwn(CONFIG.missions, id)) &&
+        new Set(ids).size === ids.length,
+      "mission inconnue ou répétée.",
+    );
+  } else requireValid(legacy, "missions absentes.");
+  requireValid(
+    (legacy && game.rerollsUsed === undefined) || nonnegative(game.rerollsUsed),
+    "quota de relance incorrect.",
+  );
+  for (const p of game.players) {
+    requireValid(
+      (legacy && p.prestige === undefined) || nonnegative(p.prestige),
+      "prestige incorrect.",
+    );
+    if (p.progress !== undefined) {
+      requireValid(
+        record(p.progress) &&
+          record(p.progress.terrain) &&
+          record(p.progress.built) &&
+          nonnegative(p.progress.recruited),
+        "progression des missions incorrecte.",
+      );
+      for (const [field, defs] of [
+        ["terrain", TERRAINS],
+        ["built", BUILDINGS],
+      ])
+        requireValid(
+          Object.entries(p.progress[field]).every(
+            ([id, n]) => Object.hasOwn(defs, id) && nonnegative(n),
+          ),
+          "compteur de mission incorrect.",
+        );
+    } else requireValid(legacy, "progression absente.");
+  }
+  validateTiles([
+    ...game.tileMarket,
+    ...(Array.isArray(game.tileDeck) ? game.tileDeck : []),
+  ]);
+  requireValid(Array.isArray(game.tileDeck), "pioche de terrains absente.");
+  return game;
+}
+
+export function createPersistence(storage) {
+  let writable = Boolean(storage);
+  let notice = "";
+  function load() {
+    let raw;
+    try {
+      if (!storage) {
+        notice =
+          "La sauvegarde locale est indisponible. Gardez cet onglet ouvert.";
+        return createGame();
+      }
+      raw = storage.getItem(SAVE_KEY);
+      if (!raw) return createGame();
+      const game = JSON.parse(raw);
+      validateGame(game, { legacy: true });
+      return validateGame(migrateGame(game));
+    } catch (error) {
+      writable = false;
+      if (raw) {
+        try {
+          const base = SAVE_KEY + "-backup";
+          const backup = storage.getItem(base) ? `${base}-${Date.now()}` : base;
+          storage.setItem(backup, raw);
+          writable = true;
+          notice =
+            "La sauvegarde précédente était incompatible. Une copie a été conservée et une nouvelle partie est prête.";
+        } catch {
+          notice =
+            "La sauvegarde précédente est illisible. Elle reste conservée ; la partie actuelle ne pourra pas être enregistrée.";
+        }
+      } else
+        notice =
+          "La sauvegarde locale est indisponible. Gardez cet onglet ouvert.";
+      return createGame();
+    }
+  }
+  return {
+    load,
+    save(game) {
+      if (!writable) return false;
+      try {
+        storage.setItem(SAVE_KEY, JSON.stringify(game));
+        return true;
+      } catch {
+        writable = false;
+        notice =
+          "La sauvegarde locale est indisponible. Gardez cet onglet ouvert.";
+        return false;
+      }
+    },
+    get notice() {
+      return notice;
+    },
+    get writable() {
+      return writable;
+    },
+  };
+}

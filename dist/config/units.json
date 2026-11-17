@@ -1,0 +1,16 @@
+{
+  "units": [
+    {
+      "id": "cavalry",
+      "name": "Cavalier",
+      "icon": "➶",
+      "cost": {
+        "iron": 1,
+        "wheat": 1
+      },
+      "moves": 2,
+      "population": 1,
+      "points": 0
+    }
+  ]
+}

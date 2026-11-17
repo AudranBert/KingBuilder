@@ -1,0 +1,256 @@
+{
+  "marketSize": 3,
+  "missions": [
+    {
+      "id": "explore-6",
+      "name": "Révéler 6 cases",
+      "metric": "revealed",
+      "target": 6,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "explore-12",
+      "name": "Révéler 12 cases",
+      "metric": "revealed",
+      "target": 12,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "explore-20",
+      "name": "Révéler 20 cases",
+      "metric": "revealed",
+      "target": 20,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "forest-3",
+      "name": "Révéler 3 forêts",
+      "metric": "revealed",
+      "target": 3,
+      "terrain": "forest",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "forest-6",
+      "name": "Révéler 6 forêts",
+      "metric": "revealed",
+      "target": 6,
+      "terrain": "forest",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "plain-3",
+      "name": "Révéler 3 plaines",
+      "metric": "revealed",
+      "target": 3,
+      "terrain": "plain",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "plain-6",
+      "name": "Révéler 6 plaines",
+      "metric": "revealed",
+      "target": 6,
+      "terrain": "plain",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "river-3",
+      "name": "Révéler 3 rivières",
+      "metric": "revealed",
+      "target": 3,
+      "terrain": "river",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "river-6",
+      "name": "Révéler 6 rivières",
+      "metric": "revealed",
+      "target": 6,
+      "terrain": "river",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "mountain-3",
+      "name": "Révéler 3 montagnes",
+      "metric": "revealed",
+      "target": 3,
+      "terrain": "mountain",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "mountain-6",
+      "name": "Révéler 6 montagnes",
+      "metric": "revealed",
+      "target": 6,
+      "terrain": "mountain",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "build-2",
+      "name": "Construire 2 bâtiments",
+      "metric": "built",
+      "target": 2,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "build-4",
+      "name": "Construire 4 bâtiments",
+      "metric": "built",
+      "target": 4,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "build-sawmill",
+      "name": "Construire 1 scierie",
+      "metric": "built",
+      "target": 1,
+      "building": "sawmill",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "build-farm",
+      "name": "Construire 1 ferme",
+      "metric": "built",
+      "target": 1,
+      "building": "farm",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "build-port",
+      "name": "Construire 1 port",
+      "metric": "built",
+      "target": 1,
+      "building": "port",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "build-mine",
+      "name": "Construire 1 mine",
+      "metric": "built",
+      "target": 1,
+      "building": "mine",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "two-sawmills",
+      "name": "Construire 2 scieries",
+      "metric": "built",
+      "target": 2,
+      "building": "sawmill",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "workers-1",
+      "name": "Recruter 1 ouvrier",
+      "metric": "recruited",
+      "target": 1,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "workers-3",
+      "name": "Recruter 3 ouvriers",
+      "metric": "recruited",
+      "target": 3,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "stock-8",
+      "name": "Avoir 8 ressources",
+      "metric": "resources",
+      "target": 8,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "stock-12",
+      "name": "Avoir 12 ressources",
+      "metric": "resources",
+      "target": 12,
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "stock-wood",
+      "name": "Avoir 5 bois",
+      "metric": "resources",
+      "target": 5,
+      "resource": "wood",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "stock-stone",
+      "name": "Avoir 4 pierres",
+      "metric": "resources",
+      "target": 4,
+      "resource": "stone",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "stock-iron",
+      "name": "Réserve de fer : 3",
+      "metric": "resources",
+      "target": 3,
+      "resource": "iron",
+      "reward": {
+        "prestige": 1
+      }
+    },
+    {
+      "id": "stock-wheat",
+      "name": "Réserve de blé : 4",
+      "metric": "resources",
+      "target": 4,
+      "resource": "wheat",
+      "reward": {
+        "prestige": 1
+      }
+    }
+  ]
+}

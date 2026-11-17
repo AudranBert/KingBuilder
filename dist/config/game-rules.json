@@ -1,0 +1,19 @@
+{
+  "boardSize": 12,
+  "turnLimit": 20,
+  "scoring": {
+    "tile": 1,
+    "building": 1,
+    "worker": 2,
+    "unit": 1,
+    "resource": 1,
+    "prestige": 3
+  },
+  "prestige": {
+    "startingAmount": 1,
+    "rerollCost": 1,
+    "rerollLimitPerTurn": 1,
+    "wildcardCost": 1,
+    "firstPlayerStartingAmount": 0
+  }
+}

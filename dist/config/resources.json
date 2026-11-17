@@ -1,0 +1,35 @@
+{
+  "resources": [
+    {
+      "id": "wood",
+      "name": "Bois",
+      "icon": "♠",
+      "startingAmount": 2,
+      "points": 1
+    },
+    {
+      "id": "wheat",
+      "name": "Blé",
+      "icon": "⚘",
+      "startingAmount": 1,
+      "points": 1
+    },
+    {
+      "id": "stone",
+      "name": "Pierre",
+      "icon": "◆",
+      "startingAmount": 2,
+      "points": 1
+    },
+    {
+      "id": "iron",
+      "name": "Fer",
+      "icon": "⬡",
+      "startingAmount": 0,
+      "points": 1
+    }
+  ],
+  "recruitmentCost": {
+    "wheat": 1
+  }
+}

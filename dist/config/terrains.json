@@ -1,0 +1,36 @@
+{
+  "terrains": [
+    {
+      "id": "plain",
+      "name": "Plaine",
+      "icon": "❧",
+      "walkable": true,
+      "color": "#bacb86",
+      "foreground": "#7b9750"
+    },
+    {
+      "id": "forest",
+      "name": "Forêt",
+      "icon": "♠",
+      "walkable": true,
+      "color": "#668c68",
+      "foreground": "#315f48"
+    },
+    {
+      "id": "mountain",
+      "name": "Montagne",
+      "icon": "▲",
+      "walkable": false,
+      "color": "#a6ada1",
+      "foreground": "#697669"
+    },
+    {
+      "id": "river",
+      "name": "Rivière",
+      "icon": "≈",
+      "walkable": false,
+      "color": "#94bdc2",
+      "foreground": "#527f8a"
+    }
+  ]
+}

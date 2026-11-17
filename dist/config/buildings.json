@@ -1,0 +1,261 @@
+{
+  "deckSize": 90,
+  "startingBuilding": "house",
+  "buildings": [
+    {
+      "id": "house",
+      "name": "Maison",
+      "icon": "⌂",
+      "cost": {
+        "wood": 2,
+        "stone": 1
+      },
+      "terrain": [
+        "plain",
+        "forest"
+      ],
+      "description": "2 places pour vos ouvriers.",
+      "pattern": "Une case de plaine ou de forêt.",
+      "weight": 1,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "housing": 2
+    },
+    {
+      "id": "farm",
+      "name": "Ferme",
+      "icon": "⚘",
+      "cost": {
+        "wood": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "produces": "wheat",
+      "description": "1 blé par tour avec un ouvrier.",
+      "pattern": "Une plaine centrale + 4 plaines orthogonales, transformées en champs.",
+      "weight": 1,
+      "layout": [
+        ".f.",
+        "fBf",
+        ".f."
+      ],
+      "legend": {
+        "f": {
+          "terrain": [
+            "plain"
+          ],
+          "role": "field"
+        }
+      },
+      "production": 1
+    },
+    {
+      "id": "sawmill",
+      "name": "Scierie",
+      "icon": "⚒",
+      "cost": {
+        "stone": 1
+      },
+      "terrain": [
+        "forest"
+      ],
+      "produces": "wood",
+      "description": "1 bois par tour avec un ouvrier.",
+      "pattern": "Une case de forêt.",
+      "weight": 1,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "production": 1
+    },
+    {
+      "id": "quarry",
+      "name": "Carrière",
+      "icon": "◆",
+      "cost": {
+        "wood": 1,
+        "wheat": 1
+      },
+      "terrain": [
+        "plain",
+        "forest",
+        "mountain"
+      ],
+      "produces": "stone",
+      "description": "1 pierre par tour avec un ouvrier.",
+      "pattern": "Une case hors rivière.",
+      "weight": 1,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "production": 1,
+      "adjacentOn": [
+        "mountain"
+      ]
+    },
+    {
+      "id": "mine",
+      "name": "Mine",
+      "icon": "⚒",
+      "cost": {
+        "wood": 2,
+        "stone": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "produces": "iron",
+      "description": "1 fer par tour avec un ouvrier.",
+      "pattern": "Une plaine d’entrée suivie de 3 montagnes en ligne.",
+      "weight": 1,
+      "layout": [
+        "Bmmm"
+      ],
+      "legend": {
+        "m": {
+          "terrain": [
+            "mountain"
+          ],
+          "role": "mine"
+        }
+      },
+      "production": 1
+    },
+    {
+      "id": "bridge",
+      "name": "Pont",
+      "icon": "═",
+      "cost": {
+        "wood": 2
+      },
+      "terrain": [
+        "river"
+      ],
+      "description": "Sa case rivière devient traversable.",
+      "pattern": "Une case de rivière, à côté de l’unité.",
+      "weight": 1,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "traversable": true,
+      "adjacentOn": [
+        "river"
+      ]
+    },
+    {
+      "id": "port",
+      "name": "Port",
+      "icon": "⚓",
+      "cost": {
+        "wood": 2,
+        "stone": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "produces": "wheat",
+      "description": "1 blé par tour avec un ouvrier.",
+      "pattern": "Une plaine avec 3 cases de rivière alignées sur un côté.",
+      "weight": 1,
+      "layout": [
+        ".w",
+        "Bw",
+        ".w"
+      ],
+      "legend": {
+        "w": {
+          "terrain": [
+            "river"
+          ],
+          "role": "water"
+        }
+      },
+      "production": 1
+    },
+    {
+      "id": "clearing",
+      "name": "Défrichement",
+      "icon": "✂",
+      "cost": {
+        "wheat": 1
+      },
+      "terrain": [
+        "forest"
+      ],
+      "description": "Transforme une forêt en plaine libre.",
+      "pattern": "Une forêt libre sous l’unité. Action sans bâtiment permanent.",
+      "weight": 1,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "transformTo": "plain"
+    },
+    {
+      "id": "mill",
+      "name": "Moulin",
+      "icon": "✣",
+      "cost": {
+        "wood": 2,
+        "stone": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "description": "Double le blé de vos fermes voisines, sans cumul.",
+      "pattern": "Plaine touchant un champ par un bord et votre ferme par un bord ou un coin.",
+      "weight": 1,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "adjacency": [
+        {
+          "role": "field",
+          "range": "edge",
+          "owned": true
+        },
+        {
+          "building": "farm",
+          "range": "touching",
+          "owned": true
+        }
+      ],
+      "boost": {
+        "target": "farm",
+        "multiplier": 2,
+        "range": "touching",
+        "owned": true
+      }
+    },
+    {
+      "id": "barracks",
+      "name": "Caserne",
+      "icon": "⚑",
+      "weight": 1,
+      "cost": {
+        "wood": 2,
+        "stone": 2
+      },
+      "terrain": [
+        "plain"
+      ],
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "description": "Recrute au choix une unité par tour, sans ouvrier.",
+      "pattern": "Une case de plaine.",
+      "trains": [
+        "cavalry"
+      ],
+      "trainingLimit": 1
+    }
+  ]
+}

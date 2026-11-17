@@ -1,0 +1,210 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import {
+  createGame,
+  RULES,
+  key,
+  move,
+  moveError,
+  placement,
+  transformed,
+  build,
+  buildError,
+  exploreError,
+  assignWorker,
+  migrateGame,
+} from "../dist/engine.js";
+import { createPersistence, SAVE_KEY, validateGame } from "../dist/storage.js";
+import { createUIState, normalizeUI } from "../dist/ui/state.js";
+import { escapeHTML, terrainDiagram } from "../dist/ui/html.js";
+import { playersView, rulesView, selectionView } from "../dist/ui/views.js";
+
+function memoryStorage(initial = {}) {
+  const values = new Map(Object.entries(initial));
+  return {
+    values,
+    getItem: (k) => values.get(k) ?? null,
+    setItem: (k, v) => values.set(k, v),
+  };
+}
+test("le plateau configuré est 12×12 et les rois partent au milieu des bords opposés", () => {
+  const g = createGame();
+  assert.equal(RULES.size, 12);
+  assert.deepEqual(
+    g.players.map((p) => [p.x, p.y]),
+    [
+      [0, 6],
+      [11, 6],
+    ],
+  );
+  assert.equal(g.boardSize, 12);
+  assert.equal(validateGame(g), g);
+});
+test("coordonnées fractionnaires, angles et ancres invalides sont refusés sans mutation", () => {
+  const g = createGame(),
+    before = structuredClone(g);
+  assert.throws(() => move(g, 0.5, 7.5));
+  assert.equal(placement(g, 0, 1, 6, Infinity), null);
+  assert.equal(placement(g, 0, 1, 6, 0, 99), null);
+  assert.deepEqual(transformed(g.tileMarket[0], -1), []);
+  g.board[key(1, 6)] = { terrain: "plain" };
+  g.players[0].x = 1;
+  g.buildingMarket[0] = "house";
+  const snapshot = structuredClone(g);
+  assert.throws(() => build(g, 0, 1, 6, 10));
+  assert.deepEqual(g, snapshot);
+  assert.equal(before.players[0].x, 0);
+});
+test("la disponibilité affichée respecte les obstacles et les actions de l’unité", () => {
+  const g = createGame();
+  g.board[key(1, 6)] = { terrain: "mountain" };
+  assert.match(moveError(g, 1, 6), /infranchissable/);
+  g.board[key(1, 6)] = { terrain: "plain" };
+  g.players[1].x = 1;
+  assert.match(moveError(g, 1, 6), /adverse/);
+  g.players[1].x = 11;
+  g.acted = true;
+  assert.match(exploreError(g, 0, 0, 8), /terminé/);
+});
+test("une ressource absente ou non finie ne permet pas de construire à crédit", () => {
+  for (const amount of [undefined, NaN]) {
+    const g = createGame();
+    g.board[key(1, 6)] = { terrain: "forest" };
+    g.players[0].x = 1;
+    g.players[0].resources.stone = amount;
+    g.buildingMarket[0] = "sawmill";
+    const snapshot = structuredClone(g);
+    assert.ok(buildError(g, 0, 1, 6));
+    assert.throws(() => build(g, 0, 1, 6));
+    assert.deepEqual(g, snapshot);
+  }
+});
+test("un marché épuisé ou une tuile plus courte ne conserve pas une ancre invalide", () => {
+  const g = createGame(),
+    ui = createUIState();
+  ui.tileIndex = 2;
+  ui.anchor = 4;
+  g.tileMarket = [
+    {
+      cells: [
+        { x: 0, y: 0, terrain: "plain" },
+        { x: 1, y: 0, terrain: "forest" },
+      ],
+    },
+  ];
+  ui.buildingIndex = 2;
+  g.buildingMarket = [];
+  normalizeUI(g, ui);
+  assert.equal(ui.tileIndex, 0);
+  assert.equal(ui.anchor, 0);
+  assert.equal(ui.buildingIndex, null);
+  g.tileMarket = [];
+  normalizeUI(g, ui);
+  assert.equal(ui.tileIndex, null);
+});
+test("chaque aperçu de tuile garde une entrée visible et les textes sont échappés", () => {
+  const tile = {
+    cells: [
+      { x: 0, y: 0, terrain: "plain" },
+      { x: 1, y: 0, terrain: "forest" },
+    ],
+  };
+  assert.ok(terrainDiagram(tile).includes("tile-diagram"));
+  assert.equal(
+    escapeHTML('<img src=x onerror="x">'),
+    "&lt;img src=x onerror=&quot;x&quot;&gt;",
+  );
+  const g = createGame();
+  g.players[0].name = "<img src=x>";
+  assert.doesNotMatch(playersView(g), /<img/);
+  assert.match(playersView(g), /&lt;img/);
+  assert.match(rulesView(), /12 × 12/);
+});
+test("l’exploration est proposée sans déplacer l’unité ni révéler de cases", () => {
+  const g = createGame(),
+    ui = createUIState();
+  g.tileMarket[0] = {
+    cells: [
+      { x: 0, y: 0, terrain: "plain" },
+      { x: 1, y: 0, terrain: "forest" },
+    ],
+  };
+  ui.selected = { x: 1, y: 7 };
+  ui.exploreTarget = { x: 1, y: 7 };
+  const before = structuredClone(g);
+  assert.match(selectionView(g, ui), /id="explore-confirm"/);
+  assert.deepEqual(g, before);
+});
+test("les sauvegardes actuelles se rechargent sans perte", () => {
+  const g = createGame(),
+    storage = memoryStorage({ [SAVE_KEY]: JSON.stringify(g) }),
+    p = createPersistence(storage);
+  assert.deepEqual(p.load(), g);
+  assert.equal(p.notice, "");
+  assert.equal(p.save(g), true);
+});
+test("les anciennes dimensions et les sauvegardes corrompues sont sauvegardées avant remplacement", () => {
+  for (const raw of [
+    "{broken",
+    JSON.stringify({ ...createGame(), boardSize: 25 }),
+    JSON.stringify({ ...createGame(), version: 999 }),
+  ]) {
+    const storage = memoryStorage({ [SAVE_KEY]: raw }),
+      p = createPersistence(storage);
+    const fresh = p.load();
+    assert.equal(fresh.boardSize, 12);
+    assert.equal(storage.getItem(SAVE_KEY + "-backup"), raw);
+    assert.match(p.notice, /copie/);
+    assert.equal(p.save(fresh), true);
+  }
+});
+test("si la copie échoue, la sauvegarde originale reste intacte", () => {
+  const raw = "{broken",
+    storage = {
+      getItem: (k) => (k === SAVE_KEY ? raw : null),
+      setItem() {
+        throw Error("quota");
+      },
+    },
+    p = createPersistence(storage);
+  p.load();
+  assert.equal(p.writable, false);
+  assert.equal(p.save(createGame()), false);
+  assert.equal(storage.getItem(SAVE_KEY), raw);
+});
+test("le jeu fonctionne en mémoire quand le stockage est indisponible", () => {
+  const p = createPersistence(null),
+    g = p.load();
+  assert.equal(g.boardSize, 12);
+  assert.equal(p.save(g), false);
+  assert.match(p.notice, /indisponible/);
+});
+test("une sauvegarde malformée est rejetée avant de casser l’interface", () => {
+  for (const change of [
+    (g) => (g.players[0].resources.wood = -1),
+    (g) => (g.players[0].workerAssignments = []),
+    (g) =>
+      (g.board[key(1, 6)] = {
+        terrain: "plain",
+        overlay: { anchor: "404,404", role: "field" },
+      }),
+    (g) => g.tileMarket[0].cells.push(g.tileMarket[0].cells[0]),
+  ]) {
+    const g = createGame();
+    change(g);
+    assert.throws(() => validateGame(g), /Sauvegarde incompatible/);
+  }
+});
+test("une affectation sans producteur et une sélection d’unité périmée sont réparées", () => {
+  const g = createGame();
+  g.board[key(2, 6)] = {
+    terrain: "forest",
+    building: { type: "sawmill", owner: 0 },
+  };
+  assignWorker(g, 0, 2, 6);
+  g.board[key(2, 6)].building.type = "house";
+  g.selectedUnitId = 42;
+  migrateGame(g);
+  assert.equal(g.players[0].workerAssignments[0].building, null);
+  assert.equal(g.selectedUnitId, null);
+});

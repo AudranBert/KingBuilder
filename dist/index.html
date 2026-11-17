@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#203d35" />
+    <meta
+      name="description"
+      content="Deux rois, une terre inconnue. Explorez, construisez et faites prospérer votre royaume dans un jeu de stratégie à deux."
+    />
+    <title>KingBuilder — Le duel des royaumes</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="ui.css" />
+    <link rel="stylesheet" href="tabletop.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="./"
+        ><span class="brand-icon">▧</span
+        ><span>KING<span class="brand-light">BUILDER</span></span></a
+      >
+      <div class="round">Tour <strong id="round">01 / 20</strong></div>
+      <nav>
+        <button id="rules-button">Les règles <span>↗</span></button
+        ><button id="new-button" class="quiet">Nouvelle partie</button>
+      </nav>
+    </header>
+    <main aria-busy="true">
+      <div id="game-notice" class="game-notice" role="status" hidden></div>
+      <section id="players" class="players" aria-label="Royaumes"></section>
+      <div class="game-layout">
+        <section class="map-panel">
+          <div
+            id="missions"
+            class="missions"
+            aria-label="Missions communes"
+          ></div>
+          <div class="board-toolbar">
+            <div class="board-modes" aria-label="Interaction avec le plateau">
+              <button data-mode="move" class="selected" aria-pressed="true">
+                Déplacer</button
+              ><button data-mode="inspect" aria-pressed="false">
+                Inspecter
+              </button>
+            </div>
+          </div>
+          <div id="map-scroll" class="map-scroll">
+            <div
+              id="board"
+              class="board"
+              role="grid"
+              aria-label="Plateau de jeu"
+            ></div>
+          </div>
+          <div id="selection" class="selection" aria-live="polite"></div>
+        </section>
+        <button id="end-turn" class="primary">Fin de tour →</button>
+        <aside>
+          <section class="workers-panel" aria-label="Ouvriers disponibles">
+            <button id="recruit" class="secondary">
+              Recruter un ouvrier <small>1 blé</small>
+            </button>
+            <small id="recruit-reason" class="disabled-reason"></small>
+            <div id="worker-list" data-worker-reserve></div>
+          </section>
+
+          <section class="market-panel">
+            <div class="section-title">
+              <h2>Terrains</h2>
+              <button
+                id="reroll-terrain"
+                class="reroll"
+                aria-label="Relancer les terrains"
+              ></button>
+            </div>
+            <div id="tile-market" class="tile-market"></div>
+            <div class="tile-controls">
+              <button id="rotate">↻ Pivoter</button
+              ><span id="rotation-label">0°</span>
+            </div>
+          </section>
+          <section class="market-panel">
+            <div class="section-title">
+              <h2>Bâtiments</h2>
+              <button
+                id="reroll-building"
+                class="reroll"
+                aria-label="Relancer les bâtiments"
+              ></button>
+            </div>
+            <div id="building-market" class="building-market"></div>
+            <div class="tile-controls">
+              <button id="rotate-building">↻ Pivoter</button
+              ><span id="building-rotation-label">0°</span>
+            </div>
+          </section>
+        </aside>
+      </div>
+      <span id="save-status" class="sr-only" role="status"></span>
+    </main>
+    <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="rules-dialog" aria-labelledby="rules-title">
+      <button class="close" aria-label="Fermer">×</button
+      ><span class="eyebrow">LE LIVRE DU ROYAUME</span>
+      <h2 id="rules-title">Les règles du duel</h2>
+      <div class="rules-content"></div>
+      <button class="primary close-rules">Fermer</button>
+    </dialog>
+    <dialog id="new-dialog" aria-labelledby="new-title">
+      <span class="eyebrow">UN NOUVEAU DÉPART</span>
+      <h2 id="new-title">Nouvelle partie ?</h2>
+      <p>La partie sauvegardée sera remplacée.</p>
+      <div class="dialog-actions">
+        <button class="cancel secondary">Garder la partie</button
+        ><button class="confirm primary">Nouvelle partie</button>
+      </div>
+    </dialog>
+    <dialog id="result-dialog" aria-labelledby="winner">
+      <span class="eyebrow">LES CHRONIQUES S’ACHÈVENT</span>
+      <h2 id="winner"></h2>
+      <div id="results"></div>
+      <button class="primary close-results">Voir le plateau →</button>
+    </dialog>
+    <dialog id="prestige-dialog" aria-labelledby="prestige-title">
+      <h2 id="prestige-title">Utiliser du prestige ?</h2>
+      <p id="prestige-warning"></p>
+      <div class="dialog-actions">
+        <button class="cancel secondary">Annuler</button
+        ><button class="confirm primary">Confirmer</button>
+      </div>
+    </dialog>
+    <script type="module" src="bootstrap.js"></script>
+  </body>
+</html>
