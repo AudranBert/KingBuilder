@@ -1,3 +1,4 @@
+import { iconHTML } from "./html.js";
 import { piece } from "./pieces.js";
 import {
   RULES,
@@ -148,6 +149,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         const near = !guidance.size && ui.mode === "move" && paths.has(position);
         const selected = ui.selected?.x === x && ui.selected?.y === y;
         button.className = `cell ${cell ? `terrain-${cell.terrain}` : "unknown"} ${b || cell?.overlay ? "built-tile" : ""} ${cell?.overlay?.role === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "king") ? "king" : ""}`;
+        button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[cell.terrain].texture}`, import.meta.url).href}")` : "";
         button.style.backgroundColor = cell ? TERRAINS[cell.terrain].color : "";
         if (guidance.has(position)) button.classList.add(guidance.get(position).error ? "placement-blocked" : "placement-available");
         button.style.color = cell ? TERRAINS[cell.terrain].foreground : "";
@@ -168,11 +170,11 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         button.setAttribute("aria-label", parts.join(", "));
         button.title = parts.join(" · ");
         let html = b
-          ? `<span class="building-piece" aria-hidden="true">${e(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${b.owner === 1 ? "jade" : ""}" aria-hidden="true"></i>`
+          ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${b.owner === 1 ? "jade" : ""}" aria-hidden="true"></i>`
           : cell?.overlay?.role === "field"
-            ? '<span class="field-piece" aria-hidden="true">≋</span>'
+            ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS.field.icon)}</span>`
             : cell
-              ? `<span class="terrain-symbol" aria-hidden="true">${e(TERRAINS[cell.terrain].icon)}</span>`
+              ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[cell.terrain].icon)}</span>`
               : "";
         if (b?.type && BUILDINGS[b.type].produces) {
           const amount = productionAmount(g, x, y);

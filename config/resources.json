@@ -3,30 +3,45 @@
     {
       "id": "wood",
       "name": "Bois",
-      "icon": "♠",
+      "icon": "assets/textures/resources-wood.svg",
       "startingAmount": 2,
       "points": 1
     },
     {
       "id": "wheat",
       "name": "Blé",
-      "icon": "⚘",
+      "icon": "assets/textures/resources-wheat.svg",
       "startingAmount": 1,
       "points": 1
     },
     {
       "id": "stone",
       "name": "Pierre",
-      "icon": "◆",
+      "icon": "assets/textures/resources-stone.svg",
       "startingAmount": 2,
       "points": 1
     },
     {
       "id": "iron",
       "name": "Fer",
-      "icon": "⬡",
+      "icon": "assets/textures/resources-iron.svg",
       "startingAmount": 0,
       "points": 1
+    },
+    {
+      "id": "gold",
+      "name": "Pièce d’or",
+      "icon": "assets/textures/resources-gold.svg",
+      "startingAmount": 0,
+      "points": 0
+    },
+    {
+      "id": "population",
+      "name": "Population",
+      "icon": "assets/textures/resources-population.svg",
+      "startingAmount": 0,
+      "points": 0,
+      "calculated": "population"
     }
   ]
 }

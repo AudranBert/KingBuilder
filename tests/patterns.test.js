@@ -62,6 +62,7 @@ test("ferme : cinq plaines deviennent une seule tuile de ferme et quatre champs"
     [6, 7],
   ]) {
     assert.equal(g.board[key(x, y)].overlay.role, "field");
+    assert.equal(g.board[key(x, y)].terrain, "field");
     assert.equal(buildingAt(g, x, y).building.type, "farm");
   }
   assert.equal(score(g, 0).buildings, 2);
@@ -172,7 +173,7 @@ test("les trois moulins gardent les mêmes contraintes et le même bonus", () =>
         !reserved.has(key(7 + x, 7 + y)) && !reserved.has(key(7 + x + y, 7 + y + x)));
       const fx = 7 + dx + dy, fy = 7 + dy + dx;
       g.board[key(fx, fy)] = { terrain: "plain", building: {type: "farm_z", owner: 0} };
-      g.board[key(7 + dx, 7 + dy)] = { terrain: "plain", overlay: {anchor: key(fx, fy), role: "field", owner: 0} };
+      g.board[key(7 + dx, 7 + dy)] = { terrain: "field", overlay: {anchor: key(fx, fy), role: "field", owner: 0} };
       g.players[0].workerAssignments[0].building = key(fx, fy);
       build(g, 0, 7, 7, r);
       assert.equal(productionAmount(g, fx, fy), 2);
@@ -299,4 +300,17 @@ test("tous les bâtiments sont dans la pioche et les anciennes parties restent j
   migrateGame(g);
   assert.equal(g.buildingDeck.length, n);
   assert.equal(buildingPattern("mine").length, 4);
+});
+
+test("champs : conversion des anciennes fermes et moulin refusé sur de simples plaines", () => {
+  const g = farmAndMill();
+  for (const cell of Object.values(g.board)) {
+    if (cell.overlay?.role === "field") cell.terrain = "plain";
+  }
+  assert.ok(buildError(g, 0, 8, 8));
+  migrateGame(g);
+  for (const cell of Object.values(g.board)) {
+    if (cell.overlay?.role === "field") assert.equal(cell.terrain, "field");
+  }
+  assert.equal(buildError(g, 0, 8, 8), null);
 });

@@ -5,7 +5,7 @@
     {
       "id": "house",
       "name": "Maison",
-      "icon": "⌂",
+      "icon": "assets/textures/buildings-house.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -27,7 +27,7 @@
     {
       "id": "farm",
       "name": "Ferme",
-      "icon": "⚘",
+      "icon": "assets/textures/buildings-farm.svg",
       "cost": {
         "wood": 1
       },
@@ -48,7 +48,8 @@
           "terrain": [
             "plain"
           ],
-          "role": "field"
+          "role": "field",
+          "transformTo": "field"
         }
       },
       "production": 1,
@@ -57,7 +58,7 @@
     {
       "id": "sawmill",
       "name": "Scierie",
-      "icon": "⚒",
+      "icon": "assets/textures/buildings-sawmill.svg",
       "cost": {
         "stone": 1
       },
@@ -77,8 +78,8 @@
     },
     {
       "id": "quarry",
-      "name": "Carrière de plaine",
-      "icon": "◆",
+      "name": "Carrière",
+      "icon": "assets/textures/buildings-quarry.svg",
       "cost": {
         "wood": 1,
         "wheat": 1
@@ -100,7 +101,7 @@
     {
       "id": "mine",
       "name": "Mine",
-      "icon": "⚒",
+      "icon": "assets/textures/buildings-mine.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -129,7 +130,7 @@
     {
       "id": "bridge",
       "name": "Pont",
-      "icon": "═",
+      "icon": "assets/textures/buildings-bridge.svg",
       "cost": {
         "wood": 2
       },
@@ -149,7 +150,7 @@
     {
       "id": "port",
       "name": "Port",
-      "icon": "⚓",
+      "icon": "assets/textures/buildings-port.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -180,7 +181,7 @@
     {
       "id": "clearing",
       "name": "Défrichement",
-      "icon": "✂",
+      "icon": "assets/textures/buildings-clearing.svg",
       "cost": {},
       "terrain": [
         "forest"
@@ -201,7 +202,7 @@
     {
       "id": "mill",
       "name": "Moulin",
-      "icon": "✣",
+      "icon": "assets/textures/buildings-mill.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -220,7 +221,8 @@
         {
           "role": "field",
           "range": "edge",
-          "owned": true
+          "owned": true,
+          "terrain": "field"
         },
         {
           "building": "farm",
@@ -239,7 +241,7 @@
     {
       "id": "barracks",
       "name": "Caserne",
-      "icon": "⚑",
+      "icon": "assets/textures/buildings-barracks.svg",
       "weight": 5,
       "cost": {
         "wood": 2,
@@ -262,8 +264,8 @@
     },
     {
       "id": "quarry_mountain",
-      "name": "Carrière de montagne",
-      "icon": "◆",
+      "name": "Carrière",
+      "icon": "assets/textures/buildings-quarry.svg",
       "cost": {
         "wood": 1,
         "wheat": 1
@@ -285,8 +287,8 @@
     },
     {
       "id": "mine_square",
-      "name": "Mine — massif carré",
-      "icon": "⚒",
+      "name": "Mine",
+      "icon": "assets/textures/buildings-mine.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -316,8 +318,8 @@
     },
     {
       "id": "port_square",
-      "name": "Port — bassin carré",
-      "icon": "⚓",
+      "name": "Port",
+      "icon": "assets/textures/buildings-port.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -348,7 +350,7 @@
     {
       "id": "castle",
       "name": "Château",
-      "icon": "♜",
+      "icon": "assets/textures/buildings-castle.svg",
       "cost": {},
       "terrain": [
         "plain"
@@ -365,8 +367,8 @@
     },
     {
       "id": "farm_z",
-      "name": "Ferme — Z",
-      "icon": "⚘",
+      "name": "Ferme",
+      "icon": "assets/textures/buildings-farm.svg",
       "cost": {
         "wood": 1
       },
@@ -387,7 +389,8 @@
           "terrain": [
             "plain"
           ],
-          "role": "field"
+          "role": "field",
+          "transformTo": "field"
         }
       },
       "production": 1,
@@ -396,8 +399,8 @@
     },
     {
       "id": "sawmill_cross",
-      "name": "Scierie — croix",
-      "icon": "⚒",
+      "name": "Scierie",
+      "icon": "assets/textures/buildings-sawmill.svg",
       "cost": {
         "stone": 1
       },
@@ -427,8 +430,8 @@
     },
     {
       "id": "farm_t",
-      "name": "Ferme — T",
-      "icon": "⚘",
+      "name": "Ferme",
+      "icon": "assets/textures/buildings-farm.svg",
       "cost": {
         "wood": 1
       },
@@ -449,7 +452,8 @@
           "terrain": [
             "plain"
           ],
-          "role": "field"
+          "role": "field",
+          "transformTo": "field"
         }
       },
       "production": 1,
@@ -458,8 +462,8 @@
     },
     {
       "id": "sawmill_l",
-      "name": "Scierie — L",
-      "icon": "⚒",
+      "name": "Scierie",
+      "icon": "assets/textures/buildings-sawmill.svg",
       "cost": {
         "stone": 1
       },
@@ -489,8 +493,8 @@
     },
     {
       "id": "quarry_ridge",
-      "name": "Carrière — flanc de montagne",
-      "icon": "◆",
+      "name": "Carrière",
+      "icon": "assets/textures/buildings-quarry.svg",
       "cost": {
         "wood": 1,
         "wheat": 1
@@ -520,8 +524,8 @@
     },
     {
       "id": "mine_l",
-      "name": "Mine — coude",
-      "icon": "⚒",
+      "name": "Mine",
+      "icon": "assets/textures/buildings-mine.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -551,8 +555,8 @@
     },
     {
       "id": "port_l",
-      "name": "Port — coude",
-      "icon": "⚓",
+      "name": "Port",
+      "icon": "assets/textures/buildings-port.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -582,8 +586,8 @@
     },
     {
       "id": "mill_line",
-      "name": "Moulin — cour en ligne",
-      "icon": "✣",
+      "name": "Moulin",
+      "icon": "assets/textures/buildings-mill.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -609,7 +613,8 @@
         {
           "role": "field",
           "range": "edge",
-          "owned": true
+          "owned": true,
+          "terrain": "field"
         },
         {
           "building": "farm",
@@ -628,8 +633,8 @@
     },
     {
       "id": "mill_l",
-      "name": "Moulin — cour en L",
-      "icon": "✣",
+      "name": "Moulin",
+      "icon": "assets/textures/buildings-mill.svg",
       "cost": {
         "wood": 2,
         "stone": 1
@@ -656,7 +661,8 @@
         {
           "role": "field",
           "range": "edge",
-          "owned": true
+          "owned": true,
+          "terrain": "field"
         },
         {
           "building": "farm",

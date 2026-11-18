@@ -24,7 +24,6 @@ import {
   totalScore,
   key,
 } from "./engine.js";
-import { createPersistence, SAVE_KEY } from "./storage.js";
 import { createUIState } from "./ui/state.js";
 import { dragFromCard, dragPreview, moveUnitTo, placementGuidance } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
@@ -33,6 +32,7 @@ import {
   e,
   costHTML,
   costText,
+  populationHTML,
   terrainDiagram,
   buildingDiagram,
 } from "./ui/html.js";
@@ -55,30 +55,17 @@ export function startGame() {
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
-  let storage;
-  try {
-    storage = window.localStorage;
-  } catch {
-    storage = null;
-  }
-  const persistence = createPersistence(storage);
-  let hasSavedGame = false;
-  try {
-    hasSavedGame = Boolean(storage?.getItem(SAVE_KEY));
-  } catch {}
-  let game = persistence.load(),
+  let game = createGame(),
     toastTimer;
   let nextMode = game.mode || "local";
   let inMenu = true;
+  let gameStarted = false;
   function showMenu() {
     drag.cancel();
     inMenu = true;
     $("#main-menu").hidden = false;
     $("header").hidden = true;
     $("main").hidden = true;
-    $("#resume-button").hidden = !hasSavedGame;
-    $("#resume-button").textContent =
-      `Reprendre la partie ${game.mode === "solo" ? "solo" : "locale"} →`;
     $("[data-game-mode='solo']").focus();
   }
   function enterGame() {
@@ -126,24 +113,11 @@ export function startGame() {
       4500,
     );
   }
-  function save() {
-    const saved = persistence.save(game);
-    hasSavedGame = true;
-    $("#save-status").textContent = saved
-      ? "Partie enregistrée dans ce navigateur"
-      : "Sauvegarde indisponible · gardez cet onglet ouvert";
-    $("#save-status").classList.toggle("save-unavailable", !saved);
-    if (!saved) {
-      $("#game-notice").textContent = persistence.notice;
-      $("#game-notice").hidden = false;
-    }
-  }
   function act(action, { message } = {}) {
     try {
       const previousClaims = game.missions.claimed.length;
       action();
       const won = game.missions.claimed.slice(previousClaims);
-      save();
       render();
       if (won.length)
         toast(
@@ -182,7 +156,7 @@ export function startGame() {
     html("#harvest", harvestView(game));
     placementHelp();
     const recruitReason = recruitError(game);
-    html("#recruit", `+ ${e(UNIT_DEFINITIONS.worker.name)} <small>${costHTML(RECRUITMENT_COST)} · ${UNIT_DEFINITIONS.worker.population} population</small>`);
+    html("#recruit", `+ ${e(UNIT_DEFINITIONS.worker.name)} <small>${costHTML(RECRUITMENT_COST)} · ${populationHTML(UNIT_DEFINITIONS.worker.population)}</small>`);
     $("#recruit").disabled = Boolean(recruitReason);
     $("#recruit-reason").textContent = recruitReason || "";
     $("#end-turn").textContent = game.finished
@@ -415,10 +389,9 @@ export function startGame() {
   );
   $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
   $("#menu-button").addEventListener("click", showMenu);
-  $("#resume-button").addEventListener("click", enterGame);
   function requestNewGame(mode) {
     nextMode = mode;
-    if (hasSavedGame) $("#new-dialog").showModal();
+    if (gameStarted && !game.finished) $("#new-dialog").showModal();
     else beginNewGame();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
@@ -443,6 +416,7 @@ export function startGame() {
       },
     );
     if (created) {
+      gameStarted = true;
       $("#new-dialog").close();
       enterGame();
     }
@@ -519,9 +493,5 @@ export function startGame() {
   });
   html(".rules-content", rulesView());
   render();
-  if (persistence.notice) {
-    $("#game-notice").textContent = persistence.notice;
-    $("#game-notice").hidden = false;
-  }
   showMenu();
 }

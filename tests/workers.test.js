@@ -23,7 +23,7 @@ function producer(g, x, y, type = "sawmill", owner = 0) {
 test("départ : ressources conservées et un ouvrier libre, sans position ni déplacements", () => {
   const g = createGame();
   for (const p of g.players) {
-    assert.deepEqual(p.resources, { wood: 2, wheat: 1, stone: 2, iron: 0 });
+    assert.deepEqual(p.resources, { wood: 2, wheat: 1, stone: 2, iron: 0, gold: 0 });
     assert.deepEqual(p.workerAssignments, [{ id: 0, building: null }]);
     assert.equal(p.workerPawns, undefined);
   }

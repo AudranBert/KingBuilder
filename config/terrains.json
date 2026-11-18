@@ -3,34 +3,47 @@
     {
       "id": "plain",
       "name": "Plaine",
-      "icon": "❧",
+      "icon": "assets/textures/terrains-plain.svg",
       "walkable": true,
       "color": "#bacb86",
-      "foreground": "#7b9750"
+      "foreground": "#7b9750",
+      "texture": "assets/textures/plain.svg"
     },
     {
       "id": "forest",
       "name": "Forêt",
-      "icon": "♠",
+      "icon": "assets/textures/terrains-forest.svg",
       "walkable": true,
       "color": "#668c68",
-      "foreground": "#315f48"
+      "foreground": "#315f48",
+      "texture": "assets/textures/forest.svg"
     },
     {
       "id": "mountain",
       "name": "Montagne",
-      "icon": "▲",
+      "icon": "assets/textures/terrains-mountain.svg",
       "walkable": false,
       "color": "#a6ada1",
-      "foreground": "#697669"
+      "foreground": "#697669",
+      "texture": "assets/textures/mountain.svg"
     },
     {
       "id": "river",
       "name": "Rivière",
-      "icon": "≈",
+      "icon": "assets/textures/terrains-river.svg",
       "walkable": false,
       "color": "#94bdc2",
-      "foreground": "#527f8a"
+      "foreground": "#527f8a",
+      "texture": "assets/textures/river.svg"
+    },
+    {
+      "id": "field",
+      "name": "Champs",
+      "icon": "assets/textures/terrains-field.svg",
+      "texture": "assets/textures/field.svg",
+      "walkable": true,
+      "color": "#d8bd72",
+      "foreground": "#947039"
     }
   ]
 }

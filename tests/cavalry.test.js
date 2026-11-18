@@ -26,7 +26,7 @@ function setup() {
     terrain: "plain",
     building: { type: "barracks", owner: 0 },
   };
-  g.players[0].resources = { wood: 10, stone: 10, iron: 5, wheat: 5 };
+  g.players[0].resources = { wood: 10, stone: 10, iron: 5, wheat: 5, gold: 0 };
   return g;
 }
 function nextOwnTurn(g) {

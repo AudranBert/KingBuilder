@@ -117,6 +117,8 @@ Le coût de recrutement de l’ouvrier est défini dans `units.json`, entrée `w
 
 Modifier un nom ou un symbole n’exige pas de changer les références. Modifier un identifiant exige de mettre à jour tous les coûts et productions qui l’utilisent. Supprimer une ressource encore référencée déclenche une erreur explicite. Une ressource ajoutée à une partie existante commence à 0 ; les nouvelles parties utilisent `startingAmount`.
 
+La population est une ressource calculée (`"calculated": "population"`) : sa valeur affichée correspond aux places occupées et à la capacité de logement. Elle n’est ni stockée ni dépensable. La pièce d’or (`gold`) est une ressource stockable initialisée à 0, réservée aux futurs coûts et échanges avec le prestige.
+
 ## `buildings.json` — bâtiments, motifs et effets
 
 Chaque entrée de `buildings` possède :
@@ -270,3 +272,5 @@ L’ouvrier est recruté par le bouton dédié, selon `workerRecruitmentLimitPer
 `recruitment` vaut `initial` pour `king`, `direct` pour `worker` et `building` pour les autres unités. Un coût non vide pour une unité initiale est refusé, car elle n’est pas achetée.
 
 Dans `missions.json`, `marketSize` détermine le nombre d’offres ; `initialDifficulty` leur niveau initial ; `maxDifficulty` le dernier niveau ; `requiredContribution` la progression minimale après apparition. Chaque famille doit contenir un objectif par niveau de 1 à `maxDifficulty`.
+
+Le terrain `field` (Champs) est créé par les fermes : leurs cases annexes portent `transformTo: "field"` dans la légende. Les conditions de voisinage des moulins exigent `terrain: "field"` en plus du rôle et du propriétaire. Les anciennes cases de rôle `field` sont converties au chargement.

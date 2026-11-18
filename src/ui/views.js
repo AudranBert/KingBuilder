@@ -1,3 +1,4 @@
+import { iconHTML } from "./html.js";
 import { piece } from "./pieces.js";
 import {
   RULES,
@@ -29,6 +30,7 @@ import {
   e,
   costHTML,
   costText,
+  populationHTML,
   coordinates,
   terrainDiagram,
   buildingDiagram,
@@ -38,12 +40,12 @@ export function playersView(g) {
   return g.players
     .map(
       (p, i) =>
-        `<article class="player ${i === 1 ? "jade" : ""} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(p.name)}${g.active === i && !g.finished ? ", à vous de jouer" : ""}"><div class="crest" aria-hidden="true">${piece("king")}</div><div class="player-name"><h2>${e(p.name)}</h2><small>${population(g, i)}/${housing(g, i)} population</small></div><div class="resources">${Object.entries(
+        `<article class="player ${i === 1 ? "jade" : ""} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(p.name)}${g.active === i && !g.finished ? ", à vous de jouer" : ""}"><div class="crest" aria-hidden="true">${piece("king")}</div><div class="player-name"><h2>${e(p.name)}</h2></div><div class="resources">${Object.entries(
           RESOURCE_DEFINITIONS,
         )
           .map(
             ([id, r]) =>
-              `<div class="resource" title="${e(r.name)}" aria-label="${p.resources[id] ?? 0} ${e(r.name)}"><em aria-hidden="true">${e(r.icon)}</em>${p.resources[id] ?? 0}<small>${e(r.name)}</small></div>`,
+              `<div class="resource" title="${e(r.name)}" aria-label="${r.calculated === "population" ? `${population(g, i)}/${housing(g, i)}` : p.resources[id] ?? 0} ${e(r.name)}"><em aria-hidden="true">${iconHTML(r.icon)}</em>${r.calculated === "population" ? `${population(g, i)}/${housing(g, i)}` : p.resources[id] ?? 0}<small>${e(r.name)}</small></div>`,
           )
           .join(
             "",
@@ -58,7 +60,7 @@ export function trainingView(g, position, b) {
     .map((type) => {
       const unit = UNIT_DEFINITIONS[type],
         error = trainError(g, x, y, type);
-      return `<div class="training-option"><button class="train-unit secondary" data-action="train" data-type="${e(type)}" data-position="${position}" ${error ? "disabled" : ""}>${e(unit.icon)} ${e(unit.name)}<small>${costHTML(unit.cost)} · ${unit.population} population</small></button>${error ? `<small class="disabled-reason">${e(error)}</small>` : ""}</div>`;
+      return `<div class="training-option"><button class="train-unit secondary" data-action="train" data-type="${e(type)}" data-position="${position}" ${error ? "disabled" : ""}>${iconHTML(unit.icon)} ${e(unit.name)}<small>${costHTML(unit.cost)} · ${populationHTML(unit.population)}</small></button>${error ? `<small class="disabled-reason">${e(error)}</small>` : ""}</div>`;
     })
     .join("");
 }
@@ -115,7 +117,7 @@ export function buildingMarketView(g, ui) {
         const b = BUILDINGS[type],
           choice = ui.drag || ui.placement,
           selected = choice?.kind === "building" && choice.index === i;
-        return `<div class="building-offer"><button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les placements · Glisser pour construire" data-building="${i}" aria-pressed="${selected}">${buildingDiagram(type, ui.buildingRotation)}<span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${e(buildingDescription(b))}</span><span class="cost">${costHTML(b.cost)}${b.onBuildGain ? ` · Gain : ${costHTML(b.onBuildGain)}` : ""}</span><span class="building-hint">Cliquer pour placer · Glisser pour construire</span></span></button><button class="secondary offer-details" data-building-details="${e(type)}" data-building-orientation="${ui.buildingRotation}" aria-haspopup="dialog">Voir les détails</button></div>`;
+        return `<div class="building-offer"><button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les placements · Glisser pour construire" data-building="${i}" aria-pressed="${selected}">${buildingDiagram(type, ui.buildingRotation)}<span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${e(buildingDescription(b))}</span><span class="cost">${costHTML(b.cost)}${b.onBuildGain ? ` · Gain : ${costHTML(b.onBuildGain)}` : ""}</span><span class="building-hint">Cliquer pour placer · Glisser pour construire</span></span></button><button class="secondary offer-details" data-building-details="${e(type)}" data-building-orientation="${ui.buildingRotation}" aria-haspopup="dialog" aria-label="Voir les détails de ${e(b.name)}" title="Voir les détails de ${e(b.name)}">i</button></div>`;
       })
       .join("") ||
     '<p class="empty-state">La pioche de bâtiments est épuisée.</p>'
@@ -127,13 +129,13 @@ function buildingDescription(b) {
   return b.description;
 }
 function buildingStars(b) {
-  return `<span class="building-stars" aria-label="${b.tier} étoile${b.tier > 1 ? "s" : ""}">${b.tier ? "★".repeat(b.tier) : "0 ★"}</span>`;
+  return `<span class="building-stars" aria-label="${b.tier} étoile${b.tier > 1 ? "s" : ""}">${b.tier ? "★".repeat(b.tier) : "☆"}</span>`;
 }
 export function buildingDetailsView(type, rotation = 0) {
   const b = BUILDINGS[type];
   if (!b) return "";
-  const terrains = [...new Set(b.cells.flatMap(c => c.terrain))];
-  return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(b.name)}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${e(TERRAINS[id].icon)}</i>${e(TERRAINS[id].name)}</span>`).join("")}</p><p>${e(b.pattern)}</p><p><strong>Effet :</strong> ${e(buildingDescription(b))}</p><p><strong>${b.constructible === false ? "Disponibilité" : "Coût"} :</strong> ${b.constructible === false ? "Bâtiment de départ uniquement" : costHTML(b.cost)}</p><p class="building-placement-help">${b.constructible === false ? `${e(b.name)} accueille ${b.housing || 0} places de population.` : `Le symbole marque l’entrée : placez-la à ${RULES.placement.constructionRange} case(s) maximum de l’unité, sans diagonale. Le motif peut pivoter ; toutes ses cases doivent être libres et respecter les terrains indiqués.`}</p>`;
+  const terrains = [...new Set(b.cells.flatMap(c => [...c.terrain, ...(c.transformTo ? [c.transformTo] : [])]))];
+  return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(b.name)}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${iconHTML(TERRAINS[id].icon)}</i>${e(TERRAINS[id].name)}</span>`).join("")}</p><p>${e(b.pattern)}</p><p><strong>Effet :</strong> ${e(buildingDescription(b))}</p><p><strong>${b.constructible === false ? "Disponibilité" : "Coût"} :</strong> ${b.constructible === false ? "Bâtiment de départ uniquement" : costHTML(b.cost)}</p><p class="building-placement-help">${b.constructible === false ? `${e(b.name)} accueille ${b.housing || 0} places de population.` : `Le symbole marque l’entrée : placez-la à ${RULES.placement.constructionRange} case(s) maximum de l’unité, sans diagonale. Le motif peut pivoter ; toutes ses cases doivent être libres et respecter les terrains indiqués.`}</p>`;
 }
 
 export function selectionView(g, ui) {

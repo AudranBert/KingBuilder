@@ -47,13 +47,15 @@ test("60 cartes, au maximum huit par famille variantes comprises", () => {
   input[1].buildings.find(b => b.id === "clearing").weight = 5;
   assert.throws(() => compileConfiguration(...input), /maxFamilyCopies/);
 });
-test("les sept fichiers définissent treize formes, vingt-trois bâtiments et quatre ressources", () => {
+test("les sept fichiers définissent treize formes, vingt-trois bâtiments et six ressources", () => {
   const input = configs(),
     before = structuredClone(input),
     c = compileConfiguration(...input);
   assert.equal(Object.keys(c.shapes).length, 13);
   assert.equal(Object.keys(c.buildings).length, 23);
-  assert.equal(Object.keys(c.resources).length, 4);
+  assert.equal(Object.keys(c.resources).length, 6);
+  assert.equal(c.resources.population.calculated, "population");
+  assert.equal(c.resources.gold.startingAmount, 0);
   assert.equal(Object.keys(c.units).length, 3);
   assert.equal(input[1].units, undefined);
   assert.equal(c.units.cavalry.moves, 2);
@@ -261,13 +263,13 @@ async function runConfiguredGame(input, body) {
 test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent sans éditer le moteur", async () => {
   const input = configs();
   input[2].resources.push({
-    id: "gold",
-    name: "Or",
+    id: "silver",
+    name: "Argent",
     icon: "●",
     startingAmount: 3,
     points: 2,
   });
-  input[3].units.find(u => u.id === "worker").cost = { gold: 1 };
+  input[3].units.find(u => u.id === "worker").cost = { silver: 1 };
   input[0].shapes.push({
     id: "future6",
     name: "Six cases",
@@ -287,11 +289,11 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
     name: "Atelier monétaire",
     icon: "●",
     weight: 1,
-    cost: { gold: 2 },
+    cost: { silver: 2 },
     terrain: ["plain"],
     layout: ["B"],
     legend: {},
-    produces: "gold",
+    produces: "silver",
     production: 3,
     description: "3 or par tour.",
     pattern: "Une plaine.",
@@ -301,7 +303,7 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
     recruitment: "building",
     name: "Éclaireur",
     icon: "♘",
-    cost: { gold: 1 },
+    cost: { silver: 1 },
     moves: 3,
     population: 1,
     points: 2,
@@ -316,7 +318,7 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
   };
   await runConfiguredGame(
     input,
-    `const {createGame,BUILDINGS,RESOURCE_ICONS,score,key,housing,build,assignWorker,endTurn,recruit,placement,UNIT_DEFINITIONS,trainUnit,selectUnit,actor,population}=game;const g=createGame();assert.equal(g.players[0].resources.gold,3);assert.equal(RESOURCE_ICONS.gold,'●');assert.equal(score(g,0).resources,3);assert.equal(housing(g,0),3);assert.ok([...g.tileDeck,...g.tileMarket].some(t=>t.shapeId==='future6'&&t.cells.length===6));assert.ok([...g.buildingDeck,...g.buildingMarket].includes('mint'));g.board[key(1,6)]={terrain:'plain'};g.players[0].x=1;g.buildingMarket[0]='mint';build(g,0,1,6);assert.equal(g.players[0].resources.gold,1);assignWorker(g,0,1,6);g.board[key(2,6)]={terrain:'plain',building:{type:'mill',owner:0}};endTurn(g);assert.equal(g.players[0].resources.gold,10);endTurn(g);recruit(g);assert.equal(g.players[0].resources.gold,9);assert.equal(g.players[0].resources.wheat,1);g.tileMarket[0]=[...g.tileDeck,...g.tileMarket].find(t=>t.shapeId==='future6');assert.equal(placement(g,0,5,5).length,6);g.board[key(4,4)]={terrain:'plain',building:{type:'barracks',owner:0}};const unit=trainUnit(g,4,4,'scout');assert.equal(g.players[0].resources.gold,8);assert.equal(population(g,0),3);assert.equal(score(g,0).units,2);assert.equal(UNIT_DEFINITIONS.scout.name,'Éclaireur');endTurn(g);endTurn(g);selectUnit(g,unit.id);assert.equal(actor(g).moves,3);`,
+    `const {createGame,BUILDINGS,RESOURCE_ICONS,score,key,housing,build,assignWorker,endTurn,recruit,placement,UNIT_DEFINITIONS,trainUnit,selectUnit,actor,population}=game;const g=createGame();assert.equal(g.players[0].resources.silver,3);assert.equal(RESOURCE_ICONS.silver,'●');assert.equal(score(g,0).resources,3);assert.equal(housing(g,0),3);assert.ok([...g.tileDeck,...g.tileMarket].some(t=>t.shapeId==='future6'&&t.cells.length===6));assert.ok([...g.buildingDeck,...g.buildingMarket].includes('mint'));g.board[key(1,6)]={terrain:'plain'};g.players[0].x=1;g.buildingMarket[0]='mint';build(g,0,1,6);assert.equal(g.players[0].resources.silver,1);assignWorker(g,0,1,6);g.board[key(2,6)]={terrain:'plain',building:{type:'mill',owner:0}};endTurn(g);assert.equal(g.players[0].resources.silver,10);endTurn(g);recruit(g);assert.equal(g.players[0].resources.silver,9);assert.equal(g.players[0].resources.wheat,1);g.tileMarket[0]=[...g.tileDeck,...g.tileMarket].find(t=>t.shapeId==='future6');assert.equal(placement(g,0,5,5).length,6);g.board[key(4,4)]={terrain:'plain',building:{type:'barracks',owner:0}};const unit=trainUnit(g,4,4,'scout');assert.equal(g.players[0].resources.silver,8);assert.equal(population(g,0),3);assert.equal(score(g,0).units,2);assert.equal(UNIT_DEFINITIONS.scout.name,'Éclaireur');endTurn(g);endTurn(g);selectUnit(g,unit.id);assert.equal(actor(g).moves,3);`,
   );
 });
 test("la durée et chaque composante du score final suivent game-rules.json", async () => {

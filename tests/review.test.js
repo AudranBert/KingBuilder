@@ -105,7 +105,8 @@ test("chaque aperçu de tuile affiche ses terrains et les textes sont échappés
   );
   const g = createGame();
   g.players[0].name = "<img src=x>";
-  assert.doesNotMatch(playersView(g), /<img/);
+  assert.doesNotMatch(playersView(g), /<img src=x>/);
+  assert.match(playersView(g), /&lt;img src=x&gt;/);
   assert.match(playersView(g), /&lt;img/);
   assert.match(rulesView(), /12 × 12/);
 });

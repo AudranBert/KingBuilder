@@ -93,6 +93,7 @@ function meetsAdjacency(g, rule, x, y, owner) {
       (rule.building
         ? (BUILDINGS[b?.type]?.family || b?.type) === rule.building
         : c.overlay?.role === rule.role) &&
+      (!rule.terrain || c.terrain === rule.terrain) &&
       (!rule.owned || b?.owner === owner)
     );
   });
@@ -117,6 +118,9 @@ export function productionAmount(g, x, y) {
   return definition.production * multiplier;
 }
 export function migrateGame(g) {
+  for (const cell of Object.values(g.board)) {
+    if (cell.overlay?.role === "field") cell.terrain = "field";
+  }
   // Older saves did not track replacements; preserve their unlocked market.
   g.buildingReplacements ??= RULES.markets.advancedFromReplacement;
   g.workerRecruitsUsed ??= g.recruited ? 1 : 0;
@@ -164,8 +168,8 @@ export function migrateGame(g) {
       );
   for (const p of g.players) {
     p.units ??= [];
-    for (const id of Object.keys(RESOURCE_DEFINITIONS))
-      if (p.resources[id] === undefined) p.resources[id] = 0;
+    for (const [id, definition] of Object.entries(RESOURCE_DEFINITIONS))
+      if (!definition.calculated && p.resources[id] === undefined) p.resources[id] = 0;
   }
   g.buildingDeck = g.buildingDeck.filter((id) => BUILDINGS[id]);
   g.buildingMarket = g.buildingMarket.filter((id) => BUILDINGS[id]);
@@ -362,7 +366,7 @@ export function score(g, i) {
     prestige: (p.prestige || 0) * RULES.points.prestige,
     resources: Math.floor(
       Object.entries(RESOURCE_DEFINITIONS).reduce(
-        (sum, [id, r]) => sum + (p.resources[id] || 0) * r.points, 0,
+        (sum, [id, r]) => sum + (r.calculated ? 0 : (p.resources[id] || 0) * r.points), 0,
       ) * RULES.points.resource,
     ),
   };
@@ -598,14 +602,14 @@ export function build(
     p.progress.built[type] = (p.progress.built[type] || 0) + 1;
     patternAt(type, x, y, rotation)
       .filter((c) => c.role !== "building")
-      .forEach(
-        (c) =>
-          (g.board[key(c.x, c.y)].overlay = {
+      .forEach((c) => {
+          if (c.transformTo) g.board[key(c.x, c.y)].terrain = c.transformTo;
+          g.board[key(c.x, c.y)].overlay = {
             anchor: key(x, y),
             role: c.role,
             owner: g.active,
-          }),
-      );
+          };
+      });
   }
   for (const [resource, amount] of Object.entries(b.onBuildGain || {}))
     p.resources[resource] += amount;
@@ -727,7 +731,11 @@ export function assign(g, x, y) {
   assignWorker(g, free.id, site.x, site.y);
 }
 export function harvestPreview(g, owner = g.active) {
-  const amounts = Object.fromEntries(Object.keys(RESOURCE_DEFINITIONS).map(id => [id, 0]));
+  const amounts = Object.fromEntries(
+    Object.entries(RESOURCE_DEFINITIONS)
+      .filter(([, definition]) => !definition.calculated)
+      .map(([id]) => [id, 0]),
+  );
   const inactive = [];
   for (const [position, c] of Object.entries(g.board)) {
     const b = c.building, definition = BUILDINGS[b?.type];

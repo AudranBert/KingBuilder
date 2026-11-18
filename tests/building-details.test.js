@@ -5,7 +5,7 @@ import { buildingDetailsView, buildingMarketView, selectionView } from "../src/u
 
 test("les détails exposent motif, étoiles, coût et effet sans survol", () => {
   const html = buildingDetailsView("mine_square", 1);
-  assert.match(html, /Mine — massif carré/);
+  assert.match(html, /id="building-details-title">Mine<\/h2>/);
   assert.match(html, /1 étoile/);
   assert.match(html, /2 × 2 montagnes/);
   assert.match(html, /1 fer par tour/);

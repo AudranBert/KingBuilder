@@ -79,6 +79,8 @@ function costs(value, resources, path) {
   for (const [id, n] of Object.entries(value)) {
     if (!Object.hasOwn(resources, id))
       fail(path, `ressource inconnue : ${id}.`);
+    if (resources[id].calculated)
+      fail(path, `une ressource calculée ne peut pas être dépensée : ${id}.`);
     integer(n, `${path}.${id}`);
   }
 }
@@ -202,6 +204,8 @@ export function compileConfiguration(
     label(r.icon, `resources.${r.id}.icon`);
     integer(r.startingAmount, `resources.${r.id}.startingAmount`);
     integer(r.points, `resources.${r.id}.points`);
+    if (r.calculated !== undefined && r.calculated !== "population")
+      fail(`resources.${r.id}.calculated`, "seule la valeur population est prise en charge.");
   }
   if (Object.hasOwn(resourceConfig, "recruitmentCost"))
     fail(
@@ -305,6 +309,7 @@ export function compileConfiguration(
       object(part, path);
       terrainList(part.terrain, `${path}.legend.${symbol}.terrain`);
       identifier(part.role, `${path}.legend.${symbol}.role`);
+      if (part.transformTo !== undefined && !terrainIds.includes(part.transformTo)) fail(path, "terrain transformTo inconnu.");
       if (part.role === "building")
         fail(path, "le rôle building est réservé à B.");
     }
@@ -370,6 +375,7 @@ export function compileConfiguration(
         if (rule.building && !Object.hasOwn(buildings, rule.building))
           fail(path, `bâtiment voisin inconnu : ${rule.building}.`);
         if (rule.role) identifier(rule.role, path);
+        if (rule.terrain !== undefined && !terrainIds.includes(rule.terrain)) fail(path, "terrain voisin inconnu.");
       }
     }
     if (b.boost) {

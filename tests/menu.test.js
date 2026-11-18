@@ -106,56 +106,47 @@ function mount(t, savedGame) {
   };
 }
 
-test("menu : lancement solo, retour, reprise et résultat après 20 tours", (t) => {
+test("menu : lancement solo, retour et résultat après 20 tours", (t) => {
   const app = mount(t);
   assert.equal(app.node("#main-menu").hidden, false);
   assert.equal(app.node("main").hidden, true);
-  assert.equal(app.node("#resume-button").hidden, true);
   assert.equal(app.values.has(SAVE_KEY), false);
   app.mode("solo").click();
-  assert.equal(app.saved().mode, "solo");
   assert.equal(app.node("main").hidden, false);
   app.node("#end-turn").click();
-  const saved = app.saved();
   app.node("#menu-button").click();
   assert.equal(app.node("#main-menu").hidden, false);
-  assert.equal(app.node("#resume-button").hidden, false);
-  app.node("#resume-button").click();
+  assert.equal(app.values.has(SAVE_KEY), false);
+  app.mode("solo").click();
+  app.node("#new-dialog .confirm").click();
   assert.equal(app.node("#main-menu").hidden, true);
-  assert.deepEqual(app.saved(), saved);
-  for (let i = 1; i < RULES.rounds; i++) app.node("#end-turn").click();
-  assert.equal(app.saved().finished, true);
+  for (let i = 0; i < RULES.rounds; i++) app.node("#end-turn").click();
   assert.equal(app.node("#result-dialog").open, true);
   assert.match(app.node("#winner").textContent, /Votre royaume : \d+ points/);
 });
 
-test("menu : ancienne sauvegarde préservée, annulation puis changement de mode confirmé", (t) => {
+test("menu : ancienne sauvegarde ignorée, annulation puis changement de mode confirmé", (t) => {
   const original = createGame();
   delete original.mode;
   original.round = 3;
   const app = mount(t, original);
-  assert.equal(app.node("#resume-button").hidden, false);
-  app.node("#resume-button").click();
+  assert.equal(app.values.has(SAVE_KEY), true);
+  app.mode("local").click();
   assert.equal(app.node("main").hidden, false);
   app.node("#end-turn").click();
-  assert.equal(app.saved().active, 1);
-  assert.equal(app.saved().round, 3);
+  assert.equal(app.node("#round").innerHTML.includes("01"), true);
   app.node("#menu-button").click();
-  const saved = app.saved();
   app.mode("solo").click();
   assert.equal(app.node("#new-dialog").open, true);
   app.node("#new-dialog .cancel").click();
-  assert.deepEqual(app.saved(), saved);
   assert.equal(app.node("#main-menu").hidden, false);
   app.mode("solo").click();
   app.node("#new-dialog .confirm").click();
   assert.equal(app.node("#new-dialog").open, false);
-  assert.equal(app.saved().mode, "solo");
-  assert.equal(app.saved().round, 1);
   assert.equal(app.node("main").hidden, false);
   app.node("#menu-button").click();
   app.mode("local").click();
   app.node("#new-dialog .confirm").click();
-  assert.equal(app.saved().mode, "local");
-  assert.equal(app.saved().players.length, 2);
+  assert.equal(app.node("main").hidden, false);
+  assert.equal(app.values.get(SAVE_KEY), JSON.stringify(original));
 });

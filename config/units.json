@@ -3,7 +3,7 @@
     {
       "id": "cavalry",
       "name": "Cavalier",
-      "icon": "➶",
+      "icon": "assets/textures/units-cavalry.svg",
       "cost": {
         "iron": 1,
         "wheat": 1
@@ -16,7 +16,7 @@
     {
       "id": "worker",
       "name": "Ouvrier",
-      "icon": "♟",
+      "icon": "assets/textures/units-worker.svg",
       "cost": {
         "wheat": 1
       },
@@ -28,7 +28,7 @@
     {
       "id": "king",
       "name": "Roi",
-      "icon": "⚑",
+      "icon": "assets/textures/units-king.svg",
       "cost": {},
       "moves": 2,
       "population": 0,

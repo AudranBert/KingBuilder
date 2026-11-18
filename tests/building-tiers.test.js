@@ -13,7 +13,7 @@ test("tiers par famille et étoiles sur les cartes", () => {
   const g = createGame();
   g.buildingMarket = ["bridge", "farm_z", "mill_l"];
   const html = buildingMarketView(g, { buildingRotation: 0 });
-  assert.match(html, /aria-label="0 étoile">0 ★/);
+  assert.match(html, /aria-label="0 étoile">☆/);
   assert.match(html, /aria-label="1 étoile">★/);
   assert.match(html, /aria-label="2 étoiles">★★/);
 });

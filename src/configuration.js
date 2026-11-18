@@ -42,7 +42,9 @@ export const RESOURCE_ICONS = Object.fromEntries(
   Object.entries(CONFIG.resources).map(([id, r]) => [id, r.icon]),
 );
 export const START_RESOURCES = Object.fromEntries(
-  Object.entries(CONFIG.resources).map(([id, r]) => [id, r.startingAmount]),
+  Object.entries(CONFIG.resources)
+    .filter(([, r]) => !r.calculated)
+    .map(([id, r]) => [id, r.startingAmount]),
 );
 export const RECRUITMENT_COST = CONFIG.units.worker.cost;
 export const BUILDINGS = CONFIG.buildings;
