@@ -15,7 +15,7 @@ import {
   move,
   migrateGame,
   BUILDINGS,
-} from "../dist/engine.js";
+} from "../src/engine.js";
 function setup(type, rotation = 0) {
   const g = createGame();
   g.players[0].resources = { wood: 7, wheat: 7, stone: 7, iron: 0 };

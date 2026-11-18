@@ -8,13 +8,13 @@ import {
   endTurn,
   actor,
   assignWorker,
-} from "../dist/engine.js";
+} from "../src/engine.js";
 import {
   dragFromCard,
   dragPreview,
   moveUnitTo,
-} from "../dist/ui/interactions.js";
-import { createUIState } from "../dist/ui/state.js";
+} from "../src/ui/interactions.js";
+import { createUIState } from "../src/ui/state.js";
 
 test("glisser le roi suit un chemin de deux cases et dépense seulement ses déplacements", () => {
   const g = createGame();

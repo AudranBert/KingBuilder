@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, key } from "../dist/engine.js";
-import { buildingDetailsView, buildingMarketView, selectionView } from "../dist/ui/views.js";
+import { createGame, key } from "../src/engine.js";
+import { buildingDetailsView, buildingMarketView, selectionView } from "../src/ui/views.js";
 
 test("les détails exposent motif, étoiles, coût et effet sans survol", () => {
   const html = buildingDetailsView("mine_square", 1);

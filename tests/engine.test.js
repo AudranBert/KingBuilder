@@ -13,7 +13,7 @@ import {
   placement,
   RULES,
   housing,
-} from "../dist/engine.js";
+} from "../src/engine.js";
 test("12×12, deux rois, marchés communs et châteaux initiaux hors pioche", () => {
   const g = createGame();
   assert.equal(g.players[1].x, 11);
@@ -170,7 +170,7 @@ test("le contact peut se faire sur une autre case que l’origine du motif", () 
 });
 
 test("les déplacements accessibles suivent les chemins et le budget de l’unité", async () => {
- const {movementPaths,selectUnit}=await import("../dist/engine.js");
+ const {movementPaths,selectUnit}=await import("../src/engine.js");
  const g=createGame();g.board[key(1,6)]={terrain:"plain"};g.board[key(2,6)]={terrain:"forest"};g.board[key(0,5)]={terrain:"mountain"};
  let paths=movementPaths(g);assert.equal(paths.get(key(2,6)).length,2);assert.equal(paths.has(key(0,5)),false);assert.equal(paths.has(key(1,5)),false);
  move(g,1,6);paths=movementPaths(g);assert.equal(paths.get(key(2,6)).length,1);assert.equal(paths.has(key(3,6)),false);
@@ -179,7 +179,7 @@ test("les déplacements accessibles suivent les chemins et le budget de l’unit
 });
 
 test("explorer ou construire termine l’activation du roi et du cavalier", async () => {
- const {selectUnit,actor,movementPaths}=await import("../dist/engine.js");
+ const {selectUnit,actor,movementPaths}=await import("../src/engine.js");
  for(const cavalry of [false,true]) for(const action of ["explore","build"]) for(const before of [0,1,2]) {
   const g=createGame();g.players[0].x=5;g.players[0].y=5;
   for(let x=5;x<=8;x++) g.board[key(x,5)]={terrain:"plain"};

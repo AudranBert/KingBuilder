@@ -19,9 +19,9 @@ import {
   missionProgress,
   assignWorker,
   RULES,
-} from "../dist/engine.js";
-import { validateGame, createPersistence, SAVE_KEY } from "../dist/storage.js";
-import { compileConfiguration } from "../dist/config-schema.js";
+} from "../src/engine.js";
+import { validateGame, createPersistence, SAVE_KEY } from "../src/storage.js";
+import { compileConfiguration } from "../src/config-schema.js";
 import { readFile } from "node:fs/promises";
 test("les variantes contribuent aux objectifs de leur famille sans double compte", () => {
   const g = createGame();
@@ -40,7 +40,7 @@ const configs = await Promise.all(
     "terrains",
     "missions",
   ].map((n) =>
-    readFile(new URL(`../dist/config/${n}.json`, import.meta.url), "utf8").then(
+    readFile(new URL(`../config/${n}.json`, import.meta.url), "utf8").then(
       JSON.parse,
     ),
   ),
@@ -330,7 +330,7 @@ test("chaque objectif existe en trois niveaux et les trois offres initiales sont
   }
 });
 test("chaque emplacement monte de niveau indépendamment puis reste à trois étoiles", async () => {
-  const { settleMissions } = await import("../dist/prestige.js");
+  const { settleMissions } = await import("../src/prestige.js");
   const g = createGame();
   const hardIron = Object.values(MISSIONS).find(
     (m) =>
@@ -358,7 +358,7 @@ test("chaque emplacement monte de niveau indépendamment puis reste à trois ét
   assert.equal(new Set(g.missions.claimed.map((c) => c.id)).size, 4);
 });
 test("une nouvelle offre déjà remplie peut monter plusieurs niveaux sans boucle ni récompense double", async () => {
-  const { settleMissions } = await import("../dist/prestige.js");
+  const { settleMissions } = await import("../src/prestige.js");
   const g = createGame();
   g.missions = {
     tiered: 1,

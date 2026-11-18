@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { spawnSync } from "node:child_process";
-import { compileConfiguration } from "../dist/config-schema.js";
+import { compileConfiguration } from "../src/config-schema.js";
 const originals = await Promise.all(
   [
     "terrain-tiles",
@@ -17,7 +17,7 @@ const originals = await Promise.all(
     "missions",
   ].map((name) =>
     readFile(
-      new URL(`../dist/config/${name}.json`, import.meta.url),
+      new URL(`../config/${name}.json`, import.meta.url),
       "utf8",
     ).then(JSON.parse),
   ),
@@ -173,9 +173,10 @@ test("units.json est la seule source des unités et ses erreurs sont identifiée
 async function runConfiguredGame(input, body) {
   const root = await mkdtemp(path.join(tmpdir(), "kingbuilder-config-"));
   try {
-    await cp(new URL("../dist/", import.meta.url), path.join(root, "dist"), {
+    await cp(new URL("../src/", import.meta.url), path.join(root, "src"), {
       recursive: true,
     });
+    await cp(new URL("../config/", import.meta.url), path.join(root, "config"), { recursive: true });
     await writeFile(path.join(root, "package.json"), '{"type":"module"}');
     const names = [
       "terrain-tiles",
@@ -188,10 +189,10 @@ async function runConfiguredGame(input, body) {
     ];
     for (const [i, name] of names.entries())
       await writeFile(
-        path.join(root, "dist", "config", name + ".json"),
+        path.join(root, "config", name + ".json"),
         JSON.stringify(input[i]),
       );
-    const engine = pathToFileURL(path.join(root, "dist", "engine.js")).href;
+    const engine = pathToFileURL(path.join(root, "src", "engine.js")).href;
     const code = `import assert from 'node:assert/strict';import * as game from ${JSON.stringify(engine)};const engineURL=${JSON.stringify(engine)};${body}`;
     const result = spawnSync(
       process.execPath,

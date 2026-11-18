@@ -1,14 +1,14 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { startGame } from "../dist/app.js";
-import { createGame, RULES } from "../dist/engine.js";
-import { SAVE_KEY } from "../dist/storage.js";
+import { startGame } from "../src/app.js";
+import { createGame, RULES } from "../src/engine.js";
+import { SAVE_KEY } from "../src/storage.js";
 
 // Run the application event handlers with an in-memory DOM and storage.
 function mount(t, savedGame) {
   const markup = readFileSync(
-    new URL("../dist/index.html", import.meta.url),
+    new URL("../public/index.html", import.meta.url),
     "utf8",
   );
   function element() {

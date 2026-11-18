@@ -10,6 +10,32 @@ npm start
 
 Ouvrir http://127.0.0.1:4173. Le menu principal propose Solo et Local multiplayer (deux joueurs à tour de rôle sur le même écran). Versus bot et Online multiplayer sont verrouillés et non fonctionnels pour le moment. En solo, un seul royaume joue 20 tours avant de consulter son score final.
 
+`npm start` génère le site avant de lancer le serveur. Après modification des sources, relancer le serveur pour actualiser le site.
+
+## Organisation du projet
+
+```text
+src/                 Code JavaScript du jeu et de l’interface
+  ui/                Rendu du plateau, vues et interactions
+  styles/            Feuilles de style
+assets/
+  textures/          Illustrations SVG des terrains
+config/              Configuration JSON, guide et catalogue des tuiles
+public/              Page HTML et fichiers statiques copiés à la racine du site
+tests/               Tests exécutés directement sur les sources
+scripts/             Génération du site et validation de la configuration
+output/              Illustrations de référence du projet
+dist/                Site généré, ignoré par Git
+```
+
+Modifier les fichiers sources dans ces dossiers, puis générer le site avec :
+
+```sh
+npm run build
+```
+
+Le build utilise uniquement Node.js, sans dépendance supplémentaire. Il recrée `dist/` en copiant `public/` à sa racine, puis `src/`, `assets/` et `config/` en conservant les chemins relatifs. Publier le contenu de `dist/` ; la configuration d’hébergement pointe déjà vers ce dossier. Ne pas modifier ses fichiers directement : la génération suivante les remplace.
+
 La partie est sauvegardée automatiquement dans le navigateur. « Revenir au menu principal » permet de revenir au choix des modes et « Reprendre la partie » de continuer la sauvegarde, y compris après rechargement. Démarrer une nouvelle partie depuis le menu demande confirmation avant de remplacer une sauvegarde existante. Les anciennes sauvegardes à deux joueurs restent compatibles. Les règles sont accessibles depuis le bandeau supérieur.
 
 ## Règles provisoires
@@ -28,15 +54,15 @@ La partie est sauvegardée automatiquement dans le navigateur. « Revenir au men
 
 ## Configurer le jeu
 
-- `dist/config/terrain-tiles.json` : formes dessinées avec `x` et `.`, et catalogue de 60 tuiles aux terrains prédéfinis.
-- `dist/config/buildings.json` : coûts, motifs, terrains, productions, logements, bonus et conditions de voisinage.
-- `dist/config/resources.json` : noms, symboles, quantités initiales, points par ressource et coût de recrutement.
-- `dist/config/units.json` : liste des unités recrutables, noms, symboles, coûts, déplacements, population et points.
-- `dist/config/terrains.json` : types de terrain, noms, symboles, couleurs et traversabilité.
-- `dist/config/game-rules.json` : taille du plateau, limite de tours, barème des scores et coûts du prestige.
-- `dist/config/missions.json` : missions communes, seuils et récompenses en prestige.
+- `config/terrain-tiles.json` : formes dessinées avec `x` et `.`, et catalogue de 60 tuiles aux terrains prédéfinis.
+- `config/buildings.json` : coûts, motifs, terrains, productions, logements, bonus et conditions de voisinage.
+- `config/resources.json` : noms, symboles, quantités initiales, points par ressource et coût de recrutement.
+- `config/units.json` : liste des unités recrutables, noms, symboles, coûts, déplacements, population et points.
+- `config/terrains.json` : types de terrain, noms, symboles, couleurs et traversabilité.
+- `config/game-rules.json` : taille du plateau, limite de tours, barème des scores et coûts du prestige.
+- `config/missions.json` : missions communes, seuils et récompenses en prestige.
 
-Le guide [dist/config/README.md](dist/config/README.md) explique les champs avec des exemples prêts à adapter. Ajouter un terrain, une ressource ou un bâtiment utilisant un effet existant ne demande aucune modification du moteur.
+Le guide [config/README.md](config/README.md) explique les champs avec des exemples prêts à adapter. Ajouter un terrain, une ressource ou un bâtiment utilisant un effet existant ne demande aucune modification du moteur.
 
 ```sh
 npm run check:config
@@ -50,7 +76,7 @@ Recharger la page après modification et commencer une nouvelle partie pour reco
 npm test
 ```
 
-Les tests couvrent déplacements, placements, achats, production, ouvriers, maisons et fin de partie. `dist/` contient le site statique complet ; `server.mjs` fournit uniquement un serveur de développement local.
+Les tests couvrent déplacements, placements, achats, production, ouvriers, maisons et fin de partie. `dist/` est généré par `npm run build` et contient le site statique complet ; `server.mjs` fournit uniquement un serveur de développement local.
 
 L’interface sépare déplacement et inspection. Les terrains et bâtiments se placent uniquement par glisser-déposer, avec un aperçu de validité. Les unités se déplacent par glisser-déposer ou par sélection puis clic sur une case dorée. La touche R pivote la tuile pendant le glissement. Les cases du plateau se parcourent aussi avec les flèches du clavier et Entrée. Les sauvegardes incompatibles, notamment celles de l’ancien plateau 25 × 25, sont copiées avant de démarrer une nouvelle partie. Une erreur de sauvegarde est signalée à l’écran.
 
@@ -91,18 +117,18 @@ Les sauvegardes version 1 sont migrées sans effacer la partie : les bâtiments 
 - Chaque cavalier a ses propres 2 déplacements et sa propre action d’exploration ou de construction, avec les mêmes contraintes que le roi. Sélectionner ou glisser le pion directement sur le plateau. Les ressources, les marchés et le score d’exploration/construction sont communs au joueur.
 - Le recrutement d’un ouvrier reste limité à un par joueur et par tour. Il ne consomme ni les déplacements ni l’action des unités.
 - Les cavaliers ne rapportent pour l’instant aucun point direct ; les points de leurs explorations et constructions sont comptés normalement.
-- Définitions et coûts des unités dans `dist/config/units.json`. Chaque bâtiment formateur référence ses choix dans `trains` et son quota dans `trainingLimit`.
+- Définitions et coûts des unités dans `config/units.json`. Chaque bâtiment formateur référence ses choix dans `trains` et son quota dans `trainingLimit`.
 
 Explorer révèle une tuile voisine sans déplacer l’unité. Les terrains sont prédéfinis par tuile ; certaines tuiles peuvent être entièrement infranchissables.
 
 Chaque unité dispose par tour de 2 déplacements et d’une action indépendante (explorer OU construire). Explorer ou construire termine l’activation et les déplacements restants : il faut se déplacer avant son action. Recruter un ouvrier ne termine plus les actions de l’unité sélectionnée. Une unité devient grisée dès que son action est effectuée.
 
-Le catalogue illustré par motifs se trouve dans `dist/config/tile-catalogue.md`. Les parties existantes conservent leur pioche ; démarrer une nouvelle partie pour recevoir les 60 tuiles prédéfinies.
+Le catalogue illustré par motifs se trouve dans `config/tile-catalogue.md`. Les parties existantes conservent leur pioche ; démarrer une nouvelle partie pour recevoir les 60 tuiles prédéfinies.
 
 
 ## Prestige et missions
 
-Le premier joueur commence à 0 prestige, le second à 1. Chaque prestige restant vaut 3 points. Trois missions communes s’affichent au-dessus du plateau : la première personne à remplir un objectif visible reçoit sa récompense (1 prestige par défaut) et une nouvelle mission prend sa place. Les 48 variantes (16 objectifs × 3 difficultés) et leurs récompenses se configurent dans `dist/config/missions.json`.
+Le premier joueur commence à 0 prestige, le second à 1. Chaque prestige restant vaut 3 points. Trois missions communes s’affichent au-dessus du plateau : la première personne à remplir un objectif visible reçoit sa récompense (1 prestige par défaut) et une nouvelle mission prend sa place. Les 48 variantes (16 objectifs × 3 difficultés) et leurs récompenses se configurent dans `config/missions.json`.
 
 Le bouton ↻ d’un marché remplace ses trois offres pour 1 prestige, une fois par joueur et par tour, sans consommer l’action d’une unité. Le prestige sert aussi de joker : 1 prestige par ressource manquante pour un bâtiment, avec confirmation explicite du coût avant toute dépense.
 

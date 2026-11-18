@@ -1,8 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, endTurn, RULES, moveError } from "../dist/engine.js";
-import { validateGame, createPersistence, SAVE_KEY } from "../dist/storage.js";
-import { playersView, missionsView, resultsView } from "../dist/ui/views.js";
+import { createGame, endTurn, RULES, moveError } from "../src/engine.js";
+import { validateGame, createPersistence, SAVE_KEY } from "../src/storage.js";
+import { playersView, missionsView, resultsView } from "../src/ui/views.js";
 
 test("solo : un royaume, 20 tours et sauvegarde rechargeable", () => {
   const game = createGame(Math.random, "solo");

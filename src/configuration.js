@@ -1,6 +1,6 @@
 import { compileConfiguration } from "./config-schema.js";
 async function readJson(name) {
-  const url = new URL(`./config/${name}.json`, import.meta.url);
+  const url = new URL(`../config/${name}.json`, import.meta.url);
   try {
     if (url.protocol === "file:") {
       const { readFile } = await import("node:fs/promises");

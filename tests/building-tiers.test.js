@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, BUILDINGS, build, key } from "../dist/engine.js";
-import { buildingMarketView } from "../dist/ui/views.js";
+import { createGame, BUILDINGS, build, key } from "../src/engine.js";
+import { buildingMarketView } from "../src/ui/views.js";
 
 test("tiers par famille et étoiles sur les cartes", () => {
   for (const b of Object.values(BUILDINGS)) {

@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { installDrag } from "../dist/ui/drag.js";
+import { installDrag } from "../src/ui/drag.js";
 
 // Exercise pointer events without requiring a browser or changing game state.
 function surface() {

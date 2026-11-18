@@ -7,7 +7,7 @@ import {
   transformed,
   explore,
   score,
-} from "../dist/engine.js";
+} from "../src/engine.js";
 const coordinates = (cells) => cells.map((c) => key(c.x, c.y)).sort();
 function getTile(g, id) {
   return [...g.tileMarket, ...g.tileDeck].find((t) => t.id === id);

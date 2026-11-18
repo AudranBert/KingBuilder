@@ -1,7 +1,11 @@
 import http from "node:http";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-const root = path.resolve("dist");
+import { fileURLToPath } from "node:url";
+import { build } from "./scripts/build.mjs";
+
+await build();
+const root = fileURLToPath(new URL("./dist", import.meta.url));
 http
   .createServer(async (req, res) => {
     try {
@@ -23,7 +27,7 @@ http
         {
           ".html": "text/html; charset=utf-8",
           ".css": "text/css",
-            ".svg": "image/svg+xml",
+          ".svg": "image/svg+xml",
           ".js": "text/javascript",
           ".json": "application/json; charset=utf-8",
         }[path.extname(file)] || "application/octet-stream",

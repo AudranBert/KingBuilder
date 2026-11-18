@@ -13,7 +13,7 @@ import {
   migrateGame,
   build,
   assigned,
-} from "../dist/engine.js";
+} from "../src/engine.js";
 function producer(g, x, y, type = "sawmill", owner = 0) {
   g.board[key(x, y)] = {
     terrain: type === "sawmill" ? "forest" : "mountain",

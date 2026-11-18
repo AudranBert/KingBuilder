@@ -64,19 +64,19 @@ body {
   content: "";
 }
 .terrain-plain {
-  background-image: url("./assets/plain.svg") !important;
+  background-image: url("../../assets/textures/plain.svg") !important;
   background-size: cover !important;
 }
 .terrain-forest {
-  background-image: url("./assets/forest.svg") !important;
+  background-image: url("../../assets/textures/forest.svg") !important;
   background-size: cover !important;
 }
 .terrain-mountain {
-  background-image: url("./assets/mountain.svg") !important;
+  background-image: url("../../assets/textures/mountain.svg") !important;
   background-size: cover !important;
 }
 .terrain-river {
-  background-image: url("./assets/river.svg") !important;
+  background-image: url("../../assets/textures/river.svg") !important;
   background-size: cover !important;
 }
 .terrain-symbol {

@@ -1,9 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { createGame } from "../dist/engine.js";
-import { CONFIG } from "../dist/configuration.js";
-import { compileConfiguration } from "../dist/config-schema.js";
+import { createGame } from "../src/engine.js";
+import { CONFIG } from "../src/configuration.js";
+import { compileConfiguration } from "../src/config-schema.js";
 const definitions = await Promise.all(
   [
     "terrain-tiles",
@@ -14,7 +14,7 @@ const definitions = await Promise.all(
     "terrains",
     "missions",
   ].map((n) =>
-    readFile(new URL(`../dist/config/${n}.json`, import.meta.url), "utf8").then(
+    readFile(new URL(`../config/${n}.json`, import.meta.url), "utf8").then(
       JSON.parse,
     ),
   ),

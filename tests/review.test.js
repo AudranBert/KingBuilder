@@ -13,12 +13,12 @@ import {
   exploreError,
   assignWorker,
   migrateGame,
-} from "../dist/engine.js";
-import { createPersistence, SAVE_KEY, validateGame } from "../dist/storage.js";
-import { createUIState } from "../dist/ui/state.js";
-import { dragPreview } from "../dist/ui/interactions.js";
-import { escapeHTML, terrainDiagram } from "../dist/ui/html.js";
-import { playersView, rulesView, selectionView } from "../dist/ui/views.js";
+} from "../src/engine.js";
+import { createPersistence, SAVE_KEY, validateGame } from "../src/storage.js";
+import { createUIState } from "../src/ui/state.js";
+import { dragPreview } from "../src/ui/interactions.js";
+import { escapeHTML, terrainDiagram } from "../src/ui/html.js";
+import { playersView, rulesView, selectionView } from "../src/ui/views.js";
 
 function memoryStorage(initial = {}) {
   const values = new Map(Object.entries(initial));

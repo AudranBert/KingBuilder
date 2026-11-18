@@ -19,7 +19,7 @@ import {
   endTurn,
   migrateGame,
   score,
-} from "../dist/engine.js";
+} from "../src/engine.js";
 function setup() {
   const g = createGame();
   g.board[key(5, 5)] = {

@@ -23,7 +23,7 @@ try {
   message.textContent = error.message;
   const help = document.createElement("p");
   help.textContent =
-    "Vérifiez les fichiers de configuration puis rechargez la page. Le guide se trouve dans dist/config/README.md.";
+    "Vérifiez les fichiers de configuration puis rechargez la page. Le guide se trouve dans config/README.md.";
   const retry = document.createElement("button");
   retry.className = "primary";
   retry.textContent = "Recharger";
