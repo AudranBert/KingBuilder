@@ -20,7 +20,7 @@ test("solo : un royaume, 20 tours et sauvegarde rechargeable", () => {
     assert.equal(game.active, 0);
     assert.equal(game.round, round + 1);
     assert.equal(game.finished, false);
-    assert.equal(game.moves, 2);
+    assert.equal(game.moves, 3);
   }
   endTurn(game);
   assert.equal(game.finished, true);

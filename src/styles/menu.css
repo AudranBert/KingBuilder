@@ -26,9 +26,6 @@
   box-shadow: 0 4px 0 #b69a69;
   transform: rotate(-5deg);
 }
-.menu-intro .eyebrow {
-  margin-top: 10px;
-}
 .menu-intro h1 {
   font-size: clamp(54px, 8vw, 88px);
   line-height: 1;
@@ -36,15 +33,11 @@
 .menu-intro h1 span {
   color: #9a6c36;
 }
-.menu-intro p {
-  color: var(--muted);
-  line-height: 1.7;
-}
 .mode-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 18px;
-  margin: 36px 0 26px;
+  margin: 32px 0 0;
 }
 .mode-card {
   display: flex;

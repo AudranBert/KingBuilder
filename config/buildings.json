@@ -1,5 +1,5 @@
 {
-  "deckSize": 60,
+  "deckSize": 66,
   "startingBuilding": "castle",
   "buildings": [
     {
@@ -16,7 +16,7 @@
       ],
       "description": "2 places pour vos ouvriers.",
       "pattern": "Une case de plaine ou de forêt.",
-      "weight": 6,
+      "weight": 12,
       "layout": [
         "B"
       ],
@@ -67,12 +67,14 @@
       ],
       "produces": "wood",
       "description": "1 bois par tour avec un ouvrier.",
-      "pattern": "Une case de forêt.",
+      "pattern": "Deux forêts adjacentes : scierie et réserve de bois.",
       "weight": 2,
       "layout": [
-        "B"
+        "Bt"
       ],
-      "legend": {},
+      "legend": {
+        "t": { "terrain": ["forest"], "role": "timber" }
+      },
       "production": 1,
       "tier": 1
     },
@@ -89,12 +91,14 @@
       ],
       "produces": "stone",
       "description": "1 pierre par tour avec un ouvrier.",
-      "pattern": "Une case de plaine.",
+      "pattern": "Deux plaines adjacentes : carrière et zone d’extraction.",
       "weight": 2,
       "layout": [
-        "B"
+        "Bq"
       ],
-      "legend": {},
+      "legend": {
+        "q": { "terrain": ["plain"], "role": "quarry" }
+      },
       "production": 1,
       "tier": 1
     },
@@ -211,12 +215,14 @@
         "plain"
       ],
       "description": "Double le blé de vos fermes voisines, sans cumul.",
-      "pattern": "Plaine touchant un champ par un bord et votre ferme par un bord ou un coin.",
+      "pattern": "Deux plaines adjacentes pour le moulin et sa cour ; l’entrée touche un champ par un bord et votre ferme par un bord ou un coin.",
       "weight": 1,
       "layout": [
-        "B"
+        "Bc"
       ],
-      "legend": {},
+      "legend": {
+        "c": { "terrain": ["plain"], "role": "courtyard" }
+      },
       "adjacency": [
         {
           "role": "field",
@@ -251,11 +257,13 @@
         "plain"
       ],
       "layout": [
-        "B"
+        "Bc"
       ],
-      "legend": {},
+      "legend": {
+        "c": { "terrain": ["plain"], "role": "courtyard" }
+      },
       "description": "Recrute au choix une unité par tour, sans ouvrier.",
-      "pattern": "Une case de plaine.",
+      "pattern": "Deux plaines adjacentes : caserne et cour d’entraînement.",
       "trains": [
         "cavalry"
       ],
@@ -275,12 +283,14 @@
       ],
       "produces": "stone",
       "description": "1 pierre par tour avec un ouvrier.",
-      "pattern": "Une case de montagne.",
+      "pattern": "Deux montagnes adjacentes : carrière et zone d’extraction.",
       "weight": 2,
       "layout": [
-        "B"
+        "Bq"
       ],
-      "legend": {},
+      "legend": {
+        "q": { "terrain": ["mountain"], "role": "quarry" }
+      },
       "production": 1,
       "family": "quarry",
       "tier": 1
@@ -680,5 +690,5 @@
       "tier": 2
     }
   ],
-  "maxFamilyCopies": 8
+  "maxFamilyCopies": 12
 }

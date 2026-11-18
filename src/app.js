@@ -59,7 +59,6 @@ export function startGame() {
     toastTimer;
   let nextMode = game.mode || "local";
   let inMenu = true;
-  let gameStarted = false;
   function showMenu() {
     drag.cancel();
     inMenu = true;
@@ -89,7 +88,7 @@ export function startGame() {
       return;
     }
     const count = [...placementGuidance(game, choice).values()].filter(result => !result.error).length;
-    $("#placement-help").textContent = `${count} placement(s) possible(s) dans cette orientation. ${count ? "Choisissez une case verte ou glissez la carte." : "Essayez une rotation, une autre unité ou une autre carte."} R : pivoter · Échap : annuler.`;
+    $("#placement-help").textContent = `${count} placement(s) possible(s) dans cette orientation. ${count ? "Choisissez une case verte ou glissez la carte." : "Essayez une rotation, une autre unité ou une autre carte."} R ou molette : pivoter · Échap : annuler.`;
   }
   function previewPlacement(pos) {
     if (ui.drag) return;
@@ -159,9 +158,9 @@ export function startGame() {
     html("#recruit", `+ ${e(UNIT_DEFINITIONS.worker.name)} <small>${costHTML(RECRUITMENT_COST)} · ${populationHTML(UNIT_DEFINITIONS.worker.population)}</small>`);
     $("#recruit").disabled = Boolean(recruitReason);
     $("#recruit-reason").textContent = recruitReason || "";
-    $("#end-turn").textContent = game.finished
+    $("#end-turn").innerHTML = game.finished
       ? "Voir les résultats →"
-      : "Fin de tour →";
+      : `<strong>Fin de tour →</strong><small>${harvestView(game).match(/Fin du tour : ([^<]+)/)?.[1] || "aucune récolte"}</small>`;
     $("#round").innerHTML =
       `${String(game.round).padStart(2, "0")} <small>/ ${RULES.rounds}</small>`;
     $("#rotation-label").textContent = `${ui.rotation * 90}°`;
@@ -289,15 +288,24 @@ export function startGame() {
         { message: "Marché renouvelé." },
       ),
     );
-  function rotate(kind = ui.drag?.kind || ui.placement?.kind || "terrain") {
+  function rotate(kind = ui.drag?.kind || ui.placement?.kind || "terrain", step = 1) {
     if (game.finished || !["terrain", "building"].includes(kind)) return;
     const field = kind === "building" ? "buildingRotation" : "rotation";
-    ui[field] = (ui[field] + 1) % 4;
+    ui[field] = (ui[field] + step + 4) % 4;
     if (ui.drag?.kind === kind) ui.drag.rotation = ui[field];
     if (ui.placement?.kind === kind) ui.placement.rotation = ui[field];
     render();
     drag.refresh();
   }
+  $(".game-layout").addEventListener("wheel", (event) => {
+    const hovered = event.target.closest?.("[data-tile],[data-building]");
+    const kind = ui.drag?.kind || ui.placement?.kind ||
+      (hovered?.hasAttribute("data-building") ? "building" :
+        hovered?.hasAttribute("data-tile") ? "terrain" : null);
+    if (game.finished || !["terrain", "building"].includes(kind)) return;
+    event.preventDefault();
+    rotate(kind, event.deltaY < 0 ? -1 : 1);
+  }, { passive: false });
   function showResults() {
     const a = totalScore(game, 0),
       b = game.players.length > 1 ? totalScore(game, 1) : 0;
@@ -391,16 +399,12 @@ export function startGame() {
   $("#menu-button").addEventListener("click", showMenu);
   function requestNewGame(mode) {
     nextMode = mode;
-    if (gameStarted && !game.finished) $("#new-dialog").showModal();
-    else beginNewGame();
+    beginNewGame();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
     button.addEventListener("click", () =>
       requestNewGame(button.dataset.gameMode),
     );
-  $("#new-dialog .cancel").addEventListener("click", () =>
-    $("#new-dialog").close(),
-  );
   function beginNewGame() {
     const created = act(
       () => {
@@ -416,12 +420,9 @@ export function startGame() {
       },
     );
     if (created) {
-      gameStarted = true;
-      $("#new-dialog").close();
       enterGame();
     }
   }
-  $("#new-dialog .confirm").addEventListener("click", beginNewGame);
   $(".close-results").addEventListener("click", () =>
     $("#result-dialog").close(),
   );

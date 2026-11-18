@@ -136,9 +136,9 @@ Les trois missions commencent à ★. Chaque objectif remporté est remplacé pa
 
 La case d’entrée de tout bâtiment peut être placée sur la case de l’unité sélectionnée ou sur une case adjacente par un bord, jamais en diagonale. Les contraintes de terrain et de motif restent applicables.
 
-Variantes du marché : le port et la mine existent aussi avec un carré de 2 × 2 d’eau ou de montagnes adjacent à leur entrée sur plaine. Leurs coûts et productions sont identiques aux versions en ligne. La carrière de plaine et la carrière de montagne occupent chacune uniquement leur terrain indiqué, jamais une forêt. La pioche contient 6 maisons, 6 fermes, 6 scieries, 6 ponts, 5 moulins, 5 casernes, 8 défrichements et 6 tuiles par famille de carrière, mine et port (2 de chacune des 3 variantes). Chaque famille est limitée à 8 tuiles, variantes comprises. Recharger et commencer une nouvelle partie pour obtenir les nouvelles variantes dans la pioche.
+Variantes du marché : le port et la mine existent aussi avec un carré de 2 × 2 d’eau ou de montagnes adjacent à leur entrée sur plaine. Leurs coûts et productions sont identiques aux versions en ligne. La carrière de plaine et la carrière de montagne occupent chacune uniquement leur terrain indiqué, jamais une forêt. La pioche contient 66 cartes : 12 maisons, 6 fermes, 6 scieries, 6 ponts, 5 moulins, 5 casernes, 8 défrichements et 6 tuiles par famille de carrière, mine et port (2 de chacune des 3 variantes). Chaque famille est limitée à 12 tuiles, variantes comprises. Recharger et commencer une nouvelle partie pour obtenir les nouvelles variantes dans la pioche.
 
-Le château remplace la maison initiale. Il accueille 2 unités de population et ne figure jamais dans les 60 tuiles bâtiments/actions. Les maisons restent constructibles.
+Le château remplace la maison initiale. Il accueille 2 unités de population et ne figure jamais dans les 66 tuiles bâtiments/actions. Les maisons restent constructibles.
 
 La ferme existe en croix, Z et T ; la scierie sur une case, en croix et en L (2 tuiles par variante). Les variantes gardent les mêmes coûts et productions. La ferme en Z bénéficie du moulin comme la ferme en croix. Les familles restent à 6 tuiles et la pioche à 60.
 

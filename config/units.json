@@ -8,7 +8,7 @@
         "iron": 1,
         "wheat": 1
       },
-      "moves": 2,
+      "moves": 3,
       "population": 1,
       "points": 0,
       "recruitment": "building"
@@ -30,7 +30,7 @@
       "name": "Roi",
       "icon": "assets/textures/units-king.svg",
       "cost": {},
-      "moves": 2,
+      "moves": 3,
       "population": 0,
       "points": 0,
       "recruitment": "initial"

@@ -135,6 +135,18 @@ body {
 .wood-piece:where(.jade *) {
   stroke: #244b3c;
 }
+.player.jade .crest .wood-piece {
+  filter: hue-rotate(105deg) saturate(1.15) drop-shadow(0 2px 1px #214a3b);
+}
+.player:not(.jade) .crest .wood-piece {
+  filter: drop-shadow(0 2px 0 #6d461f) drop-shadow(1px 3px 1px #33281160);
+}
+.king-piece.jade .wood-piece,
+.worker-piece.jade .wood-piece,
+.military-piece.jade .wood-piece,
+.free-worker.jade .wood-piece {
+  filter: hue-rotate(105deg) saturate(1.15) drop-shadow(0 2px 1px #214a3b);
+}
 .worker-piece .wood-piece {
   width: 15px;
   height: 19px;
@@ -269,7 +281,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  min-height: 48px;
+  min-height: 260px;
   padding: 8px;
   border-radius: 8px;
 }
@@ -384,6 +396,30 @@ main {
 }
 .board-toolbar {
   padding: 6px 12px;
+  position: relative;
+}
+.board-toolbar .round {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  gap: 6px;
+}
+.board-toolbar .round img {
+  width: 22px;
+  height: 22px;
+}
+.board-toolbar .round strong {
+  font-size: 20px;
+}
+@media (max-width: 540px) {
+  .board-toolbar .round {
+    position: static;
+    transform: none;
+    margin-left: auto;
+  }
 }
 .map-scroll {
   height: clamp(350px, calc(100dvh - 260px), 700px);
@@ -453,10 +489,17 @@ main {
 .game-layout > #end-turn {
   grid-column: 2;
   grid-row: 2;
-  justify-self: end;
+  justify-self: center;
+  width: min(100%, 420px);
+  min-height: 70px;
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  text-align: center;
   padding: 11px 24px;
   margin: 0;
 }
+.game-layout > #end-turn small { font-size: 12px; font-weight: 400; }
 @media (max-width: 1050px) {
   .game-layout > #end-turn {
     grid-column: 1 / -1;
@@ -465,8 +508,7 @@ main {
 }
 @media (max-width: 540px) {
   .game-layout > #end-turn {
-    width: auto;
-    align-self: flex-end;
+    width: 100%;
   }
 }
 .map-scroll {
@@ -586,6 +628,7 @@ main {
 }
 
 .building-stars { color: #8a6017; white-space: nowrap; font-size: .85em; }
+.market-heading-icon { display: block; width: 32px; height: 32px; object-fit: contain; }
 .building-offer { position: relative; min-width: 0; }
 .building-offer .building-card { width: 100%; }
 .building-offer .offer-details { position: absolute; top: 7px; right: 7px; z-index: 2; width: 25px; height: 25px; min-height: 0; padding: 0; border-radius: 50%; font: 700 14px Georgia, serif; line-height: 1; background: #fff9e9; color: #76532b; }
@@ -596,6 +639,8 @@ main {
 .placement-help:empty { display: none; }
 .placement-help { padding: 10px 14px; background: #e3efdc; color: #21432b; font-size: 13px; line-height: 1.5; }
 .harvest-panel { padding: 12px 14px; background: #f1e7ce; border-top: 1px solid #cdb98a; font-size: 13px; line-height: 1.5; }
+.harvest-panel:not(:has(.inactive-list)) { display: none; }
+.harvest-panel > strong { display: none; }
 .inactive-list { display: grid; gap: 5px; margin-top: 7px; }
 .inactive-list > span { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .inactive-list button { min-height: 36px; font-size: 12px; }
@@ -604,7 +649,6 @@ main {
 .building-info { min-width: 0; overflow-wrap: anywhere; }
 .building-info strong { font-size: 14px; line-height: 1.4; }
 .building-effect { display: block; font-size: 12px; line-height: 1.45; margin: 5px 0; color: #493e2f; }
-.building-hint { display: block; font-size: 11px; line-height: 1.4; margin-top: 5px; color: #66563e; }
 .building-card .cost { font-size: 12px; }
 .selected-building { display: grid; gap: 6px; flex: 1 1 220px; }
 .selected-building > span { font-size: 13px; line-height: 1.5; }

@@ -180,7 +180,7 @@ Les rôles actuels sont `field` (champ), `mine` et `water` ; d’autres noms son
 
 Le moulin existant donne un exemple combinant `adjacency` et `boost`.
 
-`deckSize` fixe la taille de la pioche des bâtiments (90 actuellement). `startingBuilding` désigne le bâtiment de départ de chaque joueur ; il doit fournir des logements. Ajouter un bâtiment avec un effet complètement nouveau, absent de cette liste, demande encore de programmer cet effet dans le moteur.
+`deckSize` fixe la taille de la pioche des bâtiments (66 actuellement). `startingBuilding` désigne le bâtiment de départ de chaque joueur ; il doit fournir des logements. Ajouter un bâtiment avec un effet complètement nouveau, absent de cette liste, demande encore de programmer cet effet dans le moteur.
 
 ## Sauvegardes et erreurs
 
@@ -198,7 +198,7 @@ Le fichier `units.json` contient une liste `units`. Les entrées `king` et `work
   "name": "Cavalier",
   "icon": "➶",
   "cost": {"iron": 1, "wheat": 1},
-  "moves": 2,
+  "moves": 3,
   "population": 1,
   "points": 0,
   "recruitment": "building"

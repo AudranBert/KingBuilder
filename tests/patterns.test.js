@@ -146,6 +146,7 @@ test("le moulin reconnaît et bonifie la ferme en Z", () => {
   g.players[0].x = 8;
   g.players[0].y = 7;
   g.board[key(8, 7)] = { terrain: "plain" };
+  g.board[key(9, 7)] = { terrain: "plain" };
   g.buildingMarket[0] = "mill";
   assert.equal(buildError(g, 0, 8, 7), null);
   build(g, 0, 8, 7);
@@ -242,6 +243,7 @@ function farmAndMill() {
   g.players[0].x = 8;
   g.players[0].y = 8;
   g.board[key(8, 8)] = { terrain: "plain" };
+  g.board[key(9, 8)] = { terrain: "plain" };
   g.buildingMarket[0] = "mill";
   return g;
 }

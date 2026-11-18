@@ -18,12 +18,7 @@
     <section id="main-menu" class="main-menu" aria-labelledby="menu-title">
       <div class="menu-intro">
         <span class="menu-crest" aria-hidden="true">♛</span>
-        <span class="eyebrow">EXPLOREZ · CONSTRUISEZ · RÉGNEZ</span>
         <h1 id="menu-title">King<span>Builder</span></h1>
-        <p>
-          Une terre inconnue. Un royaume à bâtir.<br />Choisissez votre façon de
-          jouer.
-        </p>
       </div>
       <div class="mode-grid" aria-label="Modes de jeu">
         <button class="mode-card" data-game-mode="solo">
@@ -63,16 +58,12 @@
           >
         </button>
       </div>
-      <p class="menu-footer">
-        Chaque grand royaume commence par une première pierre.
-      </p>
     </section>
     <header class="topbar" hidden>
       <a class="brand" href="./"
         ><span class="brand-icon">▧</span
         ><span>KING<span class="brand-light">BUILDER</span></span></a
       >
-      <div class="round">Tour <strong id="round">01 / 20</strong></div>
       <nav>
         <button id="rules-button">Les règles <span>↗</span></button
         ><button id="menu-button" class="quiet">
@@ -87,7 +78,7 @@
         <div class="land-column">
           <section class="market-panel">
             <div class="section-title">
-              <h2>Terrains</h2>
+              <h2 aria-label="Terrains" title="Terrains"><img class="market-heading-icon" src="assets/textures/icon-terrain.svg" alt="" /></h2>
               <button
                 id="reroll-terrain"
                 class="reroll"
@@ -122,6 +113,10 @@
                 Inspecter
               </button>
             </div>
+            <div class="round" aria-label="Tour de jeu" title="Tour de jeu">
+              <img src="assets/textures/icon-hourglass.svg" alt="" />
+              <strong id="round">01 / 20</strong>
+            </div>
           </div>
           <div id="map-scroll" class="map-scroll">
             <div
@@ -139,7 +134,7 @@
         <div class="building-column">
           <section class="market-panel">
             <div class="section-title">
-              <h2>Bâtiments</h2>
+              <h2 aria-label="Bâtiments" title="Bâtiments"><img class="market-heading-icon" src="assets/textures/buildings-house.svg" alt="" /></h2>
               <button
                 id="reroll-building"
                 class="reroll"
@@ -167,15 +162,6 @@
       <h2 id="rules-title">Les règles du duel</h2>
       <div class="rules-content"></div>
       <button class="primary close-rules">Fermer</button>
-    </dialog>
-    <dialog id="new-dialog" aria-labelledby="new-title">
-      <span class="eyebrow">UN NOUVEAU DÉPART</span>
-      <h2 id="new-title">Nouvelle partie ?</h2>
-      <p>La partie en cours sera abandonnée.</p>
-      <div class="dialog-actions">
-        <button class="cancel secondary">Garder la partie</button
-        ><button class="confirm primary">Nouvelle partie</button>
-      </div>
     </dialog>
     <dialog id="result-dialog" aria-labelledby="winner">
       <span class="eyebrow">LES CHRONIQUES S’ACHÈVENT</span>

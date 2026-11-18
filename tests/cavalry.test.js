@@ -47,7 +47,7 @@ test("la caserne figure dans la pioche et le cavalier coûte un fer et un blé",
   assert.equal(unit.moves, 0);
   assert.equal(population(g, 0), 2);
   assert.equal(housing(g, 0), 2);
-  assert.equal(g.moves, 2);
+  assert.equal(g.moves, 3);
   assert.equal(g.acted, false);
   assert.equal(g.recruited, false);
 });
@@ -77,25 +77,27 @@ test("une unité par caserne et par tour ; plusieurs casernes ont des quotas sé
   trainUnit(g, 5, 5, "cavalry");
   assert.equal(g.players[0].units.length, 3);
 });
-test("le nouveau cavalier agit au prochain tour, avec deux déplacements indépendants du roi", () => {
+test("le nouveau cavalier agit au prochain tour, avec trois déplacements indépendants du roi", () => {
   const g = setup();
   const u = trainUnit(g, 5, 5, "cavalry");
   selectUnit(g, u.id);
   g.board[key(6, 5)] = { terrain: "plain" };
   g.board[key(7, 5)] = { terrain: "forest" };
+  g.board[key(8, 5)] = { terrain: "plain" };
   assert.throws(() => move(g, 6, 5));
   nextOwnTurn(g);
   selectUnit(g, u.id);
   move(g, 6, 5);
   move(g, 7, 5);
+  move(g, 8, 5);
   assert.equal(actor(g).moves, 0);
-  assert.equal(g.moves, 2);
+  assert.equal(g.moves, 3);
   assert.equal(g.players[0].x, 0);
   assert.throws(() => move(g, 6, 5));
   selectUnit(g, null);
   g.board[key(1, 6)] = { terrain: "plain" };
   move(g, 1, 6);
-  assert.equal(g.moves, 1);
+  assert.equal(g.moves, 2);
   assert.equal(u.moves, 0);
 });
 test("le cavalier révèle une tuile, marque ses cases et ne dépense pas l’action du roi", () => {
@@ -115,7 +117,7 @@ test("le cavalier révèle une tuile, marque ses cases et ne dépense pas l’ac
   assert.deepEqual([u.x, u.y], [5, 5]);
   assert.equal(u.acted, true);
   assert.equal(g.acted, false);
-  assert.equal(g.moves, 2);
+  assert.equal(g.moves, 3);
   selectUnit(g, null);
   assert.equal(actor(g).name, "Roi");
   assert.equal(actor(g).acted, false);
@@ -126,6 +128,7 @@ test("le cavalier construit sous lui et partage les ressources et le marché du 
   nextOwnTurn(g);
   selectUnit(g, u.id);
   g.board[key(6, 5)] = { terrain: "forest" };
+  g.board[key(7, 5)] = { terrain: "forest" };
   move(g, 6, 5);
   g.buildingMarket[0] = "sawmill";
   const stone = g.players[0].resources.stone;
@@ -174,7 +177,7 @@ test("recruter un ouvrier conserve les déplacements et l’action de chaque uni
   recruit(g);
   g.board[key(6, 5)] = { terrain: "plain" };
   move(g, 6, 5);
-  assert.equal(u.moves, 1);
+  assert.equal(u.moves, 2);
   assert.equal(u.acted, false);
   selectUnit(g, null);
   g.board[key(1, 6)] = { terrain: "plain" };

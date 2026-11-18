@@ -23,7 +23,7 @@ const originals = await Promise.all(
   ),
 );
 const configs = () => structuredClone(originals);
-test("60 cartes, au maximum huit par famille variantes comprises", () => {
+test("66 cartes dont douze maisons, au maximum douze par famille variantes comprises", () => {
   const c = compileConfiguration(...configs());
   const counts = {};
   for (let i = 0; i < c.buildingDeckSize; i++) {
@@ -31,7 +31,7 @@ test("60 cartes, au maximum huit par famille variantes comprises", () => {
     const family = c.buildings[id].family || id;
     counts[family] = (counts[family] || 0) + 1;
   }
-  assert.equal(c.buildingDeckSize, 60);
+  assert.equal(c.buildingDeckSize, 66);
   for (const family of ["farm", "sawmill", "quarry", "mine", "port", "mill"]) {
     const variants = Object.values(c.buildings).filter(b => (b.family || b.id) === family);
     assert.equal(variants.length, 3, family);
@@ -40,11 +40,11 @@ test("60 cartes, au maximum huit par famille variantes comprises", () => {
       assert.equal(b.production, c.buildings[family].production);
     }
   }
-  assert.deepEqual(counts, {house:6, farm:6, sawmill:6, quarry:6, mine:6,
+  assert.deepEqual(counts, {house:12, farm:6, sawmill:6, quarry:6, mine:6,
     bridge:6, port:6, clearing:8, mill:5, barracks:5});
   const input = configs();
-  input[1].buildings.find(b => b.id === "mine_square").weight = 5;
-  input[1].buildings.find(b => b.id === "clearing").weight = 5;
+  input[1].buildings.find(b => b.id === "house").weight = 13;
+  input[1].buildings.find(b => b.id === "clearing").weight = 7;
   assert.throws(() => compileConfiguration(...input), /maxFamilyCopies/);
 });
 test("les sept fichiers définissent treize formes, vingt-trois bâtiments et six ressources", () => {
@@ -58,7 +58,7 @@ test("les sept fichiers définissent treize formes, vingt-trois bâtiments et si
   assert.equal(c.resources.gold.startingAmount, 0);
   assert.equal(Object.keys(c.units).length, 3);
   assert.equal(input[1].units, undefined);
-  assert.equal(c.units.cavalry.moves, 2);
+  assert.equal(c.units.cavalry.moves, 3);
   assert.deepEqual(input, before);
   assert.deepEqual(c.shapes.t5.pattern, ["xxx", ".x.", ".x."]);
   assert.equal(c.shapes.t5.cells.length, 5);

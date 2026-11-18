@@ -29,6 +29,9 @@ function mount(t, savedGame) {
       click() {
         listeners.get("click")?.({ target: this });
       },
+      wheel(event) {
+        listeners.get("wheel")?.(event);
+      },
       showModal() {
         this.open = true;
       },
@@ -50,8 +53,6 @@ function mount(t, savedGame) {
     "#rules-dialog .close",
     "#building-details-dialog .close-building-details",
     ".close-rules",
-    "#new-dialog .cancel",
-    "#new-dialog .confirm",
     ".close-results",
   ])
     nodes.set(selector, element());
@@ -118,14 +119,13 @@ test("menu : lancement solo, retour et résultat après 20 tours", (t) => {
   assert.equal(app.node("#main-menu").hidden, false);
   assert.equal(app.values.has(SAVE_KEY), false);
   app.mode("solo").click();
-  app.node("#new-dialog .confirm").click();
   assert.equal(app.node("#main-menu").hidden, true);
   for (let i = 0; i < RULES.rounds; i++) app.node("#end-turn").click();
   assert.equal(app.node("#result-dialog").open, true);
   assert.match(app.node("#winner").textContent, /Votre royaume : \d+ points/);
 });
 
-test("menu : ancienne sauvegarde ignorée, annulation puis changement de mode confirmé", (t) => {
+test("menu : ancienne sauvegarde ignorée et nouveau mode lancé directement", (t) => {
   const original = createGame();
   delete original.mode;
   original.round = 3;
@@ -137,16 +137,26 @@ test("menu : ancienne sauvegarde ignorée, annulation puis changement de mode co
   assert.equal(app.node("#round").innerHTML.includes("01"), true);
   app.node("#menu-button").click();
   app.mode("solo").click();
-  assert.equal(app.node("#new-dialog").open, true);
-  app.node("#new-dialog .cancel").click();
-  assert.equal(app.node("#main-menu").hidden, false);
-  app.mode("solo").click();
-  app.node("#new-dialog .confirm").click();
-  assert.equal(app.node("#new-dialog").open, false);
+  assert.equal(app.node("#main-menu").hidden, true);
   assert.equal(app.node("main").hidden, false);
   app.node("#menu-button").click();
   app.mode("local").click();
-  app.node("#new-dialog .confirm").click();
   assert.equal(app.node("main").hidden, false);
   assert.equal(app.values.get(SAVE_KEY), JSON.stringify(original));
+});
+
+test("la molette pivote la carte survolée et garde le défilement ailleurs", (t) => {
+  const app = mount(t);
+  app.mode("solo").click();
+  const layout = app.node(".game-layout");
+  let prevented = 0;
+  const target = (attribute) => ({
+    closest: () => ({ hasAttribute: (name) => name === attribute }),
+  });
+  layout.wheel({ target: target("data-tile"), deltaY: 1, preventDefault: () => prevented++ });
+  assert.equal(app.node("#rotation-label").textContent, "90°");
+  layout.wheel({ target: target("data-building"), deltaY: -1, preventDefault: () => prevented++ });
+  assert.equal(app.node("#building-rotation-label").textContent, "270°");
+  layout.wheel({ target: { closest: () => null }, deltaY: 1, preventDefault: () => prevented++ });
+  assert.equal(prevented, 2);
 });

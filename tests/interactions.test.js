@@ -16,7 +16,7 @@ import {
 } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
 
-test("glisser le roi suit un chemin de deux cases et dépense seulement ses déplacements", () => {
+test("glisser le roi suit un chemin de deux cases et conserve son dernier déplacement", () => {
   const g = createGame();
   g.board[key(1, 6)] = { terrain: "forest" };
   g.board[key(2, 6)] = { terrain: "plain" };
@@ -32,7 +32,7 @@ test("glisser le roi suit un chemin de deux cases et dépense seulement ses dép
   moveUnitTo(g, 2, 6);
   assert.deepEqual(
     [actor(g).x, actor(g).y, g.moves, g.acted],
-    [2, 6, 0, false],
+    [2, 6, 1, false],
   );
 });
 test("un dépôt inaccessible ne déplace pas partiellement le roi", () => {
@@ -67,8 +67,8 @@ test("glisser un cavalier sélectionné ne dépense pas les déplacements du roi
   );
   selectUnit(g, drag.id);
   moveUnitTo(g, 6, 5);
-  assert.equal(unit.moves, 1);
-  assert.equal(g.moves, 2);
+  assert.equal(unit.moves, 2);
+  assert.equal(g.moves, 3);
   assert.equal(unit.x, 6);
   assert.equal(
     dragFromCard({ dataset: { unitDrag: "" } }, createUIState()).id,

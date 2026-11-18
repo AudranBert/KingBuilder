@@ -42,7 +42,7 @@ test("affectation lointaine et réaffectation immédiate sans trajet ni dépense
   assert.equal(productionAmount(g, 3, 3), 1);
   assert.deepEqual([g.players[0].x, g.players[0].y], king);
   assert.deepEqual(g.players[0].resources, resources);
-  assert.equal(g.moves, 2);
+  assert.equal(g.moves, 3);
   assert.equal(g.acted, false);
   assert.equal(assigned(g, 0), 1);
 });
@@ -86,6 +86,7 @@ test("seules les affectations finales produisent ; le transfert ne récolte rien
 test("nouvel ouvrier immédiatement affectable après recrutement et action du roi", () => {
   const g = createGame();
   g.board[key(0, 5)] = { terrain: "forest" };
+  g.board[key(1, 5)] = { terrain: "forest" };
   g.players[0].y = 5;
   g.buildingMarket[0] = "sawmill";
   build(g, 0, 0, 5);

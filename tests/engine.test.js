@@ -14,6 +14,7 @@ import {
   RULES,
   housing,
 } from "../src/engine.js";
+import { CONFIG } from "../src/configuration.js";
 test("12×12, deux rois, marchés communs et châteaux initiaux hors pioche", () => {
   const g = createGame();
   assert.equal(g.players[1].x, 11);
@@ -26,7 +27,7 @@ test("12×12, deux rois, marchés communs et châteaux initiaux hors pioche", ()
     assert.equal(g.board[key(p.x, p.y)].building.type, "castle");
     assert.equal(housing(g, i), 2);
   }
-  assert.equal(g.buildingDeck.length + g.buildingMarket.length, 60);
+  assert.equal(g.buildingDeck.length + g.buildingMarket.length, CONFIG.buildingDeckSize);
   assert.ok(![...g.buildingDeck, ...g.buildingMarket].includes("castle"));
   g.board[key(1, 6)] = { terrain: "plain" };
   g.buildingMarket[0] = "castle";
@@ -64,7 +65,7 @@ test("pas de chevauchement, pas de sortie et entrée praticable", () => {
   assert.equal(placement(g, 0, 14, 0), null);
   assert.equal(placement(g, 0, 1, 6, 0, 1), null);
 });
-test("déplacements : deux cases, aucun saut, rivière et montagne bloquées", () => {
+test("déplacements : trois cases, aucun saut, rivière et montagne bloquées", () => {
   const g = createGame();
   g.board[key(1, 6)] = { terrain: "plain" };
   g.board[key(2, 6)] = { terrain: "forest" };
@@ -74,7 +75,9 @@ test("déplacements : deux cases, aucun saut, rivière et montagne bloquées", (
   assert.throws(() => move(g, 2, 6));
   move(g, 1, 6);
   move(g, 2, 6);
-  assert.throws(() => move(g, 3, 6));
+  move(g, 3, 6);
+  g.board[key(4, 6)] = { terrain: "plain" };
+  assert.throws(() => move(g, 4, 6));
 });
 test("construction, paiement, recrutement, affectation et production", () => {
   const g = createGame();
@@ -194,6 +197,6 @@ test("explorer ou construire termine l’activation du roi et du cavalier", asyn
   assert.throws(()=>move(g,x+1,5));
   assert.equal(actor(g).moves,0);assert.equal(movementPaths(g).size,0);assert.throws(()=>move(g,8,5));
   endTurn(g);endTurn(g);if(cavalry) selectUnit(g,0);
-  assert.equal(actor(g).moves,2);assert.equal(actor(g).acted,false);
+  assert.equal(actor(g).moves,3);assert.equal(actor(g).acted,false);
  }
 });

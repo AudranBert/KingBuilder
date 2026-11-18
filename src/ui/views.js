@@ -117,7 +117,7 @@ export function buildingMarketView(g, ui) {
         const b = BUILDINGS[type],
           choice = ui.drag || ui.placement,
           selected = choice?.kind === "building" && choice.index === i;
-        return `<div class="building-offer"><button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les placements · Glisser pour construire" data-building="${i}" aria-pressed="${selected}">${buildingDiagram(type, ui.buildingRotation)}<span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${e(buildingDescription(b))}</span><span class="cost">${costHTML(b.cost)}${b.onBuildGain ? ` · Gain : ${costHTML(b.onBuildGain)}` : ""}</span><span class="building-hint">Cliquer pour placer · Glisser pour construire</span></span></button><button class="secondary offer-details" data-building-details="${e(type)}" data-building-orientation="${ui.buildingRotation}" aria-haspopup="dialog" aria-label="Voir les détails de ${e(b.name)}" title="Voir les détails de ${e(b.name)}">i</button></div>`;
+        return `<div class="building-offer"><button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les placements · Glisser pour construire" data-building="${i}" aria-pressed="${selected}">${buildingDiagram(type, ui.buildingRotation)}<span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${buildingEffectHTML(b)}</span><span class="cost">${costHTML(b.cost)}</span></span></button><button class="secondary offer-details" data-building-details="${e(type)}" data-building-orientation="${ui.buildingRotation}" aria-haspopup="dialog" aria-label="Voir les détails de ${e(b.name)}" title="Voir les détails de ${e(b.name)}">i</button></div>`;
       })
       .join("") ||
     '<p class="empty-state">La pioche de bâtiments est épuisée.</p>'
@@ -127,6 +127,18 @@ function buildingDescription(b) {
   if (b.housing) return `${b.housing} places pour la population.`;
   if (b.produces) return `${b.production} ${RESOURCES[b.produces].toLowerCase()} par tour avec un ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
   return b.description;
+}
+function buildingEffectHTML(b) {
+  const label = buildingDescription(b);
+  let effect;
+  if (b.housing) effect = `+${b.housing} ${iconHTML(RESOURCE_DEFINITIONS.population.icon)}`;
+  else if (b.produces) effect = `+${b.production} ${iconHTML(RESOURCE_DEFINITIONS[b.produces].icon)} / ${iconHTML("assets/textures/icon-hourglass.svg")}`;
+  else if (b.boost) effect = `×${b.boost.multiplier} ${iconHTML(RESOURCE_DEFINITIONS[BUILDINGS[b.boost.target].produces].icon)} des fermes voisines`;
+  else if (b.trains) effect = `${iconHTML(UNIT_DEFINITIONS[b.trains[0]].icon)} ×${b.trainingLimit} / ${iconHTML("assets/textures/icon-hourglass.svg")}`;
+  else if (b.transformTo) effect = `${iconHTML(TERRAINS.forest.icon)} → ${iconHTML(TERRAINS[b.transformTo].icon)} · +${b.onBuildGain.wood} ${iconHTML(RESOURCE_DEFINITIONS.wood.icon)}`;
+  else if (b.traversable) effect = `${iconHTML(TERRAINS.river.icon)} traversable`;
+  else effect = e(label);
+  return `<span title="${e(label)}" aria-label="${e(label)}">${effect}</span>`;
 }
 function buildingStars(b) {
   return `<span class="building-stars" aria-label="${b.tier} étoile${b.tier > 1 ? "s" : ""}">${b.tier ? "★".repeat(b.tier) : "☆"}</span>`;
