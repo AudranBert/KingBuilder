@@ -8,7 +8,9 @@
       "target": 6,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-all",
+      "difficulty": 1
     },
     {
       "id": "explore-12",
@@ -17,7 +19,9 @@
       "target": 12,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-all",
+      "difficulty": 2
     },
     {
       "id": "explore-20",
@@ -26,7 +30,9 @@
       "target": 20,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-all",
+      "difficulty": 3
     },
     {
       "id": "forest-3",
@@ -36,7 +42,9 @@
       "terrain": "forest",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-forest",
+      "difficulty": 1
     },
     {
       "id": "forest-6",
@@ -46,7 +54,21 @@
       "terrain": "forest",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-forest",
+      "difficulty": 2
+    },
+    {
+      "id": "revealed-forest-9",
+      "name": "Révéler 9 forêts",
+      "metric": "revealed",
+      "target": 9,
+      "terrain": "forest",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "revealed-forest",
+      "difficulty": 3
     },
     {
       "id": "plain-3",
@@ -56,7 +78,9 @@
       "terrain": "plain",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-plain",
+      "difficulty": 1
     },
     {
       "id": "plain-6",
@@ -66,7 +90,21 @@
       "terrain": "plain",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-plain",
+      "difficulty": 2
+    },
+    {
+      "id": "revealed-plain-9",
+      "name": "Révéler 9 plaines",
+      "metric": "revealed",
+      "target": 9,
+      "terrain": "plain",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "revealed-plain",
+      "difficulty": 3
     },
     {
       "id": "river-3",
@@ -76,7 +114,9 @@
       "terrain": "river",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-river",
+      "difficulty": 1
     },
     {
       "id": "river-6",
@@ -86,7 +126,21 @@
       "terrain": "river",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-river",
+      "difficulty": 2
+    },
+    {
+      "id": "revealed-river-9",
+      "name": "Révéler 9 rivières",
+      "metric": "revealed",
+      "target": 9,
+      "terrain": "river",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "revealed-river",
+      "difficulty": 3
     },
     {
       "id": "mountain-3",
@@ -96,7 +150,9 @@
       "terrain": "mountain",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-mountain",
+      "difficulty": 1
     },
     {
       "id": "mountain-6",
@@ -106,7 +162,21 @@
       "terrain": "mountain",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "revealed-mountain",
+      "difficulty": 2
+    },
+    {
+      "id": "revealed-mountain-9",
+      "name": "Révéler 9 montagnes",
+      "metric": "revealed",
+      "target": 9,
+      "terrain": "mountain",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "revealed-mountain",
+      "difficulty": 3
     },
     {
       "id": "build-2",
@@ -115,7 +185,9 @@
       "target": 2,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "built-all",
+      "difficulty": 1
     },
     {
       "id": "build-4",
@@ -124,7 +196,20 @@
       "target": 4,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "built-all",
+      "difficulty": 2
+    },
+    {
+      "id": "built-all-6",
+      "name": "Construire 6 bâtiments",
+      "metric": "built",
+      "target": 6,
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-all",
+      "difficulty": 3
     },
     {
       "id": "build-sawmill",
@@ -134,37 +219,9 @@
       "building": "sawmill",
       "reward": {
         "prestige": 1
-      }
-    },
-    {
-      "id": "build-farm",
-      "name": "Construire 1 ferme",
-      "metric": "built",
-      "target": 1,
-      "building": "farm",
-      "reward": {
-        "prestige": 1
-      }
-    },
-    {
-      "id": "build-port",
-      "name": "Construire 1 port",
-      "metric": "built",
-      "target": 1,
-      "building": "port",
-      "reward": {
-        "prestige": 1
-      }
-    },
-    {
-      "id": "build-mine",
-      "name": "Construire 1 mine",
-      "metric": "built",
-      "target": 1,
-      "building": "mine",
-      "reward": {
-        "prestige": 1
-      }
+      },
+      "family": "built-sawmill",
+      "difficulty": 1
     },
     {
       "id": "two-sawmills",
@@ -174,7 +231,129 @@
       "building": "sawmill",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "built-sawmill",
+      "difficulty": 2
+    },
+    {
+      "id": "built-sawmill-3",
+      "name": "Construire 3 scieries",
+      "metric": "built",
+      "target": 3,
+      "building": "sawmill",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-sawmill",
+      "difficulty": 3
+    },
+    {
+      "id": "build-farm",
+      "name": "Construire 1 ferme",
+      "metric": "built",
+      "target": 1,
+      "building": "farm",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-farm",
+      "difficulty": 1
+    },
+    {
+      "id": "built-farm-2",
+      "name": "Construire 2 fermes",
+      "metric": "built",
+      "target": 2,
+      "building": "farm",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-farm",
+      "difficulty": 2
+    },
+    {
+      "id": "built-farm-3",
+      "name": "Construire 3 fermes",
+      "metric": "built",
+      "target": 3,
+      "building": "farm",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-farm",
+      "difficulty": 3
+    },
+    {
+      "id": "build-port",
+      "name": "Construire 1 port",
+      "metric": "built",
+      "target": 1,
+      "building": "port",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-port",
+      "difficulty": 1
+    },
+    {
+      "id": "built-port-2",
+      "name": "Construire 2 ports",
+      "metric": "built",
+      "target": 2,
+      "building": "port",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-port",
+      "difficulty": 2
+    },
+    {
+      "id": "built-port-3",
+      "name": "Construire 3 ports",
+      "metric": "built",
+      "target": 3,
+      "building": "port",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-port",
+      "difficulty": 3
+    },
+    {
+      "id": "build-mine",
+      "name": "Construire 1 mine",
+      "metric": "built",
+      "target": 1,
+      "building": "mine",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-mine",
+      "difficulty": 1
+    },
+    {
+      "id": "built-mine-2",
+      "name": "Construire 2 mines",
+      "metric": "built",
+      "target": 2,
+      "building": "mine",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-mine",
+      "difficulty": 2
+    },
+    {
+      "id": "built-mine-3",
+      "name": "Construire 3 mines",
+      "metric": "built",
+      "target": 3,
+      "building": "mine",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "built-mine",
+      "difficulty": 3
     },
     {
       "id": "workers-1",
@@ -183,7 +362,9 @@
       "target": 1,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "recruited-all",
+      "difficulty": 1
     },
     {
       "id": "workers-3",
@@ -192,7 +373,20 @@
       "target": 3,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "recruited-all",
+      "difficulty": 2
+    },
+    {
+      "id": "recruited-all-5",
+      "name": "Recruter 5 ouvriers",
+      "metric": "recruited",
+      "target": 5,
+      "reward": {
+        "prestige": 1
+      },
+      "family": "recruited-all",
+      "difficulty": 3
     },
     {
       "id": "stock-8",
@@ -201,7 +395,9 @@
       "target": 8,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "resources-all",
+      "difficulty": 1
     },
     {
       "id": "stock-12",
@@ -210,7 +406,20 @@
       "target": 12,
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "resources-all",
+      "difficulty": 2
+    },
+    {
+      "id": "resources-all-18",
+      "name": "Avoir 18 ressources",
+      "metric": "resources",
+      "target": 18,
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-all",
+      "difficulty": 3
     },
     {
       "id": "stock-wood",
@@ -220,7 +429,33 @@
       "resource": "wood",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "resources-wood",
+      "difficulty": 1
+    },
+    {
+      "id": "resources-wood-8",
+      "name": "Réserve de bois : 8",
+      "metric": "resources",
+      "target": 8,
+      "resource": "wood",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-wood",
+      "difficulty": 2
+    },
+    {
+      "id": "resources-wood-12",
+      "name": "Réserve de bois : 12",
+      "metric": "resources",
+      "target": 12,
+      "resource": "wood",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-wood",
+      "difficulty": 3
     },
     {
       "id": "stock-stone",
@@ -230,7 +465,33 @@
       "resource": "stone",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "resources-stone",
+      "difficulty": 1
+    },
+    {
+      "id": "resources-stone-7",
+      "name": "Réserve de pierre : 7",
+      "metric": "resources",
+      "target": 7,
+      "resource": "stone",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-stone",
+      "difficulty": 2
+    },
+    {
+      "id": "resources-stone-10",
+      "name": "Réserve de pierre : 10",
+      "metric": "resources",
+      "target": 10,
+      "resource": "stone",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-stone",
+      "difficulty": 3
     },
     {
       "id": "stock-iron",
@@ -240,7 +501,33 @@
       "resource": "iron",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "resources-iron",
+      "difficulty": 1
+    },
+    {
+      "id": "resources-iron-5",
+      "name": "Réserve de fer : 5",
+      "metric": "resources",
+      "target": 5,
+      "resource": "iron",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-iron",
+      "difficulty": 2
+    },
+    {
+      "id": "resources-iron-8",
+      "name": "Réserve de fer : 8",
+      "metric": "resources",
+      "target": 8,
+      "resource": "iron",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-iron",
+      "difficulty": 3
     },
     {
       "id": "stock-wheat",
@@ -250,7 +537,33 @@
       "resource": "wheat",
       "reward": {
         "prestige": 1
-      }
+      },
+      "family": "resources-wheat",
+      "difficulty": 1
+    },
+    {
+      "id": "resources-wheat-7",
+      "name": "Réserve de blé : 7",
+      "metric": "resources",
+      "target": 7,
+      "resource": "wheat",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-wheat",
+      "difficulty": 2
+    },
+    {
+      "id": "resources-wheat-10",
+      "name": "Réserve de blé : 10",
+      "metric": "resources",
+      "target": 10,
+      "resource": "wheat",
+      "reward": {
+        "prestige": 1
+      },
+      "family": "resources-wheat",
+      "difficulty": 3
     }
   ]
 }

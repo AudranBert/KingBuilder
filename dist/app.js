@@ -1,4 +1,5 @@
-import { installTileDrag } from "./ui/drag.js";
+import { parseKey } from "./geometry.js";
+import { installDrag } from "./ui/drag.js";
 import {
   RULES,
   createGame,
@@ -8,19 +9,13 @@ import {
   buildError,
   rerollMarket,
   rerollError,
-  RESOURCES,
-  TERRAINS,
-  BUILDINGS,
   actor,
-  move,
-  moveError,
   movementPaths,
   pawns,
-  buildingAt,
   explore,
-  exploreError,
   build,
   recruit,
+  recruitError,
   assign,
   endTurn,
   selectUnit,
@@ -30,14 +25,16 @@ import {
   key,
 } from "./engine.js";
 import { createPersistence } from "./storage.js";
-import {
-  createUIState,
-  normalizeUI,
-  cancelPlacement,
-  entryIndex,
-} from "./ui/state.js";
+import { createUIState } from "./ui/state.js";
+import { dragFromCard, dragPreview, moveUnitTo } from "./ui/interactions.js";
+import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
-import { e, costHTML } from "./ui/html.js";
+import {
+  costHTML,
+  costText,
+  terrainDiagram,
+  buildingDiagram,
+} from "./ui/html.js";
 import { RECRUITMENT_COST } from "./configuration.js";
 import {
   playersView,
@@ -47,7 +44,6 @@ import {
   terrainMarketView,
   buildingMarketView,
   selectionView,
-  turnView,
   resultsView,
   rulesView,
 } from "./ui/views.js";
@@ -93,12 +89,11 @@ export function startGame() {
       $("#game-notice").hidden = false;
     }
   }
-  function act(action, { message, center = false } = {}) {
+  function act(action, { message } = {}) {
     try {
       const previousClaims = game.missions.claimed.length;
       action();
       const won = game.missions.claimed.slice(previousClaims);
-      normalizeUI(game, ui);
       save();
       render();
       if (won.length)
@@ -118,8 +113,6 @@ export function startGame() {
     }
   }
   function render() {
-    normalizeUI(game, ui);
-    const worker = document.activeElement?.dataset.worker;
     html("#players", playersView(game));
     html("#missions", missionsView(game));
     for (const kind of ["terrain", "building"]) {
@@ -135,10 +128,10 @@ export function startGame() {
     html("#tile-market", terrainMarketView(game, ui));
     html("#building-market", buildingMarketView(game, ui));
     html("#selection", selectionView(game, ui));
-    const turn = turnView(game, ui);
+    const recruitReason = recruitError(game);
     html("#recruit", `+ Ouvrier <small>${costHTML(RECRUITMENT_COST)}</small>`);
-    $("#recruit").disabled = Boolean(turn.recruitReason);
-    $("#recruit-reason").textContent = turn.recruitReason || "";
+    $("#recruit").disabled = Boolean(recruitReason);
+    $("#recruit-reason").textContent = recruitReason || "";
     $("#end-turn").textContent = game.finished
       ? "Voir les résultats →"
       : "Fin de tour →";
@@ -146,9 +139,10 @@ export function startGame() {
       `${String(game.round).padStart(2, "0")} <small>/ ${RULES.rounds}</small>`;
     $("#rotation-label").textContent = `${ui.rotation * 90}°`;
     $("#building-rotation-label").textContent = `${ui.buildingRotation * 90}°`;
-    $("#rotate").disabled = game.finished || ui.tileIndex === null;
+    $("#rotate").disabled = game.finished || !game.tileMarket.length;
 
-    $("#rotate-building").disabled = game.finished || ui.buildingIndex === null;
+    $("#rotate-building").disabled =
+      game.finished || !game.buildingMarket.length;
     for (const button of document.querySelectorAll("[data-mode]")) {
       button.setAttribute(
         "aria-pressed",
@@ -157,68 +151,29 @@ export function startGame() {
       button.classList.toggle("selected", button.dataset.mode === ui.mode);
     }
     board.render(game, ui);
-    board.preview(game, ui);
-    if (worker !== undefined)
-      $(`[data-worker="${worker}"]`)?.focus({ preventScroll: true });
+    board.preview(dragPreview(game, ui.drag, ui.drag?.position));
   }
   function chooseUnit(id) {
-    act(
-      () => {
-        selectUnit(game, id);
-        ui.selected = null;
-        cancelPlacement(ui);
-      },
-      { center: true },
-    );
+    act(() => {
+      selectUnit(game, id);
+      ui.selected = null;
+      ui.drag = null;
+    });
   }
   function handleCell(x, y) {
+    if (ui.drag) return;
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
-    if (own.length && !game.finished && ui.buildingIndex === null) {
-      const next = own.find((p) => p.id !== game.selectedUnitId) || own[0];
-      chooseUnit(next.id);
+    if (own.length && !game.finished) {
+      chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
       return;
     }
     ui.selected = { x, y };
-    ui.exploreTarget = null;
-    if (game.finished || ui.mode === "inspect" || ui.buildingIndex !== null) {
-      render();
-      return;
-    }
-    const cell = game.board[key(x, y)],
-      unit = actor(game);
-    if (!cell) {
-      if (!exploreError(game, ui.tileIndex, x, y, ui.rotation, ui.anchor))
-        ui.exploreTarget = { x, y };
-      render();
-      return;
-    }
-    const path = movementPaths(game).get(key(x, y));
-    if (path) {
-      act(() => {
-        for (const step of path) move(game, step.x, step.y);
-      });
-      return;
-    }
-    const occupied = game.players.some(
-      (p) =>
-        (p.x === x && p.y === y) || p.units.some((u) => u.x === x && u.y === y),
-    );
-    if (
-      cell.building ||
-      cell.overlay ||
-      occupied ||
-      moveError(game, x, y) ||
-      (x === unit.x && y === unit.y)
-    ) {
-      render();
-      return;
-    }
-    act(() => move(game, x, y));
+    if (ui.mode === "move" && movementPaths(game).has(key(x, y)))
+      act(() => moveUnitTo(game, x, y));
+    else render();
   }
   let pendingBuild = null;
-  function requestBuild(pos) {
-    const index = ui.buildingIndex,
-      rotation = ui.buildingRotation;
+  function requestBuild(pos, index, rotation) {
     const error = buildError(game, index, pos.x, pos.y, rotation, {
       allowPrestige: true,
     });
@@ -244,9 +199,7 @@ export function startGame() {
       return;
     }
     pendingBuild = attempt;
-    const missing = Object.entries(payment.missing)
-      .map(([id, n]) => `${n} ${RESOURCES[id]}`)
-      .join(" + ");
+    const missing = costText(payment.missing);
     $("#prestige-warning").textContent =
       `Il manque ${missing}. Utiliser ${payment.prestige} point(s) de prestige ? Cela représente ${payment.prestige * RULES.points.prestige} points de fin de partie. Les ressources disponibles seront aussi dépensées.`;
     $("#prestige-dialog .confirm").textContent =
@@ -270,7 +223,6 @@ export function startGame() {
           allowPrestige: attempt.payment.prestige > 0,
           expectedPrestige: attempt.payment.prestige,
         });
-        cancelPlacement(ui);
       },
       { message: "Construction terminée." },
     );
@@ -292,37 +244,18 @@ export function startGame() {
       act(
         () => {
           rerollMarket(game, kind);
-          cancelPlacement(ui);
           ui.selected = null;
-          ui.tileIndex = 0;
-          ui.anchor = 0;
         },
         { message: "Marché renouvelé." },
       ),
     );
-  function confirmExploration() {
-    const pos = ui.exploreTarget;
-    if (!pos) return;
-    act(
-      () => {
-        explore(game, ui.tileIndex, pos.x, pos.y, ui.rotation, ui.anchor);
-        ui.anchor = 0;
-        ui.exploreTarget = null;
-      },
-      { message: "Le territoire a été révélé." },
-    );
-  }
-  function rotate() {
-    if (game.finished) return;
-    if (ui.buildingIndex !== null)
-      ui.buildingRotation = (ui.buildingRotation + 1) % 4;
-    else if (ui.tileIndex !== null) ui.rotation = (ui.rotation + 1) % 4;
+  function rotate(kind = ui.drag?.kind || "terrain") {
+    if (game.finished || !["terrain", "building"].includes(kind)) return;
+    const field = kind === "building" ? "buildingRotation" : "rotation";
+    ui[field] = (ui[field] + 1) % 4;
+    if (ui.drag?.kind === kind) ui.drag.rotation = ui[field];
     render();
-  }
-  function cancel() {
-    cancelPlacement(ui);
-    ui.selected = null;
-    render();
+    drag.refresh();
   }
   function showResults() {
     const a = totalScore(game, 0),
@@ -344,28 +277,20 @@ export function startGame() {
     const mode = event.target.closest("[data-mode]");
     if (mode) {
       ui.mode = mode.dataset.mode;
-      cancelPlacement(ui);
       render();
       return;
     }
     const button = event.target.closest("[data-action]");
     if (!button || button.disabled) return;
-    const position = button.dataset.position?.split(",").map(Number);
+    const position = button.dataset.position
+      ? parseKey(button.dataset.position)
+      : null;
     switch (button.dataset.action) {
-      case "cancel":
-        cancel();
-        break;
       case "move":
-        act(() => move(game, ui.selected.x, ui.selected.y));
+        act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
       case "assign":
         act(() => assign(game, ...position));
-        break;
-      case "build":
-        requestBuild(ui.selected || actor(game));
-        break;
-      case "explore":
-        confirmExploration();
         break;
       case "train":
         act(() => trainUnit(game, ...position, button.dataset.type), {
@@ -374,40 +299,8 @@ export function startGame() {
         break;
     }
   });
-  $("#tile-market").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-tile]");
-    if (!button || button.disabled) return;
-    ui.tileIndex = Number(button.dataset.tile);
-    ui.anchor = Math.max(0, entryIndex(game.tileMarket[ui.tileIndex]));
-    ui.rotation = 0;
-    ui.buildingIndex = null;
-    render();
-  });
-  $("#building-market").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-building]");
-    if (!button || button.disabled) return;
-    const index = Number(button.dataset.building);
-    ui.buildingIndex = ui.buildingIndex === index ? null : index;
-    ui.buildingRotation = 0;
-    ui.exploreTarget = null;
-    ui.selected = { x: actor(game).x, y: actor(game).y };
-    render();
-  });
-  $("#rotate").addEventListener("click", () => {
-    ui.rotation = (ui.rotation + 1) % 4;
-    render();
-  });
-  $("#rotate-building").addEventListener("click", rotate);
-  $("#board").addEventListener("pointerover", (event) => {
-    if (event.pointerType === "touch" || ui.mode === "inspect") return;
-    const cell = event.target.closest("[data-x]");
-    if (cell)
-      board.preview(game, ui, {
-        x: Number(cell.dataset.x),
-        y: Number(cell.dataset.y),
-      });
-  });
-  $("#board").addEventListener("pointerleave", () => board.preview(game, ui));
+  $("#rotate").addEventListener("click", () => rotate("terrain"));
+  $("#rotate-building").addEventListener("click", () => rotate("building"));
   $("#recruit").addEventListener("click", () =>
     act(() => recruit(game), {
       message: "Un ouvrier est disponible pour une affectation.",
@@ -418,15 +311,10 @@ export function startGame() {
       showResults();
       return;
     }
-    act(
-      () => {
-        endTurn(game);
-        ui.selected = null;
-        ui.anchor = 0;
-        cancelPlacement(ui);
-      },
-      { center: true },
-    );
+    act(() => {
+      endTurn(game);
+      ui.selected = null;
+    });
     if (game.finished) showResults();
     else toast(`${game.players[game.active].name} : à vous de jouer.`);
   });
@@ -450,7 +338,7 @@ export function startGame() {
         $("#game-notice").hidden = true;
         Object.assign(ui, createUIState());
       },
-      { center: true, message: "Deux nouveaux royaumes s’éveillent." },
+      { message: "Deux nouveaux royaumes s’éveillent." },
     );
     if (created) $("#new-dialog").close();
   });
@@ -464,7 +352,9 @@ export function startGame() {
     )
       return;
     if (event.key === "Escape") {
-      cancel();
+      drag.cancel();
+      ui.selected = null;
+      render();
       event.preventDefault();
     }
     if (
@@ -477,86 +367,42 @@ export function startGame() {
       event.preventDefault();
     }
   });
-  const layout = $(".game-layout");
-  const lands = $("#tile-market").closest("section");
-  const buildings = $("#building-market").closest("section");
-  lands.classList.add("land-shop");
-  buildings.classList.add("building-shop");
-  const left = document.createElement("div");
-  left.className = "land-column";
-  const right = document.createElement("div");
-  right.className = "building-column";
-  left.append(lands, $("#worker-list").closest("section"));
-  const training = document.createElement("div");
-  training.id = "barracks-list";
-  right.append(buildings, training);
-  layout.prepend(left);
-  layout.append(right);
-  let dragKind = null,
-    draggedWorker = null;
-  installTileDrag({
-    root: layout,
+  const drag = installDrag({
+    root: $(".game-layout"),
     begin(card) {
-      dragKind =
-        card.dataset.workerDrag !== undefined
-          ? "worker"
-          : card.dataset.tile !== undefined
-            ? "terrain"
-            : "building";
-      draggedWorker = dragKind === "worker" ? +card.dataset.workerDrag : null;
-      ui.exploreTarget = null;
+      ui.drag = dragFromCard(card, ui);
       ui.selected = null;
-      ui.mode = "move";
-      if (dragKind === "terrain") {
-        ui.tileIndex = +card.dataset.tile;
-        ui.anchor = 0;
-        ui.buildingIndex = null;
-      } else if (dragKind === "building")
-        ui.buildingIndex = +card.dataset.building;
-      else ui.buildingIndex = null;
+      if (ui.drag.kind === "unit") selectUnit(game, ui.drag.id);
       render();
     },
     preview(pos) {
-      if (dragKind !== "worker") {
-        board.preview(game, ui, pos);
-        return;
-      }
-      for (const cell of $("#board").querySelectorAll(
-        ".preview-valid,.preview-invalid",
-      ))
-        cell.classList.remove("preview-valid", "preview-invalid");
-      if (!pos) return;
-      const site = buildingAt(game, pos.x, pos.y),
-        target = site && key(site.x, site.y);
-      const valid =
-        !game.finished &&
-        site?.building.owner === game.active &&
-        BUILDINGS[site.building.type].produces &&
-        !game.players[game.active].workerAssignments.some(
-          (w) => w.id !== draggedWorker && w.building === target,
-        );
-      $("#board")
-        .querySelector(`[data-x="${pos.x}"][data-y="${pos.y}"]`)
-        ?.classList.add(valid ? "preview-valid" : "preview-invalid");
+      ui.drag.position = pos;
+      board.preview(dragPreview(game, ui.drag, pos));
+    },
+    ghost() {
+      const d = ui.drag;
+      if (!d) return "";
+      if (d.kind === "terrain")
+        return terrainDiagram(game.tileMarket[d.index], d.rotation);
+      if (d.kind === "building")
+        return buildingDiagram(game.buildingMarket[d.index], d.rotation);
+      return piece(d.kind === "worker" ? "worker" : actor(game).type);
     },
     drop(pos) {
+      const d = ui.drag;
+      ui.drag = null;
       if (pos.workerReserve) {
-        if (dragKind === "worker")
-          act(() => assignWorker(game, draggedWorker, null, null));
-        return;
-      }
-      ui.selected = pos;
-      if (dragKind === "worker")
-        act(() => assignWorker(game, draggedWorker, pos.x, pos.y), {
-          message: "Ouvrier affecté au bâtiment.",
-        });
-      else if (dragKind === "terrain") {
-        ui.exploreTarget = pos;
-        confirmExploration();
-      } else requestBuild(pos);
+        if (d.kind === "worker")
+          act(() => assignWorker(game, d.id, null, null));
+      } else if (d.kind === "unit") act(() => moveUnitTo(game, pos.x, pos.y));
+      else if (d.kind === "worker")
+        act(() => assignWorker(game, d.id, pos.x, pos.y));
+      else if (d.kind === "terrain")
+        act(() => explore(game, d.index, pos.x, pos.y, d.rotation));
+      else requestBuild(pos, d.index, d.rotation);
     },
     end() {
-      dragKind = null;
+      ui.drag = null;
       render();
     },
   });

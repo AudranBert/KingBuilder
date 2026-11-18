@@ -1,4 +1,3 @@
-/* Layout and controls for the map, units and touch interaction. */
 .game-layout {
   grid-template-rows: auto 1fr;
 }
@@ -8,10 +7,6 @@
   position: sticky;
   top: 12px;
   min-width: 0;
-}
-.game-layout > .turn-panel {
-  grid-column: 2;
-  grid-row: 1;
 }
 .game-layout > aside {
   grid-column: 2;
@@ -64,10 +59,6 @@
   background: #e3e9d8;
   border-color: #9fac8b;
 }
-.keyboard-hint {
-  font-size: 9px;
-  color: var(--muted);
-}
 .unit-control-label {
   font-size: 10px;
   display: block;
@@ -87,23 +78,6 @@
 .steps {
   flex-wrap: wrap;
   margin-top: 13px;
-}
-.action-chip {
-  border: 1px solid #5f7765;
-  border-radius: 5px;
-  padding: 5px 7px;
-  font-size: 9px;
-  color: #e2e8d7;
-}
-.turn-panel[data-owner="1"] {
-  background: #245243;
-}
-.turn-panel .disabled-reason {
-  color: #d3dbc9;
-  display: block;
-  margin-top: 10px;
-  font-size: 10px;
-  line-height: 1.5;
 }
 .disabled-reason {
   font-size: 10px;
@@ -140,15 +114,6 @@
   border: 1px solid #ffffff88;
   border-radius: 2px;
   font-style: normal;
-}
-.diagram-cell.entry::after {
-  content: "";
-  position: absolute;
-  width: 5px;
-  height: 5px;
-  background: #fff6cb;
-  border-radius: 50%;
-  box-shadow: 0 0 0 1px #53683d;
 }
 .building-card .tile-diagram {
   margin-inline: 0;
@@ -230,15 +195,12 @@ button {
     flex-direction: column;
     gap: 16px;
   }
-  .game-layout > .turn-panel,
+
   .map-panel,
   .game-layout > aside {
     width: 100%;
     grid-column: auto;
     grid-row: auto;
-  }
-  .game-layout > .turn-panel {
-    order: 0;
   }
   .map-panel {
     order: 1;
@@ -247,22 +209,8 @@ button {
   .game-layout > aside {
     order: 2;
   }
-  .turn-panel {
-    padding: 16px;
-  }
-  .turn-panel h2 {
-    margin: 5px 0 8px;
-    font-size: 25px;
-  }
-  .turn-panel p {
-    margin: 10px 0;
-    min-height: 0;
-  }
   .map-scroll {
     height: 440px;
-  }
-  .keyboard-hint {
-    display: none;
   }
   .board-toolbar {
     padding: 10px 12px;
@@ -282,21 +230,11 @@ button {
     height: 365px;
     padding: 12px;
   }
-  .page-heading {
-    margin-bottom: 18px;
-  }
-  .page-heading h1 {
-    font-size: 31px;
-  }
   .player-name h2 {
     font-size: 17px;
   }
   .player-name small {
     line-height: 1.6;
-  }
-  .turn-actions button {
-    min-height: 44px;
-    font-size: 11px;
   }
   .tile-controls button {
     font-size: 11px;
@@ -347,22 +285,53 @@ button {
     transition: none !important;
   }
 }
-
-/* Markets flank the board; management follows below. */
-.game-layout { grid-template-columns: minmax(210px, 1fr) minmax(400px, 2.5fr) minmax(250px, 1.2fr); grid-template-rows: auto auto auto; align-items: start; }
-.game-layout > .land-shop { grid-column: 1; grid-row: 1; min-width: 0; }
-.game-layout > .map-panel { grid-column: 2; grid-row: 1; position: static; }
-.game-layout > .building-shop { grid-column: 3; grid-row: 1; min-width: 0; }
-.game-layout > .turn-panel { grid-column: 1 / -1; grid-row: 2; }
-.game-layout > aside { grid-column: 1 / -1; grid-row: 3; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
-[draggable="true"] { cursor: grab; touch-action: auto; }
-[draggable="true"]:active { cursor: grabbing; }
-@media(max-width:1050px) {
- .game-layout { grid-template-columns: repeat(2,minmax(0,1fr)); }
- .game-layout > .map-panel { grid-column: 1 / -1; grid-row: 1; }
- .game-layout > .land-shop { grid-column: 1; grid-row: 2; }
- .game-layout > .building-shop { grid-column: 2; grid-row: 2; }
- .game-layout > .turn-panel { grid-row: 3; }
- .game-layout > aside { grid-row: 4; grid-template-columns: 1fr; }
+.game-layout {
+  grid-template-columns: minmax(210px, 1fr) minmax(400px, 2.5fr) minmax(
+      250px,
+      1.2fr
+    );
+  grid-template-rows: auto auto auto;
+  align-items: start;
 }
-@media(max-width:540px) { .game-layout { display: flex; flex-direction: column; } .game-layout > * { width:100%; box-sizing:border-box; } }
+.game-layout > .map-panel {
+  grid-column: 2;
+  grid-row: 1;
+  position: static;
+}
+.game-layout > aside {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+[draggable="true"] {
+  cursor: grab;
+  touch-action: auto;
+}
+[draggable="true"]:active {
+  cursor: grabbing;
+}
+@media (max-width: 1050px) {
+  .game-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .game-layout > .map-panel {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+  .game-layout > aside {
+    grid-row: 4;
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 540px) {
+  .game-layout {
+    display: flex;
+    flex-direction: column;
+  }
+  .game-layout > * {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}

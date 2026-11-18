@@ -16,6 +16,7 @@ export {
 } from "./prestige.js";
 import {
   key,
+  parseKey,
   distance,
   rotatePoint,
   isRotation,
@@ -53,7 +54,7 @@ export function buildingAt(g, x, y) {
   const c = g.board[key(x, y)];
   if (c?.building) return { x, y, building: c.building };
   if (c?.overlay) {
-    const [ax, ay] = c.overlay.anchor.split(",").map(Number);
+    const [ax, ay] = parseKey(c.overlay.anchor);
     const b = g.board[c.overlay.anchor]?.building;
     if (b) return { x: ax, y: ay, building: b };
   }
@@ -80,7 +81,7 @@ function withinRange(x, y, tx, ty, range) {
 }
 function meetsAdjacency(g, rule, x, y, owner) {
   return Object.entries(g.board).some(([k, c]) => {
-    const [tx, ty] = k.split(",").map(Number);
+    const [tx, ty] = parseKey(k);
     if (!withinRange(x, y, tx, ty, rule.range)) return false;
     const b = rule.building ? c.building : buildingAt(g, tx, ty)?.building;
     return (
@@ -104,7 +105,7 @@ export function productionAmount(g, x, y) {
       (bonus.owned && c.building.owner !== b.owner)
     )
       continue;
-    const [tx, ty] = k.split(",").map(Number);
+    const [tx, ty] = parseKey(k);
     if (withinRange(x, y, tx, ty, bonus.range))
       multiplier = Math.max(multiplier, bonus.multiplier);
   }
@@ -198,27 +199,30 @@ export function workersAt(g, owner, x, y) {
     (w) => w.building === key(x, y),
   );
 }
-export function assignWorker(g, id, x, y) {
-  available(g);
+export function workerAssignmentError(g, id, x, y) {
+  if (g.finished) return "La partie est terminée.";
   const p = g.players[g.active],
     w = p.workerAssignments.find((w) => w.id === id);
-  if (!w) throw Error("Choisissez un de vos ouvriers.");
-  if (x === null && y === null) {
-    w.building = null;
-    return;
-  }
+  if (!w) return "Choisissez un de vos ouvriers.";
+  if (x === null && y === null) return null;
   const site = buildingAt(g, x, y),
     b = site?.building;
   if (!b || b.owner !== g.active || !BUILDINGS[b.type].produces)
-    throw Error("Choisissez votre propre bâtiment de production.");
-  const target = key(site.x, site.y);
+    return "Choisissez votre propre bâtiment de production.";
   if (
     p.workerAssignments.some(
-      (other) => other.id !== id && other.building === target,
+      (other) => other.id !== id && other.building === key(site.x, site.y),
     )
   )
-    throw Error("Ce bâtiment accueille déjà un ouvrier.");
-  w.building = target;
+    return "Ce bâtiment accueille déjà un ouvrier.";
+  return null;
+}
+export function assignWorker(g, id, x, y) {
+  const error = workerAssignmentError(g, id, x, y);
+  if (error) throw Error(error);
+  const w = g.players[g.active].workerAssignments.find((w) => w.id === id),
+    site = x === null ? null : buildingAt(g, x, y);
+  w.building = site ? key(site.x, site.y) : null;
 }
 const inside = (x, y) => withinBoard(x, y, RULES.size);
 const shuffle = (a, rng) => {
@@ -437,10 +441,10 @@ export function transformed(tile, rotation = 0, anchor = 0) {
     return [];
   const origin = tile.cells[anchor];
   return tile.cells.map((c) => {
-    let x = c.x - origin.x,
-      y = c.y - origin.y;
-    for (let r = 0; r < rotation; r++) [x, y] = [-y, x];
-    return { x, y, terrain: c.terrain };
+    return {
+      ...rotatePoint(c.x - origin.x, c.y - origin.y, rotation),
+      terrain: c.terrain,
+    };
   });
 }
 export function placement(g, index, x, y, rotation = 0, anchor = 0) {
@@ -698,7 +702,7 @@ export function endTurn(g) {
     if (b?.owner === g.active && BUILDINGS[b.type].produces) {
       const r = BUILDINGS[b.type].produces;
       if (r) {
-        const [x, y] = k.split(",").map(Number),
+        const [x, y] = parseKey(k),
           n = productionAmount(g, x, y);
         if (!n) return;
         p.resources[r] += n;

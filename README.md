@@ -50,7 +50,7 @@ npm test
 
 Les tests couvrent déplacements, placements, achats, production, ouvriers, maisons et fin de partie. `dist/` contient le site statique complet ; `server.mjs` fournit uniquement un serveur de développement local.
 
-L’interface sépare déplacement et inspection. Une exploration se prépare avec un aperçu avant confirmation. Les cases du plateau se parcourent aussi avec les flèches du clavier et Entrée. Les sauvegardes incompatibles, notamment celles de l’ancien plateau 25 × 25, sont copiées avant de démarrer une nouvelle partie. Une erreur de sauvegarde est signalée à l’écran.
+L’interface sépare déplacement et inspection. Les terrains et bâtiments se placent uniquement par glisser-déposer, avec un aperçu de validité. Les unités se déplacent par glisser-déposer ou par sélection puis clic sur une case dorée. La touche R pivote la tuile pendant le glissement. Les cases du plateau se parcourent aussi avec les flèches du clavier et Entrée. Les sauvegardes incompatibles, notamment celles de l’ancien plateau 25 × 25, sont copiées avant de démarrer une nouvelle partie. Une erreur de sauvegarde est signalée à l’écran.
 
 ## Tuiles bâtiments — version 2
 
@@ -86,7 +86,7 @@ Les sauvegardes version 1 sont migrées sans effacer la partie : les bâtiments 
 - Caserne : motif d’une case de plaine, coût provisoire 2 bois + 2 pierres. Recrute au choix une unité par caserne et par tour, sans ouvrier affecté et sans consommer l’action d’une unité.
 - Cavalier : coût 1 fer + 1 blé, 1 place dans la population totale des maisons, comme un ouvrier. Le roi ne compte pas dans cette capacité.
 - Apparition sur la caserne ; activation au prochain tour du propriétaire. Les unités alliées peuvent partager une case. Les pions adverses bloquent les déplacements ; aucun combat n’est ajouté.
-- Chaque cavalier a ses propres 2 déplacements et sa propre action d’exploration ou de construction, avec les mêmes contraintes que le roi. Choisir le pion dans « Vos unités ». Les ressources, les marchés et le score d’exploration/construction sont communs au joueur.
+- Chaque cavalier a ses propres 2 déplacements et sa propre action d’exploration ou de construction, avec les mêmes contraintes que le roi. Sélectionner ou glisser le pion directement sur le plateau. Les ressources, les marchés et le score d’exploration/construction sont communs au joueur.
 - Le recrutement d’un ouvrier reste limité à un par joueur et par tour. Il ne consomme ni les déplacements ni l’action des unités.
 - Les cavaliers ne rapportent pour l’instant aucun point direct ; les points de leurs explorations et constructions sont comptés normalement.
 - Définitions et coûts des unités dans `dist/config/units.json`. Chaque bâtiment formateur référence ses choix dans `trains` et son quota dans `trainingLimit`.
@@ -100,6 +100,8 @@ Le catalogue illustré par motifs se trouve dans `dist/config/tile-catalogue.md`
 
 ## Prestige et missions
 
-Le premier joueur commence à 0 prestige, le second à 1. Chaque prestige restant vaut 3 points. Trois missions communes s’affichent au-dessus du plateau : la première personne à remplir un objectif visible reçoit sa récompense (1 prestige par défaut) et une nouvelle mission prend sa place. Les 26 missions et leurs récompenses se configurent dans `dist/config/missions.json`.
+Le premier joueur commence à 0 prestige, le second à 1. Chaque prestige restant vaut 3 points. Trois missions communes s’affichent au-dessus du plateau : la première personne à remplir un objectif visible reçoit sa récompense (1 prestige par défaut) et une nouvelle mission prend sa place. Les 48 variantes (16 objectifs × 3 difficultés) et leurs récompenses se configurent dans `dist/config/missions.json`.
 
 Le bouton ↻ d’un marché remplace ses trois offres pour 1 prestige, une fois par joueur et par tour, sans consommer l’action d’une unité. Le prestige sert aussi de joker : 1 prestige par ressource manquante pour un bâtiment, avec confirmation explicite du coût avant toute dépense.
+
+Les trois missions commencent à ★. Chaque objectif remporté est remplacé par un objectif aléatoire du niveau supérieur (★ → ★★ → ★★★), puis les missions ★★★ sont remplacées par d’autres ★★★ disponibles. Les seuils et récompenses de chaque niveau sont modifiables dans `missions.json`.

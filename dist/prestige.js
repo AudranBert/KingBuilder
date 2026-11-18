@@ -54,11 +54,25 @@ export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
   }
   if (!g.missions) {
     const deck = [...missionOrder];
-    g.missions = {
-      market: deck.splice(0, CONFIG.missionMarketSize),
-      deck,
-      claimed: [],
-    };
+    const market = [];
+    for (
+      let i = 0;
+      i < deck.length && market.length < CONFIG.missionMarketSize;
+
+    ) {
+      if (MISSIONS[deck[i]].difficulty === 1) market.push(...deck.splice(i, 1));
+      else i++;
+    }
+    g.missions = { market, deck, claimed: [], tiered: 1 };
+  } else if (g.missions.tiered === undefined) {
+    // Preserve offers, ownership and rewards in existing saves; add new variants once.
+    const known = new Set([
+      ...g.missions.market,
+      ...g.missions.deck,
+      ...g.missions.claimed.map((c) => c.id),
+    ]);
+    for (const id of missionOrder) if (!known.has(id)) g.missions.deck.push(id);
+    g.missions.tiered = 1;
   }
 }
 export function settleMissions(g, owner = g.active) {
@@ -75,8 +89,12 @@ export function settleMissions(g, owner = g.active) {
     g.missions.claimed.push({ id, owner, round: g.round });
     won.push(id);
     g.missions.market.splice(i, 1);
-    if (g.missions.deck.length)
-      g.missions.market.splice(i, 0, g.missions.deck.shift());
+    const nextLevel = Math.min(3, m.difficulty + 1);
+    const nextIndex = g.missions.deck.findIndex(
+      (next) => MISSIONS[next].difficulty === nextLevel,
+    );
+    if (nextIndex !== -1)
+      g.missions.market.splice(i, 0, ...g.missions.deck.splice(nextIndex, 1));
     i = 0;
   }
   return won;

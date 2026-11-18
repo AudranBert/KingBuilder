@@ -15,7 +15,8 @@ import {
   migrateGame,
 } from "../dist/engine.js";
 import { createPersistence, SAVE_KEY, validateGame } from "../dist/storage.js";
-import { createUIState, normalizeUI } from "../dist/ui/state.js";
+import { createUIState } from "../dist/ui/state.js";
+import { dragPreview } from "../dist/ui/interactions.js";
 import { escapeHTML, terrainDiagram } from "../dist/ui/html.js";
 import { playersView, rulesView, selectionView } from "../dist/ui/views.js";
 
@@ -79,30 +80,18 @@ test("une ressource absente ou non finie ne permet pas de construire à crédit"
     assert.deepEqual(g, snapshot);
   }
 });
-test("un marché épuisé ou une tuile plus courte ne conserve pas une ancre invalide", () => {
-  const g = createGame(),
-    ui = createUIState();
-  ui.tileIndex = 2;
-  ui.anchor = 4;
-  g.tileMarket = [
-    {
-      cells: [
-        { x: 0, y: 0, terrain: "plain" },
-        { x: 1, y: 0, terrain: "forest" },
-      ],
-    },
-  ];
-  ui.buildingIndex = 2;
-  g.buildingMarket = [];
-  normalizeUI(g, ui);
-  assert.equal(ui.tileIndex, 0);
-  assert.equal(ui.anchor, 0);
-  assert.equal(ui.buildingIndex, null);
+test("un aperçu de marché épuisé est invalide sans modifier la partie", () => {
+  const g = createGame();
   g.tileMarket = [];
-  normalizeUI(g, ui);
-  assert.equal(ui.tileIndex, null);
+  const before = structuredClone(g);
+  assert.ok(
+    dragPreview(g, { kind: "terrain", index: 0, rotation: 0 }, { x: 1, y: 6 })
+      .error,
+  );
+  assert.deepEqual(g, before);
 });
-test("chaque aperçu de tuile garde une entrée visible et les textes sont échappés", () => {
+
+test("chaque aperçu de tuile affiche ses terrains et les textes sont échappés", () => {
   const tile = {
     cells: [
       { x: 0, y: 0, terrain: "plain" },
@@ -130,9 +119,12 @@ test("l’exploration est proposée sans déplacer l’unité ni révéler de ca
     ],
   };
   ui.selected = { x: 1, y: 7 };
-  ui.exploreTarget = { x: 1, y: 7 };
   const before = structuredClone(g);
-  assert.match(selectionView(g, ui), /id="explore-confirm"/);
+  assert.ok(
+    dragPreview(g, { kind: "terrain", index: 0, rotation: 0 }, { x: 1, y: 6 })
+      .cells.length,
+  );
+  assert.doesNotMatch(selectionView(g, ui), /explore-confirm|build-confirm/);
   assert.deepEqual(g, before);
 });
 test("les sauvegardes actuelles se rechargent sans perte", () => {

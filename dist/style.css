@@ -125,12 +125,6 @@ main {
   margin: auto;
   padding: 32px 4.2% 0;
 }
-.page-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 27px;
-}
 .eyebrow {
   font-size: 9px;
   font-weight: 700;
@@ -141,10 +135,6 @@ h1 {
   font-size: 48px;
   letter-spacing: -1.1px;
   margin: 7px 0 8px;
-}
-.page-heading p {
-  font-size: 12px;
-  color: var(--muted);
 }
 .round {
   display: flex;
@@ -449,33 +439,9 @@ aside {
   flex-direction: column;
   gap: 18px;
 }
-.turn-panel {
-  background: #233f35;
-  color: #f2f1e5;
-  padding: 22px;
-  border-radius: 8px;
-}
-.turn-panel .eyebrow {
-  color: #b7c6a7;
-}
-.turn-panel h2 {
-  font-size: 28px;
-  margin: 8px 0 17px;
-}
 .steps {
   display: flex;
   gap: 6px;
-}
-.turn-panel p {
-  font-size: 11px;
-  line-height: 1.7;
-  min-height: 38px;
-  margin: 15px 0;
-  color: #d4ddcc;
-}
-.turn-actions {
-  display: flex;
-  gap: 8px;
 }
 .primary {
   background: #d7b77b;
@@ -489,22 +455,6 @@ aside {
 .secondary {
   background: #faf9f3;
   border: 1px solid var(--line);
-}
-.turn-panel .secondary {
-  background: transparent;
-  color: #eceddf;
-  border-color: #637765;
-}
-.turn-actions button {
-  font-size: 11px;
-  padding: 11px 10px;
-  flex: 1;
-}
-.turn-actions small {
-  display: block;
-  font-size: 8px;
-  opacity: 0.7;
-  margin-top: 3px;
 }
 .primary span {
   margin-left: 7px;
@@ -796,9 +746,6 @@ dialog p {
     grid-template-columns: 1fr 1fr;
     align-items: start;
   }
-  .turn-panel {
-    grid-column: 1/-1;
-  }
   .journal-panel {
     grid-column: 1/-1;
   }
@@ -845,11 +792,6 @@ dialog p {
   }
   .brand-icon {
     font-size: 32px;
-  }
-  .page-heading p {
-    font-size: 10px;
-    max-width: 235px;
-    line-height: 1.6;
   }
   h1 {
     font-size: 34px;
@@ -922,7 +864,6 @@ dialog p {
     display: flex;
   }
   .market-panel,
-  .turn-panel,
   .journal-panel {
     width: 100%;
   }
@@ -939,8 +880,6 @@ dialog p {
     flex-direction: column;
   }
 }
-
-/* Building tiles retain the terrain underneath and reserve their full footprint. */
 .built-tile {
   box-shadow: inset 0 0 0 1px #fff7d8aa;
 }
@@ -992,7 +931,6 @@ dialog p {
 .selection .description {
   min-width: 150px;
 }
-
 .worker-piece {
   position: absolute;
   bottom: 1px;
@@ -1035,7 +973,6 @@ dialog p {
 .workers-panel .section-desc {
   margin-bottom: 7px;
 }
-
 .worker-card select {
   grid-column: 1/-1;
   background: #f7f5ec;
@@ -1055,28 +992,10 @@ dialog p {
   outline: 2px solid var(--gold);
   outline-offset: 2px;
 }
-
 #unit-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 7px;
-}
-.unit-card {
-  text-align: left;
-  font-size: 12px;
-  background: #fffdf6;
-  padding: 10px;
-}
-.unit-card small {
-  display: block;
-  font-size: 9px;
-  margin-top: 5px;
-  color: var(--muted);
-}
-.unit-card.selected {
-  border-color: var(--gold);
-  background: #f5ebd6;
-  box-shadow: 0 0 0 1px var(--gold);
 }
 .barracks-card {
   margin-top: 14px;

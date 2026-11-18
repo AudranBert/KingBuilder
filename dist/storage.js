@@ -1,3 +1,4 @@
+import { parseKey } from "./geometry.js";
 import { CONFIG } from "./configuration.js";
 import {
   createGame,
@@ -77,7 +78,7 @@ export function validateGame(game, { legacy = false } = {}) {
   );
   requireValid(record(game.board), "plateau absent.");
   for (const [position, cell] of Object.entries(game.board)) {
-    const [x, y] = position.split(",").map(Number);
+    const [x, y] = parseKey(position);
     requireValid(
       inside(x, y, RULES.size) &&
         key(x, y) === position &&
@@ -174,6 +175,10 @@ export function validateGame(game, { legacy = false } = {}) {
   );
   if (game.missions !== undefined) {
     const missions = game.missions;
+    requireValid(
+      missions.tiered === undefined || missions.tiered === 1,
+      "version des missions incorrecte.",
+    );
     requireValid(
       record(missions) &&
         Array.isArray(missions.market) &&

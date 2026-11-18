@@ -6,12 +6,7 @@ import {
   UNIT_DEFINITIONS,
   actor,
   pawns,
-  moveError,
   movementPaths,
-  exploreError,
-  buildError,
-  patternAt,
-  transformed,
   productionAmount,
 } from "../engine.js";
 import { key, inside } from "../geometry.js";
@@ -177,58 +172,32 @@ export function createBoard(element, scrollElement, onCell) {
         if (workerIndex.has(position))
           html += `<span class="worker-piece ${workerIndex.get(position).owner === 1 ? "jade" : ""}" ${workerIndex.get(position).owner === g.active && !g.finished ? `data-worker-drag="${workerIndex.get(position).id}"` : ""} title="Ouvrier affecté">${piece("worker")}</span>`;
         for (const pawn of occupants.filter((p) => p.type === "king"))
-          html += `<span class="king-piece ${pawn.owner === 1 ? "jade" : ""} ${exhausted(pawn) ? "exhausted" : ""}" aria-hidden="true">${piece("king")}</span>`;
+          html += `<span class="king-piece ${pawn.owner === 1 ? "jade" : ""} ${exhausted(pawn) ? "exhausted" : ""}" ${pawn.owner === g.active && !g.finished && !g.acted && !g.kingEnded && g.moves > 0 ? `data-unit-drag=""` : ""} aria-hidden="true">${piece("king")}</span>`;
         for (let owner = 0; owner < 2; owner++) {
           const units = occupants.filter(
             (p) => p.owner === owner && p.type !== "king",
           );
+          const movable =
+            units.find(
+              (u) =>
+                u.id === g.selectedUnitId &&
+                !u.acted &&
+                !u.ended &&
+                u.moves > 0,
+            ) || units.find((u) => !u.acted && !u.ended && u.moves > 0);
           if (units.length)
-            html += `<span class="military-piece ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" aria-hidden="true">${piece(units[0].type)}${units.length > 1 ? `<sup>${units.length}</sup>` : ""}</span>`;
+            html += `<span class="military-piece ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} aria-hidden="true">${piece(units[0].type)}${units.length > 1 ? `<sup>${units.length}</sup>` : ""}</span>`;
         }
         if (button.innerHTML !== html) button.innerHTML = html;
       }
     },
-    preview(g, ui, hover = null) {
+    preview(result) {
       clearPreview();
-      if (g.finished) return;
-      let footprint, error;
-      if (ui.buildingIndex !== null) {
-        const pos = hover || ui.selected || actor(g),
-          type = g.buildingMarket[ui.buildingIndex];
-        if (!type) return;
-        footprint = patternAt(type, pos.x, pos.y, ui.buildingRotation);
-        error = buildError(
-          g,
-          ui.buildingIndex,
-          pos.x,
-          pos.y,
-          ui.buildingRotation,
-          { allowPrestige: true },
-        );
-      } else {
-        const pos = hover || ui.exploreTarget;
-        if (!pos || g.board[key(pos.x, pos.y)]) return;
-        const unit = actor(g);
-        const tile = g.tileMarket[ui.tileIndex];
-        if (!tile) return;
-        footprint = transformed(tile, ui.rotation, ui.anchor).map((c) => ({
-          ...c,
-          x: c.x + pos.x,
-          y: c.y + pos.y,
-        }));
-        error = exploreError(
-          g,
-          ui.tileIndex,
-          pos.x,
-          pos.y,
-          ui.rotation,
-          ui.anchor,
-        );
-      }
-      for (const c of footprint)
+      if (!result) return;
+      for (const c of result.cells)
         cells
           .get(key(c.x, c.y))
-          ?.classList.add(error ? "preview-invalid" : "preview-valid");
+          ?.classList.add(result.error ? "preview-invalid" : "preview-valid");
     },
   };
 }

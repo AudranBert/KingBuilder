@@ -203,12 +203,14 @@ Pour modifier seulement une unité existante, éditer `units.json` : aucun chang
 
 ## `missions.json` — objectifs communs et récompenses
 
-Le fichier contient `marketSize: 3` et la liste `missions`. Chaque mission apparaît une fois dans la pioche mélangée. Dès qu’un joueur remplit une mission visible, elle lui est attribuée automatiquement, sa récompense est ajoutée et elle est remplacée. Une mission déjà remportée ne revient pas. Quand la pioche est épuisée, il reste moins de trois missions.
+Le fichier contient `marketSize: 3` et la liste `missions`. Chaque variante apparaît une fois dans la pioche mélangée. Les trois offres initiales sont toutes à ★. Dès qu’un joueur remplit une mission visible, elle lui est attribuée automatiquement, sa récompense est ajoutée et son emplacement reçoit un objectif aléatoire du niveau supérieur : ★ → ★★ → ★★★, puis ★★★ → ★★★. Les deux autres emplacements ne changent pas. Une variante déjà remportée ne revient pas. Quand il ne reste aucune carte au niveau requis, l’emplacement disparaît, sans revenir à une difficulté inférieure.
 
 ```json
 {
   "id": "forest-3",
   "name": "Révéler 3 forêts",
+  "family": "revealed-forest",
+  "difficulty": 1,
   "metric": "revealed",
   "terrain": "forest",
   "target": 3,
@@ -217,6 +219,7 @@ Le fichier contient `marketSize: 3` et la liste `missions`. Chaque mission appar
 ```
 
 - `id` : identifiant unique et stable ; `name` : intitulé affiché au-dessus du plateau.
+- `family` : identifiant commun aux trois versions d’un objectif ; `difficulty` : 1, 2 ou 3 étoiles. Chaque famille doit contenir exactement ces trois variantes, avec le même critère et des seuils strictement croissants.
 - `target` : seuil entier positif ; `reward.prestige` : prestige gagné, entier positif librement modifiable par mission.
 - `metric: "revealed"` : nombre de cases révélées depuis le début de la partie. Ajouter `terrain` pour compter uniquement ce terrain. Un défrichement ultérieur ne retire pas une forêt déjà révélée du compteur.
 - `metric: "built"` : nombre de bâtiments construits. Ajouter `building` pour cibler un type, par exemple `"sawmill"`. La maison initiale et les actions de transformation du terrain ne comptent pas.
@@ -225,7 +228,7 @@ Le fichier contient `marketSize: 3` et la liste `missions`. Chaque mission appar
 
 La progression est cumulée depuis le début, même avant l’apparition de la mission, sauf les stocks qui correspondent aux ressources détenues. Seules les missions visibles peuvent être remportées. Une nouvelle offre déjà remplie peut être remportée immédiatement par le joueur actif. Les vérifications suivent exploration, construction, recrutement et récolte, y compris la dernière récolte de la partie. Les récompenses ne sont pas des ressources et ne comptent pas pour les missions de stock.
 
-Le catalogue initial contient 26 missions : explorations totales et par terrain, constructions totales et ciblées, recrutement d’ouvriers et réserves de ressources. Ajouter ou retirer des missions se fait dans ce fichier, sans changer le moteur. Les terrains, ressources et bâtiments référencés doivent exister dans leurs fichiers respectifs. Commencer une nouvelle partie après modification du catalogue ; une ancienne sauvegarde qui référence une mission supprimée est conservée en copie avant remplacement.
+Le catalogue initial contient 16 objectifs déclinés en 3 difficultés, soit 48 missions : explorations totales et par terrain, constructions totales et ciblées, recrutement d’ouvriers et réserves de ressources. Ajouter ou retirer un objectif se fait dans ce fichier, avec ses trois variantes, sans changer le moteur. Les terrains, ressources et bâtiments référencés doivent exister dans leurs fichiers respectifs. Commencer une nouvelle partie après modification du catalogue ; une ancienne sauvegarde qui référence une mission supprimée est conservée en copie avant remplacement.
 
 ### Paramètres de prestige dans `game-rules.json`
 
@@ -241,3 +244,5 @@ Une relance remplace tout le marché choisi, sans consommer l’action d’une u
 Le joker ne s’applique qu’aux achats de bâtiments, y compris le défrichement. Les ressources disponibles sont utilisées en priorité ; chaque unité manquante est remplacée par du prestige. L’interface annonce le coût en prestige et sa valeur en points de fin de partie avant confirmation. Annuler ne dépense rien. Un placement interdit ou un solde insuffisant est toujours refusé.
 
 Les anciennes sauvegardes compatibles reçoivent les missions et le prestige de départ une seule fois, sans réinitialiser les soldes lors des rechargements suivants. Leur progression initiale est reconstituée d’après le plateau et les ouvriers ; les anciens terrains transformés ne peuvent pas être reconstitués avec certitude. Une nouvelle partie garantit un suivi complet depuis le départ.
+
+Les sauvegardes antérieures aux difficultés conservent leurs offres visibles et leurs missions gagnées ; les nouvelles variantes sont ajoutées à la pioche une seule fois. Une nouvelle partie garantit un départ avec trois offres à une étoile. Les récompenses restent à 1 prestige par défaut à chaque difficulté ; `reward.prestige` reste indépendant et configurable.

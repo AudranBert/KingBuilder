@@ -29,6 +29,30 @@
       <div id="game-notice" class="game-notice" role="status" hidden></div>
       <section id="players" class="players" aria-label="Royaumes"></section>
       <div class="game-layout">
+        <div class="land-column">
+          <section class="market-panel">
+            <div class="section-title">
+              <h2>Terrains</h2>
+              <button
+                id="reroll-terrain"
+                class="reroll"
+                aria-label="Relancer les terrains"
+              ></button>
+            </div>
+            <div id="tile-market" class="tile-market"></div>
+            <div class="tile-controls">
+              <button id="rotate">↻ Pivoter</button
+              ><span id="rotation-label">0°</span>
+            </div>
+          </section>
+          <section class="workers-panel" aria-label="Ouvriers disponibles">
+            <button id="recruit" class="secondary">
+              Recruter un ouvrier <small>1 blé</small>
+            </button>
+            <small id="recruit-reason" class="disabled-reason"></small>
+            <div id="worker-list" data-worker-reserve></div>
+          </section>
+        </div>
         <section class="map-panel">
           <div
             id="missions"
@@ -55,30 +79,7 @@
           <div id="selection" class="selection" aria-live="polite"></div>
         </section>
         <button id="end-turn" class="primary">Fin de tour →</button>
-        <aside>
-          <section class="workers-panel" aria-label="Ouvriers disponibles">
-            <button id="recruit" class="secondary">
-              Recruter un ouvrier <small>1 blé</small>
-            </button>
-            <small id="recruit-reason" class="disabled-reason"></small>
-            <div id="worker-list" data-worker-reserve></div>
-          </section>
-
-          <section class="market-panel">
-            <div class="section-title">
-              <h2>Terrains</h2>
-              <button
-                id="reroll-terrain"
-                class="reroll"
-                aria-label="Relancer les terrains"
-              ></button>
-            </div>
-            <div id="tile-market" class="tile-market"></div>
-            <div class="tile-controls">
-              <button id="rotate">↻ Pivoter</button
-              ><span id="rotation-label">0°</span>
-            </div>
-          </section>
+        <div class="building-column">
           <section class="market-panel">
             <div class="section-title">
               <h2>Bâtiments</h2>
@@ -94,7 +95,8 @@
               ><span id="building-rotation-label">0°</span>
             </div>
           </section>
-        </aside>
+          <div id="barracks-list"></div>
+        </div>
       </div>
       <span id="save-status" class="sr-only" role="status"></span>
     </main>

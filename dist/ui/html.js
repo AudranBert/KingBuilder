@@ -7,7 +7,6 @@ import {
   transformed,
 } from "../engine.js";
 import { bounds } from "../geometry.js";
-import { entryIndex } from "./state.js";
 
 export const escapeHTML = (value) =>
   String(value ?? "").replace(
@@ -38,7 +37,7 @@ export function costText(cost) {
   );
 }
 export const coordinates = (x, y) => `${x + 1}, ${y + 1}`;
-export function diagram(cells, { building = null, entry = -1 } = {}) {
+export function diagram(cells, { building = null } = {}) {
   if (!cells.length) return "";
   const { minX, maxX, minY, maxY } = bounds(cells),
     step = Math.min(
@@ -47,10 +46,26 @@ export function diagram(cells, { building = null, entry = -1 } = {}) {
     );
   const width = (maxX - minX + 1) * step,
     height = (maxY - minY + 1) * step;
-  return `<span class="tile-diagram" aria-hidden="true" style="width:${width}px;height:${Math.max(building ? 15 : 46, height)}px">${cells.map((c, i) => `<i class="diagram-cell terrain-${e(Array.isArray(c.terrain) ? c.terrain[0] : c.terrain)} ${c.role === "field" ? "field" : ""} ${i === entry ? "entry" : ""}" style="left:${(c.x - minX) * step}px;top:${(c.y - minY) * step}px;width:${step * 0.9}px;height:${step * 0.9}px;font-size:${Math.min(13, step * 0.7)}px;background:${TERRAINS[Array.isArray(c.terrain) ? c.terrain[0] : c.terrain].color};color:${TERRAINS[Array.isArray(c.terrain) ? c.terrain[0] : c.terrain].foreground}">${e(c.role === "building" ? building?.icon : c.role === "field" ? "≋" : TERRAINS[Array.isArray(c.terrain) ? c.terrain[0] : c.terrain]?.icon)}</i>`).join("")}</span>`;
+  const content = cells
+    .map((cell) => {
+      const terrainId = Array.isArray(cell.terrain)
+          ? cell.terrain[0]
+          : cell.terrain,
+        terrain = TERRAINS[terrainId],
+        field = cell.role === "field",
+        icon =
+          cell.role === "building"
+            ? building?.icon
+            : field
+              ? "≋"
+              : terrain.icon;
+      return `<i class="diagram-cell terrain-${e(terrainId)} ${field ? "field" : ""}" style="left:${(cell.x - minX) * step}px;top:${(cell.y - minY) * step}px;width:${step * 0.9}px;height:${step * 0.9}px;font-size:${Math.min(13, step * 0.7)}px;background:${terrain.color};color:${terrain.foreground}">${e(icon)}</i>`;
+    })
+    .join("");
+  return `<span class="tile-diagram" aria-hidden="true" style="width:${width}px;height:${Math.max(building ? 15 : 46, height)}px">${content}</span>`;
 }
-export function terrainDiagram(tile, rotation = 0, anchor = entryIndex(tile)) {
-  return diagram(transformed(tile, rotation, anchor), {});
+export function terrainDiagram(tile, rotation = 0) {
+  return diagram(transformed(tile, rotation));
 }
 export function buildingDiagram(type, rotation = 0) {
   return diagram(buildingPattern(type, rotation), {

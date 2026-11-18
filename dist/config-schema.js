@@ -391,6 +391,10 @@ export function compileConfiguration(
     const path = `missions.json.${m.id}`;
     if (!["revealed", "built", "recruited", "resources"].includes(m.metric))
       fail(path, "objectif inconnu.");
+    identifier(m.family, `${path}.family`);
+    integer(m.difficulty, `${path}.difficulty`, 1);
+    if (m.difficulty > 3)
+      fail(path, "la difficulté doit valoir 1, 2 ou 3 étoiles.");
     integer(m.target, `${path}.target`, 1);
     object(m.reward, `${path}.reward`);
     integer(m.reward.prestige, `${path}.reward.prestige`, 1);
@@ -407,6 +411,42 @@ export function compileConfiguration(
       )
         fail(path, `${field} inconnu ou incompatible avec l’objectif.`);
   }
+  const families = new Map();
+  for (const m of Object.values(missions)) {
+    if (!families.has(m.family)) families.set(m.family, []);
+    families.get(m.family).push(m);
+  }
+  for (const [family, variants] of families) {
+    variants.sort((a, b) => a.difficulty - b.difficulty);
+    if (
+      variants.length !== 3 ||
+      variants.some((m, i) => m.difficulty !== i + 1)
+    )
+      fail(
+        `missions.json.${family}`,
+        "chaque objectif doit avoir exactement une version à 1, 2 et 3 étoiles.",
+      );
+    const objective = (m) =>
+      JSON.stringify([m.metric, m.terrain, m.building, m.resource]);
+    if (variants.some((m) => objective(m) !== objective(variants[0])))
+      fail(
+        `missions.json.${family}`,
+        "les trois niveaux doivent concerner le même objectif.",
+      );
+    if (
+      variants[1].target <= variants[0].target ||
+      variants[2].target <= variants[1].target
+    )
+      fail(
+        `missions.json.${family}`,
+        "les seuils doivent augmenter avec la difficulté.",
+      );
+  }
+  if ([...families.values()].length < missionConfig.marketSize)
+    fail(
+      "missions.json.missions",
+      "au moins trois objectifs distincts sont requis.",
+    );
   return {
     missions,
     missionMarketSize: missionConfig.marketSize,
