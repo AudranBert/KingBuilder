@@ -12,9 +12,65 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="ui.css" />
     <link rel="stylesheet" href="tabletop.css" />
+    <link rel="stylesheet" href="menu.css" />
   </head>
   <body>
-    <header class="topbar">
+    <section id="main-menu" class="main-menu" aria-labelledby="menu-title">
+      <div class="menu-intro">
+        <span class="menu-crest" aria-hidden="true">♛</span>
+        <span class="eyebrow">EXPLOREZ · CONSTRUISEZ · RÉGNEZ</span>
+        <h1 id="menu-title">King<span>Builder</span></h1>
+        <p>
+          Une terre inconnue. Un royaume à bâtir.<br />Choisissez votre façon de
+          jouer.
+        </p>
+      </div>
+      <div class="mode-grid" aria-label="Modes de jeu">
+        <button class="mode-card" data-game-mode="solo">
+          <span class="mode-icon" aria-hidden="true">♔</span
+          ><span
+            ><strong>Solo</strong
+            ><small
+              >Bâtissez votre royaume et visez le meilleur score en 20
+              tours.</small
+            ></span
+          ><span aria-hidden="true">→</span>
+        </button>
+        <button class="mode-card" disabled>
+          <span class="mode-icon" aria-hidden="true">♟</span
+          ><span
+            ><strong>Versus bot</strong
+            ><small>Affrontez un royaume contrôlé par l’ordinateur.</small
+            ><span class="mode-lock">🔒 Bientôt disponible</span></span
+          >
+        </button>
+        <button class="mode-card" data-game-mode="local">
+          <span class="mode-icon" aria-hidden="true">♔♔</span
+          ><span
+            ><strong>Local multiplayer</strong
+            ><small
+              >Deux royaumes, deux joueurs, à tour de rôle sur le même
+              écran.</small
+            ></span
+          ><span aria-hidden="true">→</span>
+        </button>
+        <button class="mode-card" disabled>
+          <span class="mode-icon" aria-hidden="true">◎</span
+          ><span
+            ><strong>Online multiplayer</strong
+            ><small>Défiez d’autres joueurs en ligne.</small
+            ><span class="mode-lock">🔒 Bientôt disponible</span></span
+          >
+        </button>
+      </div>
+      <button id="resume-button" class="primary" hidden>
+        Reprendre la partie →
+      </button>
+      <p class="menu-footer">
+        Chaque grand royaume commence par une première pierre.
+      </p>
+    </section>
+    <header class="topbar" hidden>
       <a class="brand" href="./"
         ><span class="brand-icon">▧</span
         ><span>KING<span class="brand-light">BUILDER</span></span></a
@@ -22,10 +78,12 @@
       <div class="round">Tour <strong id="round">01 / 20</strong></div>
       <nav>
         <button id="rules-button">Les règles <span>↗</span></button
-        ><button id="new-button" class="quiet">Nouvelle partie</button>
+        ><button id="menu-button" class="quiet">
+          Revenir au menu principal
+        </button>
       </nav>
     </header>
-    <main aria-busy="true">
+    <main aria-busy="true" hidden>
       <div id="game-notice" class="game-notice" role="status" hidden></div>
       <section id="players" class="players" aria-label="Royaumes"></section>
       <div class="game-layout">

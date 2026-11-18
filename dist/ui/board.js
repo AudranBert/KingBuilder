@@ -173,7 +173,7 @@ export function createBoard(element, scrollElement, onCell) {
           html += `<span class="worker-piece ${workerIndex.get(position).owner === 1 ? "jade" : ""}" ${workerIndex.get(position).owner === g.active && !g.finished ? `data-worker-drag="${workerIndex.get(position).id}"` : ""} title="Ouvrier affecté">${piece("worker")}</span>`;
         for (const pawn of occupants.filter((p) => p.type === "king"))
           html += `<span class="king-piece ${pawn.owner === 1 ? "jade" : ""} ${exhausted(pawn) ? "exhausted" : ""}" ${pawn.owner === g.active && !g.finished && !g.acted && !g.kingEnded && g.moves > 0 ? `data-unit-drag=""` : ""} aria-hidden="true">${piece("king")}</span>`;
-        for (let owner = 0; owner < 2; owner++) {
+        for (let owner = 0; owner < g.players.length; owner++) {
           const units = occupants.filter(
             (p) => p.owner === owner && p.type !== "king",
           );

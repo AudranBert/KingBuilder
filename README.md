@@ -8,7 +8,9 @@ Prototype de jeu de plateau pour deux joueurs sur le même écran, en français.
 npm start
 ```
 
-Ouvrir http://127.0.0.1:4173. La partie est sauvegardée automatiquement dans le navigateur. Les règles sont accessibles depuis le bandeau supérieur. Ce prototype ne possède pas de serveur multijoueur : les deux joueurs jouent à tour de rôle dans le même navigateur.
+Ouvrir http://127.0.0.1:4173. Le menu principal propose Solo et Local multiplayer (deux joueurs à tour de rôle sur le même écran). Versus bot et Online multiplayer sont verrouillés et non fonctionnels pour le moment. En solo, un seul royaume joue 20 tours avant de consulter son score final.
+
+La partie est sauvegardée automatiquement dans le navigateur. « Revenir au menu principal » permet de revenir au choix des modes et « Reprendre la partie » de continuer la sauvegarde, y compris après rechargement. Démarrer une nouvelle partie depuis le menu demande confirmation avant de remplacer une sauvegarde existante. Les anciennes sauvegardes à deux joueurs restent compatibles. Les règles sont accessibles depuis le bandeau supérieur.
 
 ## Règles provisoires
 

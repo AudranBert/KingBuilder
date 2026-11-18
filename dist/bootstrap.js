@@ -1,4 +1,5 @@
 const main = document.querySelector("main");
+const menu = document.querySelector("#main-menu");
 const loader = document.createElement("div");
 loader.className = "loading-status";
 loader.setAttribute("role", "status");
@@ -6,10 +7,13 @@ loader.textContent = "Chargement de la partie…";
 document.body.prepend(loader);
 document.querySelector("header").inert = true;
 main.inert = true;
+menu.inert = true;
 try {
   const { startGame } = await import("./app.js");
   startGame();
 } catch (error) {
+  menu.hidden = true;
+  main.hidden = false;
   main.replaceChildren();
   const title = document.createElement("h1");
   title.textContent = "Impossible de démarrer le jeu";
@@ -29,5 +33,6 @@ try {
   loader.remove();
   document.querySelector("header").inert = false;
   main.inert = false;
+  menu.inert = false;
   main.setAttribute("aria-busy", "false");
 }

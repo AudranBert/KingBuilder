@@ -24,7 +24,7 @@ import {
   totalScore,
   key,
 } from "./engine.js";
-import { createPersistence } from "./storage.js";
+import { createPersistence, SAVE_KEY } from "./storage.js";
 import { createUIState } from "./ui/state.js";
 import { dragFromCard, dragPreview, moveUnitTo } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
@@ -59,8 +59,34 @@ export function startGame() {
     storage = null;
   }
   const persistence = createPersistence(storage);
+  let hasSavedGame = false;
+  try {
+    hasSavedGame = Boolean(storage?.getItem(SAVE_KEY));
+  } catch {}
   let game = persistence.load(),
     toastTimer;
+  let nextMode = game.mode || "local";
+  let inMenu = true;
+  function showMenu() {
+    drag.cancel();
+    inMenu = true;
+    $("#main-menu").hidden = false;
+    $("header").hidden = true;
+    $("main").hidden = true;
+    $("#resume-button").hidden = !hasSavedGame;
+    $("#resume-button").textContent =
+      `Reprendre la partie ${game.mode === "solo" ? "solo" : "locale"} →`;
+    $("[data-game-mode='solo']").focus();
+  }
+  function enterGame() {
+    inMenu = false;
+    $("#main-menu").hidden = true;
+    $("header").hidden = false;
+    $("main").hidden = false;
+    render();
+    $("#menu-button").focus();
+    if (game.finished) showResults();
+  }
   const board = createBoard($("#board"), $("#map-scroll"), handleCell);
   function html(selector, value) {
     const node = $(selector);
@@ -80,6 +106,7 @@ export function startGame() {
   }
   function save() {
     const saved = persistence.save(game);
+    hasSavedGame = true;
     $("#save-status").textContent = saved
       ? "Partie enregistrée dans ce navigateur"
       : "Sauvegarde indisponible · gardez cet onglet ouvert";
@@ -259,11 +286,13 @@ export function startGame() {
   }
   function showResults() {
     const a = totalScore(game, 0),
-      b = totalScore(game, 1);
+      b = game.players.length > 1 ? totalScore(game, 1) : 0;
     $("#winner").textContent =
-      a === b
-        ? "Deux couronnes, une victoire partagée."
-        : `${game.players[a > b ? 0 : 1].name} l’emporte !`;
+      game.mode === "solo"
+        ? `Votre royaume : ${a} points`
+        : a === b
+          ? "Deux couronnes, une victoire partagée."
+          : `${game.players[a > b ? 0 : 1].name} l’emporte !`;
     html("#results", `<div class="result-grid">${resultsView(game)}</div>`);
     if (!$("#result-dialog").open) $("#result-dialog").showModal();
   }
@@ -325,28 +354,46 @@ export function startGame() {
     $("#rules-dialog").close(),
   );
   $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
-  $("#new-button").addEventListener("click", () =>
-    $("#new-dialog").showModal(),
-  );
+  $("#menu-button").addEventListener("click", showMenu);
+  $("#resume-button").addEventListener("click", enterGame);
+  function requestNewGame(mode) {
+    nextMode = mode;
+    if (hasSavedGame) $("#new-dialog").showModal();
+    else beginNewGame();
+  }
+  for (const button of document.querySelectorAll("[data-game-mode]"))
+    button.addEventListener("click", () =>
+      requestNewGame(button.dataset.gameMode),
+    );
   $("#new-dialog .cancel").addEventListener("click", () =>
     $("#new-dialog").close(),
   );
-  $("#new-dialog .confirm").addEventListener("click", () => {
+  function beginNewGame() {
     const created = act(
       () => {
-        game = createGame();
+        game = createGame(Math.random, nextMode);
         $("#game-notice").hidden = true;
         Object.assign(ui, createUIState());
       },
-      { message: "Deux nouveaux royaumes s’éveillent." },
+      {
+        message:
+          nextMode === "solo"
+            ? "Votre royaume s’éveille."
+            : "Deux nouveaux royaumes s’éveillent.",
+      },
     );
-    if (created) $("#new-dialog").close();
-  });
+    if (created) {
+      $("#new-dialog").close();
+      enterGame();
+    }
+  }
+  $("#new-dialog .confirm").addEventListener("click", beginNewGame);
   $(".close-results").addEventListener("click", () =>
     $("#result-dialog").close(),
   );
   document.addEventListener("keydown", (event) => {
     if (
+      inMenu ||
       document.querySelector("dialog[open]") ||
       event.target.closest("input,select,textarea,[contenteditable]")
     )
@@ -408,10 +455,9 @@ export function startGame() {
   });
   html(".rules-content", rulesView());
   render();
-  save();
   if (persistence.notice) {
     $("#game-notice").textContent = persistence.notice;
     $("#game-notice").hidden = false;
   }
-  if (game.finished) showResults();
+  showMenu();
 }

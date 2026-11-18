@@ -53,11 +53,17 @@ export function validateGame(game, { legacy = false } = {}) {
     "dimensions du plateau modifiées.",
   );
   requireValid(
-    Array.isArray(game.players) && game.players.length === 2,
-    "deux joueurs sont requis.",
+    Array.isArray(game.players) &&
+      (game.mode === "solo"
+        ? game.players.length === 1
+        : (game.mode === undefined || game.mode === "local") &&
+          game.players.length === 2),
+    "mode de jeu ou nombre de joueurs incorrect.",
   );
   requireValid(
-    [0, 1].includes(game.active) &&
+    Number.isInteger(game.active) &&
+      game.active >= 0 &&
+      game.active < game.players.length &&
       Number.isSafeInteger(game.round) &&
       game.round >= 1 &&
       game.round <= RULES.rounds,
@@ -89,7 +95,11 @@ export function validateGame(game, { legacy = false } = {}) {
     if (cell.building) {
       const b = cell.building;
       requireValid(
-        record(b) && BUILDINGS[b.type] && [0, 1].includes(b.owner),
+        record(b) &&
+          BUILDINGS[b.type] &&
+          Number.isInteger(b.owner) &&
+          b.owner >= 0 &&
+          b.owner < game.players.length,
         "bâtiment inconnu.",
       );
       requireValid(
@@ -191,7 +201,9 @@ export function validateGame(game, { legacy = false } = {}) {
       missions.claimed.every(
         (c) =>
           record(c) &&
-          [0, 1].includes(c.owner) &&
+          Number.isInteger(c.owner) &&
+          c.owner >= 0 &&
+          c.owner < game.players.length &&
           nonnegative(c.round) &&
           c.round >= 1 &&
           c.round <= game.round,

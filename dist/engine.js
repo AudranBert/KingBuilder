@@ -232,7 +232,9 @@ const shuffle = (a, rng) => {
   }
   return a;
 };
-export function createGame(rng = Math.random) {
+export function createGame(rng = Math.random, mode = "local") {
+  if (!["solo", "local"].includes(mode))
+    throw Error("Mode de jeu indisponible.");
   const tileDeck = shuffle(
     CONFIG.tiles.map((tile, id) => ({
       id,
@@ -258,19 +260,21 @@ export function createGame(rng = Math.random) {
       x: RULES.size - 1,
       y: Math.floor(RULES.size / 2),
     },
-  ].map((p, owner) => ({
-    ...p,
-    resources: { ...RULES.startResources },
-    workers: 1,
-    units: [],
-    workerAssignments: [{ id: 0, building: null }],
-    revealed: 0,
-    prestige:
-      owner === 0
-        ? PRESTIGE.firstPlayerStartingAmount
-        : PRESTIGE.startingAmount,
-    progress: emptyProgress(),
-  }));
+  ]
+    .slice(0, mode === "solo" ? 1 : 2)
+    .map((p, owner) => ({
+      ...p,
+      resources: { ...RULES.startResources },
+      workers: 1,
+      units: [],
+      workerAssignments: [{ id: 0, building: null }],
+      revealed: 0,
+      prestige:
+        owner === 0
+          ? PRESTIGE.firstPlayerStartingAmount
+          : PRESTIGE.startingAmount,
+      progress: emptyProgress(),
+    }));
   const board = {};
   players.forEach((p, i) => {
     const candidates = [0, 1, 2, 3].map((rotation) => ({
@@ -304,6 +308,7 @@ export function createGame(rng = Math.random) {
   });
   const game = {
     version: 4,
+    mode,
     boardSize: RULES.size,
     players,
     board,
@@ -319,7 +324,11 @@ export function createGame(rng = Math.random) {
     selectedUnitId: null,
     recruited: false,
     finished: false,
-    log: ["Les deux royaumes prennent leur essor."],
+    log: [
+      mode === "solo"
+        ? "Votre royaume prend son essor."
+        : "Les deux royaumes prennent leur essor.",
+    ],
   };
   initializePrestige(game, shuffle(Object.keys(MISSIONS), rng));
   return game;
@@ -407,6 +416,7 @@ export function selectUnit(g, id) {
 }
 export function pawns(g, owner) {
   const p = g.players[owner];
+  if (!p) return [];
   return [{ id: null, type: "king", x: p.x, y: p.y }, ...(p.units || [])];
 }
 const enemyAt = (g, x, y) =>
@@ -712,13 +722,19 @@ export function endTurn(g) {
   });
   if (earned.length) note(g, `${p.name} récolte : ${earned.join(", ")}.`);
   awardMissions(g);
-  if (g.active === 1 && g.round >= RULES.rounds) {
+  const lastPlayer = g.active === g.players.length - 1;
+  if (lastPlayer && g.round >= RULES.rounds) {
     g.finished = true;
-    note(g, "La partie est terminée. Les royaumes sont départagés aux points.");
+    note(
+      g,
+      g.mode === "solo"
+        ? "La partie est terminée. Votre royaume est évalué aux points."
+        : "La partie est terminée. Les royaumes sont départagés aux points.",
+    );
     return;
   }
-  if (g.active === 1) g.round++;
-  g.active = 1 - g.active;
+  if (lastPlayer) g.round++;
+  g.active = (g.active + 1) % g.players.length;
   g.selectedUnitId = null;
   g.moves = 2;
   g.acted = false;
