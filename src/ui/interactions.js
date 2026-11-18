@@ -4,6 +4,9 @@ import {
   key,
   movementPaths,
   move,
+  attack,
+  attackPaths,
+  combatPreview,
   patternAt,
   transformed,
   buildError,
@@ -39,6 +42,11 @@ export function dragPreview(g, drag, pos) {
   if (!drag || !pos) return null;
   const { x, y } = pos;
   if (drag.kind === "unit") {
+    const combat = attackPaths(g).get(key(x,y));
+    if (combat) {
+      const preview = combatPreview(g,x,y);
+      return { cells: [...combat,pos], error: null, combat: preview };
+    }
     const path = movementPaths(g).get(key(x, y));
     return {
       cells: path || [pos],
@@ -51,7 +59,7 @@ export function dragPreview(g, drag, pos) {
     return {
       cells: patternAt(g.buildingMarket[drag.index], x, y, drag.rotation),
       error: buildError(g, drag.index, x, y, drag.rotation, {
-        allowPrestige: true,
+        allowGold: true,
       }),
     };
   return {
@@ -66,7 +74,9 @@ export function dragPreview(g, drag, pos) {
 export function moveUnitTo(g, x, y) {
   const unit = actor(g);
   if (unit.x === x && unit.y === y) return;
-  const path = movementPaths(g).get(key(x, y));
+  const combat = attackPaths(g).get(key(x,y));
+  const path = combat || movementPaths(g).get(key(x, y));
   if (!path) throw Error("Cette case est inaccessible pour cette unité.");
   for (const step of path) move(g, step.x, step.y);
+  if (combat) attack(g,x,y);
 }

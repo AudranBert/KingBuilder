@@ -21,10 +21,6 @@ export function iconHTML(path, className = "asset-icon") {
   const url = new URL(`../../${path}`, import.meta.url).href;
   return `<img class="${e(className)}" src="${e(url)}" alt="" aria-hidden="true">`;
 }
-export function populationHTML(amount, capacity = null) {
-  const value = capacity === null ? String(amount) : `${amount}/${capacity}`;
-  return `<span class="population-value" title="Population" aria-label="${e(value)} population">${e(value)} ${iconHTML(RESOURCE_ICONS.population)}</span>`;
-}
 export function costHTML(cost) {
   return (
     Object.entries(cost)
@@ -50,7 +46,7 @@ export function diagram(cells, { building = null, large = false } = {}) {
   const { minX, maxX, minY, maxY } = bounds(cells),
     step = Math.min(
       building ? (large ? 40 : 24) : 20,
-      (building ? (large ? 200 : 96) : 64) / Math.max(maxX - minX + 1, maxY - minY + 1),
+      (building ? (large ? 200 : 72) : 64) / Math.max(maxX - minX + 1, maxY - minY + 1),
     );
   const width = (maxX - minX + 1) * step,
     height = (maxY - minY + 1) * step;

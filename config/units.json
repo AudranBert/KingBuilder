@@ -1,38 +1,37 @@
 {
   "units": [
     {
-      "id": "cavalry",
-      "name": "Cavalier",
-      "icon": "assets/textures/units-cavalry.svg",
+      "id": "soldier",
+      "name": "Soldat",
+      "icon": "assets/textures/units-soldier.svg",
       "cost": {
-        "iron": 1,
-        "wheat": 1
+        "food": 2
       },
-      "moves": 3,
-      "population": 1,
-      "points": 0,
+      "moves": 2,
+      "recruitment": "building"
+    },
+    {
+      "id": "emissary",
+      "name": "Émissaire du roi",
+      "icon": "assets/textures/units-cavalry.svg",
+      "cost": {},
+      "moves": 2,
       "recruitment": "building"
     },
     {
       "id": "worker",
       "name": "Ouvrier",
       "icon": "assets/textures/units-worker.svg",
-      "cost": {
-        "wheat": 1
-      },
+      "cost": {},
       "moves": 0,
-      "population": 1,
-      "points": 2,
-      "recruitment": "direct"
+      "recruitment": "house"
     },
     {
       "id": "king",
       "name": "Roi",
       "icon": "assets/textures/units-king.svg",
       "cost": {},
-      "moves": 3,
-      "population": 0,
-      "points": 0,
+      "moves": 2,
       "recruitment": "initial"
     }
   ]

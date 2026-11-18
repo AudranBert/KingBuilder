@@ -7,7 +7,7 @@
       "metric": "revealed",
       "target": 6,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-all",
       "difficulty": 1
@@ -18,7 +18,7 @@
       "metric": "revealed",
       "target": 12,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-all",
       "difficulty": 2
@@ -29,7 +29,7 @@
       "metric": "revealed",
       "target": 20,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-all",
       "difficulty": 3
@@ -41,7 +41,7 @@
       "target": 3,
       "terrain": "forest",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-forest",
       "difficulty": 1
@@ -53,7 +53,7 @@
       "target": 6,
       "terrain": "forest",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-forest",
       "difficulty": 2
@@ -65,7 +65,7 @@
       "target": 9,
       "terrain": "forest",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-forest",
       "difficulty": 3
@@ -77,7 +77,7 @@
       "target": 3,
       "terrain": "plain",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-plain",
       "difficulty": 1
@@ -89,7 +89,7 @@
       "target": 6,
       "terrain": "plain",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-plain",
       "difficulty": 2
@@ -101,7 +101,7 @@
       "target": 9,
       "terrain": "plain",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-plain",
       "difficulty": 3
@@ -113,7 +113,7 @@
       "target": 3,
       "terrain": "river",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-river",
       "difficulty": 1
@@ -125,7 +125,7 @@
       "target": 6,
       "terrain": "river",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-river",
       "difficulty": 2
@@ -137,7 +137,7 @@
       "target": 9,
       "terrain": "river",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-river",
       "difficulty": 3
@@ -149,7 +149,7 @@
       "target": 3,
       "terrain": "mountain",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-mountain",
       "difficulty": 1
@@ -161,7 +161,7 @@
       "target": 6,
       "terrain": "mountain",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-mountain",
       "difficulty": 2
@@ -173,7 +173,7 @@
       "target": 9,
       "terrain": "mountain",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "revealed-mountain",
       "difficulty": 3
@@ -184,7 +184,7 @@
       "metric": "built",
       "target": 2,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-all",
       "difficulty": 1
@@ -195,7 +195,7 @@
       "metric": "built",
       "target": 4,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-all",
       "difficulty": 2
@@ -206,7 +206,7 @@
       "metric": "built",
       "target": 6,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-all",
       "difficulty": 3
@@ -218,7 +218,7 @@
       "target": 1,
       "building": "sawmill",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-sawmill",
       "difficulty": 1
@@ -230,7 +230,7 @@
       "target": 2,
       "building": "sawmill",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-sawmill",
       "difficulty": 2
@@ -242,7 +242,7 @@
       "target": 3,
       "building": "sawmill",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-sawmill",
       "difficulty": 3
@@ -254,7 +254,7 @@
       "target": 1,
       "building": "farm",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-farm",
       "difficulty": 1
@@ -266,7 +266,7 @@
       "target": 2,
       "building": "farm",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-farm",
       "difficulty": 2
@@ -278,7 +278,7 @@
       "target": 3,
       "building": "farm",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-farm",
       "difficulty": 3
@@ -290,7 +290,7 @@
       "target": 1,
       "building": "port",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-port",
       "difficulty": 1
@@ -302,7 +302,7 @@
       "target": 2,
       "building": "port",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-port",
       "difficulty": 2
@@ -314,7 +314,7 @@
       "target": 3,
       "building": "port",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-port",
       "difficulty": 3
@@ -326,7 +326,7 @@
       "target": 1,
       "building": "mine",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-mine",
       "difficulty": 1
@@ -338,7 +338,7 @@
       "target": 2,
       "building": "mine",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-mine",
       "difficulty": 2
@@ -350,7 +350,7 @@
       "target": 3,
       "building": "mine",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "built-mine",
       "difficulty": 3
@@ -361,7 +361,7 @@
       "metric": "recruited",
       "target": 1,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "recruited-all",
       "difficulty": 1
@@ -372,7 +372,7 @@
       "metric": "recruited",
       "target": 3,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "recruited-all",
       "difficulty": 2
@@ -383,7 +383,7 @@
       "metric": "recruited",
       "target": 5,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "recruited-all",
       "difficulty": 3
@@ -394,7 +394,7 @@
       "metric": "resources",
       "target": 8,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-all",
       "difficulty": 1
@@ -405,7 +405,7 @@
       "metric": "resources",
       "target": 12,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-all",
       "difficulty": 2
@@ -416,55 +416,55 @@
       "metric": "resources",
       "target": 18,
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-all",
       "difficulty": 3
     },
     {
       "id": "stock-wood",
-      "name": "Avoir 5 bois",
+      "name": "Avoir 5 matériaux",
       "metric": "resources",
       "target": 5,
-      "resource": "wood",
+      "resource": "material",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-wood",
       "difficulty": 1
     },
     {
       "id": "resources-wood-8",
-      "name": "Réserve de bois : 8",
+      "name": "Réserve de matériaux : 8",
       "metric": "resources",
       "target": 8,
-      "resource": "wood",
+      "resource": "material",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-wood",
       "difficulty": 2
     },
     {
       "id": "resources-wood-12",
-      "name": "Réserve de bois : 12",
+      "name": "Réserve de matériaux : 12",
       "metric": "resources",
       "target": 12,
-      "resource": "wood",
+      "resource": "material",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-wood",
       "difficulty": 3
     },
     {
       "id": "stock-stone",
-      "name": "Avoir 4 pierres",
+      "name": "Avoir 4 matériaux",
       "metric": "resources",
       "target": 4,
-      "resource": "stone",
+      "resource": "material",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-stone",
       "difficulty": 1
@@ -474,9 +474,9 @@
       "name": "Réserve de pierre : 7",
       "metric": "resources",
       "target": 7,
-      "resource": "stone",
+      "resource": "material",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-stone",
       "difficulty": 2
@@ -486,81 +486,81 @@
       "name": "Réserve de pierre : 10",
       "metric": "resources",
       "target": 10,
-      "resource": "stone",
+      "resource": "material",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-stone",
       "difficulty": 3
     },
     {
       "id": "stock-iron",
-      "name": "Réserve de fer : 3",
+      "name": "Réserve d’or : 3",
       "metric": "resources",
       "target": 3,
-      "resource": "iron",
+      "resource": "gold",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-iron",
       "difficulty": 1
     },
     {
       "id": "resources-iron-5",
-      "name": "Réserve de fer : 5",
+      "name": "Réserve d’or : 5",
       "metric": "resources",
       "target": 5,
-      "resource": "iron",
+      "resource": "gold",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-iron",
       "difficulty": 2
     },
     {
       "id": "resources-iron-8",
-      "name": "Réserve de fer : 8",
+      "name": "Réserve d’or : 8",
       "metric": "resources",
       "target": 8,
-      "resource": "iron",
+      "resource": "gold",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-iron",
       "difficulty": 3
     },
     {
       "id": "stock-wheat",
-      "name": "Réserve de blé : 4",
+      "name": "Réserve de nourriture : 4",
       "metric": "resources",
       "target": 4,
-      "resource": "wheat",
+      "resource": "food",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-wheat",
       "difficulty": 1
     },
     {
       "id": "resources-wheat-7",
-      "name": "Réserve de blé : 7",
+      "name": "Réserve de nourriture : 7",
       "metric": "resources",
       "target": 7,
-      "resource": "wheat",
+      "resource": "food",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-wheat",
       "difficulty": 2
     },
     {
       "id": "resources-wheat-10",
-      "name": "Réserve de blé : 10",
+      "name": "Réserve de nourriture : 10",
       "metric": "resources",
       "target": 10,
-      "resource": "wheat",
+      "resource": "food",
       "reward": {
-        "prestige": 1
+        "gold": 1
       },
       "family": "resources-wheat",
       "difficulty": 3

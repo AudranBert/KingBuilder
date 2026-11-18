@@ -107,7 +107,7 @@ function mount(t, savedGame) {
   };
 }
 
-test("menu : lancement solo, retour et résultat après 20 tours", (t) => {
+test("menu : lancement solo, retour et résultat après 25 tours", (t) => {
   const app = mount(t);
   assert.equal(app.node("#main-menu").hidden, false);
   assert.equal(app.node("main").hidden, true);
@@ -117,7 +117,7 @@ test("menu : lancement solo, retour et résultat après 20 tours", (t) => {
   app.node("#end-turn").click();
   app.node("#menu-button").click();
   assert.equal(app.node("#main-menu").hidden, false);
-  assert.equal(app.values.has(SAVE_KEY), false);
+  assert.equal(app.values.has(SAVE_KEY), true);
   app.mode("solo").click();
   assert.equal(app.node("#main-menu").hidden, true);
   for (let i = 0; i < RULES.rounds; i++) app.node("#end-turn").click();
@@ -142,7 +142,8 @@ test("menu : ancienne sauvegarde ignorée et nouveau mode lancé directement", (
   app.node("#menu-button").click();
   app.mode("local").click();
   assert.equal(app.node("main").hidden, false);
-  assert.equal(app.values.get(SAVE_KEY), JSON.stringify(original));
+  assert.equal(app.saved().round, 1);
+  assert.equal(app.saved().mode, "local");
 });
 
 test("la molette pivote la carte survolée et garde le défilement ailleurs", (t) => {

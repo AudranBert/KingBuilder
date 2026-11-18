@@ -1,20 +1,22 @@
 import {
-  PRESTIGE,
+  GOLD,
   MISSIONS,
   emptyProgress,
-  initializePrestige,
+  initializeMissions,
   settleMissions,
   buildingPayment,
+  costPayment,
   rerollError,
-} from "./prestige.js";
+} from "./objectives.js";
 export {
-  PRESTIGE,
+  GOLD,
   MISSIONS,
   missionProgress,
   missionTarget,
   buildingPayment,
+  costPayment,
   rerollError,
-} from "./prestige.js";
+} from "./objectives.js";
 import {
   key,
   parseKey,
@@ -28,7 +30,6 @@ export { key } from "./geometry.js";
 import {
   CONFIG,
   START_RESOURCES,
-  RECRUITMENT_COST,
   RESOURCE_DEFINITIONS,
   BUILDINGS,
   UNIT_DEFINITIONS,
@@ -39,7 +40,6 @@ export {
   RESOURCES,
   RESOURCE_ICONS,
   RESOURCE_DEFINITIONS,
-  RECRUITMENT_COST,
   UNIT_DEFINITIONS,
   TERRAINS,
 } from "./configuration.js";
@@ -118,48 +118,10 @@ export function productionAmount(g, x, y) {
   return definition.production * multiplier;
 }
 export function migrateGame(g) {
+  if (g.version !== 5) throw Error("Les anciennes règles ne sont plus compatibles. La sauvegarde sera conservée en copie.");
+  g.buildingReplacements ??= RULES.markets.advancedFromReplacement;
   for (const cell of Object.values(g.board)) {
     if (cell.overlay?.role === "field") cell.terrain = "field";
-  }
-  // Older saves did not track replacements; preserve their unlocked market.
-  g.buildingReplacements ??= RULES.markets.advancedFromReplacement;
-  g.workerRecruitsUsed ??= g.recruited ? 1 : 0;
-  if (g.version === 1) {
-    g.version = 2;
-    g.buildingDeck.push(
-      ...Array.from({ length: 18 }, (_, i) =>
-        i % 2 ? "mill" : "clearing",
-      ).filter((id) => BUILDINGS[id]),
-    );
-  }
-  if (g.version === 2 || g.version === 3) {
-    g.players.forEach((p, owner) => {
-      const legacy = Object.entries(g.board)
-        .filter(([, c]) => c.building?.owner === owner && c.building.worker)
-        .map(([k]) => k);
-      const occupied = new Set();
-      p.workerAssignments = Array.from({ length: p.workers }, (_, id) => {
-        const pawn = p.workerPawns?.[id],
-          pos = pawn ? key(pawn.x, pawn.y) : legacy[id],
-          b = pos && g.board[pos]?.building;
-        const target =
-          b?.owner === owner &&
-          BUILDINGS[b.type]?.produces &&
-          !occupied.has(pos)
-            ? pos
-            : null;
-        if (target) occupied.add(target);
-        return { id, building: target };
-      });
-      delete p.workerPawns;
-    });
-    Object.values(g.board).forEach((c) => {
-      if (c.building) delete c.building.worker;
-    });
-    g.version = 4;
-    g.log.unshift(
-      "Les ouvriers s’affectent directement aux bâtiments, sans déplacement.",
-    );
   }
   for (const c of Object.values(g.board))
     if (c.building && !BUILDINGS[c.building.type])
@@ -203,7 +165,14 @@ export function migrateGame(g) {
     !g.players[g.active].units.some((u) => u.id === g.selectedUnitId)
   )
     g.selectedUnitId = null;
-  initializePrestige(g);
+  if (Array.isArray(g.armySelection)) {
+    const lead = g.players[g.active].units.find(u => u.id === g.selectedUnitId);
+    const selected = g.players[g.active].units.filter(u => g.armySelection.includes(u.id));
+    if (lead?.type !== "soldier" || !g.armySelection.includes(lead.id) ||
+      selected.length !== g.armySelection.length || selected.some(u => u.type !== "soldier" || u.x !== lead.x || u.y !== lead.y))
+      g.armySelection = null;
+  }
+  initializeMissions(g);
   return g;
 }
 export function workersAt(g, owner, x, y) {
@@ -266,8 +235,12 @@ export function createGame(rng = Math.random, mode = "local") {
     rng,
   );
   const buildingMarket = [];
+  const initialFamilies = new Set();
   for (let i = 0; i < RULES.markets.buildingSize; i++) {
-    const index = buildingDeck.findIndex(id => BUILDINGS[id].tier <= RULES.markets.initialMaxTier);
+    const index = buildingDeck.findIndex(id => BUILDINGS[id].tier === RULES.markets.initialMaxTier &&
+      !initialFamilies.has(BUILDINGS[id].family || id));
+    if (index < 0) throw Error("Pas assez de familles différentes pour le marché initial.");
+    initialFamilies.add(BUILDINGS[buildingDeck[index]].family || buildingDeck[index]);
     buildingMarket.push(...buildingDeck.splice(index, 1));
   }
   const players = RULES.players
@@ -279,15 +252,14 @@ export function createGame(rng = Math.random, mode = "local") {
     }))
     .map((p, owner) => ({
       ...p,
-      resources: { ...RULES.startResources },
+      resources: { ...RULES.startResources, gold: RULES.startResources.gold + (owner === 0 ? GOLD.firstPlayerStartingAmount : GOLD.startingAmount) },
       workers: RULES.startingWorkers,
       units: [],
       workerAssignments: Array.from({ length: RULES.startingWorkers }, (_, id) => ({ id, building: null })),
       revealed: 0,
-      prestige:
-        owner === 0
-          ? PRESTIGE.firstPlayerStartingAmount
-          : PRESTIGE.startingAmount,
+      nextUnitId: 0,
+      home: { x: p.x, y: p.y },
+      kingSkip: 0,
       progress: emptyProgress(),
     }));
   const board = {};
@@ -321,8 +293,11 @@ export function createGame(rng = Math.random, mode = "local") {
       };
     }
   });
+  for (const flag of RULES.flags) {
+    board[key(flag.x, flag.y)] = { terrain: "plain", flag: { owner: null } };
+  }
   const game = {
-    version: 4,
+    version: 5,
     mode,
     boardSize: RULES.size,
     players,
@@ -347,28 +322,13 @@ export function createGame(rng = Math.random, mode = "local") {
         : "Les deux royaumes prennent leur essor.",
     ],
   };
-  initializePrestige(game, shuffle(Object.keys(MISSIONS), rng));
+  initializeMissions(game, shuffle(Object.keys(MISSIONS), rng));
   return game;
 }
 export function score(g, i) {
-  const p = g.players[i];
-  const buildings = Object.values(g.board).filter(
-    (c) => c.building?.owner === i,
-  ).length;
   return {
-    tiles: p.revealed * RULES.points.tile,
-    buildings: buildings * RULES.points.building,
-    workers: p.workers * UNIT_DEFINITIONS.worker.points * RULES.points.unit,
-    units: (p.units || []).reduce(
-      (n, u) => n + (UNIT_DEFINITIONS[u.type].points || 0) * RULES.points.unit,
-      UNIT_DEFINITIONS.king.points * RULES.points.unit,
-    ),
-    prestige: (p.prestige || 0) * RULES.points.prestige,
-    resources: Math.floor(
-      Object.entries(RESOURCE_DEFINITIONS).reduce(
-        (sum, [id, r]) => sum + (r.calculated ? 0 : (p.resources[id] || 0) * r.points), 0,
-      ) * RULES.points.resource,
-    ),
+    buildings: Object.values(g.board).reduce((n, c) => n + (c.building?.owner === i ? BUILDINGS[c.building.type].points ?? RULES.points.building : 0), 0),
+    flags: Object.values(g.board).filter(c => c.flag?.owner === i).length * RULES.points.flag,
   };
 }
 export const totalScore = (g, i) =>
@@ -394,6 +354,7 @@ export function actor(g) {
     if (!unit) throw Error("Unité inconnue.");
     return {
       ...unit,
+      ...(unit.type === "soldier" ? { count: selectedSoldiers(g).length, moves: Math.min(...selectedSoldiers(g).map(u => u.moves)), acted: selectedSoldiers(g).some(u => u.acted || u.ended) } : {}),
       name: UNIT_DEFINITIONS[unit.type].name + " " + (unit.id + 1),
       icon: UNIT_DEFINITIONS[unit.type].icon,
     };
@@ -411,6 +372,10 @@ export function actor(g) {
   };
 }
 function updateActor(g, changes) {
+  if (actor(g).type === "soldier") {
+    for (const unit of selectedSoldiers(g)) Object.assign(unit, changes);
+    return;
+  }
   const p = g.players[g.active];
   if (g.selectedUnitId !== null && g.selectedUnitId !== undefined) {
     Object.assign(
@@ -430,6 +395,7 @@ export function selectUnit(g, id) {
   if (id !== null && !g.players[g.active].units.some((u) => u.id === id))
     throw Error("Choisissez une de vos unités.");
   g.selectedUnitId = id;
+  g.armySelection = null;
 }
 export function pawns(g, owner) {
   const p = g.players[owner];
@@ -438,6 +404,131 @@ export function pawns(g, owner) {
 }
 const enemyAt = (g, x, y) =>
   pawns(g, 1 - g.active).some((p) => p.x === x && p.y === y);
+
+export function armyAt(g, owner, x, y) {
+  return g.players[owner]?.units.filter(u => u.type === "soldier" && u.x === x && u.y === y) || [];
+}
+export function selectedSoldiers(g) {
+  const p = g.players[g.active], lead = p.units.find(u => u.id === g.selectedUnitId);
+  if (lead?.type !== "soldier") return [];
+  const pile = armyAt(g, g.active, lead.x, lead.y);
+  if (g.armySelection) return pile.filter(u => g.armySelection.includes(u.id));
+  return pile.filter(u => Boolean(u.acted || u.ended) === Boolean(lead.acted || lead.ended));
+}
+export function selectArmy(g, count) {
+  available(g);
+  const lead = g.players[g.active].units.find(u => u.id === g.selectedUnitId);
+  if (lead?.type !== "soldier") throw Error("Choisissez une armée.");
+  const ready = armyAt(g, g.active, lead.x, lead.y).filter(u => !u.acted && !u.ended)
+    .sort((a,b) => b.moves-a.moves || a.id-b.id);
+  if (!Number.isInteger(count) || count < 1 || count > ready.length) throw Error("Effectif invalide.");
+  g.armySelection = ready.slice(0, count).map(u => u.id);
+  g.selectedUnitId = g.armySelection[0];
+}
+function hostileSite(g, x, y) {
+  const cell = g.board[key(x,y)];
+  return Boolean((cell?.building && cell.building.owner !== g.active) ||
+    (cell?.flag && cell.flag.owner !== g.active));
+}
+export function combatPreview(g, x, y) {
+  const unit = actor(g), cell = g.board[key(x,y)];
+  const owner = g.players.findIndex((_, i) => i !== g.active && pawns(g,i).some(u => u.x === x && u.y === y));
+  const defenderOwner = cell?.building && cell.building.owner !== g.active ? cell.building.owner : owner;
+  const defenders = defenderOwner >= 0 ? armyAt(g, defenderOwner, x, y).length : 0;
+  const garrison = cell?.building?.owner !== g.active ? BUILDINGS[cell?.building?.type]?.garrison || 0 : 0;
+  const attack = unit.type === "soldier" ? selectedSoldiers(g).length : 0;
+  const defense = defenders + garrison + (defenders + garrison > 0 ? 1 : 0);
+  return { attack, defense, defenders, garrison, attackerSurvivors: Math.max(0, attack-defense),
+    defenderSurvivors: Math.min(defenders + garrison, Math.max(0, defense-attack)), defenderOwner };
+}
+export function attackError(g, x, y) {
+  if (g.finished) return "La partie est terminée.";
+  const unit = actor(g);
+  if (unit.type !== "soldier") return "Seule une armée peut combattre ou capturer un drapeau.";
+  if (unit.acted || unit.ended) return "Cette armée a déjà terminé son action.";
+  if (!inside(x,y) || distance(unit,{x,y}) !== 1) return "La cible doit être voisine, sans diagonale.";
+  const cell = g.board[key(x,y)];
+  if (!cell || !walkable(cell)) return "Cette cible est inaccessible.";
+  if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return "Aucune cible adverse ni drapeau neutre sur cette case.";
+  return null;
+}
+export function destroyBuilding(g, x, y) {
+  // Only the actual building cell is a military target, never an auxiliary tile.
+  const position = key(x,y), cell = g.board[position], b = cell?.building;
+  if (!b) return;
+  for (const p of g.players)
+    for (const worker of p.workerAssignments)
+      if (worker.building === position) worker.building = null;
+  for (const part of Object.values(g.board)) {
+    if (part.overlay?.anchor !== position) continue;
+    if (part.overlay.previousTerrain) part.terrain = part.overlay.previousTerrain;
+    else if (part.overlay.role === "field") part.terrain = "plain";
+    delete part.overlay;
+  }
+  delete cell.building;
+  note(g, `${BUILDINGS[b.type].name} détruit.`);
+}
+function returnBuilders(g, owner, x, y) {
+  const p = g.players[owner];
+  if (!p) return;
+  if (p.x === x && p.y === y) {
+    Object.assign(p, p.home); p.kingSkip = 1;
+    note(g, `${p.name} : le roi retourne au donjon et perd son prochain tour d’activation.`);
+  }
+  for (const unit of p.units) {
+    if (unit.type !== "emissary" || unit.x !== x || unit.y !== y) continue;
+    const home = unit.home, b = home && g.board[key(home.x,home.y)]?.building;
+    Object.assign(unit, b?.owner === owner && b.type === "chancellery" ? home : p.home,
+      { moves:0, acted:true, ended:true, skipTurns:1 });
+  }
+}
+export function attack(g, x, y) {
+  const error = attackError(g,x,y);
+  if (error) throw Error(error);
+  const p = g.players[g.active], attackers = selectedSoldiers(g), result = combatPreview(g,x,y),
+    cell = g.board[key(x,y)], b = cell.building;
+  const defenderOwner = result.defenderOwner;
+  if (defenderOwner >= 0) {
+    const army = armyAt(g,defenderOwner,x,y);
+    // The permanent garrison is removed last and persists until actual occupation.
+    const survivors = Math.max(0,result.defenderSurvivors-result.garrison);
+    const lost = new Set(army.slice(survivors).map(u => u.id));
+    g.players[defenderOwner].units = g.players[defenderOwner].units.filter(u => !lost.has(u.id));
+  }
+  const survivors = attackers.slice(0,result.attackerSurvivors), lost = new Set(attackers.slice(result.attackerSurvivors).map(u => u.id));
+  for (const u of attackers) Object.assign(u,{moves:0,acted:true,ended:true});
+  p.units = p.units.filter(u => !lost.has(u.id));
+  if (survivors.length) {
+    if (b && b.owner !== g.active) {
+      if (b.type === RULES.startingBuilding) {
+        g.finished = true; g.winner = g.active; g.victory = "conquest";
+      } else destroyBuilding(g,x,y);
+    }
+    for (let i=0;i<g.players.length;i++) if (i !== g.active) returnBuilders(g,i,x,y);
+    for (const u of survivors) Object.assign(u,{x,y});
+    if (cell.flag) cell.flag.owner = g.active;
+  }
+  g.selectedUnitId = survivors[0]?.id ?? null;
+  g.armySelection = survivors.length ? survivors.map(u => u.id) : null;
+  note(g, `Combat ${result.attack} contre ${result.defense} : ${survivors.length} attaquant(s) survivant(s).${g.victory === "conquest" ? " Donjon conquis : victoire immédiate !" : ""}`);
+  return result;
+}
+// Targets accessible after zero, one or two movement steps. The final occupation
+// is an action, not an additional movement point, and cannot be chained.
+export function attackPaths(g) {
+  const paths = new Map(), unit = actor(g);
+  if (g.finished || unit.type !== "soldier" || unit.acted || unit.ended) return paths;
+  const origins = [[key(unit.x,unit.y),[]],...movementPaths(g)];
+  for (const [position,path] of origins) {
+    const [x,y] = parseKey(position);
+    for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const tx=x+dx,ty=y+dy,k=key(tx,ty);
+      if (!inside(tx,ty) || !walkable(g.board[k]) || (!hostileSite(g,tx,ty) && !enemyAt(g,tx,ty))) continue;
+      if (!paths.has(k)) paths.set(k,path);
+    }
+  }
+  return paths;
+}
 export function moveError(g, x, y) {
   if (g.finished) return "La partie est terminée.";
   const unit = actor(g);
@@ -445,7 +536,8 @@ export function moveError(g, x, y) {
     return "Cette unité a terminé ses déplacements.";
   if (!inside(x, y) || distance(unit, { x, y }) !== 1)
     return "Choisissez une case voisine, sans diagonale.";
-  if (enemyAt(g, x, y)) return "Un pion adverse occupe cette case.";
+  if (enemyAt(g, x, y)) return "Un pion adverse occupe cette case : utilisez le combat.";
+  if (hostileSite(g, x, y)) return "Cette position doit être occupée avec une action de combat.";
   if (g.board[key(x, y)] && !walkable(g.board[key(x, y)]))
     return "Ce terrain est infranchissable.";
   return null;
@@ -453,8 +545,13 @@ export function moveError(g, x, y) {
 export function move(g, x, y) {
   const error = moveError(g, x, y);
   if (error) throw Error(error);
-  if (!g.board[key(x, y)]) return "explore";
-  updateActor(g, { x, y, moves: actor(g).moves - 1 });
+  if (!g.board[key(x, y)]) {
+    if (actor(g).type === "soldier") throw Error("Les soldats ne peuvent pas explorer.");
+    return "explore";
+  }
+  if (actor(g).type === "soldier") {
+    for (const soldier of selectedSoldiers(g)) Object.assign(soldier,{x,y,moves:soldier.moves-1});
+  } else updateActor(g, { x, y, moves: actor(g).moves - 1 });
   return "moved";
 }
 export function transformed(tile, rotation = 0, anchor = 0) {
@@ -498,6 +595,7 @@ export function placement(g, index, x, y, rotation = 0, anchor = 0) {
 export function exploreError(g, index, x, y, rotation = 0, anchor = 0) {
   if (g.finished) return "La partie est terminée.";
   const unit = actor(g);
+  if (unit.type === "soldier") return "Les soldats ne peuvent pas explorer.";
   if (unit.acted || unit.ended) return "Cette unité a déjà terminé son action.";
   if (g.board[key(x, y)]) return "Choisissez une case inexplorée.";
   const cells = placement(g, index, x, y, rotation, anchor);
@@ -513,7 +611,7 @@ export function explore(g, index, x, y, rotation = 0, anchor = 0) {
   const p = actor(g),
     cells = placement(g, index, x, y, rotation, anchor);
   cells.forEach(
-    (c) => (g.board[key(c.x, c.y)] = { terrain: c.terrain, owner: g.active }),
+    (c) => (g.board[key(c.x, c.y)] = { terrain: c.terrain }),
   );
   g.players[g.active].revealed += cells.length;
   for (const c of cells) {
@@ -532,7 +630,7 @@ export function buildError(
   x,
   y,
   rotation = 0,
-  { allowPrestige = false } = {},
+  { allowGold = false } = {},
 ) {
   const type = g.buildingMarket[index],
     b = BUILDINGS[type],
@@ -541,7 +639,9 @@ export function buildError(
   if (g.finished) return "La partie est terminée.";
   if (unit.acted || unit.ended)
     return "Votre action de construction / exploration est déjà terminée.";
+  if (unit.type === "soldier") return "Les soldats ne peuvent pas construire.";
   if (!b) return "Choisissez une tuile bâtiment.";
+  if (b.unique && (p.units.some(u => u.type === b.onBuildUnit) || Object.values(g.board).some(c => c.building?.owner === g.active && c.building.type === type))) return "Un seul émissaire et une seule Chancellerie par royaume.";
   if (b.constructible === false) return "Ce bâtiment est réservé au départ et ne peut pas être construit.";
   if (!isRotation(rotation)) return "Orientation de bâtiment incorrecte.";
   const cells = patternAt(type, x, y, rotation);
@@ -549,6 +649,7 @@ export function buildError(
     if (!inside(c.x, c.y)) return "Le motif sort du plateau.";
     const target = g.board[key(c.x, c.y)];
     if (!target) return "Toutes les cases du motif doivent être explorées.";
+    if (target.flag && type !== "outpost") return "Seul un avant-poste peut être construit sur un drapeau.";
     if (target.building || target.overlay)
       return "Le motif chevauche une tuile bâtiment existante.";
     if (!c.terrain.includes(target.terrain))
@@ -562,13 +663,13 @@ export function buildError(
     return `${b.name} : ${b.pattern}`;
   if (
     !canAfford(p.resources, b.cost) &&
-    !(allowPrestige && buildingPayment(g, index)?.affordable)
+    !(allowGold && buildingPayment(g, index)?.affordable)
   ) {
     const missing = Object.entries(b.cost).flatMap(([id, n]) => {
       const held = Number.isFinite(p.resources[id]) ? p.resources[id] : 0;
       return n > held ? [`${n - held} ${RESOURCES[id].toLowerCase()}`] : [];
     });
-    return `Ressources insuffisantes : il manque ${missing.join(", ")} (prestige insuffisant).`;
+    return `Ressources insuffisantes : il manque ${missing.join(", ")} (or insuffisant).`;
   }
   return null;
 }
@@ -578,27 +679,28 @@ export function build(
   x,
   y,
   rotation = 0,
-  { allowPrestige = false, expectedPrestige } = {},
+  { allowGold = false, expectedGold } = {},
 ) {
   available(g);
-  const error = buildError(g, index, x, y, rotation, { allowPrestige });
+  const error = buildError(g, index, x, y, rotation, { allowGold });
   if (error) throw Error(error);
   const type = g.buildingMarket[index],
     b = BUILDINGS[type],
     p = g.players[g.active];
   const payment = buildingPayment(g, index);
-  if (expectedPrestige !== undefined && payment?.prestige !== expectedPrestige)
-    throw Error("Le coût en prestige a changé. Confirmez à nouveau.");
+  if (expectedGold !== undefined && payment?.gold !== expectedGold)
+    throw Error("Le coût en or a changé. Confirmez à nouveau.");
   if (
-    payment?.prestige &&
-    (!allowPrestige || expectedPrestige !== payment.prestige)
+    payment?.gold &&
+    (!allowGold || expectedGold !== payment.gold)
   )
-    throw Error("Confirmez l’utilisation du prestige.");
+    throw Error("Confirmez l’achat des ressources à la banque.");
   payCost(p.resources, payment.resources);
-  p.prestige -= payment.prestige;
+
   if (b.transformTo) g.board[key(x, y)].terrain = b.transformTo;
   else {
     g.board[key(x, y)].building = { type, owner: g.active, rotation };
+    if (type === "outpost" && g.board[key(x,y)].flag) g.board[key(x,y)].flag.owner = g.active;
     p.progress.built[type] = (p.progress.built[type] || 0) + 1;
     patternAt(type, x, y, rotation)
       .filter((c) => c.role !== "building")
@@ -608,9 +710,14 @@ export function build(
             anchor: key(x, y),
             role: c.role,
             owner: g.active,
+            previousTerrain: g.board[key(c.x, c.y)].terrain === c.transformTo ? c.terrain[0] : g.board[key(c.x, c.y)].terrain,
           };
       });
   }
+  if (b.grantsWorker) {
+    for (let n = 0; n < b.grantsWorker; n++) addWorker(g);
+  }
+  if (b.onBuildUnit) spawnUnit(g, x, y, b.onBuildUnit);
   for (const [resource, amount] of Object.entries(b.onBuildGain || {}))
     p.resources[resource] += amount;
   updateActor(g, { moves: 0, acted: true });
@@ -625,20 +732,6 @@ export function build(
   );
   awardMissions(g);
 }
-export const housing = (g, i) =>
-  Object.values(g.board).reduce(
-    (n, c) =>
-      n +
-      (c.building?.owner === i ? BUILDINGS[c.building.type].housing || 0 : 0),
-    0,
-  );
-export const population = (g, i) =>
-  UNIT_DEFINITIONS.king.population +
-  g.players[i].workers * UNIT_DEFINITIONS.worker.population +
-  (g.players[i].units || []).reduce(
-    (n, u) => n + UNIT_DEFINITIONS[u.type].population,
-    0,
-  );
 export function trainError(g, x, y, type) {
   if (g.finished) return "La partie est terminée.";
   const b = g.board[key(x, y)]?.building,
@@ -648,10 +741,8 @@ export function trainError(g, x, y, type) {
     return "Choisissez une de vos casernes et une unité disponible.";
   if (b.trainingRound === g.round && (b.trainedCount || 0) >= def.trainingLimit)
     return "Cette caserne a déjà recruté ce tour-ci.";
-  if (population(g, g.active) + unit.population > housing(g, g.active))
-    return `Il manque ${unit.population} place(s) libre(s) de logement pour ${unit.name.toLowerCase()}.`;
   if (enemyAt(g, x, y)) return "Un pion adverse occupe la caserne.";
-  if (!canAfford(g.players[g.active].resources, unit.cost))
+  if (!costPayment(g, unit.cost)?.affordable)
     return "Ressources insuffisantes pour cette unité.";
   return null;
 }
@@ -662,17 +753,8 @@ export function trainUnit(g, x, y, type) {
   const p = g.players[g.active],
     def = UNIT_DEFINITIONS[type],
     b = g.board[key(x, y)].building;
-  payCost(p.resources, def.cost);
-  const unit = {
-    id: Math.max(-1, ...p.units.map((u) => u.id)) + 1,
-    type,
-    x,
-    y,
-    moves: 0,
-    acted: true,
-    ended: true,
-  };
-  p.units.push(unit);
+  payCost(p.resources, costPayment(g, def.cost).resources);
+  const unit = spawnUnit(g, x, y, type);
   if (b.trainingRound !== g.round) {
     b.trainingRound = g.round;
     b.trainedCount = 0;
@@ -684,31 +766,20 @@ export function trainUnit(g, x, y, type) {
 }
 export const assigned = (g, i) =>
   g.players[i].workerAssignments.filter((w) => w.building !== null).length;
-export function recruitError(g) {
-  if (g.finished) return "La partie est terminée.";
-  if ((g.workerRecruitsUsed ?? (g.recruited ? 1 : 0)) >= RULES.workerRecruitmentLimitPerTurn)
-    return `Limite de recrutement atteinte : ${RULES.workerRecruitmentLimitPerTurn} ${UNIT_DEFINITIONS.worker.name.toLowerCase()} par tour.`;
-  if (!canAfford(g.players[g.active].resources, RECRUITMENT_COST))
-    return "Ressources insuffisantes pour recruter.";
-  if (population(g, g.active) + UNIT_DEFINITIONS.worker.population > housing(g, g.active))
-    return `Il manque ${UNIT_DEFINITIONS.worker.population} place(s) libre(s) de logement pour ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
-  return null;
-}
-export function recruit(g) {
-  const error = recruitError(g);
-  if (error) throw Error(error);
+export function recruitError() { return "Construisez une maison pour obtenir un ouvrier."; }
+export function recruit() { throw Error(recruitError()); }
+function addWorker(g) {
   const p = g.players[g.active];
-  payCost(p.resources, RECRUITMENT_COST);
-  p.workerAssignments.push({
-    id: Math.max(-1, ...p.workerAssignments.map((w) => w.id)) + 1,
-    building: null,
-  });
+  p.workerAssignments.push({ id: Math.max(-1, ...p.workerAssignments.map(w => w.id)) + 1, building: null });
   p.workers = p.workerAssignments.length;
-  g.workerRecruitsUsed = (g.workerRecruitsUsed ?? (g.recruited ? 1 : 0)) + 1;
-  g.recruited = true;
   p.progress.recruited++;
-  note(g, `${p.name} recrute : ${UNIT_DEFINITIONS.worker.name.toLowerCase()}, disponible immédiatement.`);
-  awardMissions(g);
+}
+function spawnUnit(g, x, y, type) {
+  const p = g.players[g.active];
+  p.nextUnitId = Math.max(p.nextUnitId || 0, ...p.units.map(u => u.id + 1));
+  const unit = { id: p.nextUnitId++, type, x, y, home: {x,y}, moves: 0, acted: true, ended: true, skipTurns: 0 };
+  p.units.push(unit);
+  return unit;
 }
 export function assign(g, x, y) {
   available(g);
@@ -771,13 +842,23 @@ export function endTurn(g) {
   if (lastPlayer) g.round++;
   g.active = (g.active + 1) % g.players.length;
   g.selectedUnitId = null;
+  g.armySelection = null;
   g.moves = UNIT_DEFINITIONS.king.moves;
   g.acted = false;
   g.kingEnded = false;
   g.recruited = false;
   g.workerRecruitsUsed = 0;
   g.rerollsUsed = 0;
+  const next = g.players[g.active];
+  if (next.kingSkip > 0) {
+    next.kingSkip--;
+    g.moves = 0; g.acted = true; g.kingEnded = true;
+  }
   g.players[g.active].units.forEach((u) => {
+    if (u.skipTurns > 0) {
+      u.skipTurns--; u.moves = 0; u.acted = true; u.ended = true;
+      return;
+    }
     u.moves = UNIT_DEFINITIONS[u.type].moves;
     u.acted = false;
     u.ended = false;
@@ -807,7 +888,7 @@ export function movementPaths(g) {
         seen.has(k) ||
         !inside(x, y) ||
         !walkable(g.board[k]) ||
-        enemyAt(g, x, y)
+        enemyAt(g, x, y) || hostileSite(g, x, y)
       )
         continue;
       seen.add(k);
@@ -823,7 +904,7 @@ function awardMissions(g) {
   for (const id of settleMissions(g))
     note(
       g,
-      `${g.players[g.active].name} : ${MISSIONS[id].name} (+${MISSIONS[id].reward.prestige} prestige).`,
+      `${g.players[g.active].name} : ${MISSIONS[id].name} (+${MISSIONS[id].reward.gold} or).`,
     );
 }
 function drawBuildingOffers(g, count) {
@@ -848,10 +929,10 @@ export function rerollMarket(g, kind) {
       : deck.splice(0, market.length),
     removed = market.splice(0, market.length, ...fresh);
   deck.push(...removed);
-  g.players[g.active].prestige -= PRESTIGE.rerollCost;
+  g.players[g.active].resources.gold -= GOLD.rerollCost;
   g.rerollsUsed++;
   note(
     g,
-    `${g.players[g.active].name} relance le marché (${PRESTIGE.rerollCost} prestige).`,
+    `${g.players[g.active].name} relance le marché (${GOLD.rerollCost} or).`,
   );
 }

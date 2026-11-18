@@ -8,11 +8,26 @@ import {
   actor,
   pawns,
   movementPaths,
+  attackPaths,
+  buildingAt,
   productionAmount,
 } from "../engine.js";
 import { key, inside } from "../geometry.js";
 import { e, coordinates } from "./html.js";
 import { placementGuidance } from "./interactions.js";
+
+export function territoryBorders(g, x, y) {
+  const cell = g.board[key(x,y)];
+  const owner = buildingAt(g,x,y)?.building.owner ?? cell?.flag?.owner;
+  if (!g.players[owner]) return [];
+  return [
+    ["top", 0, -1],
+    ["right", 1, 0],
+    ["bottom", 0, 1],
+    ["left", -1, 0],
+  ].filter(([, dx, dy]) => (buildingAt(g,x+dx,y+dy)?.building.owner ?? g.board[key(x+dx,y+dy)]?.flag?.owner) !== owner)
+    .map(([side]) => side);
+}
 
 export function createBoard(element, scrollElement, onCell, onPreview = () => {}) {
   const cells = new Map();
@@ -138,6 +153,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
       }
       const currentKey = key(current.x, current.y),
         paths = movementPaths(g),
+        targets = attackPaths(g),
         guidance = placementGuidance(g, ui.drag || ui.placement);
       if (!cells.has(focusPosition)) focusPosition = currentKey;
       for (const [position, button] of cells) {
@@ -149,6 +165,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         const near = !guidance.size && ui.mode === "move" && paths.has(position);
         const selected = ui.selected?.x === x && ui.selected?.y === y;
         button.className = `cell ${cell ? `terrain-${cell.terrain}` : "unknown"} ${b || cell?.overlay ? "built-tile" : ""} ${cell?.overlay?.role === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "king") ? "king" : ""}`;
+        if (!guidance.size && ui.mode === "move" && targets.has(position)) button.classList.add("combat-target");
         button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[cell.terrain].texture}`, import.meta.url).href}")` : "";
         button.style.backgroundColor = cell ? TERRAINS[cell.terrain].color : "";
         if (guidance.has(position)) button.classList.add(guidance.get(position).error ? "placement-blocked" : "placement-available");
@@ -158,6 +175,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         const parts = [
           `${coordinates(x, y)} : ${cell ? TERRAINS[cell.terrain].name : "Inexploré"}`,
         ];
+        if (cell?.flag) parts.push(`Drapeau : ${cell.flag.owner === null ? "neutre" : g.players[cell.flag.owner].name}`);
         if (b) parts.push(BUILDINGS[b.type].name, g.players[b.owner].name);
         if (cell?.overlay?.role === "field") parts.push("Champ");
         for (const pawn of occupants)
@@ -176,6 +194,8 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
             : cell
               ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[cell.terrain].icon)}</span>`
               : "";
+        if (cell?.flag) html += `<span class="control-flag ${cell.flag.owner === 0 ? "amber" : cell.flag.owner === 1 ? "jade" : "neutral"}" aria-hidden="true">⚑</span>`;
+        if (b && BUILDINGS[b.type].garrison) html += '<span class="garrison-badge" title="Garnison fixe : 1 · défense +1">♜</span>';
         if (b?.type && BUILDINGS[b.type].produces) {
           const amount = productionAmount(g, x, y);
           if (!amount) html += `<span class="inactive-producer" title="Sans ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())} : aucune production" aria-label="Sans ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())} : aucune production">!</span>`;
@@ -187,8 +207,9 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         for (const pawn of occupants.filter((p) => p.type === "king"))
           html += `<span class="king-piece ${pawn.owner === 1 ? "jade" : ""} ${exhausted(pawn) ? "exhausted" : ""}" ${pawn.owner === g.active && !g.finished && !g.acted && !g.kingEnded && g.moves > 0 ? `data-unit-drag=""` : ""} aria-hidden="true">${piece("king")}</span>`;
         for (let owner = 0; owner < g.players.length; owner++) {
+          for (const kind of ["soldier", "emissary"]) {
           const units = occupants.filter(
-            (p) => p.owner === owner && p.type !== "king",
+            (p) => p.owner === owner && p.type === kind,
           );
           const movable =
             units.find(
@@ -199,8 +220,12 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
                 u.moves > 0,
             ) || units.find((u) => !u.acted && !u.ended && u.moves > 0);
           if (units.length)
-            html += `<span class="military-piece ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} aria-hidden="true">${piece(units[0].type)}${units.length > 1 ? `<sup>${units.length}</sup>` : ""}</span>`;
+            html += `<span class="military-piece ${kind === "emissary" ? "emissary-piece" : ""} ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} aria-hidden="true">${piece(kind)}${kind === "soldier" ? `<sup>${units.length}</sup>` : ""}</span>`;
+          }
         }
+        const borders = territoryBorders(g, x, y);
+        if (borders.length)
+          html += `<span class="territory-border ${(buildingAt(g,x,y)?.building.owner ?? cell.flag?.owner) === 1 ? "territory-jade" : "territory-gold"} ${borders.map(side => `border-${side}`).join(" ")}" aria-hidden="true"></span>`;
         if (button.innerHTML !== html) button.innerHTML = html;
       }
     },

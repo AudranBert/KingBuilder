@@ -20,13 +20,14 @@
         <span class="menu-crest" aria-hidden="true">♛</span>
         <h1 id="menu-title">King<span>Builder</span></h1>
       </div>
+      <button id="resume-game" class="primary" hidden>Reprendre la partie</button>
       <div class="mode-grid" aria-label="Modes de jeu">
         <button class="mode-card" data-game-mode="solo">
           <span class="mode-icon" aria-hidden="true">♔</span
           ><span
             ><strong>Solo</strong
             ><small
-              >Bâtissez votre royaume et visez le meilleur score en 20
+              >Bâtissez votre royaume et visez le meilleur score en 25
               tours.</small
             ></span
           ><span aria-hidden="true">→</span>
@@ -92,10 +93,7 @@
             </div>
           </section>
           <section class="workers-panel" aria-label="Ouvriers disponibles">
-            <button id="recruit" class="secondary">
-              Recruter un ouvrier <small>1 blé</small>
-            </button>
-            <small id="recruit-reason" class="disabled-reason"></small>
+            <strong>Ouvriers disponibles</strong>
             <div id="worker-list" data-worker-reserve></div>
           </section>
         </div>
@@ -115,7 +113,7 @@
             </div>
             <div class="round" aria-label="Tour de jeu" title="Tour de jeu">
               <img src="assets/textures/icon-hourglass.svg" alt="" />
-              <strong id="round">01 / 20</strong>
+              <strong id="round">01 / 25</strong>
             </div>
           </div>
           <div id="map-scroll" class="map-scroll">
@@ -128,6 +126,7 @@
           </div>
           <div id="selection" class="selection" aria-live="polite"></div>
           <div id="placement-help" class="placement-help" role="status"></div>
+          <div id="trade-info" class="trade-info"></div>
           <div id="harvest" class="harvest-panel" aria-live="polite"></div>
         </section>
         <button id="end-turn" class="primary">Fin de tour →</button>
@@ -170,7 +169,7 @@
       <button class="primary close-results">Voir le plateau →</button>
     </dialog>
     <dialog id="prestige-dialog" aria-labelledby="prestige-title">
-      <h2 id="prestige-title">Utiliser du prestige ?</h2>
+      <h2 id="prestige-title">Acheter les ressources manquantes ?</h2>
       <p id="prestige-warning"></p>
       <div class="dialog-actions">
         <button class="cancel secondary">Annuler</button

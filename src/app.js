@@ -1,9 +1,10 @@
+import { createPersistence } from "./storage.js";
 import { parseKey } from "./geometry.js";
 import { installDrag } from "./ui/drag.js";
 import {
   RULES,
   createGame,
-  PRESTIGE,
+  GOLD,
   MISSIONS,
   buildingPayment,
   buildError,
@@ -11,11 +12,11 @@ import {
   rerollError,
   actor,
   movementPaths,
+  attackPaths,
+  selectArmy,
   pawns,
   explore,
   build,
-  recruit,
-  recruitError,
   assign,
   endTurn,
   selectUnit,
@@ -30,13 +31,10 @@ import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
   e,
-  costHTML,
   costText,
-  populationHTML,
   terrainDiagram,
   buildingDiagram,
 } from "./ui/html.js";
-import { RECRUITMENT_COST, UNIT_DEFINITIONS } from "./configuration.js";
 import {
   playersView,
   missionsView,
@@ -49,13 +47,17 @@ import {
   resultsView,
   rulesView,
   harvestView,
+  tradeView,
 } from "./ui/views.js";
 
 export function startGame() {
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
-  let game = createGame(),
+  let localStore;
+  try { localStore = window.localStorage; } catch {}
+  const persistence = createPersistence(localStore);
+  let game = persistence.load(),
     toastTimer;
   let nextMode = game.mode || "local";
   let inMenu = true;
@@ -63,6 +65,8 @@ export function startGame() {
     drag.cancel();
     inMenu = true;
     $("#main-menu").hidden = false;
+    try { $("#resume-game").hidden = !localStore?.getItem("kingbuilder-save-v1"); }
+    catch { $("#resume-game").hidden = true; }
     $("header").hidden = true;
     $("main").hidden = true;
     $("[data-game-mode='solo']").focus();
@@ -73,6 +77,7 @@ export function startGame() {
     $("header").hidden = false;
     $("main").hidden = false;
     render();
+    if (persistence.notice) { $("#game-notice").hidden = false; $("#game-notice").textContent = persistence.notice; }
     $("#menu-button").focus();
     if (game.finished) showResults();
   }
@@ -118,12 +123,13 @@ export function startGame() {
       action();
       const won = game.missions.claimed.slice(previousClaims);
       render();
+      if (game.finished) showResults();
       if (won.length)
         toast(
           won
             .map(
               (c) =>
-                `${MISSIONS[c.id].name} : +${MISSIONS[c.id].reward.prestige} ✦`,
+                `${MISSIONS[c.id].name} : +${MISSIONS[c.id].reward.gold} or`,
             )
             .join(" · "),
         );
@@ -142,10 +148,10 @@ export function startGame() {
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
         error = rerollError(game, kind);
-      button.textContent = `↻ ${PRESTIGE.rerollCost} ✦`;
+      button.textContent = `↻ ${GOLD.rerollCost} or`;
       button.disabled = Boolean(error);
       button.title =
-        error || `Remplacer les offres pour ${PRESTIGE.rerollCost} prestige`;
+        error || `Remplacer les offres pour ${GOLD.rerollCost} or`;
     }
     html("#barracks-list", barracksView(game));
     html("#worker-list", workersView(game));
@@ -154,10 +160,7 @@ export function startGame() {
     html("#selection", selectionView(game, ui));
     html("#harvest", harvestView(game));
     placementHelp();
-    const recruitReason = recruitError(game);
-    html("#recruit", `+ ${e(UNIT_DEFINITIONS.worker.name)} <small>${costHTML(RECRUITMENT_COST)} · ${populationHTML(UNIT_DEFINITIONS.worker.population)}</small>`);
-    $("#recruit").disabled = Boolean(recruitReason);
-    $("#recruit-reason").textContent = recruitReason || "";
+    html("#trade-info", tradeView(game));
     $("#end-turn").innerHTML = game.finished
       ? "Voir les résultats →"
       : `<strong>Fin de tour →</strong><small>${harvestView(game).match(/Fin du tour : ([^<]+)/)?.[1] || "aucune récolte"}</small>`;
@@ -178,6 +181,10 @@ export function startGame() {
     }
     board.render(game, ui);
     board.preview(dragPreview(game, ui.drag, ui.drag?.position));
+    if (!inMenu && !persistence.save(game)) {
+      $("#game-notice").hidden = false;
+      $("#game-notice").textContent = persistence.notice;
+    }
   }
   function chooseUnit(id) {
     act(() => {
@@ -199,11 +206,15 @@ export function startGame() {
       return;
     }
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
-    if (own.length && !game.finished && ui.mode !== "inspect") {
+    if (own.length && !game.finished && ui.mode !== "inspect" && !(actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
       chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
       return;
     }
     ui.selected = { x, y };
+    if (ui.mode === "move" && attackPaths(game).has(key(x,y))) {
+      render();
+      return;
+    }
     if (ui.mode === "move" && movementPaths(game).has(key(x, y)))
       act(() => moveUnitTo(game, x, y));
     else render();
@@ -211,7 +222,7 @@ export function startGame() {
   let pendingBuild = null;
   function requestBuild(pos, index, rotation) {
     const error = buildError(game, index, pos.x, pos.y, rotation, {
-      allowPrestige: true,
+      allowGold: true,
     });
     if (error) {
       toast(error);
@@ -230,16 +241,16 @@ export function startGame() {
       y: pos.y,
       payment,
     };
-    if (!payment.prestige) {
+    if (!payment.gold) {
       completeBuild(attempt);
       return;
     }
     pendingBuild = attempt;
     const missing = costText(payment.missing);
     $("#prestige-warning").textContent =
-      `Il manque ${missing}. Utiliser ${payment.prestige} point(s) de prestige ? Cela représente ${payment.prestige * RULES.points.prestige} points de fin de partie. Les ressources disponibles seront aussi dépensées.`;
+      `Il manque ${missing}. Acheter ces ressources à la banque pour ${payment.gold} or ? Les ressources disponibles seront aussi dépensées.`;
     $("#prestige-dialog .confirm").textContent =
-      `Utiliser ${payment.prestige} ✦`;
+      `Payer ${payment.gold} or`;
     $("#prestige-dialog").showModal();
   }
   function completeBuild(attempt) {
@@ -256,8 +267,8 @@ export function startGame() {
         )
           throw Error("Le placement ou son coût a changé. Réessayez.");
         build(game, attempt.index, attempt.x, attempt.y, attempt.rotation, {
-          allowPrestige: attempt.payment.prestige > 0,
-          expectedPrestige: attempt.payment.prestige,
+          allowGold: attempt.payment.gold > 0,
+          expectedGold: attempt.payment.gold,
         });
         ui.placement = null;
         ui.selected = { x: attempt.x, y: attempt.y };
@@ -310,7 +321,9 @@ export function startGame() {
     const a = totalScore(game, 0),
       b = game.players.length > 1 ? totalScore(game, 1) : 0;
     $("#winner").textContent =
-      game.mode === "solo"
+      game.victory === "conquest"
+        ? `${game.players[game.winner].name} conquiert le donjon et remporte la partie !`
+        : game.mode === "solo"
         ? `Votre royaume : ${a} points`
         : a === b
           ? "Deux couronnes, une victoire partagée."
@@ -353,6 +366,9 @@ export function startGame() {
       ? parseKey(button.dataset.position)
       : null;
     switch (button.dataset.action) {
+      case "attack":
+        act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
+        break;
       case "move":
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
@@ -368,11 +384,9 @@ export function startGame() {
   });
   $("#rotate").addEventListener("click", () => rotate("terrain"));
   $("#rotate-building").addEventListener("click", () => rotate("building"));
-  $("#recruit").addEventListener("click", () =>
-    act(() => recruit(game), {
-      message: `${UNIT_DEFINITIONS.worker.name} disponible pour une affectation.`,
-    }),
-  );
+  document.addEventListener("change", event => {
+    if (event.target.matches("[data-army-size]")) act(() => selectArmy(game,Number(event.target.value)));
+  });
   $("#end-turn").addEventListener("click", () => {
     if (game.finished) {
       showResults();
@@ -397,6 +411,7 @@ export function startGame() {
   );
   $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
   $("#menu-button").addEventListener("click", showMenu);
+  $("#resume-game").addEventListener("click",enterGame);
   function requestNewGame(mode) {
     nextMode = mode;
     beginNewGame();
@@ -456,7 +471,7 @@ export function startGame() {
       ui.drag = dragFromCard(card, ui);
       ui.placement = null;
       ui.selected = null;
-      if (ui.drag.kind === "unit") selectUnit(game, ui.drag.id);
+      if (ui.drag.kind === "unit" && ui.drag.id !== game.selectedUnitId) selectUnit(game, ui.drag.id);
       render();
     },
     preview(pos) {

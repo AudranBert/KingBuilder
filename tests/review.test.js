@@ -28,17 +28,17 @@ function memoryStorage(initial = {}) {
     setItem: (k, v) => values.set(k, v),
   };
 }
-test("le plateau configuré est 12×12 et les rois partent au milieu des bords opposés", () => {
+test("le plateau configuré est 13×13 et les rois partent au milieu des bords opposés", () => {
   const g = createGame();
-  assert.equal(RULES.size, 12);
+  assert.equal(RULES.size, 13);
   assert.deepEqual(
     g.players.map((p) => [p.x, p.y]),
     [
       [0, 6],
-      [11, 6],
+      [12, 6],
     ],
   );
-  assert.equal(g.boardSize, 12);
+  assert.equal(g.boardSize, 13);
   assert.equal(validateGame(g), g);
 });
 test("coordonnées fractionnaires, angles et ancres invalides sont refusés sans mutation", () => {
@@ -72,7 +72,7 @@ test("une ressource absente ou non finie ne permet pas de construire à crédit"
     const g = createGame();
     g.board[key(1, 6)] = { terrain: "forest" };
     g.players[0].x = 1;
-    g.players[0].resources.stone = amount;
+    g.players[0].resources.material = amount;
     g.buildingMarket[0] = "sawmill";
     const snapshot = structuredClone(g);
     assert.ok(buildError(g, 0, 1, 6));
@@ -108,7 +108,7 @@ test("chaque aperçu de tuile affiche ses terrains et les textes sont échappés
   assert.doesNotMatch(playersView(g), /<img src=x>/);
   assert.match(playersView(g), /&lt;img src=x&gt;/);
   assert.match(playersView(g), /&lt;img/);
-  assert.match(rulesView(), /12 × 12/);
+  assert.match(rulesView(), /13 × 13/);
 });
 test("l’exploration est proposée sans déplacer l’unité ni révéler de cases", () => {
   const g = createGame(),
@@ -145,7 +145,7 @@ test("les anciennes dimensions et les sauvegardes corrompues sont sauvegardées 
     const storage = memoryStorage({ [SAVE_KEY]: raw }),
       p = createPersistence(storage);
     const fresh = p.load();
-    assert.equal(fresh.boardSize, 12);
+    assert.equal(fresh.boardSize, 13);
     assert.equal(storage.getItem(SAVE_KEY + "-backup"), raw);
     assert.match(p.notice, /copie/);
     assert.equal(p.save(fresh), true);
@@ -168,13 +168,13 @@ test("si la copie échoue, la sauvegarde originale reste intacte", () => {
 test("le jeu fonctionne en mémoire quand le stockage est indisponible", () => {
   const p = createPersistence(null),
     g = p.load();
-  assert.equal(g.boardSize, 12);
+  assert.equal(g.boardSize, 13);
   assert.equal(p.save(g), false);
   assert.match(p.notice, /indisponible/);
 });
 test("une sauvegarde malformée est rejetée avant de casser l’interface", () => {
   for (const change of [
-    (g) => (g.players[0].resources.wood = -1),
+    (g) => (g.players[0].resources.material = -1),
     (g) => (g.players[0].workerAssignments = []),
     (g) =>
       (g.board[key(1, 6)] = {

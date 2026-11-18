@@ -45,7 +45,7 @@ function validateTiles(tiles) {
 }
 export function validateGame(game, { legacy = false } = {}) {
   requireValid(
-    record(game) && [1, 2, 3, 4].includes(game.version),
+    record(game) && game.version === 5,
     "version inconnue.",
   );
   requireValid(
@@ -83,6 +83,8 @@ export function validateGame(game, { legacy = false } = {}) {
     "chronique incorrecte.",
   );
   requireValid(record(game.board), "plateau absent.");
+  requireValid(game.victory === undefined || (game.victory === "conquest" && game.finished &&
+    Number.isInteger(game.winner) && game.players[game.winner]), "victoire incorrecte.");
   for (const [position, cell] of Object.entries(game.board)) {
     const [x, y] = parseKey(position);
     requireValid(
@@ -112,6 +114,9 @@ export function validateGame(game, { legacy = false } = {}) {
           "quota de caserne incorrect.",
         );
     }
+    if (cell.flag !== undefined)
+      requireValid(record(cell.flag) && (cell.flag.owner === null ||
+        Number.isInteger(cell.flag.owner) && Boolean(game.players[cell.flag.owner])), "drapeau incorrect.");
     if (cell.overlay)
       requireValid(
         record(cell.overlay) &&
@@ -122,6 +127,10 @@ export function validateGame(game, { legacy = false } = {}) {
       );
   }
   for (const player of game.players) {
+    requireValid(record(player.home) && inside(player.home.x,player.home.y,RULES.size) &&
+      Boolean(game.board[key(player.home.x,player.home.y)]), "donjon d’origine incorrect.");
+    requireValid(nonnegative(player.kingSkip) && player.kingSkip <= 1, "retour du roi incorrect.");
+    requireValid(nonnegative(player.nextUnitId), "compteur d’unités incorrect.");
     requireValid(
       record(player) &&
         typeof player.name === "string" &&
@@ -136,7 +145,7 @@ export function validateGame(game, { legacy = false } = {}) {
         nonnegative(player.revealed),
       "ressources ou population incorrectes.",
     );
-    if (!legacy || game.version === 4) {
+    if (!legacy || game.version === 5) {
       requireValid(
         Array.isArray(player.workerAssignments) &&
           player.workerAssignments.length === player.workers,
@@ -165,12 +174,15 @@ export function validateGame(game, { legacy = false } = {}) {
             inside(unit.x, unit.y, RULES.size) &&
             game.board[key(unit.x, unit.y)] &&
             nonnegative(unit.moves) &&
+            unit.moves <= UNIT_DEFINITIONS[unit.type].moves &&
+            (unit.skipTurns === undefined || nonnegative(unit.skipTurns) && unit.skipTurns <= 1) &&
             typeof unit.acted === "boolean" &&
             (unit.ended === undefined || typeof unit.ended === "boolean"),
           "unité incorrecte.",
         );
         ids.add(unit.id);
       }
+      requireValid(player.units.every(u=>u.id < player.nextUnitId), "compteur d’unités périmé.");
     }
   }
   requireValid(
@@ -239,10 +251,7 @@ export function validateGame(game, { legacy = false } = {}) {
   );
   requireValid(game.workerRecruitsUsed === undefined || nonnegative(game.workerRecruitsUsed), "quota de recrutement incorrect.");
   for (const p of game.players) {
-    requireValid(
-      (legacy && p.prestige === undefined) || nonnegative(p.prestige),
-      "prestige incorrect.",
-    );
+    requireValid(nonnegative(p.resources.gold), "or incorrect.");
     if (p.progress !== undefined) {
       requireValid(
         record(p.progress) &&

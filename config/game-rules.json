@@ -1,22 +1,11 @@
 {
-  "boardSize": 12,
-  "turnLimit": 20,
+  "boardSize": 13,
+  "turnLimit": 25,
   "scoring": {
-    "tile": 1,
     "building": 1,
-    "unit": 1,
-    "resource": 0.34,
-    "prestige": 3
-  },
-  "prestige": {
-    "startingAmount": 1,
-    "rerollCost": 1,
-    "rerollLimitPerTurn": 1,
-    "wildcardCost": 1,
-    "firstPlayerStartingAmount": 0
+    "flag": 4
   },
   "startingWorkers": 1,
-  "workerRecruitmentLimitPerTurn": 1,
   "markets": {
     "terrainSize": 3,
     "buildingSize": 3,
@@ -42,5 +31,37 @@
         "y": 0.5
       }
     }
-  ]
+  ],
+  "trade": {
+    "basePrice": 2,
+    "producerSurcharge": 1
+  },
+  "flags": [
+    {
+      "x": 6,
+      "y": 6
+    },
+    {
+      "x": 4,
+      "y": 3
+    },
+    {
+      "x": 8,
+      "y": 3
+    },
+    {
+      "x": 4,
+      "y": 9
+    },
+    {
+      "x": 8,
+      "y": 9
+    }
+  ],
+  "gold": {
+    "startingAmount": 1,
+    "rerollCost": 1,
+    "rerollLimitPerTurn": 1,
+    "firstPlayerStartingAmount": 0
+  }
 }

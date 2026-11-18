@@ -4,7 +4,7 @@ import { createGame, endTurn, RULES, moveError } from "../src/engine.js";
 import { validateGame, createPersistence, SAVE_KEY } from "../src/storage.js";
 import { playersView, missionsView, resultsView } from "../src/ui/views.js";
 
-test("solo : un royaume, 20 tours et sauvegarde rechargeable", () => {
+test("solo : un royaume, 25 tours et sauvegarde rechargeable", () => {
   const game = createGame(Math.random, "solo");
   assert.equal(game.players.length, 1);
   assert.equal(Object.values(game.board).filter((c) => c.building).length, 1);
@@ -20,7 +20,7 @@ test("solo : un royaume, 20 tours et sauvegarde rechargeable", () => {
     assert.equal(game.active, 0);
     assert.equal(game.round, round + 1);
     assert.equal(game.finished, false);
-    assert.equal(game.moves, 3);
+    assert.equal(game.moves, 2);
   }
   endTurn(game);
   assert.equal(game.finished, true);
