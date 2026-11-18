@@ -26,6 +26,31 @@ function setup(type, rotation = 0) {
     g.board[key(c.x, c.y)] = { terrain: c.terrain[0] };
   return g;
 }
+test("construction : case de l’unité ou voisine par un bord pour tous les bâtiments", () => {
+  for (const type of Object.keys(BUILDINGS).filter((id) => (BUILDINGS[id].family || id) !== "mill" && BUILDINGS[id].constructible !== false)) {
+    for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const g = setup(type);
+      g.players[0].x = 7 + dx;
+      g.players[0].y = 7 + dy;
+      assert.equal(buildError(g, 0, 7, 7), null, `${type}: ${dx},${dy}`);
+      build(g, 0, 7, 7);
+      assert.equal(g.acted, true);
+    }
+    for (const [dx, dy] of [[1, 1], [-1, -1], [2, 0], [0, -2]]) {
+      const g = setup(type);
+      g.players[0].x = 7 + dx;
+      g.players[0].y = 7 + dy;
+      assert.match(buildError(g, 0, 7, 7), /case voisine par un bord/, type);
+      const before = structuredClone(g);
+      assert.throws(() => build(g, 0, 7, 7));
+      assert.deepEqual(g, before);
+    }
+  }
+  const g = farmAndMill();
+  g.players[0].x = 9;
+  assert.equal(buildError(g, 0, 8, 8), null);
+  build(g, 0, 8, 8);
+});
 test("ferme : cinq plaines deviennent une seule tuile de ferme et quatre champs", () => {
   const g = setup("farm");
   build(g, 0, 7, 7);
@@ -73,6 +98,97 @@ test("mine : plaine d’accès et trois montagnes, dans chacune des quatre orien
     assert.equal(g.players[0].resources.iron, iron + 1);
   }
 });
+test("variantes carrées : quatre terrains réservés, rotation et production", () => {
+  for (const [type, role, resource] of [["mine_square", "mine", "iron"], ["port_square", "water", "wheat"]]) {
+    for (let r = 0; r < 4; r++) {
+      const g = setup(type, r);
+      const parts = patternAt(type, 7, 7, r).filter(c => c.role === role);
+      assert.equal(parts.length, 4);
+      assert.equal(new Set(parts.map(c => c.x)).size, 2);
+      assert.equal(new Set(parts.map(c => c.y)).size, 2);
+      build(g, 0, 7, 7, r);
+      for (const c of parts) assert.equal(g.board[key(c.x, c.y)].overlay.role, role);
+      assign(g, 7, 7);
+      const before = g.players[0].resources[resource];
+      endTurn(g);
+      assert.equal(g.players[0].resources[resource], before + 1);
+    }
+  }
+});
+test("ferme en Z et scierie en croix : rotations, réservation et production", () => {
+  for (const [type, role, resource] of [["farm_z", "field", "wheat"], ["sawmill_cross", "timber", "wood"]]) {
+    for (let r = 0; r < 4; r++) {
+      const g = setup(type, r);
+      const parts = patternAt(type, 7, 7, r).filter(c => c.role !== "building");
+      assert.equal(parts.length, 4);
+      const invalid = structuredClone(g);
+      invalid.board[key(parts[0].x, parts[0].y)].terrain = "river";
+      assert.throws(() => build(invalid, 0, 7, 7, r));
+      build(g, 0, 7, 7, r);
+      for (const c of parts) {
+        assert.equal(g.board[key(c.x, c.y)].overlay.role, role);
+        assert.equal(buildingAt(g, c.x, c.y).building.type, type);
+      }
+      assign(g, 7, 7);
+      const before = g.players[0].resources[resource];
+      endTurn(g);
+      assert.equal(g.players[0].resources[resource], before + 1);
+    }
+  }
+});
+test("le moulin reconnaît et bonifie la ferme en Z", () => {
+  const g = setup("farm_z");
+  build(g, 0, 7, 7);
+  assign(g, 7, 7);
+  endTurn(g);
+  endTurn(g);
+  g.players[0].x = 8;
+  g.players[0].y = 7;
+  g.board[key(8, 7)] = { terrain: "plain" };
+  g.buildingMarket[0] = "mill";
+  assert.equal(buildError(g, 0, 8, 7), null);
+  build(g, 0, 8, 7);
+  assert.equal(productionAmount(g, 7, 7), 2);
+});
+test("nouvelles variantes : les quatre orientations réservent tout le motif", () => {
+  for (const type of ["farm_t", "sawmill_l", "quarry_ridge", "mine_l", "port_l"]) {
+    for (let r = 0; r < 4; r++) {
+      const g = setup(type, r);
+      const parts = patternAt(type, 7, 7, r);
+      build(g, 0, 7, 7, r);
+      for (const c of parts) assert.equal(buildingAt(g, c.x, c.y).building.type, type);
+      assign(g, 7, 7);
+      assert.equal(productionAmount(g, 7, 7), 1);
+    }
+  }
+});
+test("les trois moulins gardent les mêmes contraintes et le même bonus", () => {
+  for (const type of ["mill", "mill_line", "mill_l"]) {
+    for (let r = 0; r < 4; r++) {
+      const g = setup(type, r);
+      assert.throws(() => build(g, 0, 7, 7, r));
+      const reserved = new Set(patternAt(type, 7, 7, r).map(c => key(c.x, c.y)));
+      const [dx, dy] = [[-1, 0], [1, 0], [0, -1], [0, 1]].find(([x, y]) =>
+        !reserved.has(key(7 + x, 7 + y)) && !reserved.has(key(7 + x + y, 7 + y + x)));
+      const fx = 7 + dx + dy, fy = 7 + dy + dx;
+      g.board[key(fx, fy)] = { terrain: "plain", building: {type: "farm_z", owner: 0} };
+      g.board[key(7 + dx, 7 + dy)] = { terrain: "plain", overlay: {anchor: key(fx, fy), role: "field", owner: 0} };
+      g.players[0].workerAssignments[0].building = key(fx, fy);
+      build(g, 0, 7, 7, r);
+      assert.equal(productionAmount(g, fx, fy), 2);
+    }
+  }
+});
+test("les carrières exigent leur terrain propre", () => {
+  for (const type of ["quarry", "quarry_mountain"]) {
+    for (const terrain of ["plain", "mountain", "forest", "river"]) {
+      const g = setup(type);
+      g.board[key(7, 7)].terrain = terrain;
+      assert.equal(buildError(g, 0, 7, 7) === null,
+        terrain === (type === "quarry" ? "plain" : "mountain"));
+    }
+  }
+});
 test("une mine ne se place pas sur une montagne ni dans une orientation incorrecte", () => {
   const g = setup("mine");
   assert.throws(() => build(g, 0, 7, 7, 1));
@@ -97,15 +213,17 @@ test("port : plaine et trois eaux sur un côté, rotation et eau toujours infran
     assert.throws(() => move(g, water.x, water.y));
   }
 });
-test("défricher libère une plaine, consomme son coût et son action et remplace le marché", () => {
+test("défricher gratuitement donne deux bois, consomme son action et remplace le marché", () => {
   const g = setup("clearing"),
-    wheat = g.players[0].resources.wheat,
+    wood = g.players[0].resources.wood,
     next = g.buildingDeck[0];
+  g.players[0].resources.wheat = 0;
   const points = score(g, 0).buildings;
   build(g, 0, 7, 7);
   assert.equal(g.board[key(7, 7)].terrain, "plain");
   assert.equal(g.board[key(7, 7)].building, undefined);
-  assert.equal(g.players[0].resources.wheat, wheat - 1);
+  assert.equal(g.players[0].resources.wood, wood + 2);
+  assert.equal(g.players[0].resources.wheat, 0);
   assert.equal(g.acted, true);
   assert.equal(g.buildingMarket[0], next);
   assert.equal(score(g, 0).buildings, points);
@@ -170,7 +288,7 @@ test("tous les bâtiments sont dans la pioche et les anciennes parties restent j
   const g = createGame(() => 0.5);
   assert.deepEqual(
     new Set([...g.buildingMarket, ...g.buildingDeck]),
-    new Set(Object.keys(BUILDINGS)),
+    new Set(Object.keys(BUILDINGS).filter(id => BUILDINGS[id].constructible !== false)),
   );
   g.version = 1;
   const old = structuredClone(g.board);

@@ -43,6 +43,7 @@ import {
   workersView,
   terrainMarketView,
   buildingMarketView,
+  buildingDetailsView,
   selectionView,
   resultsView,
   rulesView,
@@ -190,7 +191,7 @@ export function startGame() {
   function handleCell(x, y) {
     if (ui.drag) return;
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
-    if (own.length && !game.finished) {
+    if (own.length && !game.finished && ui.mode !== "inspect") {
       chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
       return;
     }
@@ -298,6 +299,15 @@ export function startGame() {
   }
 
   document.addEventListener("click", (event) => {
+    const card = event.target.closest("[data-building]");
+    const detail = event.target.closest("[data-building-details]");
+    if (card || detail) {
+      const type = card ? game.buildingMarket[Number(card.dataset.building)] : detail.dataset.buildingDetails;
+      const rotation = card ? ui.buildingRotation : Number(detail.dataset.buildingOrientation || 0);
+      html("#building-details-content", buildingDetailsView(type, rotation));
+      $("#building-details-dialog").showModal();
+      return;
+    }
     const unit = event.target.closest("[data-unit]");
     if (unit) {
       chooseUnit(unit.dataset.unit === "" ? null : Number(unit.dataset.unit));
@@ -349,6 +359,9 @@ export function startGame() {
   });
   $("#rules-button").addEventListener("click", () =>
     $("#rules-dialog").showModal(),
+  );
+  $("#building-details-dialog .close-building-details").addEventListener("click", () =>
+    $("#building-details-dialog").close(),
   );
   $("#rules-dialog .close").addEventListener("click", () =>
     $("#rules-dialog").close(),

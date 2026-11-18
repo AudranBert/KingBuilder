@@ -271,6 +271,13 @@ export function compileConfiguration(
     label(b.pattern, `${path}.pattern`);
     terrainList(b.terrain, `${path}.terrain`);
     costs(b.cost, resources, `${path}.cost`);
+    b.tier ??= 1;
+    integer(b.tier, `${path}.tier`, 0);
+    if (b.tier > 2) fail(`${path}.tier`, "utilisez un tier de 0 à 2.");
+    if (b.constructible !== undefined && typeof b.constructible !== "boolean")
+      fail(path, "constructible doit être un booléen.");
+    if (b.onBuildGain !== undefined)
+      costs(b.onBuildGain, resources, `${path}.onBuildGain`);
     object(b.legend, `${path}.legend`);
     for (const [symbol, part] of Object.entries(b.legend)) {
       if ([...symbol].length !== 1 || [".", "B"].includes(symbol))
@@ -359,10 +366,29 @@ export function compileConfiguration(
     }
   }
   const buildingPool = weighted(
-    buildings,
+    Object.fromEntries(Object.entries(buildings).filter(([, b]) => b.constructible !== false)),
     "buildings.json",
     buildingConfig.deckSize,
   );
+  if (!buildingPool.length) fail("buildings.json", "la pioche doit contenir un bâtiment constructible.");
+  if (Array.from({ length: buildingConfig.deckSize }, (_, i) =>
+    buildingPool[i % buildingPool.length]).filter(id => buildings[id].tier < 2).length < 3)
+    fail("buildings.json", "le marché initial exige trois bâtiments de tier 0 ou 1.");
+  for (const b of Object.values(buildings)) {
+    if (b.family !== undefined && (!buildings[b.family] || buildings[b.family].family))
+      fail(`buildings.json.${b.id}.family`, "référencez un bâtiment de base connu.");
+  }
+  if (buildingConfig.maxFamilyCopies !== undefined) {
+    integer(buildingConfig.maxFamilyCopies, "buildings.json.maxFamilyCopies", 1);
+    const counts = {};
+    for (let i = 0; i < buildingConfig.deckSize; i++) {
+      const id = buildingPool[i % buildingPool.length];
+      const family = buildings[id].family || id;
+      counts[family] = (counts[family] || 0) + 1;
+      if (counts[family] > buildingConfig.maxFamilyCopies)
+        fail(`buildings.json.${family}`, "la famille dépasse maxFamilyCopies, variantes comprises.");
+    }
+  }
   if (!buildings[buildingConfig.startingBuilding]?.housing)
     fail(
       "buildings.json.startingBuilding",

@@ -48,6 +48,7 @@ function mount(t, savedGame) {
     "#prestige-dialog .confirm",
     "#prestige-dialog .cancel",
     "#rules-dialog .close",
+    "#building-details-dialog .close-building-details",
     ".close-rules",
     "#new-dialog .cancel",
     "#new-dialog .confirm",

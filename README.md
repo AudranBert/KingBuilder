@@ -19,12 +19,12 @@ La partie est sauvegardée automatiquement dans le navigateur. « Revenir au men
 - Marché partagé de 3 tuiles gratuites, avec rotation et choix d’une case de contact adjacente, de tout terrain. Pas de chevauchement ni de sortie du plateau.
 - Treize formes de terrain : ligne de 2, ligne de 3, L de 3, Z de 4, carré de 4, croix de 5 (`.x. / xxx / .x.`), U de 5 (`x.x / xxx`), L de 4 (`x.. / xxx`), T de 4 (`.x.. / xxx`), ligne de 4, escalier de 5 (`xx. / .xx / ..x`) motif de 5 (`.xx. / .xxx`) et T de 5 (`xxx / .x. / .x.`). Les formes actuelles font au plus cinq cases, sans limite mécanique empêchant de configurer de plus grandes formes. Le T est équivalent à `xxx / .x.` par rotation et n’est donc pas ajouté en double. L’anneau de 8 et le rectangle de 6 sont exclus. Les points sont des vides : ils ne révèlent ni ne réservent de case. Chaque forme peut pivoter ; les terrains sont fixés dans un catalogue de 60 tuiles. Les nouvelles formes sont présentes dans la pioche des nouvelles parties.
 - Marché partagé de 3 tuiles bâtiments, remplacées à l’achat. Construction sous le roi, avec exception adjacente pour le pont et la carrière en montagne. Motifs pivotables, tous les terrains déjà révélés, aucune superposition entre bâtiments.
-- Montagne et rivière infranchissables ; un pont permet de traverser sa case rivière. Une maison se construit sur plaine ou forêt (la montagne n'est de fait pas accessible au roi).
+- Montagne et rivière infranchissables ; un pont permet de traverser sa case rivière. Une maison se construit sur plaine ou forêt. Les constructions peuvent avoir leur entrée sur la case de l’unité ou sur une case voisine par un bord.
 - Un ouvrier coûte 1 blé, au maximum un recrutement par tour. Chaque maison accueille deux ouvriers. Les ouvriers s’affectent et se réaffectent directement à vos bâtiments de production, sans trajet ni coût. Un ouvrier au maximum par bâtiment de production ; les affectations finales déterminent la production.
 - Production en fin du tour de son propriétaire : ferme/port = blé, scierie = bois, carrière = pierre, mine = fer. Un bâtiment sans ouvrier ne produit pas.
-- Départ : une maison, un ouvrier disponible, 2 bois, 1 blé, 2 pierres, 0 fer par joueur. Les cases de départ ne comptent pas comme révélées.
+- Départ : un château non constructible (2 places de population), un ouvrier disponible, 2 bois, 1 blé, 2 pierres, 0 fer par joueur. Les cases de départ ne comptent pas comme révélées.
 - Score : 1 par case révélée + 1 par bâtiment + 2 par ouvrier + 1 par ressource + 3 par prestige restant. Égalité : victoire partagée.
-- Les pioches sont mélangées au départ ; elles contiennent 60 tuiles et 90 bâtiments/actions, assez pour les 40 tours individuels.
+- Les pioches sont mélangées au départ ; elles contiennent 60 tuiles de terrain et 60 bâtiments/actions, assez pour les 40 tours individuels.
 
 ## Configurer le jeu
 
@@ -56,7 +56,7 @@ L’interface sépare déplacement et inspection. Les terrains et bâtiments se 
 
 ## Tuiles bâtiments — version 2
 
-Les coordonnées sont relatives à l’entrée sous le roi et pivotent par quarts de tour.
+Les coordonnées sont relatives à l’entrée du bâtiment et pivotent par quarts de tour.
 
 | Tuile | Motif | Coût | Effet |
 | --- | --- | --- | --- |
@@ -65,9 +65,9 @@ Les coordonnées sont relatives à l’entrée sous le roi et pivotent par quart
 | Port | Plaine d’entrée (0,0), eaux (1,-1), (1,0), (1,1) | 2 bois + 1 pierre | 1 blé avec ouvrier ; l’eau reste infranchissable |
 | Pont | 1 rivière adjacente au roi | 2 bois | Case traversable |
 | Moulin | Plaine touchant votre champ par un bord et votre ferme par un bord ou un coin | 2 bois + 1 pierre | Double le blé de vos fermes voisines ; sans ouvrier au moulin, sans cumul |
-| Défrichement | 1 forêt libre sous le roi | 1 blé | Devient une plaine libre ; consomme l’action, aucun bâtiment ni point de bâtiment |
+| Défrichement | 1 forêt libre | Gratuit | Donne immédiatement 2 bois et devient une plaine libre ; consomme l’action, aucun bâtiment ni point de bâtiment |
 
-Maison, scierie et carrière restent des tuiles d’une seule case avec leurs coûts et effets précédents. Les cases auxiliaires des motifs sont réservées et consultables : cliquer un champ permet de consulter et gérer l’affectation de sa ferme. Un bâtiment de plusieurs cases ne compte toujours que pour un bâtiment au score. Les champs sont une surcouche de plaine, marchable, sans production autonome. Seul le pont rend l’eau traversable.
+La maison reste une tuile d’une case. La scierie et la carrière disposent également de variantes de plusieurs cases, avec les mêmes coûts et effets. Les cases auxiliaires des motifs sont réservées et consultables : cliquer un champ permet de consulter et gérer l’affectation de sa ferme. Un bâtiment de plusieurs cases ne compte toujours que pour un bâtiment au score. Les champs sont une surcouche de plaine, marchable, sans production autonome. Seul le pont rend l’eau traversable.
 
 Le moulin est passif, ne demande pas d’ouvrier et double la production uniquement si un ouvrier est affecté à la ferme. Les fermes se trouvant à distance de voisinage 1, diagonales incluses, du moulin bénéficient du bonus ; plusieurs moulins ne multiplient pas ce bonus. Les champs et la ferme requis au placement doivent appartenir au même joueur que le moulin.
 
@@ -107,3 +107,17 @@ Le premier joueur commence à 0 prestige, le second à 1. Chaque prestige restan
 Le bouton ↻ d’un marché remplace ses trois offres pour 1 prestige, une fois par joueur et par tour, sans consommer l’action d’une unité. Le prestige sert aussi de joker : 1 prestige par ressource manquante pour un bâtiment, avec confirmation explicite du coût avant toute dépense.
 
 Les trois missions commencent à ★. Chaque objectif remporté est remplacé par un objectif aléatoire du niveau supérieur (★ → ★★ → ★★★), puis les missions ★★★ sont remplacées par d’autres ★★★ disponibles. Les seuils et récompenses de chaque niveau sont modifiables dans `missions.json`.
+
+La case d’entrée de tout bâtiment peut être placée sur la case de l’unité sélectionnée ou sur une case adjacente par un bord, jamais en diagonale. Les contraintes de terrain et de motif restent applicables.
+
+Variantes du marché : le port et la mine existent aussi avec un carré de 2 × 2 d’eau ou de montagnes adjacent à leur entrée sur plaine. Leurs coûts et productions sont identiques aux versions en ligne. La carrière de plaine et la carrière de montagne occupent chacune uniquement leur terrain indiqué, jamais une forêt. La pioche contient 6 maisons, 6 fermes, 6 scieries, 6 ponts, 5 moulins, 5 casernes, 8 défrichements et 6 tuiles par famille de carrière, mine et port (2 de chacune des 3 variantes). Chaque famille est limitée à 8 tuiles, variantes comprises. Recharger et commencer une nouvelle partie pour obtenir les nouvelles variantes dans la pioche.
+
+Le château remplace la maison initiale. Il accueille 2 unités de population et ne figure jamais dans les 60 tuiles bâtiments/actions. Les maisons restent constructibles.
+
+La ferme existe en croix, Z et T ; la scierie sur une case, en croix et en L (2 tuiles par variante). Les variantes gardent les mêmes coûts et productions. La ferme en Z bénéficie du moulin comme la ferme en croix. Les familles restent à 6 tuiles et la pioche à 60.
+
+Chaque famille concernée compte trois variantes au total : ferme (croix, Z, T), scierie (simple, croix, L), carrière (plaine, montagne, flanc de montagne), mine (ligne, carré, coude), port (colonne, carré, coude), moulin (simple, cour en ligne, cour en L). Les cinq premières familles ont 2 exemplaires par variante. Les moulins gardent 5 tuiles : 1 simple, 2 en ligne et 2 en L, avec les mêmes contraintes de voisinage et le même bonus. Pont, maison, caserne, défrichement et château ne reçoivent pas de variantes.
+
+Tiers des bâtiments : 0 étoile pour le pont et le défrichement ; 1 étoile pour les maisons et les producteurs de ressources (toutes variantes) ; 2 étoiles pour les moulins et casernes. Les trois offres initiales sont tirées uniquement parmi les tiers 0 et 1, sans retirer les tiers 2 de la pioche. Chaque bâtiment pris est ensuite remplacé par la prochaine carte de la pioche mélangée, de tier 0, 1 ou 2 ; les relances utilisent aussi cette pioche complète. Le château reste hors pioche. Les étoiles sont affichées sur les cartes du marché.
+
+Interface : les cartes bâtiments montrent leur effet et leur coût. Un clic (ou Entrée au clavier) ouvre une fiche avec le motif agrandi, les terrains, les étoiles et les règles de placement ; glisser la carte reste le geste de construction. En mode Inspecter, une case occupée par votre unité permet aussi de consulter son bâtiment. Sur petit écran, le plateau précède les marchés et les missions occupent la pleine largeur.

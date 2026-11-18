@@ -23,6 +23,13 @@ import {
 import { validateGame, createPersistence, SAVE_KEY } from "../dist/storage.js";
 import { compileConfiguration } from "../dist/config-schema.js";
 import { readFile } from "node:fs/promises";
+test("les variantes contribuent aux objectifs de leur famille sans double compte", () => {
+  const g = createGame();
+  g.players[0].progress.built = { mine: 1, mine_square: 2, port_square: 2 };
+  assert.equal(missionProgress(g, "built-mine-3"), 3);
+  assert.equal(missionProgress(g, "built-port-2"), 2);
+  assert.equal(missionProgress(g, "build-2"), 5);
+});
 const configs = await Promise.all(
   [
     "terrain-tiles",

@@ -602,3 +602,39 @@ main {
   place-items: center;
   pointer-events: none;
 }
+
+.building-stars { color: #8a6017; white-space: nowrap; font-size: .85em; }
+.building-card { min-width: 0; align-items: center; }
+.building-card .tile-diagram { flex: 0 0 auto; }
+.building-info { min-width: 0; overflow-wrap: anywhere; }
+.building-info strong { font-size: 14px; line-height: 1.4; }
+.building-effect { display: block; font-size: 12px; line-height: 1.45; margin: 5px 0; color: #493e2f; }
+.building-hint { display: block; font-size: 11px; line-height: 1.4; margin-top: 5px; color: #66563e; }
+.building-card .cost { font-size: 12px; }
+.selected-building { display: grid; gap: 6px; flex: 1 1 220px; }
+.selected-building > span { font-size: 13px; line-height: 1.5; }
+.selected-building button { justify-self: start; min-height: 44px; }
+#building-details-dialog { width: min(520px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); overflow-y: auto; padding: 24px; }
+.building-detail-heading { display: flex; align-items: baseline; gap: 10px; padding-right: 0; }
+.building-detail-heading h2 { font-size: 24px; margin: 0; overflow-wrap: anywhere; }
+.building-detail-diagram { display: grid; place-items: center; min-height: 160px; background: #f1e7ce; border-radius: 10px; margin: 18px 0; padding: 20px; }
+.building-detail-diagram .tile-diagram { flex-shrink: 0; }
+.building-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 13px; }
+.building-legend > span { display: inline-flex; align-items: center; gap: 5px; }
+.building-legend i { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 3px; font-style: normal; }
+#building-details-content p { font-size: 15px; line-height: 1.6; margin: 12px 0; }
+#building-details-content .building-legend { font-size: 13px; }
+.building-placement-help { font-size: 13px; color: #66563e; }
+.close-building-details { min-height: 44px; width: 100%; margin-top: 12px; }
+@media (max-width: 540px) {
+  .building-column, .terrain-column { width: 100%; min-width: 0; }
+  .building-card { gap: 12px; }
+  #building-details-dialog { padding: 18px; }
+  .missions { grid-template-columns: 1fr; }
+}
+@media (max-width: 850px) {
+  .game-layout > .map-panel { order: 0; }
+  .game-layout > .land-column { order: 1; width: 100%; }
+  .game-layout > .building-column { order: 2; width: 100%; }
+  .game-layout > #end-turn { order: 3; }
+}

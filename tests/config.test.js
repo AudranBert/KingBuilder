@@ -23,12 +23,36 @@ const originals = await Promise.all(
   ),
 );
 const configs = () => structuredClone(originals);
-test("les sept fichiers définissent treize formes, dix bâtiments et quatre ressources", () => {
+test("60 cartes, au maximum huit par famille variantes comprises", () => {
+  const c = compileConfiguration(...configs());
+  const counts = {};
+  for (let i = 0; i < c.buildingDeckSize; i++) {
+    const id = c.buildingPool[i % c.buildingPool.length];
+    const family = c.buildings[id].family || id;
+    counts[family] = (counts[family] || 0) + 1;
+  }
+  assert.equal(c.buildingDeckSize, 60);
+  for (const family of ["farm", "sawmill", "quarry", "mine", "port", "mill"]) {
+    const variants = Object.values(c.buildings).filter(b => (b.family || b.id) === family);
+    assert.equal(variants.length, 3, family);
+    for (const b of variants) {
+      assert.deepEqual(b.cost, c.buildings[family].cost);
+      assert.equal(b.production, c.buildings[family].production);
+    }
+  }
+  assert.deepEqual(counts, {house:6, farm:6, sawmill:6, quarry:6, mine:6,
+    bridge:6, port:6, clearing:8, mill:5, barracks:5});
+  const input = configs();
+  input[1].buildings.find(b => b.id === "mine_square").weight = 5;
+  input[1].buildings.find(b => b.id === "clearing").weight = 5;
+  assert.throws(() => compileConfiguration(...input), /maxFamilyCopies/);
+});
+test("les sept fichiers définissent treize formes, vingt-trois bâtiments et quatre ressources", () => {
   const input = configs(),
     before = structuredClone(input),
     c = compileConfiguration(...input);
   assert.equal(Object.keys(c.shapes).length, 13);
-  assert.equal(Object.keys(c.buildings).length, 10);
+  assert.equal(Object.keys(c.buildings).length, 23);
   assert.equal(Object.keys(c.resources).length, 4);
   assert.equal(Object.keys(c.units).length, 1);
   assert.equal(input[1].units, undefined);
@@ -208,6 +232,7 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
     pattern: ["PPPPPP"],
   });
   input[0].deckSize++;
+  input[1].deckSize++;
   input[1].buildings.push({
     id: "mint",
     name: "Atelier monétaire",
@@ -232,7 +257,7 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
     points: 2,
   });
   input[1].buildings.find((b) => b.id === "barracks").trains.push("scout");
-  input[1].buildings.find((b) => b.id === "house").housing = 3;
+  input[1].buildings.find((b) => b.id === "castle").housing = 3;
   input[1].buildings.find((b) => b.id === "mill").boost = {
     target: "mint",
     multiplier: 3,

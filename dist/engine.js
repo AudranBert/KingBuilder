@@ -86,7 +86,7 @@ function meetsAdjacency(g, rule, x, y, owner) {
     const b = rule.building ? c.building : buildingAt(g, tx, ty)?.building;
     return (
       (rule.building
-        ? b?.type === rule.building
+        ? (BUILDINGS[b?.type]?.family || b?.type) === rule.building
         : c.overlay?.role === rule.role) &&
       (!rule.owned || b?.owner === owner)
     );
@@ -101,7 +101,7 @@ export function productionAmount(g, x, y) {
     const bonus = BUILDINGS[c.building?.type]?.boost;
     if (
       !bonus ||
-      bonus.target !== b.type ||
+      bonus.target !== (definition.family || b.type) ||
       (bonus.owned && c.building.owner !== b.owner)
     )
       continue;
@@ -253,6 +253,11 @@ export function createGame(rng = Math.random, mode = "local") {
     ),
     rng,
   );
+  const buildingMarket = [];
+  for (let i = 0; i < 3; i++) {
+    const index = buildingDeck.findIndex(id => BUILDINGS[id].tier < 2);
+    buildingMarket.push(...buildingDeck.splice(index, 1));
+  }
   const players = [
     { name: "Royaume d’Ambre", x: 0, y: Math.floor(RULES.size / 2) },
     {
@@ -315,7 +320,7 @@ export function createGame(rng = Math.random, mode = "local") {
     tileDeck,
     buildingDeck,
     tileMarket: tileDeck.splice(0, 3),
-    buildingMarket: buildingDeck.splice(0, 3),
+    buildingMarket,
     active: 0,
     round: 1,
     moves: 2,
@@ -525,6 +530,7 @@ export function buildError(
   if (unit.acted || unit.ended)
     return "Votre action de construction / exploration est déjà terminée.";
   if (!b) return "Choisissez une tuile bâtiment.";
+  if (b.constructible === false) return "Ce bâtiment est réservé au départ et ne peut pas être construit.";
   if (!isRotation(rotation)) return "Orientation de bâtiment incorrecte.";
   const cells = patternAt(type, x, y, rotation);
   for (const c of cells) {
@@ -537,11 +543,8 @@ export function buildError(
     if (enemyAt(g, c.x, c.y)) return "Un pion adverse occupe le motif.";
   }
   const d = distance(unit, { x, y });
-  if (
-    d !== 0 &&
-    !(d === 1 && b.adjacentOn?.includes(g.board[key(x, y)].terrain))
-  )
-    return "Placez l’entrée sous l’unité sélectionnée, ou sur un terrain voisin autorisé pour ce bâtiment.";
+  if (d > 1)
+    return "Placez l’entrée sur la case de l’unité sélectionnée ou sur une case voisine par un bord.";
   if (b.adjacency?.some((rule) => !meetsAdjacency(g, rule, x, y, g.active)))
     return `${b.name} : ${b.pattern}`;
   if (
@@ -590,6 +593,8 @@ export function build(
           }),
       );
   }
+  for (const [resource, amount] of Object.entries(b.onBuildGain || {}))
+    p.resources[resource] += amount;
   updateActor(g, { moves: 0, acted: true });
   if (g.buildingDeck.length) g.buildingMarket[index] = g.buildingDeck.shift();
   else g.buildingMarket.splice(index, 1);

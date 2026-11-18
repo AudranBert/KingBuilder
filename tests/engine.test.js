@@ -12,14 +12,27 @@ import {
   score,
   placement,
   RULES,
+  housing,
 } from "../dist/engine.js";
-test("12×12, deux rois, marchés communs et maisons initiales", () => {
+test("12×12, deux rois, marchés communs et châteaux initiaux hors pioche", () => {
   const g = createGame();
   assert.equal(g.players[1].x, 11);
   assert.equal(g.tileMarket.length, 3);
   assert.equal(g.buildingMarket.length, 3);
   assert.equal(Object.keys(g.board).length, 2);
   assert.equal(score(g, 0).tiles, 0);
+  for (let i = 0; i < 2; i++) {
+    const p = g.players[i];
+    assert.equal(g.board[key(p.x, p.y)].building.type, "castle");
+    assert.equal(housing(g, i), 2);
+  }
+  assert.equal(g.buildingDeck.length + g.buildingMarket.length, 60);
+  assert.ok(![...g.buildingDeck, ...g.buildingMarket].includes("castle"));
+  g.board[key(1, 6)] = { terrain: "plain" };
+  g.buildingMarket[0] = "castle";
+  const before = structuredClone(g);
+  assert.throws(() => build(g, 0, 1, 6), /réservé au départ/);
+  assert.deepEqual(g, before);
 });
 test("exploration atomique, attribution des cases et remplacement", () => {
   const g = createGame();
