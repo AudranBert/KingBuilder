@@ -488,7 +488,7 @@ aside {
 }
 .tile-market {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(var(--terrain-columns, 3), 1fr);
   gap: 8px;
 }
 .tile-card {

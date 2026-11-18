@@ -27,7 +27,7 @@ test("départ : ressources conservées et un ouvrier libre, sans position ni dé
     assert.deepEqual(p.workerAssignments, [{ id: 0, building: null }]);
     assert.equal(p.workerPawns, undefined);
   }
-  assert.equal(score(g, 0).resources, 5);
+  assert.equal(score(g, 0).resources, 1);
 });
 test("affectation lointaine et réaffectation immédiate sans trajet ni dépense du roi", () => {
   const g = createGame();

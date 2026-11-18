@@ -11,6 +11,7 @@ export {
   PRESTIGE,
   MISSIONS,
   missionProgress,
+  missionTarget,
   buildingPayment,
   rerollError,
 } from "./prestige.js";
@@ -44,6 +45,10 @@ export {
 } from "./configuration.js";
 import { RESOURCES } from "./configuration.js";
 export const RULES = {
+  ...CONFIG.rules,
+  missionRules: CONFIG.missionRules,
+  missionMarketSize: CONFIG.missionMarketSize,
+  startingBuilding: CONFIG.startingBuilding,
   size: CONFIG.rules.boardSize,
   rounds: CONFIG.rules.turnLimit,
   startResources: START_RESOURCES,
@@ -112,6 +117,9 @@ export function productionAmount(g, x, y) {
   return definition.production * multiplier;
 }
 export function migrateGame(g) {
+  // Older saves did not track replacements; preserve their unlocked market.
+  g.buildingReplacements ??= RULES.markets.advancedFromReplacement;
+  g.workerRecruitsUsed ??= g.recruited ? 1 : 0;
   if (g.version === 1) {
     g.version = 2;
     g.buildingDeck.push(
@@ -161,7 +169,7 @@ export function migrateGame(g) {
   }
   g.buildingDeck = g.buildingDeck.filter((id) => BUILDINGS[id]);
   g.buildingMarket = g.buildingMarket.filter((id) => BUILDINGS[id]);
-  while (g.buildingMarket.length < 3 && g.buildingDeck.length)
+  while (g.buildingMarket.length < RULES.markets.buildingSize && g.buildingDeck.length)
     g.buildingMarket.push(g.buildingDeck.shift());
   for (const [owner, p] of g.players.entries()) {
     const occupied = new Set();
@@ -203,7 +211,7 @@ export function workerAssignmentError(g, id, x, y) {
   if (g.finished) return "La partie est terminée.";
   const p = g.players[g.active],
     w = p.workerAssignments.find((w) => w.id === id);
-  if (!w) return "Choisissez un de vos ouvriers.";
+  if (!w) return `Choisissez un de vos ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
   if (x === null && y === null) return null;
   const site = buildingAt(g, x, y),
     b = site?.building;
@@ -214,7 +222,7 @@ export function workerAssignmentError(g, id, x, y) {
       (other) => other.id !== id && other.building === key(site.x, site.y),
     )
   )
-    return "Ce bâtiment accueille déjà un ouvrier.";
+    return `Ce bâtiment accueille déjà un ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
   return null;
 }
 export function assignWorker(g, id, x, y) {
@@ -254,25 +262,23 @@ export function createGame(rng = Math.random, mode = "local") {
     rng,
   );
   const buildingMarket = [];
-  for (let i = 0; i < 3; i++) {
-    const index = buildingDeck.findIndex(id => BUILDINGS[id].tier < 2);
+  for (let i = 0; i < RULES.markets.buildingSize; i++) {
+    const index = buildingDeck.findIndex(id => BUILDINGS[id].tier <= RULES.markets.initialMaxTier);
     buildingMarket.push(...buildingDeck.splice(index, 1));
   }
-  const players = [
-    { name: "Royaume d’Ambre", x: 0, y: Math.floor(RULES.size / 2) },
-    {
-      name: "Royaume de Jade",
-      x: RULES.size - 1,
-      y: Math.floor(RULES.size / 2),
-    },
-  ]
-    .slice(0, mode === "solo" ? 1 : 2)
+  const players = RULES.players
+    .slice(0, mode === "solo" ? 1 : RULES.players.length)
+    .map(p => ({
+      name: p.name,
+      x: Math.min(RULES.size - 1, Math.floor(p.start.x * RULES.size)),
+      y: Math.min(RULES.size - 1, Math.floor(p.start.y * RULES.size)),
+    }))
     .map((p, owner) => ({
       ...p,
       resources: { ...RULES.startResources },
-      workers: 1,
+      workers: RULES.startingWorkers,
       units: [],
-      workerAssignments: [{ id: 0, building: null }],
+      workerAssignments: Array.from({ length: RULES.startingWorkers }, (_, id) => ({ id, building: null })),
       revealed: 0,
       prestige:
         owner === 0
@@ -319,15 +325,17 @@ export function createGame(rng = Math.random, mode = "local") {
     board,
     tileDeck,
     buildingDeck,
-    tileMarket: tileDeck.splice(0, 3),
+    tileMarket: tileDeck.splice(0, RULES.markets.terrainSize),
     buildingMarket,
+    buildingReplacements: 0,
     active: 0,
     round: 1,
-    moves: 2,
+    moves: UNIT_DEFINITIONS.king.moves,
     acted: false,
     kingEnded: false,
     selectedUnitId: null,
     recruited: false,
+    workerRecruitsUsed: 0,
     finished: false,
     log: [
       mode === "solo"
@@ -346,17 +354,17 @@ export function score(g, i) {
   return {
     tiles: p.revealed * RULES.points.tile,
     buildings: buildings * RULES.points.building,
-    workers: p.workers * RULES.points.worker,
+    workers: p.workers * UNIT_DEFINITIONS.worker.points * RULES.points.unit,
     units: (p.units || []).reduce(
       (n, u) => n + (UNIT_DEFINITIONS[u.type].points || 0) * RULES.points.unit,
-      0,
+      UNIT_DEFINITIONS.king.points * RULES.points.unit,
     ),
     prestige: (p.prestige || 0) * RULES.points.prestige,
-    resources:
+    resources: Math.floor(
       Object.entries(RESOURCE_DEFINITIONS).reduce(
-        (sum, [id, r]) => sum + (p.resources[id] || 0) * r.points,
-        0,
+        (sum, [id, r]) => sum + (p.resources[id] || 0) * r.points, 0,
       ) * RULES.points.resource,
+    ),
   };
 }
 export const totalScore = (g, i) =>
@@ -389,8 +397,8 @@ export function actor(g) {
   return {
     id: null,
     type: "king",
-    name: "Roi",
-    icon: "⚑",
+    name: UNIT_DEFINITIONS.king.name,
+    icon: UNIT_DEFINITIONS.king.icon,
     x: p.x,
     y: p.y,
     moves: g.moves,
@@ -491,8 +499,8 @@ export function exploreError(g, index, x, y, rotation = 0, anchor = 0) {
   const cells = placement(g, index, x, y, rotation, anchor);
   if (!cells)
     return "Le motif doit tenir sur des cases vides, sans chevauchement.";
-  if (!cells.some((c) => distance(unit, c) === 1))
-    return "Une case de la tuile doit toucher l’unité par un bord.";
+  if (!cells.some((c) => distance(unit, c) === RULES.placement.explorationContactDistance))
+    return `Une case de la tuile doit être à ${RULES.placement.explorationContactDistance} case(s) de l’unité, sans diagonale.`;
   return null;
 }
 export function explore(g, index, x, y, rotation = 0, anchor = 0) {
@@ -539,19 +547,25 @@ export function buildError(
     if (!target) return "Toutes les cases du motif doivent être explorées.";
     if (target.building || target.overlay)
       return "Le motif chevauche une tuile bâtiment existante.";
-    if (!c.terrain.includes(target.terrain)) return `${b.name} : ${b.pattern}`;
+    if (!c.terrain.includes(target.terrain))
+      return `${b.name} : terrain incompatible, il faut ${c.terrain.map(id => TERRAINS[id].name.toLowerCase()).join(" ou ")} à la place de ${TERRAINS[target.terrain].name.toLowerCase()}. ${b.pattern}`;
     if (enemyAt(g, c.x, c.y)) return "Un pion adverse occupe le motif.";
   }
   const d = distance(unit, { x, y });
-  if (d > 1)
-    return "Placez l’entrée sur la case de l’unité sélectionnée ou sur une case voisine par un bord.";
+  if (d > RULES.placement.constructionRange)
+    return `Placez l’entrée à ${RULES.placement.constructionRange} case(s) maximum de l’unité, sans diagonale.`;
   if (b.adjacency?.some((rule) => !meetsAdjacency(g, rule, x, y, g.active)))
     return `${b.name} : ${b.pattern}`;
   if (
     !canAfford(p.resources, b.cost) &&
     !(allowPrestige && buildingPayment(g, index)?.affordable)
-  )
-    return "Ressources insuffisantes (prestige insuffisant).";
+  ) {
+    const missing = Object.entries(b.cost).flatMap(([id, n]) => {
+      const held = Number.isFinite(p.resources[id]) ? p.resources[id] : 0;
+      return n > held ? [`${n - held} ${RESOURCES[id].toLowerCase()}`] : [];
+    });
+    return `Ressources insuffisantes : il manque ${missing.join(", ")} (prestige insuffisant).`;
+  }
   return null;
 }
 export function build(
@@ -596,7 +610,8 @@ export function build(
   for (const [resource, amount] of Object.entries(b.onBuildGain || {}))
     p.resources[resource] += amount;
   updateActor(g, { moves: 0, acted: true });
-  if (g.buildingDeck.length) g.buildingMarket[index] = g.buildingDeck.shift();
+  const replacement = drawBuildingOffers(g, 1);
+  if (replacement.length) g.buildingMarket[index] = replacement[0];
   else g.buildingMarket.splice(index, 1);
   note(
     g,
@@ -614,7 +629,8 @@ export const housing = (g, i) =>
     0,
   );
 export const population = (g, i) =>
-  g.players[i].workers +
+  UNIT_DEFINITIONS.king.population +
+  g.players[i].workers * UNIT_DEFINITIONS.worker.population +
   (g.players[i].units || []).reduce(
     (n, u) => n + UNIT_DEFINITIONS[u.type].population,
     0,
@@ -624,12 +640,12 @@ export function trainError(g, x, y, type) {
   const b = g.board[key(x, y)]?.building,
     def = BUILDINGS[b?.type],
     unit = UNIT_DEFINITIONS[type];
-  if (!b || b.owner !== g.active || !unit || !def.trains?.includes(type))
+  if (!b || b.owner !== g.active || !unit || ["king", "worker"].includes(type) || !def.trains?.includes(type))
     return "Choisissez une de vos casernes et une unité disponible.";
   if (b.trainingRound === g.round && (b.trainedCount || 0) >= def.trainingLimit)
     return "Cette caserne a déjà recruté ce tour-ci.";
   if (population(g, g.active) + unit.population > housing(g, g.active))
-    return "Il manque une place en maison pour cette unité.";
+    return `Il manque ${unit.population} place(s) libre(s) de logement pour ${unit.name.toLowerCase()}.`;
   if (enemyAt(g, x, y)) return "Un pion adverse occupe la caserne.";
   if (!canAfford(g.players[g.active].resources, unit.cost))
     return "Ressources insuffisantes pour cette unité.";
@@ -666,11 +682,12 @@ export const assigned = (g, i) =>
   g.players[i].workerAssignments.filter((w) => w.building !== null).length;
 export function recruitError(g) {
   if (g.finished) return "La partie est terminée.";
-  if (g.recruited) return "Un seul nouvel ouvrier par tour.";
+  if ((g.workerRecruitsUsed ?? (g.recruited ? 1 : 0)) >= RULES.workerRecruitmentLimitPerTurn)
+    return `Limite de recrutement atteinte : ${RULES.workerRecruitmentLimitPerTurn} ${UNIT_DEFINITIONS.worker.name.toLowerCase()} par tour.`;
   if (!canAfford(g.players[g.active].resources, RECRUITMENT_COST))
     return "Ressources insuffisantes pour recruter.";
-  if (population(g, g.active) + 1 > housing(g, g.active))
-    return "Construisez une maison pour accueillir cet ouvrier.";
+  if (population(g, g.active) + UNIT_DEFINITIONS.worker.population > housing(g, g.active))
+    return `Il manque ${UNIT_DEFINITIONS.worker.population} place(s) libre(s) de logement pour ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
   return null;
 }
 export function recruit(g) {
@@ -683,9 +700,10 @@ export function recruit(g) {
     building: null,
   });
   p.workers = p.workerAssignments.length;
+  g.workerRecruitsUsed = (g.workerRecruitsUsed ?? (g.recruited ? 1 : 0)) + 1;
   g.recruited = true;
   p.progress.recruited++;
-  note(g, `${p.name} recrute un ouvrier disponible immédiatement.`);
+  note(g, `${p.name} recrute : ${UNIT_DEFINITIONS.worker.name.toLowerCase()}, disponible immédiatement.`);
   awardMissions(g);
 }
 export function assign(g, x, y) {
@@ -708,23 +726,27 @@ export function assign(g, x, y) {
     );
   assignWorker(g, free.id, site.x, site.y);
 }
+export function harvestPreview(g, owner = g.active) {
+  const amounts = Object.fromEntries(Object.keys(RESOURCE_DEFINITIONS).map(id => [id, 0]));
+  const inactive = [];
+  for (const [position, c] of Object.entries(g.board)) {
+    const b = c.building, definition = BUILDINGS[b?.type];
+    if (b?.owner !== owner || !definition?.produces) continue;
+    const n = productionAmount(g, ...parseKey(position));
+    amounts[definition.produces] += n;
+    if (!n) inactive.push(position);
+  }
+  return { amounts, inactive };
+}
 export function endTurn(g) {
   available(g);
   const p = g.players[g.active];
   const earned = [];
-  Object.entries(g.board).forEach(([k, c]) => {
-    const b = c.building;
-    if (b?.owner === g.active && BUILDINGS[b.type].produces) {
-      const r = BUILDINGS[b.type].produces;
-      if (r) {
-        const [x, y] = parseKey(k),
-          n = productionAmount(g, x, y);
-        if (!n) return;
-        p.resources[r] += n;
-        earned.push(`${n} ${RESOURCES[r].toLowerCase()}`);
-      }
-    }
-  });
+  for (const [r, n] of Object.entries(harvestPreview(g).amounts)) {
+    if (!n) continue;
+    p.resources[r] += n;
+    earned.push(`${n} ${RESOURCES[r].toLowerCase()}`);
+  }
   if (earned.length) note(g, `${p.name} récolte : ${earned.join(", ")}.`);
   awardMissions(g);
   const lastPlayer = g.active === g.players.length - 1;
@@ -741,10 +763,11 @@ export function endTurn(g) {
   if (lastPlayer) g.round++;
   g.active = (g.active + 1) % g.players.length;
   g.selectedUnitId = null;
-  g.moves = 2;
+  g.moves = UNIT_DEFINITIONS.king.moves;
   g.acted = false;
   g.kingEnded = false;
   g.recruited = false;
+  g.workerRecruitsUsed = 0;
   g.rerollsUsed = 0;
   g.players[g.active].units.forEach((u) => {
     u.moves = UNIT_DEFINITIONS[u.type].moves;
@@ -795,12 +818,26 @@ function awardMissions(g) {
       `${g.players[g.active].name} : ${MISSIONS[id].name} (+${MISSIONS[id].reward.prestige} prestige).`,
     );
 }
+function drawBuildingOffers(g, count) {
+  g.buildingReplacements = (g.buildingReplacements ?? RULES.markets.advancedFromReplacement) + 1;
+  const offers = [];
+  while (offers.length < count) {
+    const index = g.buildingDeck.findIndex(
+      (id) => g.buildingReplacements >= RULES.markets.advancedFromReplacement || BUILDINGS[id].tier <= RULES.markets.initialMaxTier,
+    );
+    if (index === -1) break;
+    offers.push(...g.buildingDeck.splice(index, 1));
+  }
+  return offers;
+}
 export function rerollMarket(g, kind) {
   const error = rerollError(g, kind);
   if (error) throw Error(error);
   const market = kind === "terrain" ? g.tileMarket : g.buildingMarket,
     deck = kind === "terrain" ? g.tileDeck : g.buildingDeck;
-  const fresh = deck.splice(0, market.length),
+  const fresh = kind === "building"
+      ? drawBuildingOffers(g, market.length)
+      : deck.splice(0, market.length),
     removed = market.splice(0, market.length, ...fresh);
   deck.push(...removed);
   g.players[g.active].prestige -= PRESTIGE.rerollCost;

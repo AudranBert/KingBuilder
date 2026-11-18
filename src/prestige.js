@@ -26,6 +26,14 @@ export function missionProgress(g, id, owner = g.active) {
         );
   return 0;
 }
+export function missionTarget(g, id, owner = g.active) {
+  const baseline = g.missions.baselines?.[id]?.[owner];
+  return Math.max(MISSIONS[id].target, baseline === undefined ? 0 : baseline + CONFIG.missionRules.requiredContribution);
+}
+function revealMission(g, id) {
+  g.missions.baselines ??= {};
+  g.missions.baselines[id] = g.players.map((_, owner) => missionProgress(g, id, owner));
+}
 export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
   g.rerollsUsed ??= 0;
   for (const [owner, p] of g.players.entries()) {
@@ -36,7 +44,8 @@ export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
     if (!p.progress) {
       p.progress = emptyProgress();
       // Historic terrain before transformations is unavailable in older saves.
-      const startKey = `${owner === 0 ? 0 : CONFIG.rules.boardSize - 1},${Math.floor(CONFIG.rules.boardSize / 2)}`;
+      const spawn = CONFIG.rules.players[owner].start;
+      const startKey = `${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.x * CONFIG.rules.boardSize))},${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.y * CONFIG.rules.boardSize))}`;
       for (const [position, c] of Object.entries(g.board)) {
         if (
           c.owner === owner &&
@@ -51,7 +60,7 @@ export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
       }
       const start = CONFIG.startingBuilding;
       p.progress.built[start] = Math.max(0, (p.progress.built[start] || 0) - 1);
-      p.progress.recruited = Math.max(0, p.workers - 1);
+      p.progress.recruited = Math.max(0, p.workers - CONFIG.rules.startingWorkers);
     }
   }
   if (!g.missions) {
@@ -62,7 +71,7 @@ export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
       i < deck.length && market.length < CONFIG.missionMarketSize;
 
     ) {
-      if (MISSIONS[deck[i]].difficulty === 1) market.push(...deck.splice(i, 1));
+      if (MISSIONS[deck[i]].difficulty === CONFIG.missionRules.initialDifficulty) market.push(...deck.splice(i, 1));
       else i++;
     }
     g.missions = { market, deck, claimed: [], tiered: 1 };
@@ -76,14 +85,16 @@ export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
     for (const id of missionOrder) if (!known.has(id)) g.missions.deck.push(id);
     g.missions.tiered = 1;
   }
+  for (const id of g.missions.market)
+    if (!g.missions.baselines?.[id]) revealMission(g, id);
 }
 export function settleMissions(g, owner = g.active) {
   const won = [];
-  // Newly offered missions can also be met; the deck is finite.
+  // Each offer needs fresh progress after its reveal, for each player.
   for (let i = 0; i < g.missions.market.length; ) {
     const id = g.missions.market[i],
       m = MISSIONS[id];
-    if (missionProgress(g, id, owner) < m.target) {
+    if (missionProgress(g, id, owner) < missionTarget(g, id, owner)) {
       i++;
       continue;
     }
@@ -91,12 +102,16 @@ export function settleMissions(g, owner = g.active) {
     g.missions.claimed.push({ id, owner, round: g.round });
     won.push(id);
     g.missions.market.splice(i, 1);
-    const nextLevel = Math.min(3, m.difficulty + 1);
+    if (g.missions.baselines) delete g.missions.baselines[id];
+    const nextLevel = Math.min(CONFIG.missionRules.maxDifficulty, m.difficulty + 1);
     const nextIndex = g.missions.deck.findIndex(
       (next) => MISSIONS[next].difficulty === nextLevel,
     );
-    if (nextIndex !== -1)
-      g.missions.market.splice(i, 0, ...g.missions.deck.splice(nextIndex, 1));
+    if (nextIndex !== -1) {
+      const [next] = g.missions.deck.splice(nextIndex, 1);
+      g.missions.market.splice(i, 0, next);
+      revealMission(g, next);
+    }
     i = 0;
   }
   return won;
@@ -136,5 +151,8 @@ export function rerollError(g, kind) {
     deck = kind === "terrain" ? g.tileDeck : g.buildingDeck;
   if (!market.length || deck.length < market.length)
     return "La pioche ne contient plus assez de nouvelles offres.";
+  if (kind === "building" && (g.buildingReplacements ?? CONFIG.rules.markets.advancedFromReplacement) + 1 < CONFIG.rules.markets.advancedFromReplacement &&
+      deck.filter((id) => CONFIG.buildings[id].tier <= CONFIG.rules.markets.initialMaxTier).length < market.length)
+    return `La pioche ne contient plus assez d’offres de tier ${CONFIG.rules.markets.initialMaxTier} ou inférieur.`;
   return null;
 }

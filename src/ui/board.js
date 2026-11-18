@@ -11,8 +11,9 @@ import {
 } from "../engine.js";
 import { key, inside } from "../geometry.js";
 import { e, coordinates } from "./html.js";
+import { placementGuidance } from "./interactions.js";
 
-export function createBoard(element, scrollElement, onCell) {
+export function createBoard(element, scrollElement, onCell, onPreview = () => {}) {
   const cells = new Map();
   let focusPosition = null;
   for (let y = 0; y < RULES.size; y++) {
@@ -48,6 +49,12 @@ export function createBoard(element, scrollElement, onCell) {
       onCell(+cell.dataset.x, +cell.dataset.y);
     }
   });
+  for (const eventName of ["pointerover", "focusin"])
+    element.addEventListener(eventName, event => {
+      const cell = event.target.closest("[data-x]");
+      if (cell) onPreview({ x: +cell.dataset.x, y: +cell.dataset.y });
+    });
+  element.addEventListener("pointerleave", () => onPreview(null));
   element.addEventListener("keydown", (event) => {
     const cell = event.target.closest("[data-x]");
     if (!cell) return;
@@ -129,7 +136,8 @@ export function createBoard(element, scrollElement, onCell) {
             workerIndex.set(worker.building, { owner, id: worker.id });
       }
       const currentKey = key(current.x, current.y),
-        paths = movementPaths(g);
+        paths = movementPaths(g),
+        guidance = placementGuidance(g, ui.drag || ui.placement);
       if (!cells.has(focusPosition)) focusPosition = currentKey;
       for (const [position, button] of cells) {
         const x = +button.dataset.x,
@@ -137,10 +145,11 @@ export function createBoard(element, scrollElement, onCell) {
           cell = g.board[position],
           b = cell?.building,
           occupants = pawnIndex.get(position) || [];
-        const near = ui.mode === "move" && paths.has(position);
+        const near = !guidance.size && ui.mode === "move" && paths.has(position);
         const selected = ui.selected?.x === x && ui.selected?.y === y;
         button.className = `cell ${cell ? `terrain-${cell.terrain}` : "unknown"} ${b || cell?.overlay ? "built-tile" : ""} ${cell?.overlay?.role === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "king") ? "king" : ""}`;
         button.style.backgroundColor = cell ? TERRAINS[cell.terrain].color : "";
+        if (guidance.has(position)) button.classList.add(guidance.get(position).error ? "placement-blocked" : "placement-available");
         button.style.color = cell ? TERRAINS[cell.terrain].foreground : "";
         button.tabIndex = position === focusPosition ? 0 : -1;
         button.setAttribute("aria-selected", String(selected));
@@ -151,10 +160,11 @@ export function createBoard(element, scrollElement, onCell) {
         if (cell?.overlay?.role === "field") parts.push("Champ");
         for (const pawn of occupants)
           parts.push(
-            `${pawn.type === "king" ? "Roi" : UNIT_DEFINITIONS[pawn.type].name + " " + (pawn.id + 1)} · ${g.players[pawn.owner].name}${exhausted(pawn) ? " · Actions terminées" : ""}`,
+            `${pawn.type === "king" ? UNIT_DEFINITIONS.king.name : UNIT_DEFINITIONS[pawn.type].name + " " + (pawn.id + 1)} · ${g.players[pawn.owner].name}${exhausted(pawn) ? " · Actions terminées" : ""}`,
           );
-        if (workerIndex.has(position)) parts.push("Ouvrier affecté");
+        if (workerIndex.has(position)) parts.push(`${UNIT_DEFINITIONS.worker.name} affecté`);
         if (currentKey === position) parts.push("Unité sélectionnée");
+        if (guidance.has(position)) parts.push(guidance.get(position).error || "Placement possible");
         button.setAttribute("aria-label", parts.join(", "));
         button.title = parts.join(" · ");
         let html = b
@@ -166,11 +176,12 @@ export function createBoard(element, scrollElement, onCell) {
               : "";
         if (b?.type && BUILDINGS[b.type].produces) {
           const amount = productionAmount(g, x, y);
+          if (!amount) html += `<span class="inactive-producer" title="Sans ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())} : aucune production" aria-label="Sans ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())} : aucune production">!</span>`;
           if (amount > BUILDINGS[b.type].production)
             html += `<span class="boost" aria-hidden="true">×${amount / BUILDINGS[b.type].production}</span>`;
         }
         if (workerIndex.has(position))
-          html += `<span class="worker-piece ${workerIndex.get(position).owner === 1 ? "jade" : ""}" ${workerIndex.get(position).owner === g.active && !g.finished ? `data-worker-drag="${workerIndex.get(position).id}"` : ""} title="Ouvrier affecté">${piece("worker")}</span>`;
+          html += `<span class="worker-piece ${workerIndex.get(position).owner === 1 ? "jade" : ""}" ${workerIndex.get(position).owner === g.active && !g.finished ? `data-worker-drag="${workerIndex.get(position).id}"` : ""} title="${e(UNIT_DEFINITIONS.worker.name)} affecté">${piece("worker")}</span>`;
         for (const pawn of occupants.filter((p) => p.type === "king"))
           html += `<span class="king-piece ${pawn.owner === 1 ? "jade" : ""} ${exhausted(pawn) ? "exhausted" : ""}" ${pawn.owner === g.active && !g.finished && !g.acted && !g.kingEnded && g.moves > 0 ? `data-unit-drag=""` : ""} aria-hidden="true">${piece("king")}</span>`;
         for (let owner = 0; owner < g.players.length; owner++) {

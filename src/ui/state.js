@@ -5,5 +5,6 @@ export function createUIState() {
     rotation: 0,
     buildingRotation: 0,
     drag: null,
+    placement: null,
   };
 }

@@ -4,6 +4,8 @@ import {
   PRESTIGE,
   MISSIONS,
   missionProgress,
+  missionTarget,
+  harvestPreview,
   TERRAINS,
   RESOURCES,
   RESOURCE_DEFINITIONS,
@@ -78,16 +80,28 @@ export function workersView(g) {
     .filter((w) => !w.building)
     .map(
       (w) =>
-        `<button class="free-worker worker-drag-handle ${g.active === 1 ? "jade" : ""}" data-worker-drag="${w.id}" aria-label="Ouvrier ${w.id + 1} disponible" title="Glisser vers un bâtiment" ${g.finished ? "disabled" : ""}>${piece("worker")}</button>`,
+        `<button class="free-worker worker-drag-handle ${g.active === 1 ? "jade" : ""}" data-worker-drag="${w.id}" aria-label="${e(UNIT_DEFINITIONS.worker.name)} ${w.id + 1} disponible" title="Glisser vers un bâtiment" ${g.finished ? "disabled" : ""}>${piece("worker")}</button>`,
     )
     .join("");
+}
+export function harvestView(g) {
+  if (g.finished) return '<strong>Partie terminée · récolte finale effectuée</strong>';
+  const { amounts, inactive } = harvestPreview(g);
+  const gains = Object.entries(amounts).filter(([, n]) => n > 0)
+    .map(([id, n]) => `+${n} ${e(RESOURCES[id].toLowerCase())}`).join(" · ");
+  const free = g.players[g.active].workerAssignments.some(w => !w.building);
+  return `<strong>Fin du tour : ${gains || "aucune récolte"}</strong>${inactive.length ? `<div class="inactive-list">${inactive.map(position => {
+    const b = g.board[position].building;
+    return `<span>${e(BUILDINGS[b.type].name)} (${coordinates(...parseKey(position))}) : sans ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())} ${free ? `<button class="secondary" data-action="assign" data-position="${position}">Affecter un ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())} libre</button>` : ""}</span>`;
+  }).join("")}</div>` : ""}`;
 }
 
 export function terrainMarketView(g, ui) {
   return (
     g.tileMarket
       .map((tile, i) => {
-        const selected = ui.drag?.kind === "terrain" && ui.drag.index === i;
+        const choice = ui.drag || ui.placement;
+        const selected = choice?.kind === "terrain" && choice.index === i;
         return `<button class="tile-card ${selected ? "selected" : ""}" draggable="false" title="${e(tile.name)}${tile.intent ? " · " + e(tile.intent) : ""}" data-tile="${i}" aria-pressed="${selected}" aria-label="${e(tile.name || "Tuile terrain")}, ${tile.cells.length} cases" ${g.finished ? "disabled" : ""}>${terrainDiagram(tile, ui.rotation)}</button>`;
       })
       .join("") ||
@@ -99,12 +113,18 @@ export function buildingMarketView(g, ui) {
     g.buildingMarket
       .map((type, i) => {
         const b = BUILDINGS[type],
-          selected = ui.drag?.kind === "building" && ui.drag.index === i;
-        return `<button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les détails · Glisser pour construire" data-building="${i}" aria-haspopup="dialog">${buildingDiagram(type, ui.buildingRotation)}<span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${e(b.description)}</span><span class="cost">${costHTML(b.cost)}${b.onBuildGain ? ` · Gain : ${costHTML(b.onBuildGain)}` : ""}</span><span class="building-hint">Détails au clic · Glisser pour construire</span></span></button>`;
+          choice = ui.drag || ui.placement,
+          selected = choice?.kind === "building" && choice.index === i;
+        return `<div class="building-offer"><button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les placements · Glisser pour construire" data-building="${i}" aria-pressed="${selected}">${buildingDiagram(type, ui.buildingRotation)}<span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${e(buildingDescription(b))}</span><span class="cost">${costHTML(b.cost)}${b.onBuildGain ? ` · Gain : ${costHTML(b.onBuildGain)}` : ""}</span><span class="building-hint">Cliquer pour placer · Glisser pour construire</span></span></button><button class="secondary offer-details" data-building-details="${e(type)}" data-building-orientation="${ui.buildingRotation}" aria-haspopup="dialog">Voir les détails</button></div>`;
       })
       .join("") ||
     '<p class="empty-state">La pioche de bâtiments est épuisée.</p>'
   );
+}
+function buildingDescription(b) {
+  if (b.housing) return `${b.housing} places pour la population.`;
+  if (b.produces) return `${b.production} ${RESOURCES[b.produces].toLowerCase()} par tour avec un ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
+  return b.description;
 }
 function buildingStars(b) {
   return `<span class="building-stars" aria-label="${b.tier} étoile${b.tier > 1 ? "s" : ""}">${b.tier ? "★".repeat(b.tier) : "0 ★"}</span>`;
@@ -113,7 +133,7 @@ export function buildingDetailsView(type, rotation = 0) {
   const b = BUILDINGS[type];
   if (!b) return "";
   const terrains = [...new Set(b.cells.flatMap(c => c.terrain))];
-  return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(b.name)}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${e(TERRAINS[id].icon)}</i>${e(TERRAINS[id].name)}</span>`).join("")}</p><p>${e(b.pattern)}</p><p><strong>Effet :</strong> ${e(b.description)}</p><p><strong>${b.constructible === false ? "Disponibilité" : "Coût"} :</strong> ${b.constructible === false ? "Bâtiment de départ uniquement" : costHTML(b.cost)}</p><p class="building-placement-help">${b.constructible === false ? "Le château accueille 2 places de population." : "Le symbole du bâtiment marque l’entrée : placez-la sur la case de l’unité ou sur une case voisine par un bord. Le motif peut pivoter ; toutes ses cases doivent être libres et respecter les terrains indiqués."}</p>`;
+  return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(b.name)}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${e(TERRAINS[id].icon)}</i>${e(TERRAINS[id].name)}</span>`).join("")}</p><p>${e(b.pattern)}</p><p><strong>Effet :</strong> ${e(buildingDescription(b))}</p><p><strong>${b.constructible === false ? "Disponibilité" : "Coût"} :</strong> ${b.constructible === false ? "Bâtiment de départ uniquement" : costHTML(b.cost)}</p><p class="building-placement-help">${b.constructible === false ? `${e(b.name)} accueille ${b.housing || 0} places de population.` : `Le symbole marque l’entrée : placez-la à ${RULES.placement.constructionRange} case(s) maximum de l’unité, sans diagonale. Le motif peut pivoter ; toutes ses cases doivent être libres et respecter les terrains indiqués.`}</p>`;
 }
 
 export function selectionView(g, ui) {
@@ -129,10 +149,10 @@ export function selectionView(g, ui) {
     const assignedWorker = workersAt(g, g.active, site.x, site.y).length > 0,
       noFree =
         !assignedWorker && assigned(g, g.active) >= g.players[g.active].workers;
-    html += `<button data-action="assign" data-position="${key(site.x, site.y)}" class="secondary" ${noFree ? "disabled" : ""}>${assignedWorker ? "Libérer l’ouvrier" : "Affecter un ouvrier"}</button>`;
+    html += `<button data-action="assign" data-position="${key(site.x, site.y)}" class="secondary" ${noFree ? "disabled" : ""}>${assignedWorker ? `Libérer ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())}` : `Affecter un ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())}`}</button>`;
     if (noFree)
       html +=
-        '<small class="selection-reason">Tous vos ouvriers sont occupés. Glissez un ouvrier depuis un autre bâtiment.</small>';
+        `<small class="selection-reason">Tous vos ${e(UNIT_DEFINITIONS.worker.name.toLowerCase())} sont occupés. Réaffectez-en un depuis un autre bâtiment.</small>`;
   }
   if (b?.owner === g.active && BUILDINGS[b.type].trains)
     html += trainingView(g, key(site.x, site.y), b);
@@ -160,7 +180,7 @@ export function resultsView(g) {
         )
           .map(
             ([id, n]) =>
-              `<p><span>${{ tiles: "Cases révélées", buildings: "Bâtiments", workers: "Ouvriers", units: "Unités", prestige: "Prestige", resources: "Ressources" }[id]}</span><strong>${n}</strong></p>`,
+              `<p><span>${{ tiles: "Cases révélées", buildings: "Bâtiments", workers: UNIT_DEFINITIONS.worker.name, units: "Unités", prestige: "Prestige", resources: "Ressources" }[id]}</span><strong>${n}</strong></p>`,
           )
           .join(
             "",
@@ -169,32 +189,16 @@ export function resultsView(g) {
     .join("");
 }
 export function rulesView() {
-  return `<h3>Prestige et missions</h3><p>Le premier joueur commence avec ${PRESTIGE.firstPlayerStartingAmount} prestige, le second avec ${PRESTIGE.startingAmount}. Chaque prestige restant vaut ${RULES.points.prestige} points en fin de partie. Trois missions à ★ sont proposées au départ. Chaque mission remportée est remplacée par un objectif aléatoire du niveau supérieur : ★ → ★★ → ★★★, puis ★★★ → ★★★. Chaque variante ne peut être remportée qu’une fois ; lorsque la pioche du niveau requis est vide, l’emplacement disparaît. Les missions sont communes : la première personne à atteindre un objectif visible remporte sa récompense, et une nouvelle mission est révélée. Les cases de départ, le château et l’ouvrier initiaux ne comptent pas. Les stocks correspondent aux ressources détenues au moment de la vérification ; le prestige en est exclu. Une nouvelle mission déjà remplie peut être remportée immédiatement par le joueur actif.</p><p>Une relance coûte ${PRESTIGE.rerollCost} prestige, remplace les trois offres d’un seul marché et ne consomme pas d’action. Limite : ${PRESTIGE.rerollLimitPerTurn} relance(s) par tour. Les anciennes offres vont sous la pioche ; il faut assez de nouvelles cartes pour remplacer le marché. Pour construire, chaque ressource manquante peut être remplacée par ${PRESTIGE.wildcardCost} prestige, après confirmation. Les ressources disponibles sont utilisées d’abord.</p><h3>Le tour de jeu</h3><p>Chaque roi ou unité contrôlable possède 2 déplacements et une action au choix : explorer ou construire, par tour. Sélectionnez une unité, puis cliquez une case voisine par un bord. ${
-    Object.values(TERRAINS).filter((t) => !t.walkable).length
-      ? `Terrains infranchissables : ${Object.values(TERRAINS)
-          .filter((t) => !t.walkable)
-          .map((t) => e(t.name))
-          .join(", ")}, sauf sur un bâtiment traversable.`
-      : "Tous les terrains sont franchissables."
-  } Les unités adverses bloquent le passage ; les alliées peuvent partager une case.</p><h3>Explorer et construire</h3><p>Glissez une tuile du marché sur le plateau pour explorer. Pivotez avec R pendant le déplacement ou les boutons du marché avant de glisser. Les cases du motif doivent être libres. Tout terrain peut toucher l’unité, qui reste sur sa case. Déplacez l’unité avant son action. Explorer ou construire termine son activation et ses déplacements restants : le pion devient grisé. Les cartes bâtiments affichent leur tier : 0 ★ pour le pont et le défrichement, ★ pour les producteurs de ressources et les maisons, ★★ pour les moulins et casernes. Le marché initial ne propose que des tiers 0 ou 1 ; ensuite, chaque remplacement ou relance peut proposer les tiers 0, 1 ou 2. Pour construire, glissez un bâtiment sur la case de l’unité ou sur une case voisine par un bord (pas en diagonale). Seul un paiement en prestige demande une confirmation. Les unités se déplacent par glisser-déposer ou par clic sur une case accessible. « Inspecter » permet de consulter la carte sans déplacer de pion. Un clic sur un bâtiment le consulte ; « Aller sur cette case » permet d’y avancer.</p><h3>Ouvriers et population</h3><p>Vous pouvez recruter un ouvrier par tour pour ${e(costText(RECRUITMENT_COST))}, avec une place libre dans vos logements. Il est affectable immédiatement. Les ouvriers se transfèrent instantanément entre vos bâtiments, sans déplacement ni action. Seules les affectations finales produisent, une fois à la fin de votre tour. Le roi n’utilise pas de logement ; ouvriers et unités partagent la capacité des maisons.</p><h3>Unités recrutables</h3>${Object.values(
-    UNIT_DEFINITIONS,
-  )
-    .map(
-      (u) =>
-        `<p><strong>${e(u.icon)} ${e(u.name)}</strong> : ${e(costText(u.cost))}, ${u.population} population, ${u.moves} pas et une exploration ou construction par tour ; ${u.points * RULES.points.unit} point(s) direct(s). L’unité apparaît sur son bâtiment de recrutement et agit au tour suivant. Chaque bâtiment a son propre quota. Aucun combat n’est prévu.</p>`,
-    )
-    .join("")}<h3>Bâtiments</h3>${Object.values(BUILDINGS)
-    .map(
-      (b) =>
-        `<p><strong>${e(b.name)}</strong> — ${e(costText(b.cost))}. ${e(b.pattern)} ${e(b.description)}${b.housing ? ` ${b.housing} places de population.` : ""}${b.produces ? ` Production : ${b.production} ${e(RESOURCES[b.produces])} avec un ouvrier.` : ""}</p>`,
-    )
-    .join(
-      "",
-    )}<h3>Départ et score</h3><p>Plateau de ${RULES.size} × ${RULES.size}, ${RULES.rounds} tours par joueur. Départ : un roi, un château non constructible de 2 places de population, un ouvrier et ${e(costText(RULES.startResources))}. Les cases de départ ne comptent pas comme explorées. Le score compte ${RULES.points.tile} point(s) par case révélée, ${RULES.points.building} par bâtiment et ${RULES.points.worker} par ouvrier, plus les points de vos unités et de vos ressources restantes. Ressources : ${Object.values(
-    RESOURCE_DEFINITIONS,
-  )
-    .map((r) => `${e(r.name)} = ${r.points * RULES.points.resource} point(s)`)
-    .join(", ")}. En cas d’égalité, la victoire est partagée.</p>`;
+  const worker = UNIT_DEFINITIONS.worker, king = UNIT_DEFINITIONS.king;
+  const start = BUILDINGS[RULES.startingBuilding];
+  return `<h3>Le tour de jeu</h3><p>Le ${e(king.name.toLowerCase())} possède ${king.moves} déplacements et une action au choix : explorer ou construire. Déplacez l’unité avant son action. Une action termine son activation et les déplacements restants. Les déplacements se font de case en case par un bord ; les unités adverses bloquent le passage.</p>
+  <h3>Explorer et construire</h3><p>Cliquez une carte pour afficher ses placements possibles en vert, puis cliquez une case verte, ou glissez la carte sur le plateau. R pivote la carte ; Échap annule. Le survol ou le focus explique les refus. Une case explorée doit être à ${RULES.placement.explorationContactDistance} case(s) de l’unité, sans diagonale. Pour construire, l’entrée doit être à ${RULES.placement.constructionRange} case(s) maximum de l’unité ; toutes les cases du motif doivent être explorées, libres et respecter les terrains indiqués. Les terrains infranchissables sont : ${Object.values(TERRAINS).filter(t => !t.walkable).map(t => e(t.name)).join(", ") || "aucun"}, sauf sur un bâtiment traversable.</p>
+  <h3>Marchés</h3><p>${RULES.markets.terrainSize} terrains et ${RULES.markets.buildingSize} bâtiments sont proposés. Le marché initial est limité au tier ${RULES.markets.initialMaxTier}. Les tiers supérieurs deviennent éligibles au remplacement numéro ${RULES.markets.advancedFromReplacement}. Le compteur est partagé ; une relance du marché bâtiments compte comme un remplacement, une relance de terrains ne compte pas. Une relance coûte ${PRESTIGE.rerollCost} prestige, sans action, avec une limite de ${PRESTIGE.rerollLimitPerTurn} par tour.</p>
+  <h3>Population et recrutement</h3><p>Vous pouvez recruter ${RULES.workerRecruitmentLimitPerTurn} ${e(worker.name.toLowerCase())} par tour pour ${e(costText(worker.cost))} chacun, avec ${worker.population} place(s) libre(s) dans vos logements. L’affectation aux producteurs est immédiate et gratuite ; les affectations finales déterminent la récolte de fin de tour. Le ${e(king.name.toLowerCase())} consomme ${king.population} place(s) de population et est fourni au départ.</p>
+  <h3>Unités</h3>${Object.values(UNIT_DEFINITIONS).map(u => `<p><strong>${e(u.name)}</strong> : ${u.population} population, ${u.moves} déplacements, ${u.points * RULES.points.unit} point(s). ${u.recruitment === "building" ? `Coût : ${e(costText(u.cost))}. Le bâtiment formateur fixe le quota ; l’unité est active au prochain tour.` : u.recruitment === "initial" ? "Unité initiale, sans recrutement." : "Recrutement direct, sans déplacement ; affectation aux producteurs."}</p>`).join("")}
+  <h3>Bâtiments</h3>${Object.values(BUILDINGS).map(b => `<p><strong>${e(b.name)}</strong> — ${e(costText(b.cost))}. ${e(b.pattern)} ${e(buildingDescription(b))}</p>`).join("")}
+  <h3>Missions et prestige</h3><p>${RULES.missionMarketSize} missions sont proposées au niveau ${RULES.missionRules.initialDifficulty}. Chaque objectif remporté est remplacé par un objectif du niveau suivant, jusqu’au niveau ${RULES.missionRules.maxDifficulty}. Chaque joueur doit atteindre le plus grand entre le seuil indiqué et sa progression à l’apparition plus ${RULES.missionRules.requiredContribution}. Les stocks sont les quantités détenues ; les autres compteurs sont cumulés. Les éléments initiaux sont exclus. Les récompenses figurent sur chaque mission. Le prestige initial vaut ${PRESTIGE.firstPlayerStartingAmount} pour le premier joueur et ${PRESTIGE.startingAmount} pour les suivants. Une ressource manquante à la construction peut être remplacée par ${PRESTIGE.wildcardCost} prestige après confirmation.</p>
+  <h3>Départ et score</h3><p>Plateau ${RULES.size} × ${RULES.size}, ${RULES.rounds} tours par joueur. Départ : un ${e(king.name.toLowerCase())}, ${RULES.startingWorkers} ${e(worker.name.toLowerCase())}, ${e(start.name)} (${start.housing || 0} places) et ${e(costText(RULES.startResources))}. Le score compte ${RULES.points.tile} point(s) par case révélée, ${RULES.points.building} par bâtiment, les points des unités multipliés par ${RULES.points.unit}, et ${RULES.points.prestige} par prestige restant. Les stocks pondérés par la valeur de chaque ressource sont multipliés par ${RULES.points.resource}, puis arrondis à l’entier inférieur. Une égalité donne une victoire partagée.</p>`;
 }
 
 export function missionsView(g) {
@@ -202,10 +206,10 @@ export function missionsView(g) {
     g.missions.market
       .map((id) => {
         const m = MISSIONS[id];
-        return `<article class="mission-card" title="Premier arrivé, premier servi"><div><strong><span class="mission-stars" aria-label="Difficulté ${m.difficulty} sur 3">${"★".repeat(m.difficulty)}</span>${e(m.name)}</strong><b>+${m.reward.prestige} ✦</b></div><div class="mission-progress">${g.players
+        return `<article class="mission-card" title="Premier arrivé, premier servi"><div><strong><span class="mission-stars" aria-label="Difficulté ${m.difficulty} sur ${RULES.missionRules.maxDifficulty}">${"★".repeat(m.difficulty)}</span>${e(m.name)}</strong><b>+${m.reward.prestige} ✦</b></div><div class="mission-progress">${g.players
           .map((p, i) => {
-            const progress = missionProgress(g, id, i);
-            return `<span class="${i === 1 ? "jade" : "amber"}" aria-label="${e(p.name)} : ${progress} sur ${m.target}">${Math.min(m.target, progress)}/${m.target}</span>`;
+            const progress = missionProgress(g, id, i), target = missionTarget(g, id, i);
+            return `<span class="${i === 1 ? "jade" : "amber"}" aria-label="${e(p.name)} : ${progress} sur ${target}">${Math.min(target, progress)}/${target}${target > m.target ? ` · +${RULES.missionRules.requiredContribution} contribution requise` : ""}</span>`;
           })
           .join("")}</div></article>`;
       })

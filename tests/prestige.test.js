@@ -256,6 +256,7 @@ test("les sauvegardes conservent prestige, missions attribuées, progression et 
   };
   recruit(g);
   rerollMarket(g, "terrain");
+  migrateGame(g);
   const memory = new Map([[SAVE_KEY, JSON.stringify(g)]]);
   const storage = {
     getItem: (k) => memory.get(k) || null,
@@ -357,7 +358,7 @@ test("chaque emplacement monte de niveau indépendamment puis reste à trois ét
   assert.deepEqual(g.missions.deck, ["river-3"]);
   assert.equal(new Set(g.missions.claimed.map((c) => c.id)).size, 4);
 });
-test("une nouvelle offre déjà remplie peut monter plusieurs niveaux sans boucle ni récompense double", async () => {
+test("une nouvelle offre déjà remplie exige une contribution supplémentaire sans cascade", async () => {
   const { settleMissions } = await import("../src/prestige.js");
   const g = createGame();
   g.missions = {
@@ -367,13 +368,14 @@ test("une nouvelle offre déjà remplie peut monter plusieurs niveaux sans boucl
     claimed: [],
   };
   g.players[0].revealed = 30;
-  assert.deepEqual(settleMissions(g), [
-    "explore-6",
-    "explore-12",
-    "explore-20",
-  ]);
-  assert.equal(g.players[0].prestige, 3);
+  assert.deepEqual(settleMissions(g), ["explore-6"]);
+  assert.equal(g.players[0].prestige, 1);
   assert.deepEqual(settleMissions(g), []);
+  g.players[0].revealed++;
+  assert.deepEqual(settleMissions(g), ["explore-12"]);
+  assert.deepEqual(settleMissions(g), []);
+  g.players[0].revealed++;
+  assert.deepEqual(settleMissions(g), ["explore-20"]);
   assert.equal(g.players[0].prestige, 3);
 });
 test("les anciens catalogues migrent une seule fois sans perdre prestige ou missions gagnées", () => {

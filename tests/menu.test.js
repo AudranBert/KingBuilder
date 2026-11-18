@@ -15,7 +15,7 @@ function mount(t, savedGame) {
     const listeners = new Map();
     return {
       dataset: {},
-      style: {},
+      style: { setProperty() {} },
       innerHTML: "",
       hidden: false,
       open: false,

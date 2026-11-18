@@ -71,7 +71,7 @@ export function validateGame(game, { legacy = false } = {}) {
   );
   requireValid(
     nonnegative(game.moves) &&
-      game.moves <= 2 &&
+      game.moves <= UNIT_DEFINITIONS.king.moves &&
       ["acted", "recruited", "finished"].every(
         (k) => typeof game[k] === "boolean",
       ),
@@ -159,6 +159,7 @@ export function validateGame(game, { legacy = false } = {}) {
       for (const unit of player.units) {
         requireValid(
           UNIT_DEFINITIONS[unit.type] &&
+          !["king", "worker"].includes(unit.type) &&
             nonnegative(unit.id) &&
             !ids.has(unit.id) &&
             inside(unit.x, unit.y, RULES.size) &&
@@ -174,14 +175,18 @@ export function validateGame(game, { legacy = false } = {}) {
   }
   requireValid(
     Array.isArray(game.tileMarket) &&
-      game.tileMarket.length <= 3 &&
+      game.tileMarket.length <= RULES.markets.terrainSize &&
       Array.isArray(game.buildingMarket) &&
-      game.buildingMarket.length <= 3 &&
+      game.buildingMarket.length <= RULES.markets.buildingSize &&
       Array.isArray(game.buildingDeck) &&
       [...game.buildingMarket, ...game.buildingDeck].every(
         (id) => typeof id === "string",
       ),
     "marché incorrect.",
+  );
+  requireValid(
+    game.buildingReplacements === undefined || nonnegative(game.buildingReplacements),
+    "compteur de remplacements incorrect.",
   );
   if (game.missions !== undefined) {
     const missions = game.missions;
@@ -192,11 +197,18 @@ export function validateGame(game, { legacy = false } = {}) {
     requireValid(
       record(missions) &&
         Array.isArray(missions.market) &&
-        missions.market.length <= 3 &&
+        missions.market.length <= RULES.missionMarketSize &&
         Array.isArray(missions.deck) &&
         Array.isArray(missions.claimed),
       "missions incorrectes.",
     );
+    if (missions.baselines !== undefined) {
+      requireValid(record(missions.baselines), "progression initiale des missions incorrecte.");
+      for (const [id, values] of Object.entries(missions.baselines))
+        requireValid(missions.market.includes(id) && Array.isArray(values) &&
+          values.length === game.players.length && values.every(nonnegative),
+          "progression initiale des missions incorrecte.");
+    }
     requireValid(
       missions.claimed.every(
         (c) =>
@@ -225,6 +237,7 @@ export function validateGame(game, { legacy = false } = {}) {
     (legacy && game.rerollsUsed === undefined) || nonnegative(game.rerollsUsed),
     "quota de relance incorrect.",
   );
+  requireValid(game.workerRecruitsUsed === undefined || nonnegative(game.workerRecruitsUsed), "quota de recrutement incorrect.");
   for (const p of game.players) {
     requireValid(
       (legacy && p.prestige === undefined) || nonnegative(p.prestige),

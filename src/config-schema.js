@@ -145,19 +145,33 @@ export function compileConfiguration(
   integer(gameConfig.boardSize, "game-rules.json.boardSize", 3);
   integer(gameConfig.turnLimit, "game-rules.json.turnLimit", 1);
   object(gameConfig.scoring, "game-rules.json.scoring");
-  for (const name of ["tile", "building", "worker", "unit", "resource"])
+  for (const name of ["tile", "building", "unit", "prestige"])
     integer(gameConfig.scoring[name], `game-rules.json.scoring.${name}`);
-  gameConfig.scoring.prestige ??= 3;
-  integer(gameConfig.scoring.prestige, "game-rules.json.scoring.prestige");
-  gameConfig.prestige ??= {
-    startingAmount: 1,
-    firstPlayerStartingAmount: 0,
-    rerollCost: 1,
-    rerollLimitPerTurn: 1,
-    wildcardCost: 1,
-  };
+  const rate = gameConfig.scoring.resource;
+  if (!Number.isFinite(rate) || rate < 0 || !/^\d+(\.\d{1,4})?$/.test(String(rate)))
+    fail("game-rules.json.scoring.resource", "nombre positif ou nul avec au plus quatre décimales attendu.");
+  for (const obsolete of ["worker", "resourceDivisor"])
+    if (Object.hasOwn(gameConfig.scoring, obsolete))
+      fail(`game-rules.json.scoring.${obsolete}`, "champ supprimé : utilisez les points des unités et le coefficient resource.");
+  integer(gameConfig.startingWorkers, "game-rules.json.startingWorkers");
+  integer(gameConfig.workerRecruitmentLimitPerTurn, "game-rules.json.workerRecruitmentLimitPerTurn");
+  object(gameConfig.markets, "game-rules.json.markets");
+  for (const field of ["terrainSize", "buildingSize", "advancedFromReplacement"])
+    integer(gameConfig.markets[field], `game-rules.json.markets.${field}`, 1);
+  integer(gameConfig.markets.initialMaxTier, "game-rules.json.markets.initialMaxTier");
+  object(gameConfig.placement, "game-rules.json.placement");
+  integer(gameConfig.placement.constructionRange, "game-rules.json.placement.constructionRange");
+  integer(gameConfig.placement.explorationContactDistance, "game-rules.json.placement.explorationContactDistance", 1);
+  if (!Array.isArray(gameConfig.players) || gameConfig.players.length !== 2)
+    fail("game-rules.json.players", "deux royaumes attendus pour le mode local.");
+  for (const player of gameConfig.players) {
+    label(player.name, "game-rules.json.players.name");
+    object(player.start, "game-rules.json.players.start");
+    for (const axis of ["x", "y"])
+      if (!Number.isFinite(player.start[axis]) || player.start[axis] < 0 || player.start[axis] > 1)
+        fail("game-rules.json.players.start", "coordonnées relatives entre 0 et 1 attendues.");
+  }
   object(gameConfig.prestige, "game-rules.json.prestige");
-  gameConfig.prestige.firstPlayerStartingAmount ??= 0;
   for (const field of [
     "startingAmount",
     "firstPlayerStartingAmount",
@@ -189,28 +203,32 @@ export function compileConfiguration(
     integer(r.startingAmount, `resources.${r.id}.startingAmount`);
     integer(r.points, `resources.${r.id}.points`);
   }
-  costs(
-    resourceConfig.recruitmentCost,
-    resources,
-    "resources.json.recruitmentCost",
-  );
-  if (!Object.values(resourceConfig.recruitmentCost).some((n) => n > 0))
+  if (Object.hasOwn(resourceConfig, "recruitmentCost"))
     fail(
       "resources.json.recruitmentCost",
-      "au moins un coût positif est requis.",
+      "le coût de recrutement doit être défini uniquement dans units.json.units.worker.cost.",
     );
   if (!Array.isArray(unitConfig.units))
     fail("units.json.units", "liste attendue.");
   const units = unitConfig.units.length
     ? index(unitConfig.units, "units.json.units")
     : {};
+  for (const id of ["king", "worker"])
+    if (!units[id]) fail(`units.json.units.${id}`, "définition obligatoire.");
   for (const unit of Object.values(units)) {
     const path = `units.json.units.${unit.id}`;
     label(unit.icon, `${path}.icon`);
     costs(unit.cost, resources, `${path}.cost`);
-    integer(unit.moves, `${path}.moves`, 1);
-    integer(unit.population, `${path}.population`, 1);
+    integer(unit.moves, `${path}.moves`, unit.id === "worker" ? 0 : 1);
+    if (unit.id === "worker" && unit.moves !== 0)
+      fail(`${path}.moves`, "les ouvriers s’affectent sans déplacement : 0 requis.");
+    integer(unit.population, `${path}.population`, unit.id === "king" ? 0 : 1);
     integer(unit.points, `${path}.points`);
+    const expected = unit.id === "king" ? "initial" : unit.id === "worker" ? "direct" : "building";
+    if (unit.recruitment !== expected)
+      fail(`${path}.recruitment`, `utilisez ${expected} pour cette unité.`);
+    if (unit.recruitment === "initial" && Object.keys(unit.cost).length)
+      fail(`${path}.cost`, "une unité fournie au départ doit avoir un coût vide.");
   }
   const shapes = index(tileConfig.shapes, "terrain-tiles.json.shapes");
   for (const shape of Object.values(shapes))
@@ -273,7 +291,6 @@ export function compileConfiguration(
     costs(b.cost, resources, `${path}.cost`);
     b.tier ??= 1;
     integer(b.tier, `${path}.tier`, 0);
-    if (b.tier > 2) fail(`${path}.tier`, "utilisez un tier de 0 à 2.");
     if (b.constructible !== undefined && typeof b.constructible !== "boolean")
       fail(path, "constructible doit être un booléen.");
     if (b.onBuildGain !== undefined)
@@ -317,9 +334,9 @@ export function compileConfiguration(
       if (
         !Array.isArray(b.trains) ||
         !b.trains.length ||
-        b.trains.some((id) => !Object.hasOwn(units, id))
+        b.trains.some((id) => !Object.hasOwn(units, id) || ["king", "worker"].includes(id))
       )
-        fail(path, "trains doit référencer des unités connues.");
+        fail(path, "trains doit référencer des unités connues, hors roi et ouvrier.");
       integer(b.trainingLimit, `${path}.trainingLimit`, 1);
     }
     if (b.housing !== undefined) integer(b.housing, `${path}.housing`, 1);
@@ -372,8 +389,10 @@ export function compileConfiguration(
   );
   if (!buildingPool.length) fail("buildings.json", "la pioche doit contenir un bâtiment constructible.");
   if (Array.from({ length: buildingConfig.deckSize }, (_, i) =>
-    buildingPool[i % buildingPool.length]).filter(id => buildings[id].tier < 2).length < 3)
-    fail("buildings.json", "le marché initial exige trois bâtiments de tier 0 ou 1.");
+    buildingPool[i % buildingPool.length]).filter(id => buildings[id].tier <= gameConfig.markets.initialMaxTier).length < gameConfig.markets.buildingSize)
+    fail("buildings.json", "pas assez de bâtiments éligibles pour le marché initial.");
+  if (tileConfig.deckSize < gameConfig.markets.terrainSize)
+    fail("game-rules.json.markets.terrainSize", "le marché dépasse la pioche.");
   for (const b of Object.values(buildings)) {
     if (b.family !== undefined && (!buildings[b.family] || buildings[b.family].family))
       fail(`buildings.json.${b.id}.family`, "référencez un bâtiment de base connu.");
@@ -405,22 +424,23 @@ export function compileConfiguration(
     );
   object(missionConfig, "missions.json");
   integer(missionConfig.marketSize, "missions.json.marketSize", 1);
-  if (missionConfig.marketSize !== 3)
-    fail("missions.json.marketSize", "trois missions communes sont requises.");
+  integer(missionConfig.initialDifficulty, "missions.json.initialDifficulty", 1);
+  integer(missionConfig.maxDifficulty, "missions.json.maxDifficulty", missionConfig.initialDifficulty);
+  integer(missionConfig.requiredContribution, "missions.json.requiredContribution");
   const missions = index(
     structuredClone(missionConfig.missions),
     "missions.json.missions",
   );
-  if (Object.keys(missions).length < 3)
-    fail("missions.json.missions", "au moins trois missions sont requises.");
+  if (Object.values(missions).filter(m => m.difficulty === missionConfig.initialDifficulty).length < missionConfig.marketSize)
+    fail("missions.json.missions", "pas assez de missions du niveau initial.");
   for (const m of Object.values(missions)) {
     const path = `missions.json.${m.id}`;
     if (!["revealed", "built", "recruited", "resources"].includes(m.metric))
       fail(path, "objectif inconnu.");
     identifier(m.family, `${path}.family`);
     integer(m.difficulty, `${path}.difficulty`, 1);
-    if (m.difficulty > 3)
-      fail(path, "la difficulté doit valoir 1, 2 ou 3 étoiles.");
+    if (m.difficulty > missionConfig.maxDifficulty)
+      fail(path, "la difficulté dépasse maxDifficulty.");
     integer(m.target, `${path}.target`, 1);
     object(m.reward, `${path}.reward`);
     integer(m.reward.prestige, `${path}.reward.prestige`, 1);
@@ -445,23 +465,22 @@ export function compileConfiguration(
   for (const [family, variants] of families) {
     variants.sort((a, b) => a.difficulty - b.difficulty);
     if (
-      variants.length !== 3 ||
+      variants.length !== missionConfig.maxDifficulty ||
       variants.some((m, i) => m.difficulty !== i + 1)
     )
       fail(
         `missions.json.${family}`,
-        "chaque objectif doit avoir exactement une version à 1, 2 et 3 étoiles.",
+        "chaque objectif doit avoir une version par niveau jusqu’à maxDifficulty.",
       );
     const objective = (m) =>
       JSON.stringify([m.metric, m.terrain, m.building, m.resource]);
     if (variants.some((m) => objective(m) !== objective(variants[0])))
       fail(
         `missions.json.${family}`,
-        "les trois niveaux doivent concerner le même objectif.",
+        "les niveaux doivent concerner le même objectif.",
       );
     if (
-      variants[1].target <= variants[0].target ||
-      variants[2].target <= variants[1].target
+      variants.some((m, i) => i > 0 && m.target <= variants[i - 1].target)
     )
       fail(
         `missions.json.${family}`,
@@ -471,10 +490,11 @@ export function compileConfiguration(
   if ([...families.values()].length < missionConfig.marketSize)
     fail(
       "missions.json.missions",
-      "au moins trois objectifs distincts sont requis.",
+      "pas assez d’objectifs distincts pour le marché.",
     );
   return {
     missions,
+    missionRules: { initialDifficulty: missionConfig.initialDifficulty, maxDifficulty: missionConfig.maxDifficulty, requiredContribution: missionConfig.requiredContribution },
     missionMarketSize: missionConfig.marketSize,
     rules: gameConfig,
     terrains: terrainDefinitions,
@@ -487,6 +507,5 @@ export function compileConfiguration(
     tileDeckSize: tileConfig.deckSize,
     buildingDeckSize: buildingConfig.deckSize,
     startingBuilding: buildingConfig.startingBuilding,
-    recruitmentCost: resourceConfig.recruitmentCost,
   };
 }

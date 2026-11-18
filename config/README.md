@@ -68,24 +68,34 @@ La liste `terrains` contient les quatre terrains actuels : `plain`, `forest`, `m
 
 Pour utiliser le nouveau terrain, lui attribuer une lettre dans `legend` de `terrain-tiles.json`, puis placer cette lettre dans les motifs de `tiles`. Pour y construire, l’ajouter aux listes `terrain` des bâtiments concernés. Les noms, couleurs, symboles, déplacements et aperçus suivent automatiquement cette définition. Renommer ou supprimer un identifiant demande de mettre à jour toutes ses références ; commencer une nouvelle partie après un tel changement.
 
-## `game-rules.json` — plateau, durée et score
+## `game-rules.json` — paramètres de partie et score
 
-```json
-{
-  "boardSize": 12,
-  "turnLimit": 20,
-  "scoring": {"tile": 1, "building": 1, "worker": 2, "unit": 1, "resource": 1, "prestige": 3},
-  "prestige": {"firstPlayerStartingAmount": 0, "startingAmount": 1, "rerollCost": 1, "rerollLimitPerTurn": 1, "wildcardCost": 1}
-}
-```
+Les paramètres sont explicites et validés au chargement. Les champs manquants déclenchent une erreur de configuration.
 
-`boardSize` est le côté du plateau carré (entier d’au moins 3). `turnLimit` est le nombre de tours de chaque joueur : 20 donne 40 tours individuels. Le jeu termine après le dernier tour du second joueur.
+| Champ | Rôle |
+| --- | --- |
+| `boardSize`, `turnLimit` | Taille du plateau et nombre de tours par joueur. |
+| `startingWorkers` | Nombre d’ouvriers disponibles au départ. |
+| `workerRecruitmentLimitPerTurn` | Nombre de recrutements directs autorisés par tour ; 0 désactive le recrutement. |
+| `markets.terrainSize`, `markets.buildingSize` | Nombre d’offres dans chaque marché. |
+| `markets.initialMaxTier` | Tier maximal avant le déblocage. |
+| `markets.advancedFromReplacement` | Numéro du remplacement à partir duquel tous les tiers deviennent éligibles. Un achat ou une relance complète compte pour un remplacement. |
+| `placement.constructionRange` | Distance maximale entre l’unité et l’entrée d’un bâtiment, sans diagonale ; 0 impose la case de l’unité. |
+| `placement.explorationContactDistance` | Distance exigée entre l’unité et au moins une case explorée, sans diagonale. |
+| `players` | Noms et positions relatives des deux royaumes. `start.x` et `start.y` sont entre 0 et 1 : 0 est le premier bord, 1 le dernier, 0.5 le milieu. Le mode solo prend la première entrée. |
+| `scoring.tile`, `scoring.building` | Points par case révélée et par bâtiment. |
+| `scoring.unit` | Coefficient commun aux points de toutes les unités, ouvriers et roi compris. |
+| `scoring.resource` | Coefficient décimal appliqué au stock total pondéré par les `points` des ressources ; arrondi inférieur après multiplication. |
+| `scoring.prestige` | Points par prestige restant. |
+| `prestige` | Prestige initial, coût et quota des relances, coût du joker. |
 
-Le score additionne : cases révélées × `tile`, bâtiments × `building`, ouvriers × `worker`, points des unités × `unit`, points des ressources restantes × `resource`, et prestige restant × `prestige`. Les points propres à chaque unité et ressource sont définis dans `units.json` et `resources.json`. Tous les coefficients sont des entiers positifs ou nuls ; mettre 0 désactive une catégorie. Un bâtiment de plusieurs cases compte une seule fois. Les égalités donnent une victoire partagée.
+Le coefficient actuel des ressources est **0.34** : 3 ressources valent 1 point, 6 valent 2 points et 100 valent 34 points. Il est utilisé directement ; aucun diviseur ni conversion implicite en tiers exact n’est appliqué. Quatre décimales au maximum sont acceptées. Les anciens champs `scoring.worker` et `scoring.resourceDivisor` sont refusés : utilisez les points dans `units.json` et le coefficient `resource`.
 
-Changer la taille du plateau demande une nouvelle partie ; une sauvegarde de taille incompatible est conservée en copie avant son remplacement.
+Les déplacements unitaires orthogonaux, la rotation par quarts de tour, l’action d’exploration ou de construction et les rôles des unités sont les mécanismes implémentés par le moteur. Les identifiants et les versions historiques des sauvegardes ne sont pas des paramètres d’équilibrage.
 
-## `resources.json` — ressources et recrutement
+Modifier la taille du plateau exige une nouvelle partie ; une sauvegarde de dimensions incompatibles est conservée en copie. Le compteur de recrutement est sauvegardé et remis à zéro au changement de joueur. Pour une ancienne sauvegarde qui n’a que le booléen `recruited`, il est initialisé à 0 ou 1.
+
+## `resources.json` — ressources
 
 ```json
 {
@@ -103,7 +113,7 @@ Ajouter cet objet à la liste `resources` suffit pour que l’or soit initialis�
 - `name` : nom affiché ; `icon` : symbole affiché.
 - `startingAmount` : quantité initiale par joueur.
 - `points` : points de fin de partie par unité restante.
-- `recruitmentCost` : coût d’un nouvel ouvrier, par exemple `{"wheat": 1}` ou `{"wheat": 1, "gold": 2}`. Le recrutement conserve la contrainte de place dans les maisons.
+Le coût de recrutement de l’ouvrier est défini dans `units.json`, entrée `worker`, champ `cost`. Le champ `recruitmentCost` dans `resources.json` est refusé pour éviter deux sources de configuration.
 
 Modifier un nom ou un symbole n’exige pas de changer les références. Modifier un identifiant exige de mettre à jour tous les coûts et productions qui l’utilisent. Supprimer une ressource encore référencée déclenche une erreur explicite. Une ressource ajoutée à une partie existante commence à 0 ; les nouvelles parties utilisent `startingAmount`.
 
@@ -176,9 +186,9 @@ Les pioches déjà mélangées sont conservées : commencer une nouvelle partie 
 
 Une erreur de JSON ou de référence empêche le démarrage avec un message qui indique le fichier et le champ concernés. `npm run check:config` permet de la repérer avant de lancer le jeu.
 
-## `units.json` — unités recrutables et caserne
+## `units.json` — roi, ouvriers et unités recrutables
 
-Le fichier `units.json` contient une liste `units`. Chaque entrée définit une unité recrutable et contrôlable :
+Le fichier `units.json` contient une liste `units`. Les entrées `king` et `worker` sont obligatoires ; elles conservent leurs mécaniques spécifiques. Les autres entrées définissent les unités contrôlables recrutées dans les bâtiments :
 
 ```json
 {
@@ -188,11 +198,12 @@ Le fichier `units.json` contient une liste `units`. Chaque entrée définit une 
   "cost": {"iron": 1, "wheat": 1},
   "moves": 2,
   "population": 1,
-  "points": 0
+  "points": 0,
+  "recruitment": "building"
 }
 ```
 
-Chaque unité peut explorer ou construire comme le roi, avec ses propres déplacements et son action. `population` est le nombre de places consommées dans la capacité commune aux ouvriers et unités ; `points` fixe ses points directs en fin de partie. Les explorations et constructions sont toujours créditées au joueur.
+Les unités contrôlables peuvent explorer ou construire comme le roi, avec leurs propres déplacements et leur action. `population` est le nombre de places consommées dans la capacité commune aux ouvriers et unités ; `points` fixe ses points directs avant multiplication par le coefficient commun `scoring.unit`. Les explorations et constructions sont toujours créditées au joueur.
 
 Un bâtiment peut former ces unités avec `"trains": ["cavalry"]` et `"trainingLimit": 1`. La liste permet d’offrir plusieurs choix d’unités, partageant le même quota pour ce bâtiment. Le quota se renouvelle à chaque tour du propriétaire. Le recrutement ne demande pas d’ouvrier ; l’unité apparaît sur le bâtiment, épuisée jusqu’au prochain tour. Les coûts sont payés immédiatement et le logement doit être disponible.
 
@@ -226,7 +237,7 @@ Le fichier contient `marketSize: 3` et la liste `missions`. Chaque variante appa
 - `metric: "recruited"` : nombre d’ouvriers recrutés, hors ouvrier initial et unités militaires.
 - `metric: "resources"` : quantité détenue au moment de la vérification. Ajouter `resource` pour cibler `wood`, `wheat`, etc. Sans ce champ, toutes les ressources sont additionnées. Le prestige est exclu.
 
-La progression est cumulée depuis le début, même avant l’apparition de la mission, sauf les stocks qui correspondent aux ressources détenues. Seules les missions visibles peuvent être remportées. Une nouvelle offre déjà remplie peut être remportée immédiatement par le joueur actif. Les vérifications suivent exploration, construction, recrutement et récolte, y compris la dernière récolte de la partie. Les récompenses ne sont pas des ressources et ne comptent pas pour les missions de stock.
+La progression est cumulée depuis le début, même avant l’apparition de la mission, sauf les stocks qui correspondent aux ressources détenues. Seules les missions visibles peuvent être remportées. Chaque offre exige une progression après son apparition. Le seuil individuel est le maximum entre `target` et la progression du joueur à l’apparition plus un. Les stocks doivent dépasser leur valeur à l’apparition tout en atteignant `target`. Les vérifications suivent exploration, construction, recrutement et récolte, y compris la dernière récolte de la partie. Les récompenses ne sont pas des ressources et ne comptent pas pour les missions de stock.
 
 Le catalogue initial contient 16 objectifs déclinés en 3 difficultés, soit 48 missions : explorations totales et par terrain, constructions totales et ciblées, recrutement d’ouvriers et réserves de ressources. Ajouter ou retirer un objectif se fait dans ce fichier, avec ses trois variantes, sans changer le moteur. Les terrains, ressources et bâtiments référencés doivent exister dans leurs fichiers respectifs. Commencer une nouvelle partie après modification du catalogue ; une ancienne sauvegarde qui référence une mission supprimée est conservée en copie avant remplacement.
 
@@ -246,3 +257,16 @@ Le joker ne s’applique qu’aux achats de bâtiments, y compris le défricheme
 Les anciennes sauvegardes compatibles reçoivent les missions et le prestige de départ une seule fois, sans réinitialiser les soldes lors des rechargements suivants. Leur progression initiale est reconstituée d’après le plateau et les ouvriers ; les anciens terrains transformés ne peuvent pas être reconstitués avec certitude. Une nouvelle partie garantit un suivi complet depuis le départ.
 
 Les sauvegardes antérieures aux difficultés conservent leurs offres visibles et leurs missions gagnées ; les nouvelles variantes sont ajoutées à la pioche une seule fois. Une nouvelle partie garantit un départ avec trois offres à une étoile. Les récompenses restent à 1 prestige par défaut à chaque difficulté ; `reward.prestige` reste indépendant et configurable.
+
+Les valeurs initiales des deux unités particulières sont :
+
+| Identifiant | Coût (`cost`) | Population | Déplacements | Points avant coefficient |
+| --- | --- | --- | --- | --- |
+| `worker` | `{"wheat": 1}` | 1 | 0 | 2 (× `scoring.unit`) |
+| `king` | `{}` | 0 | 2 | 0 |
+
+L’ouvrier est recruté par le bouton dédié, selon `workerRecruitmentLimitPerTurn`. Sa `population` doit être strictement positive et ses `moves` doivent rester à 0 : il s’affecte directement aux producteurs. Le roi est fourni au départ, sans achat ; son `cost` est vide. Ses `moves` déterminent ses déplacements initiaux et leur renouvellement à chaque tour. Sa `population` compte dans les logements si elle est augmentée. Ni `king` ni `worker` ne peuvent figurer dans `trains`. Les sauvegardes conservent les effectifs et ressources existants ; les prochains recrutements utilisent la nouvelle définition.
+
+`recruitment` vaut `initial` pour `king`, `direct` pour `worker` et `building` pour les autres unités. Un coût non vide pour une unité initiale est refusé, car elle n’est pas achetée.
+
+Dans `missions.json`, `marketSize` détermine le nombre d’offres ; `initialDifficulty` leur niveau initial ; `maxDifficulty` le dernier niveau ; `requiredContribution` la progression minimale après apparition. Chaque famille doit contenir un objectif par niveau de 1 à `maxDifficulty`.

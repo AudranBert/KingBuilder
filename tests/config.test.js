@@ -54,7 +54,7 @@ test("les sept fichiers définissent treize formes, vingt-trois bâtiments et qu
   assert.equal(Object.keys(c.shapes).length, 13);
   assert.equal(Object.keys(c.buildings).length, 23);
   assert.equal(Object.keys(c.resources).length, 4);
-  assert.equal(Object.keys(c.units).length, 1);
+  assert.equal(Object.keys(c.units).length, 3);
   assert.equal(input[1].units, undefined);
   assert.equal(c.units.cavalry.moves, 2);
   assert.deepEqual(input, before);
@@ -107,7 +107,7 @@ test("les références aux ressources, aux bâtiments et aux terrains sont véri
   for (const change of [
     (input) => (input[1].buildings[0].cost = { unknown: 1 }),
     (input) => (input[1].buildings[1].produces = "unknown"),
-    (input) => (input[2].recruitmentCost = { unknown: 1 }),
+    (input) => (input[3].units.find(u => u.id === "worker").cost = { unknown: 1 }),
     (input) => (input[1].buildings[8].boost.target = "unknown"),
     (input) => (input[0].legend.P = "unknown"),
   ]) {
@@ -170,6 +170,54 @@ test("units.json est la seule source des unités et ses erreurs sont identifiée
     /uniquement dans units.json/,
   );
 });
+test("roi et ouvrier sont obligatoires et ne peuvent pas être formés en caserne", () => {
+  for (const change of [
+    c => { c[3].units = c[3].units.filter(u => u.id !== "king"); },
+    c => { c[3].units = c[3].units.filter(u => u.id !== "worker"); },
+    c => { c[3].units.find(u => u.id === "worker").moves = 1; },
+    c => { c[3].units.find(u => u.id === "worker").population = 0; },
+    c => { c[2].recruitmentCost = {wheat: 1}; },
+    c => { c[1].buildings.find(b => b.id === "barracks").trains = ["king"]; },
+    c => { c[1].buildings.find(b => b.id === "barracks").trains = ["worker"]; },
+  ]) {
+    const input = configs();
+    change(input);
+    assert.throws(() => compileConfiguration(...input), /Configuration invalide/);
+  }
+});
+test("le recrutement, la population, le roi et l’interface suivent units.json", async () => {
+  const input = configs();
+  Object.assign(input[3].units.find(u => u.id === "worker"), {
+    cost: {stone: 2}, population: 2,
+  });
+  Object.assign(input[3].units.find(u => u.id === "king"), {
+    name: "Souverain", moves: 3, population: 1,
+  });
+  await runConfiguredGame(input, `
+    const {population,recruitError,recruit,actor,endTurn,key}=game;
+    const g=game.createGame();
+    assert.equal(population(g,0),3);
+    assert.equal(actor(g).name,'Souverain');
+    assert.equal(g.moves,3);
+    assert.match(recruitError(g),/logement/g);
+    g.board[key(1,6)]={terrain:'plain',building:{type:'house',owner:0}};
+    assert.match(recruitError(g),/logement/g);
+    g.board[key(2,6)]={terrain:'plain',building:{type:'house',owner:0}};
+    assert.equal(recruitError(g),null);
+    recruit(g);
+    assert.equal(g.players[0].resources.stone,0);
+    assert.equal(g.players[0].resources.wheat,1);
+    assert.equal(population(g,0),5);
+    endTurn(g);endTurn(g);
+    assert.equal(g.moves,3);
+    const {validateGame}=await import(new URL('./storage.js',engineURL));
+    assert.equal(validateGame(g),g);
+    const {rulesView}=await import(new URL('./ui/views.js',engineURL));
+    const rules=rulesView();
+    assert.match(rules,/souverain possède 3 déplacements/);
+    assert.ok(rules.includes('2 place(s) libre(s)'));
+  `);
+});
 async function runConfiguredGame(input, body) {
   const root = await mkdtemp(path.join(tmpdir(), "kingbuilder-config-"));
   try {
@@ -219,7 +267,7 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
     startingAmount: 3,
     points: 2,
   });
-  input[2].recruitmentCost = { gold: 1 };
+  input[3].units.find(u => u.id === "worker").cost = { gold: 1 };
   input[0].shapes.push({
     id: "future6",
     name: "Six cases",
@@ -250,6 +298,7 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
   });
   input[3].units.push({
     id: "scout",
+    recruitment: "building",
     name: "Éclaireur",
     icon: "♘",
     cost: { gold: 1 },
@@ -267,18 +316,18 @@ test("ajout réel par fichiers : ressources, bâtiments et unités fonctionnent 
   };
   await runConfiguredGame(
     input,
-    `const {createGame,BUILDINGS,RESOURCE_ICONS,score,key,housing,build,assignWorker,endTurn,recruit,placement,UNIT_DEFINITIONS,trainUnit,selectUnit,actor,population}=game;const g=createGame();assert.equal(g.players[0].resources.gold,3);assert.equal(RESOURCE_ICONS.gold,'●');assert.equal(score(g,0).resources,11);assert.equal(housing(g,0),3);assert.ok([...g.tileDeck,...g.tileMarket].some(t=>t.shapeId==='future6'&&t.cells.length===6));assert.ok([...g.buildingDeck,...g.buildingMarket].includes('mint'));g.board[key(1,6)]={terrain:'plain'};g.players[0].x=1;g.buildingMarket[0]='mint';build(g,0,1,6);assert.equal(g.players[0].resources.gold,1);assignWorker(g,0,1,6);g.board[key(2,6)]={terrain:'plain',building:{type:'mill',owner:0}};endTurn(g);assert.equal(g.players[0].resources.gold,10);endTurn(g);recruit(g);assert.equal(g.players[0].resources.gold,9);assert.equal(g.players[0].resources.wheat,1);g.tileMarket[0]=[...g.tileDeck,...g.tileMarket].find(t=>t.shapeId==='future6');assert.equal(placement(g,0,5,5).length,6);g.board[key(4,4)]={terrain:'plain',building:{type:'barracks',owner:0}};const unit=trainUnit(g,4,4,'scout');assert.equal(g.players[0].resources.gold,8);assert.equal(population(g,0),3);assert.equal(score(g,0).units,2);assert.equal(UNIT_DEFINITIONS.scout.name,'Éclaireur');endTurn(g);endTurn(g);selectUnit(g,unit.id);assert.equal(actor(g).moves,3);`,
+    `const {createGame,BUILDINGS,RESOURCE_ICONS,score,key,housing,build,assignWorker,endTurn,recruit,placement,UNIT_DEFINITIONS,trainUnit,selectUnit,actor,population}=game;const g=createGame();assert.equal(g.players[0].resources.gold,3);assert.equal(RESOURCE_ICONS.gold,'●');assert.equal(score(g,0).resources,3);assert.equal(housing(g,0),3);assert.ok([...g.tileDeck,...g.tileMarket].some(t=>t.shapeId==='future6'&&t.cells.length===6));assert.ok([...g.buildingDeck,...g.buildingMarket].includes('mint'));g.board[key(1,6)]={terrain:'plain'};g.players[0].x=1;g.buildingMarket[0]='mint';build(g,0,1,6);assert.equal(g.players[0].resources.gold,1);assignWorker(g,0,1,6);g.board[key(2,6)]={terrain:'plain',building:{type:'mill',owner:0}};endTurn(g);assert.equal(g.players[0].resources.gold,10);endTurn(g);recruit(g);assert.equal(g.players[0].resources.gold,9);assert.equal(g.players[0].resources.wheat,1);g.tileMarket[0]=[...g.tileDeck,...g.tileMarket].find(t=>t.shapeId==='future6');assert.equal(placement(g,0,5,5).length,6);g.board[key(4,4)]={terrain:'plain',building:{type:'barracks',owner:0}};const unit=trainUnit(g,4,4,'scout');assert.equal(g.players[0].resources.gold,8);assert.equal(population(g,0),3);assert.equal(score(g,0).units,2);assert.equal(UNIT_DEFINITIONS.scout.name,'Éclaireur');endTurn(g);endTurn(g);selectUnit(g,unit.id);assert.equal(actor(g).moves,3);`,
   );
 });
 test("la durée et chaque composante du score final suivent game-rules.json", async () => {
   const input = configs();
   input[4] = {
+    ...input[4],
     boardSize: 9,
     turnLimit: 2,
     scoring: {
       tile: 3,
       building: 4,
-      worker: 5,
       prestige: 0,
       unit: 2,
       resource: 2,
@@ -287,15 +336,86 @@ test("la durée et chaque composante du score final suivent game-rules.json", as
   input[3].units[0].points = 3;
   await runConfiguredGame(
     input,
-    `const g=game.createGame();assert.equal(game.RULES.size,9);assert.equal(game.RULES.rounds,2);assert.deepEqual(g.players.map(p=>[p.x,p.y]),[[0,4],[8,4]]);g.players[0].revealed=2;g.players[0].units.push({id:0,type:'cavalry',x:0,y:4,moves:0,acted:true});assert.deepEqual(game.score(g,0),{tiles:6,buildings:4,workers:5,units:6,prestige:0,resources:10});assert.equal(game.totalScore(g,0),31);for(let i=0;i<3;i++)game.endTurn(g);assert.equal(g.finished,false);game.endTurn(g);assert.equal(g.finished,true);assert.equal(g.round,2);`,
+    `const g=game.createGame();assert.equal(game.RULES.size,9);assert.equal(game.RULES.rounds,2);assert.deepEqual(g.players.map(p=>[p.x,p.y]),[[0,4],[8,4]]);g.players[0].revealed=2;g.players[0].units.push({id:0,type:'cavalry',x:0,y:4,moves:0,acted:true});assert.deepEqual(game.score(g,0),{tiles:6,buildings:4,workers:4,units:6,prestige:0,resources:10});assert.equal(game.totalScore(g,0),30);for(let i=0;i<3;i++)game.endTurn(g);assert.equal(g.finished,false);game.endTurn(g);assert.equal(g.finished,true);assert.equal(g.round,2);`,
   );
+});
+test("les paramètres de partie, marchés, recrutement et missions suivent uniquement les JSON", async () => {
+  const input = configs();
+  input[4].startingWorkers = 2;
+  input[4].workerRecruitmentLimitPerTurn = 2;
+  Object.assign(input[4].markets, {terrainSize: 2, buildingSize: 2, initialMaxTier: 0, advancedFromReplacement: 3});
+  input[4].placement.constructionRange = 2;
+  input[4].players[0].name = "Domaine test";
+  Object.assign(input[6], {marketSize: 2, initialDifficulty: 2, requiredContribution: 2});
+  await runConfiguredGame(input, `
+    const {createGame,key,recruit,recruitError,endTurn,build,rerollMarket,BUILDINGS}=game;
+    const g=createGame();
+    assert.equal(g.players[0].name,'Domaine test');
+    assert.equal(g.players[0].workers,2);
+    assert.equal(g.players[0].workerAssignments.length,2);
+    assert.equal(g.tileMarket.length,2);
+    assert.equal(g.buildingMarket.length,2);
+    assert.ok(g.buildingMarket.every(id=>BUILDINGS[id].tier===0));
+    assert.equal(g.missions.market.length,2);
+    assert.ok(g.missions.market.every(id=>game.MISSIONS[id].difficulty===2));
+    g.board[key(1,6)]={terrain:'plain',building:{type:'house',owner:0}};
+    g.players[0].resources.wheat=4;
+    recruit(g);recruit(g);
+    assert.equal(g.workerRecruitsUsed,2);
+    assert.ok(recruitError(g));
+    const {validateGame,createPersistence,SAVE_KEY}=await import(new URL('./storage.js',engineURL));
+    assert.equal(validateGame(g),g);
+    const memory=new Map([[SAVE_KEY,JSON.stringify(g)]]);
+    const storage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)};
+    assert.equal(createPersistence(storage).load().workerRecruitsUsed,2);
+    endTurn(g);endTurn(g);
+    assert.equal(g.workerRecruitsUsed,0);
+    const placement=createGame();
+    placement.buildingMarket[0]='house';
+    placement.board[key(2,6)]={terrain:'plain'};
+    build(placement,0,2,6);
+    assert.equal(placement.board[key(2,6)].building.type,'house');
+    const market=createGame();
+    market.players[0].prestige=10;
+    market.buildingDeck=['mill','barracks','bridge','clearing','bridge','clearing'];
+    rerollMarket(market,'building');
+    assert.ok(market.buildingMarket.every(id=>BUILDINGS[id].tier===0));
+    market.rerollsUsed=0;rerollMarket(market,'building');
+    assert.ok(market.buildingMarket.every(id=>BUILDINGS[id].tier===0));
+    market.rerollsUsed=0;rerollMarket(market,'building');
+    assert.deepEqual(market.buildingMarket,['mill','barracks']);
+    const {initializePrestige,settleMissions}=await import(new URL('./prestige.js',engineURL));
+    const mission=createGame();
+    mission.players[0].progress.built.farm=2;
+    mission.missions={tiered:1,market:['built-farm-2'],deck:[],claimed:[]};
+    initializePrestige(mission);
+    assert.equal(game.missionTarget(mission,'built-farm-2'),4);
+    mission.players[0].progress.built.farm=3;
+    assert.deepEqual(settleMissions(mission),[]);
+    mission.players[0].progress.built.farm=4;
+    assert.deepEqual(settleMissions(mission),['built-farm-2']);
+  `);
+});
+
+test("le coefficient décimal des ressources est appliqué directement avant arrondi", async () => {
+  const input = configs();
+  input[4].scoring.resource = 0.5;
+  await runConfiguredGame(input, `
+    const g=game.createGame();
+    g.players[0].resources={wood:3,wheat:0,stone:0,iron:0};
+    assert.equal(game.score(g,0).resources,1);
+    g.players[0].resources.wood=100;
+    assert.equal(game.score(g,0).resources,50);
+  `);
 });
 test("les limites et les coefficients de score invalides sont refusés", () => {
   for (const change of [
     (c) => (c[4].boardSize = 2),
     (c) => (c[4].turnLimit = 0),
-    (c) => (c[4].scoring.worker = -1),
+    (c) => (c[4].scoring.unit = -1),
     (c) => delete c[4].scoring.resource,
+    (c) => (c[4].scoring.resource = -0.1),
+    (c) => (c[4].scoring.resource = 0.12345),
   ]) {
     const input = configs();
     change(input);

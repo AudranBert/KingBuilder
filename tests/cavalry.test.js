@@ -54,10 +54,10 @@ test("la caserne figure dans la pioche et le cavalier coûte un fer et un blé",
 test("capacité des maisons partagée entre ouvriers et cavaliers", () => {
   const g = setup();
   trainUnit(g, 5, 5, "cavalry");
-  assert.throws(() => recruit(g), /maison/);
+  assert.throws(() => recruit(g), /logement/);
   const h = setup();
   recruit(h);
-  assert.throws(() => trainUnit(h, 5, 5, "cavalry"), /maison/);
+  assert.throws(() => trainUnit(h, 5, 5, "cavalry"), /logement/);
 });
 test("une unité par caserne et par tour ; plusieurs casernes ont des quotas séparés", () => {
   const g = setup();
@@ -180,7 +180,7 @@ test("recruter un ouvrier conserve les déplacements et l’action de chaque uni
   g.board[key(1, 6)] = { terrain: "plain" };
   move(g, 1, 6);
   assert.equal(g.players[0].x, 1);
-  assert.throws(() => recruit(g), /seul/);
+  assert.throws(() => recruit(g), /Limite de recrutement/);
 });
 test("les refus de recrutement sont atomiques : propriétaire, ressources, présence adverse et fin de partie", () => {
   for (const defect of ["owner", "resources", "occupied", "finished"]) {

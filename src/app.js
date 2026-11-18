@@ -26,16 +26,17 @@ import {
 } from "./engine.js";
 import { createPersistence, SAVE_KEY } from "./storage.js";
 import { createUIState } from "./ui/state.js";
-import { dragFromCard, dragPreview, moveUnitTo } from "./ui/interactions.js";
+import { dragFromCard, dragPreview, moveUnitTo, placementGuidance } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
+  e,
   costHTML,
   costText,
   terrainDiagram,
   buildingDiagram,
 } from "./ui/html.js";
-import { RECRUITMENT_COST } from "./configuration.js";
+import { RECRUITMENT_COST, UNIT_DEFINITIONS } from "./configuration.js";
 import {
   playersView,
   missionsView,
@@ -47,6 +48,7 @@ import {
   selectionView,
   resultsView,
   rulesView,
+  harvestView,
 } from "./ui/views.js";
 
 export function startGame() {
@@ -88,7 +90,26 @@ export function startGame() {
     $("#menu-button").focus();
     if (game.finished) showResults();
   }
-  const board = createBoard($("#board"), $("#map-scroll"), handleCell);
+  const board = createBoard($("#board"), $("#map-scroll"), handleCell, previewPlacement);
+  function placementHelp(message) {
+    const choice = ui.drag || ui.placement;
+    if (!choice || !["terrain", "building"].includes(choice.kind)) {
+      $("#placement-help").textContent = "";
+      return;
+    }
+    if (message) {
+      $("#placement-help").textContent = message;
+      return;
+    }
+    const count = [...placementGuidance(game, choice).values()].filter(result => !result.error).length;
+    $("#placement-help").textContent = `${count} placement(s) possible(s) dans cette orientation. ${count ? "Choisissez une case verte ou glissez la carte." : "Essayez une rotation, une autre unité ou une autre carte."} R : pivoter · Échap : annuler.`;
+  }
+  function previewPlacement(pos) {
+    if (ui.drag) return;
+    const result = dragPreview(game, ui.placement, pos);
+    board.preview(result);
+    placementHelp(result?.error || (result ? "Placement possible · Cliquez pour placer." : null));
+  }
   function html(selector, value) {
     const node = $(selector);
     if (markup.get(node) !== value) {
@@ -143,21 +164,25 @@ export function startGame() {
   function render() {
     html("#players", playersView(game));
     html("#missions", missionsView(game));
+    $("#missions").style.setProperty("--mission-columns", RULES.missionMarketSize);
+    $("#tile-market").style.setProperty("--terrain-columns", RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
         error = rerollError(game, kind);
       button.textContent = `↻ ${PRESTIGE.rerollCost} ✦`;
       button.disabled = Boolean(error);
       button.title =
-        error || `Remplacer les 3 offres pour ${PRESTIGE.rerollCost} prestige`;
+        error || `Remplacer les offres pour ${PRESTIGE.rerollCost} prestige`;
     }
     html("#barracks-list", barracksView(game));
     html("#worker-list", workersView(game));
     html("#tile-market", terrainMarketView(game, ui));
     html("#building-market", buildingMarketView(game, ui));
     html("#selection", selectionView(game, ui));
+    html("#harvest", harvestView(game));
+    placementHelp();
     const recruitReason = recruitError(game);
-    html("#recruit", `+ Ouvrier <small>${costHTML(RECRUITMENT_COST)}</small>`);
+    html("#recruit", `+ ${e(UNIT_DEFINITIONS.worker.name)} <small>${costHTML(RECRUITMENT_COST)} · ${UNIT_DEFINITIONS.worker.population} population</small>`);
     $("#recruit").disabled = Boolean(recruitReason);
     $("#recruit-reason").textContent = recruitReason || "";
     $("#end-turn").textContent = game.finished
@@ -186,10 +211,20 @@ export function startGame() {
       selectUnit(game, id);
       ui.selected = null;
       ui.drag = null;
+      ui.placement = null;
     });
   }
   function handleCell(x, y) {
     if (ui.drag) return;
+    if (ui.placement) {
+      const d = ui.placement;
+      if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
+      else act(() => {
+        explore(game, d.index, x, y, d.rotation);
+        ui.placement = null;
+      });
+      return;
+    }
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
     if (own.length && !game.finished && ui.mode !== "inspect") {
       chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
@@ -251,6 +286,8 @@ export function startGame() {
           allowPrestige: attempt.payment.prestige > 0,
           expectedPrestige: attempt.payment.prestige,
         });
+        ui.placement = null;
+        ui.selected = { x: attempt.x, y: attempt.y };
       },
       { message: "Construction terminée." },
     );
@@ -273,15 +310,17 @@ export function startGame() {
         () => {
           rerollMarket(game, kind);
           ui.selected = null;
+          ui.placement = null;
         },
         { message: "Marché renouvelé." },
       ),
     );
-  function rotate(kind = ui.drag?.kind || "terrain") {
+  function rotate(kind = ui.drag?.kind || ui.placement?.kind || "terrain") {
     if (game.finished || !["terrain", "building"].includes(kind)) return;
     const field = kind === "building" ? "buildingRotation" : "rotation";
     ui[field] = (ui[field] + 1) % 4;
     if (ui.drag?.kind === kind) ui.drag.rotation = ui[field];
+    if (ui.placement?.kind === kind) ui.placement.rotation = ui[field];
     render();
     drag.refresh();
   }
@@ -299,11 +338,17 @@ export function startGame() {
   }
 
   document.addEventListener("click", (event) => {
-    const card = event.target.closest("[data-building]");
+    const card = event.target.closest("[data-building],[data-tile]");
     const detail = event.target.closest("[data-building-details]");
-    if (card || detail) {
-      const type = card ? game.buildingMarket[Number(card.dataset.building)] : detail.dataset.buildingDetails;
-      const rotation = card ? ui.buildingRotation : Number(detail.dataset.buildingOrientation || 0);
+    if (card && !game.finished) {
+      ui.placement = dragFromCard(card, ui);
+      ui.selected = null;
+      render();
+      return;
+    }
+    if (detail) {
+      const type = detail.dataset.buildingDetails;
+      const rotation = Number(detail.dataset.buildingOrientation || 0);
       html("#building-details-content", buildingDetailsView(type, rotation));
       $("#building-details-dialog").showModal();
       return;
@@ -316,6 +361,7 @@ export function startGame() {
     const mode = event.target.closest("[data-mode]");
     if (mode) {
       ui.mode = mode.dataset.mode;
+      ui.placement = null;
       render();
       return;
     }
@@ -342,7 +388,7 @@ export function startGame() {
   $("#rotate-building").addEventListener("click", () => rotate("building"));
   $("#recruit").addEventListener("click", () =>
     act(() => recruit(game), {
-      message: "Un ouvrier est disponible pour une affectation.",
+      message: `${UNIT_DEFINITIONS.worker.name} disponible pour une affectation.`,
     }),
   );
   $("#end-turn").addEventListener("click", () => {
@@ -353,6 +399,7 @@ export function startGame() {
     act(() => {
       endTurn(game);
       ui.selected = null;
+      ui.placement = null;
     });
     if (game.finished) showResults();
     else toast(`${game.players[game.active].name} : à vous de jouer.`);
@@ -414,6 +461,7 @@ export function startGame() {
     if (event.key === "Escape") {
       drag.cancel();
       ui.selected = null;
+      ui.placement = null;
       render();
       event.preventDefault();
     }
@@ -431,13 +479,16 @@ export function startGame() {
     root: $(".game-layout"),
     begin(card) {
       ui.drag = dragFromCard(card, ui);
+      ui.placement = null;
       ui.selected = null;
       if (ui.drag.kind === "unit") selectUnit(game, ui.drag.id);
       render();
     },
     preview(pos) {
       ui.drag.position = pos;
-      board.preview(dragPreview(game, ui.drag, pos));
+      const result = dragPreview(game, ui.drag, pos);
+      board.preview(result);
+      placementHelp(result?.error || (result ? "Placement possible · Relâchez pour placer." : null));
     },
     ghost() {
       const d = ui.drag;

@@ -44,7 +44,7 @@ export const RESOURCE_ICONS = Object.fromEntries(
 export const START_RESOURCES = Object.fromEntries(
   Object.entries(CONFIG.resources).map(([id, r]) => [id, r.startingAmount]),
 );
-export const RECRUITMENT_COST = CONFIG.recruitmentCost;
+export const RECRUITMENT_COST = CONFIG.units.worker.cost;
 export const BUILDINGS = CONFIG.buildings;
 
 export const UNIT_DEFINITIONS = CONFIG.units;

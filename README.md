@@ -49,17 +49,17 @@ La partie est sauvegardée automatiquement dans le navigateur. « Revenir au men
 - Un ouvrier coûte 1 blé, au maximum un recrutement par tour. Chaque maison accueille deux ouvriers. Les ouvriers s’affectent et se réaffectent directement à vos bâtiments de production, sans trajet ni coût. Un ouvrier au maximum par bâtiment de production ; les affectations finales déterminent la production.
 - Production en fin du tour de son propriétaire : ferme/port = blé, scierie = bois, carrière = pierre, mine = fer. Un bâtiment sans ouvrier ne produit pas.
 - Départ : un château non constructible (2 places de population), un ouvrier disponible, 2 bois, 1 blé, 2 pierres, 0 fer par joueur. Les cases de départ ne comptent pas comme révélées.
-- Score : 1 par case révélée + 1 par bâtiment + 2 par ouvrier + 1 par ressource + 3 par prestige restant. Égalité : victoire partagée.
+- Score : 1 par case révélée + 1 par bâtiment + 2 par ouvrier + stock total de ressources × 0,34 (arrondi inférieur) + 3 par prestige restant. Égalité : victoire partagée.
 - Les pioches sont mélangées au départ ; elles contiennent 60 tuiles de terrain et 60 bâtiments/actions, assez pour les 40 tours individuels.
 
 ## Configurer le jeu
 
 - `config/terrain-tiles.json` : formes dessinées avec `x` et `.`, et catalogue de 60 tuiles aux terrains prédéfinis.
 - `config/buildings.json` : coûts, motifs, terrains, productions, logements, bonus et conditions de voisinage.
-- `config/resources.json` : noms, symboles, quantités initiales, points par ressource et coût de recrutement.
-- `config/units.json` : liste des unités recrutables, noms, symboles, coûts, déplacements, population et points.
+- `config/resources.json` : noms, symboles, quantités initiales et points par ressource.
+- `config/units.json` : définitions du roi, de l’ouvrier et des unités recrutables : noms, symboles, coûts, déplacements, population et points. Le coût de recrutement et la population de l’ouvrier se règlent dans son entrée `worker`.
 - `config/terrains.json` : types de terrain, noms, symboles, couleurs et traversabilité.
-- `config/game-rules.json` : taille du plateau, limite de tours, barème des scores et coûts du prestige.
+- `config/game-rules.json` : plateau, tours, effectif initial d’ouvriers, quota de recrutement, tailles des marchés, déblocage des tiers, distances de placement, royaumes, barème des scores et prestige.
 - `config/missions.json` : missions communes, seuils et récompenses en prestige.
 
 Le guide [config/README.md](config/README.md) explique les champs avec des exemples prêts à adapter. Ajouter un terrain, une ressource ou un bâtiment utilisant un effet existant ne demande aucune modification du moteur.
@@ -78,7 +78,7 @@ npm test
 
 Les tests couvrent déplacements, placements, achats, production, ouvriers, maisons et fin de partie. `dist/` est généré par `npm run build` et contient le site statique complet ; `server.mjs` fournit uniquement un serveur de développement local.
 
-L’interface sépare déplacement et inspection. Les terrains et bâtiments se placent uniquement par glisser-déposer, avec un aperçu de validité. Les unités se déplacent par glisser-déposer ou par sélection puis clic sur une case dorée. La touche R pivote la tuile pendant le glissement. Les cases du plateau se parcourent aussi avec les flèches du clavier et Entrée. Les sauvegardes incompatibles, notamment celles de l’ancien plateau 25 × 25, sont copiées avant de démarrer une nouvelle partie. Une erreur de sauvegarde est signalée à l’écran.
+L’interface sépare déplacement et inspection. Sélectionner une carte terrain ou bâtiment affiche les placements valides en vert dans son orientation actuelle. Cliquer une case place la carte ; le glisser-déposer reste disponible. Le survol ou le focus d’une case explique les refus. R pivote la carte sélectionnée ; Échap annule. Les unités se déplacent par glisser-déposer ou par sélection puis clic sur une case dorée. La touche R pivote la tuile pendant le glissement. Les cases du plateau se parcourent aussi avec les flèches du clavier et Entrée. Les sauvegardes incompatibles, notamment celles de l’ancien plateau 25 × 25, sont copiées avant de démarrer une nouvelle partie. Une erreur de sauvegarde est signalée à l’écran.
 
 ## Tuiles bâtiments — version 2
 
@@ -144,6 +144,12 @@ La ferme existe en croix, Z et T ; la scierie sur une case, en croix et en L (2 
 
 Chaque famille concernée compte trois variantes au total : ferme (croix, Z, T), scierie (simple, croix, L), carrière (plaine, montagne, flanc de montagne), mine (ligne, carré, coude), port (colonne, carré, coude), moulin (simple, cour en ligne, cour en L). Les cinq premières familles ont 2 exemplaires par variante. Les moulins gardent 5 tuiles : 1 simple, 2 en ligne et 2 en L, avec les mêmes contraintes de voisinage et le même bonus. Pont, maison, caserne, défrichement et château ne reçoivent pas de variantes.
 
-Tiers des bâtiments : 0 étoile pour le pont et le défrichement ; 1 étoile pour les maisons et les producteurs de ressources (toutes variantes) ; 2 étoiles pour les moulins et casernes. Les trois offres initiales sont tirées uniquement parmi les tiers 0 et 1, sans retirer les tiers 2 de la pioche. Chaque bâtiment pris est ensuite remplacé par la prochaine carte de la pioche mélangée, de tier 0, 1 ou 2 ; les relances utilisent aussi cette pioche complète. Le château reste hors pioche. Les étoiles sont affichées sur les cartes du marché.
+Tiers des bâtiments : 0 étoile pour le pont et le défrichement ; 1 étoile pour les maisons et les producteurs de ressources (toutes variantes) ; 2 étoiles pour les moulins et casernes. Les trois offres initiales sont tirées uniquement parmi les tiers 0 et 1, sans retirer les tiers 2 de la pioche. Le premier remplacement du marché reste limité aux tiers 0 et 1 ; les cartes de tier 2 sont conservées dans la pioche et deviennent éligibles dès le deuxième remplacement. Ce compteur est partagé entre les joueurs : un achat ou une relance complète du marché bâtiments compte comme un remplacement. Les relances de terrains ne comptent pas. Les anciennes sauvegardes sans compteur conservent leur marché débloqué. Le château reste hors pioche. Les étoiles sont affichées sur les cartes du marché.
 
-Interface : les cartes bâtiments montrent leur effet et leur coût. Un clic (ou Entrée au clavier) ouvre une fiche avec le motif agrandi, les terrains, les étoiles et les règles de placement ; glisser la carte reste le geste de construction. En mode Inspecter, une case occupée par votre unité permet aussi de consulter son bâtiment. Sur petit écran, le plateau précède les marchés et les missions occupent la pleine largeur.
+Interface : les cartes bâtiments montrent leur effet et leur coût. Le bouton « Voir les détails » ouvre une fiche avec le motif agrandi, les terrains, les étoiles et les règles de placement ; glisser la carte reste le geste de construction. En mode Inspecter, une case occupée par votre unité permet aussi de consulter son bâtiment. Sur petit écran, le plateau précède les marchés et les missions occupent la pleine largeur.
+
+## Récolte prévisionnelle et score des ressources
+
+Le panneau sous le plateau annonce les gains exacts de fin de tour, bonus des moulins compris. Les producteurs sans ouvrier portent un « ! » et sont listés avec un bouton d’affectation si un ouvrier est libre. Après construction, le bâtiment reste sélectionné pour permettre cette affectation.
+
+Les stocks rapportent le total des ressources × `scoring.resource`, avec arrondi inférieur. Le coefficient vaut 0.34 : 3 ressources donnent 1 point, 6 en donnent 2, 100 en donnent 34. Les unités, ouvriers et roi compris, utilisent leurs propres `points` dans `units.json`, multipliés par `scoring.unit`. Les anciennes sauvegardes reçoivent les seuils de contribution des missions visibles lors de leur premier chargement avec cette règle ; les récompenses déjà gagnées sont conservées.

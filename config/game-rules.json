@@ -4,9 +4,8 @@
   "scoring": {
     "tile": 1,
     "building": 1,
-    "worker": 2,
     "unit": 1,
-    "resource": 1,
+    "resource": 0.34,
     "prestige": 3
   },
   "prestige": {
@@ -15,5 +14,33 @@
     "rerollLimitPerTurn": 1,
     "wildcardCost": 1,
     "firstPlayerStartingAmount": 0
-  }
+  },
+  "startingWorkers": 1,
+  "workerRecruitmentLimitPerTurn": 1,
+  "markets": {
+    "terrainSize": 3,
+    "buildingSize": 3,
+    "initialMaxTier": 1,
+    "advancedFromReplacement": 2
+  },
+  "placement": {
+    "constructionRange": 1,
+    "explorationContactDistance": 1
+  },
+  "players": [
+    {
+      "name": "Royaume d’Ambre",
+      "start": {
+        "x": 0,
+        "y": 0.5
+      }
+    },
+    {
+      "name": "Royaume de Jade",
+      "start": {
+        "x": 1,
+        "y": 0.5
+      }
+    }
+  ]
 }

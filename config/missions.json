@@ -565,5 +565,8 @@
       "family": "resources-wheat",
       "difficulty": 3
     }
-  ]
+  ],
+  "initialDifficulty": 1,
+  "maxDifficulty": 3,
+  "requiredContribution": 1
 }

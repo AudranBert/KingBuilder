@@ -503,7 +503,7 @@ main {
 }
 .missions {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--mission-columns, 3), minmax(0, 1fr));
   gap: 7px;
   padding: 10px;
   border-bottom: 1px solid var(--line);
@@ -604,6 +604,18 @@ main {
 }
 
 .building-stars { color: #8a6017; white-space: nowrap; font-size: .85em; }
+.building-offer { display: grid; gap: 4px; min-width: 0; }
+.building-offer .building-card { width: 100%; }
+.offer-details { justify-self: end; font-size: 12px; min-height: 32px; }
+.cell.placement-available { outline: 3px solid #237e46; outline-offset: -3px; box-shadow: inset 0 0 0 5px #8ee5ab80; }
+.cell.placement-blocked { cursor: help; }
+.inactive-producer { position: absolute; right: 2px; top: 2px; background: #842b20; color: white; border-radius: 50%; width: 15px; height: 15px; font-size: 12px; line-height: 15px; z-index: 3; }
+.placement-help:empty { display: none; }
+.placement-help { padding: 10px 14px; background: #e3efdc; color: #21432b; font-size: 13px; line-height: 1.5; }
+.harvest-panel { padding: 12px 14px; background: #f1e7ce; border-top: 1px solid #cdb98a; font-size: 13px; line-height: 1.5; }
+.inactive-list { display: grid; gap: 5px; margin-top: 7px; }
+.inactive-list > span { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.inactive-list button { min-height: 36px; font-size: 12px; }
 .building-card { min-width: 0; align-items: center; }
 .building-card .tile-diagram { flex: 0 0 auto; }
 .building-info { min-width: 0; overflow-wrap: anywhere; }

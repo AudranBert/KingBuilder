@@ -10,7 +10,30 @@
       },
       "moves": 2,
       "population": 1,
-      "points": 0
+      "points": 0,
+      "recruitment": "building"
+    },
+    {
+      "id": "worker",
+      "name": "Ouvrier",
+      "icon": "♟",
+      "cost": {
+        "wheat": 1
+      },
+      "moves": 0,
+      "population": 1,
+      "points": 2,
+      "recruitment": "direct"
+    },
+    {
+      "id": "king",
+      "name": "Roi",
+      "icon": "⚑",
+      "cost": {},
+      "moves": 2,
+      "population": 0,
+      "points": 0,
+      "recruitment": "initial"
     }
   ]
 }

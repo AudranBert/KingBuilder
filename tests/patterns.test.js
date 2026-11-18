@@ -40,7 +40,7 @@ test("construction : case de l’unité ou voisine par un bord pour tous les bâ
       const g = setup(type);
       g.players[0].x = 7 + dx;
       g.players[0].y = 7 + dy;
-      assert.match(buildError(g, 0, 7, 7), /case voisine par un bord/, type);
+      assert.match(buildError(g, 0, 7, 7), /case\(s\) maximum/, type);
       const before = structuredClone(g);
       assert.throws(() => build(g, 0, 7, 7));
       assert.deepEqual(g, before);
@@ -216,7 +216,7 @@ test("port : plaine et trois eaux sur un côté, rotation et eau toujours infran
 test("défricher gratuitement donne deux bois, consomme son action et remplace le marché", () => {
   const g = setup("clearing"),
     wood = g.players[0].resources.wood,
-    next = g.buildingDeck[0];
+    next = g.buildingDeck.find(id => BUILDINGS[id].tier < 2);
   g.players[0].resources.wheat = 0;
   const points = score(g, 0).buildings;
   build(g, 0, 7, 7);
