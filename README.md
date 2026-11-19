@@ -33,7 +33,7 @@ Une partie reste active tant que la page reste ouverte. Choisir un mode depuis l
 - Les empreintes des bâtiments et leurs terrains requis forment le puzzle. Tous les éléments du motif doivent être révélés et respecter les terrains. Les annexes compatibles peuvent se chevaucher ; seules les cases occupées par un bâtiment lui-même bloquent une autre construction. L’entrée doit être à une case maximum du bâtisseur, sans diagonale.
 - Le marché initial propose quatre familles différentes de bâtiments à une étoile. La maison appartient au niveau deux étoiles et arrive après le déblocage des bâtiments avancés.
 - Niveaux : 0 étoile pour défrichement, pont et tunnel ; 1 étoile pour les fermes, scieries, carrières, mines et pêcheurs ; 2 étoiles pour les ports et tous les autres bâtiments.
-- Les montagnes et les rivières sont infranchissables, sauf sur un tunnel, un pont ou un avant-poste. Les joueurs doivent préserver leurs accès.
+- Les montagnes et les rivières sont infranchissables, sauf sur un tunnel, un pont ou une tour. Les joueurs doivent préserver leurs accès.
 - Seuls les bâtiments, leurs annexes et les drapeaux contrôlés portent des contours de propriété. Les terrains explorés n’appartiennent à personne.
 
 ### Ressources et commerce
@@ -91,13 +91,13 @@ L’émissaire apparaît sur sa Chancellerie, grisé jusqu’au prochain tour.
 
 Une cible vide n’a pas de bonus défensif. Les combats sont sans hasard. Cliquer une cible rouge affiche la prévision puis le bouton d’attaque ; le glisser-déposer permet aussi d’occuper une cible.
 
-### Drapeaux, avant-postes et donjons
+### Drapeaux, tours et donjons
 
 Un soldat qui occupe un drapeau le capture. Sa couleur et ses points persistent après le départ de l’armée, jusqu’à une recapture.
 
-Un avant-poste coûte 2 matériaux et peut être construit sur **toute case révélée sans bâtiment**, quel que soit le terrain, y compris sur une annexe compatible. Sa case devient praticable. Construire sur un drapeau en prend le contrôle ; le drapeau n’est pas un bâtiment et peut coexister avec l’avant-poste.
+Une tour coûte 2 matériaux et peut être construit sur **toute case révélée sans bâtiment**, quel que soit le terrain, y compris sur une annexe compatible. Sa case devient praticable. Construire sur un drapeau en prend le contrôle ; le drapeau n’est pas un bâtiment et peut coexister avec la tour.
 
-L’avant-poste et le donjon possèdent une garnison fixe de 1 soldat. Une armée alliée peut les renforcer. Appliquer le bonus défensif +1 une seule fois. La garnison est retirée en dernier et reste présente tant qu’aucun attaquant survivant n’occupe la case, même après une égalité des forces. Ainsi, 2 attaquants ne détruisent pas un avant-poste isolé ; 3 le détruisent avec 1 survivant.
+La tour et le donjon possèdent une garnison fixe de 1 soldat. Une armée alliée peut les renforcer. Appliquer le bonus défensif +1 une seule fois. La garnison est retirée en dernier et reste présente tant qu’aucun attaquant survivant n’occupe la case, même après une égalité des forces. Ainsi, 2 attaquants ne détruisent pas une tour isolée ; 3 la détruisent avec 1 survivant.
 
 ### Destruction et retour des bâtisseurs
 

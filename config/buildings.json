@@ -736,7 +736,7 @@
     },
     {
       "id": "outpost",
-      "name": "Avant-poste",
+      "name": "Tour",
       "icon": "assets/textures/buildings-outpost.svg",
       "cost": {
         "material": 2

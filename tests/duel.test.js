@@ -105,7 +105,7 @@ test("garnison : égalité sans destruction, occupation avec un survivant pour d
   assert.equal(armyAt(g,0,3,2).length,1);
 });
 
-test("avant-poste : tous les terrains révélés libres, avec ou sans drapeau",()=>{
+test("tour : tous les terrains révélés libres, avec ou sans drapeau",()=>{
   for (const terrain of ["plain","forest","mountain","river","field"]) {
     const g=game();prepareBuilding(g,"outpost");g.board["2,2"].terrain=terrain;
     assert.equal(buildError(g,0,2,2),null);build(g,0,2,2);
