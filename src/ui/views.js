@@ -3,6 +3,7 @@ import { piece } from "./pieces.js";
 import { CONFIG } from "../configuration.js";
 import {
   RULES,
+  GAME_DEFAULTS,
   GOLD,
   MISSIONS,
   missionProgress,
@@ -264,34 +265,26 @@ export function tradeView(g) {
   return `<span title="Achat des ressources manquantes : prix de base ${RULES.trade.basePrice} + ${RULES.trade.producerSurcharge} par producteur adverse"><strong>Banque</strong> · ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} · ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}</span>`;
 }
 export function rulesView(g) {
-  const buildingFamilies = new Map();
-  for (const b of Object.values(BUILDINGS)) {
-    const family = b.family || b.id;
-    if (!buildingFamilies.has(family)) buildingFamilies.set(family, []);
-    buildingFamilies.get(family).push(b);
-  }
-  const size = g?.boardSize ?? RULES.size,
-    rounds = g?.turnLimit ?? RULES.rounds,
-    openingCount = g?.openingTilesPerPlayer ?? 2,
-    openingLead = openingCount && (g?.players.length ?? 2) > 1
-      ? ", en commençant par Jade"
-      : "";
-  return `<h3>Deux façons de gagner</h3><p>Plateau ${size} × ${size}. Occuper le donjon adverse avec une armée survivante donne une victoire immédiate. Sinon, après ${rounds} tours par joueur, les bâtiments, les drapeaux et l’or restant départagent les royaumes. Chaque drapeau vaut ${RULES.points.flag} points ; chaque groupe de ${RULES.points.goldPerPoint} ors restants vaut 1 point. Les ouvriers, les unités, la nourriture, les matériaux et l’exploration ne donnent pas de points. Égalité : victoire partagée.</p>
-  <h3>Préparation</h3><p>Avant le tour 1, chaque joueur place ${openingCount} tuile${openingCount === 1 ? "" : "s"} terrain de 5 ou 6 cases sur des cases libres${openingLead}. Ces poses ne consomment pas d’action et ne comptent pas pour les missions.</p>
-  <h3>Commandes</h3><p>Un clic droit efface la sélection. ↶ annule uniquement la dernière action ; le bouton se désactive ensuite et l’annulation ne passe pas d’un tour à l’autre.</p>
-  <h3>Explorer et construire</h3><p>Le roi et l’émissaire disposent de 3 déplacements orthogonaux puis d’une action : explorer ou construire. L’action termine leur activation. Les terrains révélés sont communs. Sélectionnez ou glissez une carte ; R ou la molette la fait pivoter. Pour ${RULES.trade.singleTerrainCost} or, choisissez directement une case de plaine, forêt, montagne ou rivière voisine de l’unité : cette pose utilise son action. L’entrée d’un bâtiment doit être à une case maximum du bâtisseur. Son motif doit être révélé et respecter les terrains ; les annexes compatibles peuvent se chevaucher, mais les cases des bâtiments ne se chevauchent jamais.</p>
-  <h3>Économie et ouvriers</h3><p>Une maison coûte 2 nourritures et 2 matériaux et donne immédiatement un ouvrier, affectable sans trajet ni coût. Un ouvrier par producteur ; récolte en fin de tour. Ferme et pêcheur : nourriture ; scierie et carrière : matériaux ; mine et port : or. Un moulin sur plaine ou champ doit toucher un champ allié et double la nourriture de cette ferme, sans cumul. Aucun logement ni recrutement séparé d’ouvrier.</p>
-  <h3>Banque et missions</h3><p>Pour construire ou recruter, achetez les ressources manquantes à la banque en or. Une ressource coûte ${RULES.trade.basePrice} ors plus ${RULES.trade.producerSurcharge} par bâtiment adverse qui peut la produire, même sans ouvrier. L’or ne s’achète pas. Les missions donnent de l’or ; renouveler un marché coûte ${GOLD.rerollCost} or, une fois par tour. L’or remplace entièrement le prestige.</p>
-  <h3>Soldats et armées</h3><p>Une caserne fournit un premier soldat gratuit et permet un recrutement payant par tour. Chaque nouvelle unité apparaît sur son bâtiment et reste grisée jusqu’au prochain tour. Les soldats sur une même case forment une pile ; choisissez son effectif pour la diviser. Chaque pion conserve ses déplacements et son activation après une fusion. Une armée possède 3 déplacements puis une action de combat ; elle n’explore pas et ne construit pas.</p>
-  <h3>Combat et occupation</h3><p>Attaque = nombre de soldats ; défense = nombre de soldats + 1. Le vainqueur conserve la différence des forces. À égalité, les armées sont éliminées. 7 contre 5 : 1 attaquant survit ; 5 contre 5 : 1 défenseur survit. L’occupation d’une cible sans défense consomme aussi l’action. Le résultat est annoncé avant confirmation.</p>
-  <h3>Drapeaux, garnisons et destruction</h3><p>Les cinq drapeaux sont révélés au départ. Une armée doit occuper leur case pour les capturer ; ils gardent leur couleur après son départ. Une tour peut être construite sur toute case révélée libre, quel que soit son terrain. Sur un drapeau, elle en prend le contrôle. Sa case devient praticable. Tour et donjon disposent d’un soldat fixe, renforçable par une armée, avec un seul bonus défensif +1. La garnison persiste jusqu’à une occupation ennemie avec au moins un survivant, même après une égalité.</p><p>Occuper la case réelle d’un bâtiment ennemi le détruit ; ses terrains annexes ne sont pas des cibles. Toute l’empreinte est libérée et ses terrains restent révélés. L’ouvrier retourne dans sa réserve. Le roi capturé retourne au donjon ; l’émissaire retourne à sa Chancellerie, ou au donjon si elle a disparu. Ils perdent leur prochain tour d’activation.</p>
-  <h3>Émissaire du roi</h3><p>Une Chancellerie coûteuse fournit une seconde unité d’exploration et de construction. Un émissaire et une Chancellerie maximum par royaume. L’émissaire ne combat pas et ne contrôle pas les drapeaux.</p>
-  <h3>Bâtiments</h3>${[...buildingFamilies.values()].map(variants => {
-    const b = variants[0];
-    const names = [...new Set(variants.map(v => v.name))].join(" / ");
-    const patterns = [...new Set(variants.map(v => v.pattern))];
-    return `<p><strong>${e(names)}</strong> — ${e(costText(b.cost))}. ${e(buildingDescription(b))} ${b.points || 0} point(s). ${patterns.length > 1 ? "Motifs possibles : " : ""}${patterns.map(e).join(" ; ")}</p>`;
-  }).join("")}`;
+  const size = g?.boardSize ?? GAME_DEFAULTS.boardSize,
+    rounds = g?.turnLimit ?? GAME_DEFAULTS.rounds,
+    openingCount = g?.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer;
+  return `<h3>1. Le but</h3>
+  <p>Conquérez le donjon adverse avec une armée survivante pour gagner immédiatement. Sinon, après ${rounds} tours par joueur, le meilleur score gagne : points des bâtiments + ${RULES.points.flag} par drapeau + 1 par groupe de ${RULES.points.goldPerPoint} ors.</p>
+  <h3>2. Préparer le plateau</h3>
+  <p>Sur le plateau ${size} × ${size}, chacun place ${openingCount} tuile(s) de préparation sur des cases libres, en alternance. À deux, Jade commence. Ces poses ne comptent pas pour les missions.</p>
+  <h3>3. Jouer son tour</h3>
+  <p>Chaque unité dispose de ${UNIT_DEFINITIONS.king.moves} déplacements par les bords, puis d’une action. Le roi et l’émissaire ne peuvent plus se déplacer après avoir exploré ou construit. Le roi et l’émissaire explorent ou construisent ; les soldats combattent. Cliquez sur « Fin de tour » pour récolter et passer la main.</p>
+  <h3>4. Explorer et construire</h3>
+  <p>Posez une tuile terrain au contact du bâtisseur : elle révèle des cases communes aux deux joueurs. Pour ${RULES.trade.singleTerrainCost} or, vous pouvez aussi révéler une seule case voisine du terrain choisi. Cela consomme l’action.</p>
+  <p>Pour construire, payez le coût et placez l’entrée sur la case du bâtisseur ou une case voisine. Le motif doit respecter les terrains révélés et ne pas recouvrir un bâtiment. Montagnes et rivières nécessitent un tunnel ou un pont pour être traversées. Consultez le catalogue pour les motifs et effets.</p>
+  <h3>5. Produire et progresser</h3>
+  <p>Une maison fournit un ouvrier. Affectez-le gratuitement à un producteur : un ouvrier par bâtiment, récolte en fin de tour. Les missions rapportent de l’or. Les ressources manquantes peuvent être achetées en or lors d’une construction ou d’un recrutement ; le tarif figure dans la banque.</p>
+  <p>Une relance du marché coûte ${GOLD.rerollCost} or, une fois par tour. Les unités recrutées deviennent actives à votre prochain tour.</p>
+  <h3>6. Combattre et conquérir</h3>
+  <p>Regroupez vos soldats ou choisissez un effectif pour diviser l’armée. Attaque : nombre de soldats. Défense : soldats et garnison, avec un bonus de 1 si la cible est défendue. Le camp le plus fort conserve la différence ; à égalité, aucun attaquant ne peut occuper la cible.</p>
+  <p>Avec un survivant, occupez un drapeau pour le capturer ou un bâtiment adverse pour le détruire. Les drapeaux restent acquis après votre départ. Les garnisons restent jusqu’à une occupation ennemie. Un roi ou émissaire capturé revient à son bâtiment d’origine et ne peut pas agir au tour suivant. Si la Chancellerie a été détruite, l’émissaire revient au donjon.</p>
+  <h3>7. Manipuler les pièces</h3>
+  <p>Cliquez ou glissez les unités et les cartes. R ou la molette pivote une tuile ; Échap ou clic droit annule la sélection.</p>`;
 }
 
 export function missionsView(g) {

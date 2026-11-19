@@ -91,3 +91,37 @@ body:has(#main-menu:not([hidden])) {
 @media (prefers-reduced-motion: reduce) {
   .mode-card { transition: none; }
 }
+#rules-dialog > .close, #catalogue-dialog > .close {
+  position: sticky;
+  top: 0;
+  float: right;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 2px solid #668752;
+  border-radius: 12px;
+  background: #e2e8b8;
+  color: #355f4c;
+  font-size: 30px;
+  line-height: 1;
+  box-shadow: 0 3px 0 #668752;
+}
+#rules-dialog > .close:hover, #catalogue-dialog > .close:hover { background: #f4e8bb; }
+#rules-dialog > .close:focus-visible, #catalogue-dialog > .close:focus-visible { outline: 3px solid #b3944e; outline-offset: 3px; }
+.rules-content p { line-height: 1.65; }
+.topbar nav #game-catalogue-button, .topbar nav #rules-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border: 1px solid #668752;
+  border-radius: 9px;
+  background: #e2e8b8;
+  color: #355f4c;
+  font-weight: 600;
+  box-shadow: 0 3px 0 #668752;
+}
+.topbar nav #game-catalogue-button:hover, .topbar nav #rules-button:hover { background: #f4e8bb; }

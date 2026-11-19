@@ -557,17 +557,18 @@ export function startGame() {
     }, { undoable: false, clearUndo: true });
     if (game.finished) showResults();
   });
-  $("#rules-button").addEventListener("click", () => {
-    html(".rules-content", rulesView(game));
+  function openRules() {
+    html(".rules-content", rulesView(inMenu ? undefined : game));
     $("#rules-dialog").showModal();
-  });
+  }
+  $("#rules-button").addEventListener("click", openRules);
+  $('#menu-rules-button').addEventListener('click', openRules);
   $("#building-details-dialog .close-building-details").addEventListener("click", () =>
     $("#building-details-dialog").close(),
   );
   $("#rules-dialog .close").addEventListener("click", () =>
     $("#rules-dialog").close(),
   );
-  $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
   $("#menu-button").addEventListener("click", async () => {
     if (online.session) {
       try {
@@ -597,12 +598,14 @@ export function startGame() {
     renderCatalogue();
     $(`[data-catalogue-filter="${field}"]`).focus({ preventScroll: true });
   });
-  $("#catalogue-button").addEventListener("click", () => {
+  function openCatalogue() {
     renderCatalogue();
     selectCatalogueSection("buildings");
     $("#catalogue-dialog").showModal();
     $("#catalogue-dialog").scrollTop = 0;
-  });
+  }
+  $("#catalogue-button").addEventListener("click", openCatalogue);
+  $('#game-catalogue-button').addEventListener('click', openCatalogue);
   function selectCatalogueSection(section) {
     catalogueSection = section;
     for (const name of ["buildings", "tiles"]) {
@@ -816,7 +819,7 @@ export function startGame() {
     stopHealthCheck?.();
     stopHealthCheck = monitorServerHealth(healthy => {
       const status = $('#online-health');
-      status.textContent = healthy === true ? '✓ Serveur disponible' : healthy === null ? 'Vérification du serveur…' : 'Serveur en attente ou indisponible · nouvel essai toutes les 10 s';
+      status.textContent = healthy === true ? '✓ Serveur disponible' : healthy === null ? 'Vérification du serveur…' : 'Serveur indisponible, nouvel essai dans 10s';
       status.classList.toggle('healthy', healthy === true);
       $('#online-create').disabled = healthy !== true;
     });

@@ -4,15 +4,12 @@ import assert from "node:assert/strict";
 import { key, BUILDINGS } from "../src/engine.js";
 import { buildingDetailsView, buildingMarketView, selectionView, rulesView } from "../src/ui/views.js";
 
-test("les règles regroupent les bâtiments par famille en conservant tous les motifs", () => {
-  const catalogue = rulesView().split("<h3>Bâtiments</h3>")[1];
-  const headings = [...catalogue.matchAll(/<strong>(.*?)<\/strong>/g)].map(match => match[1]);
-  assert.equal(headings.length, 16);
-  for (const name of ["Ferme", "Scierie", "Carrière", "Mine", "Port", "Moulin", "Tour"])
-    assert.equal(headings.filter(heading => heading === name).length, 1, name);
-  assert.equal(headings.filter(heading => heading.includes("Cabane de pêcheur")).length, 1);
-  assert.equal(headings.filter(heading => heading.includes("Bateau de pêche")).length, 1);
-  for (const b of Object.values(BUILDINGS)) assert.ok(catalogue.includes(b.pattern), b.id);
+test("les règles résument le jeu et renvoient les motifs au catalogue", () => {
+  const html = rulesView();
+  assert.equal([...html.matchAll(/<h3>/g)].length, 7);
+  assert.ok(html.includes("catalogue"));
+  assert.ok(!html.includes("<h3>Bâtiments</h3>"));
+  assert.ok(!html.includes("Motifs possibles"));
 });
 
 test("les détails exposent motif, étoiles, coût et effet sans survol", () => {
