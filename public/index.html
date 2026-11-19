@@ -169,7 +169,7 @@
       <span class="eyebrow" id="settings-mode" data-i18n="static.newGame"></span>
       <h2 id="settings-title" data-i18n="app.setUpYourKingdom"></h2>
       <div id="lobby-info" hidden><p id="lobby-players" role="status"></p><p><span data-i18n="static.code"></span><strong id="lobby-code"></strong></p><button id="lobby-copy-link" type="button" data-i18n="static.copyLink"></button> <button id="lobby-copy-code" type="button" data-i18n="static.copyCode"></button></div>
-      <label id="setting-clock-row" class="setting-row" hidden for="setting-clock"><span><strong data-i18n="static.timeLimitPerTurn"></strong><small data-i18n="static.terrainSetupHasNoTimeLimit"></small></span><select id="setting-clock"><option value="0">Sans limite</option><option value="30">30 secondes</option><option value="60">1 minute</option><option value="90">1 min 30</option><option value="120">2 minutes</option><option value="150">2 min 30</option><option value="180">3 minutes</option></select></label>
+      <label id="setting-clock-row" class="setting-row" hidden for="setting-clock"><span><strong data-i18n="static.timeLimitPerTurn"></strong><small data-i18n="static.terrainSetupHasNoTimeLimit"></small></span><select id="setting-clock"><option value="0" data-i18n="clock.unlimited"></option><option value="30" data-i18n="clock.seconds30"></option><option value="60" data-i18n="clock.seconds60"></option><option value="90" data-i18n="clock.seconds90"></option><option value="120" data-i18n="clock.seconds120"></option><option value="150" data-i18n="clock.seconds150"></option><option value="180" data-i18n="clock.seconds180"></option></select></label>
       <div class="settings-list">
         <label class="setting-row" for="setting-rounds">
           <span><strong data-i18n="static.numberOfTurns"></strong><small data-i18n="static.20To40TurnsPerPlayer"></small></span>
@@ -191,8 +191,8 @@
         <legend data-i18n="static.startingResources"></legend>
         <p data-i18n="static.theSecondPlayerAlwaysReceives1Extra"></p>
         <div class="resource-sliders">
-          <label for="setting-material"><img src="assets/textures/resources-wood.svg" alt="" /><span data-i18n="static.wood"></span><output id="setting-material-value" for="setting-material">3</output><input id="setting-material" type="range" min="0" max="10" step="1" value="3" /></label>
-          <label for="setting-food"><img src="assets/textures/resources-wheat.svg" alt="" /><span data-i18n="static.wheat"></span><output id="setting-food-value" for="setting-food">2</output><input id="setting-food" type="range" min="0" max="10" step="1" value="2" /></label>
+          <label for="setting-material"><img src="assets/textures/resources-wood.svg" alt="" /><span data-i18n="resources.material.name"></span><output id="setting-material-value" for="setting-material">3</output><input id="setting-material" type="range" min="0" max="10" step="1" value="3" /></label>
+          <label for="setting-food"><img src="assets/textures/resources-wheat.svg" alt="" /><span data-i18n="resources.food.name"></span><output id="setting-food-value" for="setting-food">2</output><input id="setting-food" type="range" min="0" max="10" step="1" value="2" /></label>
           <label for="setting-gold"><img src="assets/textures/resources-gold.svg" alt="" /><span data-i18n="resources.gold.name"></span><output id="setting-gold-value" for="setting-gold">1</output><input id="setting-gold" type="range" min="0" max="10" step="1" value="1" /></label>
         </div>
       </fieldset>

@@ -35,7 +35,7 @@ export function placementErrorText(error) {
     [sourceMessage("messages.chooseYourOwnProductionBuilding")]: sourceMessage("messages.chooseOneOfYourProductionBuildings"),
   };
   const message = short[error] || error.replace(/^(Impossible|Erreur)\s*:\s*/i, "");
-  return sourceMessage("messages.cannotPlace", [message.charAt(0).toLowerCase(), message.slice(1)]);
+  return sourceMessage("messages.cannotPlace", [message.charAt(0).toLowerCase() + message.slice(1)]);
 }
 export function placementGuidance(g, placement) {
   const results = new Map();

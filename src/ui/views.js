@@ -198,7 +198,7 @@ export function buildingDetailsView(type, rotation = 0) {
   const terrains = [...new Set(b.cells.flatMap(c => [...c.terrain, ...(c.transformTo ? [c.transformTo] : [])]))];
   const effect = b.id === "monument"
     ? t("views.noEffectValuePointS", [b.points])
-    : `<strong>${t("buildingDetailsView.effect")}</strong> ${e(buildingDescription(b))} Valeur : ${b.points || 0} point(s).`;
+    : `<strong>${t("buildingDetailsView.effect")}</strong> ${e(buildingDescription(b))} ${t("buildingDetailsView.value", [b.points || 0])}`;
   return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(definitionText("buildings", b))}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${iconHTML(TERRAINS[id].icon)}</i>${e(definitionText("terrains", TERRAINS[id]))}</span>`).join("")}</p><p>${e(definitionText("buildings", b, "pattern"))}</p><p>${effect}</p><p><strong>${b.constructible === false ? t("views.availability") : t("views.cost")} :</strong> ${b.constructible === false ? t("views.startingBuildingOnly") : costHTML(b.cost)}</p>`;
 }
 
@@ -256,7 +256,7 @@ export function resultsView(g) {
           )
           .join(
             "",
-          )}<p class="result-total"><span>Total</span><strong>${totalScore(g, i)}</strong></p></div>`,
+          )}<p class="result-total"><span>${t("resultsView.total")}</span><strong>${totalScore(g, i)}</strong></p></div>`,
     )
     .join("");
 }

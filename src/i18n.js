@@ -51,7 +51,7 @@ const escapeRegExp = value => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const messageKeys = Object.keys(french).filter(key => key.startsWith("messages."));
 const exactMessages = new Map(Object.entries(french).filter(([, value]) => !/\{\d+\}/.test(value)).map(([key, value]) => [value, { key, lowercase: false }]));
 for (const [key, value] of Object.entries(french)) {
-  if (/^(buildings|terrains|units|resources)\..*\.name$/.test(key))
+  if (/^(buildings|terrains|units|resources)\..*\.name$/.test(key) || (key.startsWith("messages.") && !/\{\d+\}/.test(value)))
     exactMessages.set(value.toLowerCase(), { key, lowercase: true });
 }
 const parameterizedMessages = messageKeys.filter(key => /\{\d+\}/.test(french[key])).map(key => {
@@ -62,7 +62,7 @@ const parameterizedMessages = messageKeys.filter(key => /\{\d+\}/.test(french[ke
     indices.push(Number(index[1]));
     return "([\\s\\S]*?)";
   }).join("");
-  return { key, indices, pattern: new RegExp(`^${source}$`), specificity: french[key].replace(/\{\d+\}/g, "").length };
+  return { key, indices, pattern: new RegExp(`^${source}$`, "i"), specificity: french[key].replace(/\{\d+\}/g, "").length };
 }).sort((a, b) => b.specificity - a.specificity);
 
 export function translateMessage(value, depth = 0) {

@@ -7,6 +7,7 @@ import { t, translateMessage, getLanguage, setLanguage, restoreLanguage, transla
 import { createGame, BUILDINGS } from "../src/engine.js";
 import { catalogueView, buildingDetailsView, playersView, rulesView, trainingView } from "../src/ui/views.js";
 import { e } from "../src/ui/html.js";
+import { placementErrorText } from "../src/ui/interactions.js";
 
 test("les traductions couvrent chaque texte du catalogue et des configurations", () => {
   assert.deepEqual(Object.keys(english).sort(), Object.keys(french).sort());
@@ -91,4 +92,34 @@ test("stockage indisponible ou langue inconnue : le jeu reste utilisable", (test
   assert.equal(restoreLanguage(), "fr");
   assert.equal(setLanguage("de"), "fr");
   assert.equal(t("app.mainMenu"), "Menu principal");
+});
+
+test("les fiches et le chronomètre ne conservent aucun libellé français en anglais", () => {
+  setLanguage("en", { persist: false });
+  try {
+    for (const id of Object.keys(BUILDINGS)) {
+      const html = buildingDetailsView(id);
+      assert.match(html, /Value: \d+ point\(s\)/, id);
+      assert.doesNotMatch(html, /Valeur|Coût|Effet|Bâtiment|étoile/, id);
+    }
+    const markup = readFileSync(new URL("../public/index.html", import.meta.url), "utf8");
+    const clock = markup.match(/<select id="setting-clock">([\s\S]*?)<\/select>/)[1];
+    const keys = [...clock.matchAll(/data-i18n="([^"]+)"/g)].map(match => match[1]);
+    assert.equal(keys.length, 7);
+    assert.deepEqual(keys.map(key => t(key)), ["No time limit", "30 seconds", "1 minute", "1 min 30 sec", "2 minutes", "2 min 30 sec", "3 minutes"]);
+    assert.equal(t("harvestView.assignAFree", ["worker"]), "Assign a free worker");
+    assert.equal(t("messages.lesDeuxKingdomsPrennentLeurEssor"), "The two kingdoms begin to flourish.");
+  } finally { setLanguage("fr", { persist: false }); }
+});
+
+test("les erreurs de placement et les ressources interpolées sont entièrement traduites", () => {
+  setLanguage("en", { persist: false });
+  try {
+    for (const [source, expected] of [
+      ["Le motif sort du plateau.", "Cannot place: the tile extends beyond the board."],
+      ["Choisissez votre propre bâtiment de production.", "Cannot place: choose one of your production buildings."],
+      ["Ressources insuffisantes : il manque 2 matériaux, 1 nourriture (or insuffisant).", "Cannot place: Insufficient resources: missing 2 materials, 1 food (not enough gold)."],
+      ["Moulin : terrain incompatible, il faut plaine ou champs à la place de montagne. Motif.", "Cannot place: requires plain or fields here."],
+    ]) assert.equal(translateMessage(placementErrorText(source)), expected);
+  } finally { setLanguage("fr", { persist: false }); }
 });

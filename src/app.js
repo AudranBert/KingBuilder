@@ -724,7 +724,7 @@ export function startGame() {
     lobbySaveTimer = setTimeout(async () => {
       if (!online.session || online.session.started) return;
       if (online.busy) { scheduleLobbySave(); return; }
-      try { await online.lobby(collectSettings()); } catch (error) { toast(t("app.settingsNotSaved", [error.message])); }
+      try { await online.lobby(collectSettings()); } catch (error) { toast(t("app.settingsNotSaved", [translateMessage(error.message)])); }
     }, 300);
   }
   updateSettingLabels();
