@@ -58,6 +58,7 @@
           >
         </button>
       </div>
+      <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true">▧</span><span><strong>Catalogue</strong><small>Toutes les cartes Bâtiment et toutes les tuiles Terrain.</small></span><span aria-hidden="true">→</span></button>
     </section>
     <header class="topbar" hidden>
       <a class="brand" href="./"
@@ -185,6 +186,17 @@
         <button id="settings-cancel" class="secondary" type="button">Annuler</button>
         <button id="settings-start" class="primary" type="button">Lancer la partie →</button>
       </div>
+    </dialog>
+    <dialog id="catalogue-dialog" aria-labelledby="catalogue-title">
+      <button class="close" aria-label="Fermer le catalogue">×</button>
+      <span class="eyebrow">LE CONTENU DU ROYAUME</span>
+      <h2 id="catalogue-title">Catalogue</h2>
+      <nav class="catalogue-tabs" aria-label="Contenu du catalogue">
+        <button data-catalogue-section="buildings" aria-pressed="true" aria-controls="catalogue-buildings">Bâtiments</button>
+        <button data-catalogue-section="tiles" aria-pressed="false" aria-controls="catalogue-tiles">Tuiles</button>
+      </nav>
+      <div id="catalogue-content"></div>
+      <button class="primary close-catalogue">Revenir au menu</button>
     </dialog>
     <dialog id="building-details-dialog" aria-labelledby="building-details-title">
       <div id="building-details-content"></div>

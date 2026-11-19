@@ -90,6 +90,91 @@
   font-size: 12px;
   margin-top: 28px;
 }
+.catalogue-entry {
+  width: 100%;
+  margin-top: 24px;
+}
+#catalogue-dialog {
+  max-width: 1100px;
+  overflow-y: auto;
+}
+.catalogue-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.catalogue-tabs [aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+.catalogue-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 10px;
+  margin: 16px 0;
+}
+.catalogue-filters label {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  flex: 1 1 180px;
+}
+.catalogue-filters select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #c9b48d;
+  border-radius: 8px;
+  background: #fcf7e9;
+  color: var(--ink);
+  font: inherit;
+}
+.catalogue-filters [aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+}
+.catalogue-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 16px;
+  margin: 18px 0 24px;
+}
+.catalogue-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid #c9b48d;
+  border-radius: 12px;
+  background: #fcf7e9;
+}
+.catalogue-card h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.catalogue-patterns {
+  display: grid;
+  gap: 14px;
+}
+.catalogue-patterns figure {
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #dfd3bb;
+}
+.catalogue-diagram {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 110px;
+  padding: 12px 0;
+}
+.catalogue-card figcaption {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+#catalogue-dialog > .close-catalogue {
+  margin-top: 12px;
+}
 body:has(#main-menu[hidden]) .players:has(> :only-child) {
   grid-template-columns: 1fr;
 }

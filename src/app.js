@@ -52,6 +52,7 @@ import {
   selectionView,
   resultsView,
   rulesView,
+  catalogueView,
   harvestView,
   tradeView,
 } from "./ui/views.js";
@@ -447,6 +448,45 @@ export function startGame() {
   );
   $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
   $("#menu-button").addEventListener("click", showMenu);
+  const catalogueFilters = { tier: "all", tileSize: "all", terrain: "all", tileSort: "size" };
+  let catalogueSection = "buildings";
+  function renderCatalogue() {
+    html("#catalogue-content", catalogueView(catalogueFilters));
+    selectCatalogueSection(catalogueSection);
+  }
+  $("#catalogue-content").addEventListener("click", event => {
+    const button = event.target.closest("[data-catalogue-tier]");
+    if (!button) return;
+    catalogueFilters.tier = button.dataset.catalogueTier;
+    renderCatalogue();
+    $(`[data-catalogue-tier="${catalogueFilters.tier}"]`).focus({ preventScroll: true });
+  });
+  $("#catalogue-content").addEventListener("change", event => {
+    const field = event.target.dataset.catalogueFilter;
+    if (!Object.hasOwn(catalogueFilters, field)) return;
+    catalogueFilters[field] = event.target.value;
+    renderCatalogue();
+    $(`[data-catalogue-filter="${field}"]`).focus({ preventScroll: true });
+  });
+  $("#catalogue-button").addEventListener("click", () => {
+    renderCatalogue();
+    selectCatalogueSection("buildings");
+    $("#catalogue-dialog").showModal();
+    $("#catalogue-dialog").scrollTop = 0;
+  });
+  function selectCatalogueSection(section) {
+    catalogueSection = section;
+    for (const name of ["buildings", "tiles"]) {
+      $(`#catalogue-${name}`).hidden = name !== section;
+      $(`[data-catalogue-section="${name}"]`).setAttribute("aria-pressed", String(name === section));
+    }
+  }
+  document.querySelectorAll("[data-catalogue-section]").forEach(button => {
+    button.addEventListener("click", () => selectCatalogueSection(button.dataset.catalogueSection));
+  });
+  document.querySelectorAll("#catalogue-dialog .close, .close-catalogue").forEach(button => {
+    button.addEventListener("click", () => $("#catalogue-dialog").close());
+  });
   function requestNewGame(mode) {
     nextMode = mode;
     $("#settings-mode").textContent = mode === "solo" ? "Partie solo" : "Partie locale";

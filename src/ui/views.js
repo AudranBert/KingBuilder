@@ -1,5 +1,6 @@
 import { iconHTML } from "./html.js";
 import { piece } from "./pieces.js";
+import { CONFIG } from "../configuration.js";
 import {
   RULES,
   GOLD,
@@ -36,6 +37,35 @@ import {
   terrainDiagram,
   buildingDiagram,
 } from "./html.js";
+
+export function catalogueView({ tier = "all", tileSize = "all", terrain = "all", tileSort = "size" } = {}) {
+  const families = new Map();
+  for (const b of Object.values(BUILDINGS)) {
+    const id = b.family || b.id;
+    if (!families.has(id)) families.set(id, []);
+    families.get(id).push(b);
+  }
+  const legend = `<p class="building-legend">${Object.values(TERRAINS).map(t => `<span><i style="background:${t.color}">${iconHTML(t.icon)}</i>${e(t.name)}</span>`).join("")}</p>`;
+  const visibleFamilies = [...families.values()].filter(v => tier === "all" || v[0].tier === Number(tier)).sort((a, b) => a[0].tier - b[0].tier);
+  const terrainCount = tile => new Set(tile.cells.map(c => c.terrain)).size;
+  const terrainSignature = tile => [...new Set(tile.cells.map(c => TERRAINS[c.terrain].name))].sort().join(" / ");
+  const tiles = CONFIG.tiles.filter(tile => (tileSize === "all" || tile.cells.length === Number(tileSize)) && (terrain === "all" || tile.cells.some(c => c.terrain === terrain)));
+  tiles.sort((a, b) => {
+    const primary = tileSort === "size-desc" ? b.cells.length - a.cells.length
+      : tileSort === "terrain" ? terrainSignature(a).localeCompare(terrainSignature(b), "fr")
+      : tileSort === "diversity" ? terrainCount(a) - terrainCount(b)
+      : a.cells.length - b.cells.length;
+    return primary || a.cells.length - b.cells.length || a.name.localeCompare(b.name, "fr");
+  });
+  const options = (values, current) => values.map(([value, label]) => `<option value="${e(value)}" ${String(value) === String(current) ? "selected" : ""}>${e(label)}</option>`).join("");
+  const tierFilters = `<div class="catalogue-filters" role="group" aria-label="Filtrer les bâtiments par tier">${["all", 0, 1, 2, 3].map(value => `<button data-catalogue-tier="${value}" aria-pressed="${String(tier) === String(value)}">${value === "all" ? "Tous les tiers" : `Tier ${value}`}</button>`).join("")}</div>`;
+  const tileFilters = `<div class="catalogue-filters"><label>Nombre de cases<select data-catalogue-filter="tileSize">${options([["all", "Toutes les tailles"], ...[...new Set(CONFIG.tiles.map(t => t.cells.length))].sort((a,b) => a-b).map(n => [n, `${n} cases`])], tileSize)}</select></label><label>Terrain présent<select data-catalogue-filter="terrain">${options([["all", "Tous les terrains"], ...[...new Set(CONFIG.tiles.flatMap(t => t.cells.map(c => c.terrain)))].map(id => [id, TERRAINS[id].name])], terrain)}</select></label><label>Trier par<select data-catalogue-filter="tileSort">${options([["size", "Nombre de cases croissant"], ["size-desc", "Nombre de cases décroissant"], ["terrain", "Type de terrain"], ["diversity", "Nombre de types de terrain"]], tileSort)}</select></label></div>`;
+  return `${legend}<section id="catalogue-buildings" aria-label="Cartes Bâtiment">${tierFilters}<p role="status">${visibleFamilies.length} / ${families.size} familles · ${CONFIG.buildingDeckSize} cartes dans la pioche. Les variantes sont regroupées.</p><div class="catalogue-grid">${visibleFamilies.map(variants => {
+    const b = variants[0];
+    const quantity = variants.reduce((sum, v) => sum + (v.constructible === false ? 0 : v.weight), 0);
+    return `<article class="catalogue-card" data-catalogue-family="${e(b.family || b.id)}"><h3>${buildingStars(b)} ${e([...new Set(variants.map(v => v.name))].join(" / "))}</h3><p>${b.constructible === false ? "Bâtiment de départ · hors pioche" : `${quantity} exemplaires · Coût : ${costHTML(b.cost)}`}</p><p>${e(buildingDescription(b))} · ${b.points || 0} point(s)</p><div class="catalogue-patterns">${variants.map(v => `<figure data-catalogue-building="${e(v.id)}"><div class="catalogue-diagram">${buildingDiagram(v.id, 0, true)}</div><figcaption>${e(v.pattern)}</figcaption></figure>`).join("")}</div></article>`;
+  }).join("")}</div>${visibleFamilies.length ? "" : '<p class="empty-state">Aucun bâtiment dans ce tier pour le moment.</p>'}</section><section id="catalogue-tiles" aria-label="Tuiles Terrain" hidden>${tileFilters}<p role="status">${tiles.length} / ${CONFIG.tiles.length} tuiles · ${CONFIG.tileDeckSize} exemplaires dans la pioche.</p><div class="catalogue-grid">${tiles.map(tile => `<article class="catalogue-card" data-catalogue-tile="${e(tile.id)}"><h3>${e(tile.name)}</h3><div class="catalogue-diagram">${terrainDiagram(tile, 0, 160)}</div><p>${tile.cells.length} cases · ${e(CONFIG.shapes[tile.shapeId].name)}</p><p>${e(terrainSignature(tile))} · ${terrainCount(tile)} type(s) de terrain</p><p>${e(tile.intent || "")}</p></article>`).join("")}</div>${tiles.length ? "" : '<p class="empty-state">Aucune tuile ne correspond à ces filtres.</p>'}</section>`;
+}
 
 export function playersView(g) {
   return g.players
