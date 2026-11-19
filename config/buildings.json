@@ -1,5 +1,5 @@
 {
-  "deckSize": 91,
+  "deckSize": 89,
   "startingBuilding": "castle",
   "buildings": [
     {
@@ -227,7 +227,7 @@
       ],
       "description": "+2 matériaux ; forêt → plaine.",
       "pattern": "Une forêt libre. Action sans bâtiment permanent.",
-      "weight": 10,
+      "weight": 8,
       "layout": [
         "B"
       ],

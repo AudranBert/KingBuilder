@@ -94,9 +94,9 @@ Effets :
 
 L’avant-poste accepte tous les terrains révélés sans bâtiment, y compris un drapeau ou une annexe compatible. Sur un drapeau, sa garnison en prend le contrôle. Sa case devient praticable.
 
-`deckSize` correspond à la pioche, actuellement 91. `weight` indique les exemplaires ; `maxFamilyCopies` limite une famille à 12 cartes, variantes comprises. Le donjon reste hors pioche.
+`deckSize` correspond à la pioche, actuellement 89. `weight` indique les exemplaires ; `maxFamilyCopies` limite une famille à 12 cartes, variantes comprises. Le donjon reste hors pioche.
 
-Quantités par famille, variantes comprises : défrichement 10 ; autres niveaux 0 (pont et tunnel) 6 chacun ; niveaux 1 6 chacun ; niveaux 2 5 chacun, sauf maison 7, caserne 6 et avant-poste 6. Le donjon initial reste hors pioche. Les 5 ports se répartissent en 2 de base, 2 carrés et 1 en L ; les 6 pêcheurs en 2 par motif. Les pêcheurs coûtent 1 matériau et produisent 1 nourriture par tour avec un ouvrier. Motifs : `rrr` (bateau sur une extrémité en rivière), `prr` et `rr / xp` (cabane sur la plaine) ; `r` = rivière, `p` = plaine portant le bâtiment, `x` = case ignorée.
+Quantités par famille, variantes comprises : défrichement 8 ; autres niveaux 0 (pont et tunnel) 6 chacun ; niveaux 1 6 chacun ; niveaux 2 5 chacun, sauf maison 7, caserne 6 et avant-poste 6. Le donjon initial reste hors pioche. Les 5 ports se répartissent en 2 de base, 2 carrés et 1 en L ; les 6 pêcheurs en 2 par motif. Les pêcheurs coûtent 1 matériau et produisent 1 nourriture par tour avec un ouvrier. Motifs : `rrr` (bateau sur une extrémité en rivière), `prr` et `rr / xp` (cabane sur la plaine) ; `r` = rivière, `p` = plaine portant le bâtiment, `x` = case ignorée.
 
 ## Missions
 
