@@ -6,7 +6,7 @@ import { buildingMarketView } from "../src/ui/views.js";
 
 test("tiers par famille et étoiles sur les cartes", () => {
   for (const b of Object.values(BUILDINGS)) {
-    const expected = ["bridge", "tunnel", "clearing"].includes(b.id) ? 0 : b.produces ? 1 : 2;
+    const expected = ["bridge", "tunnel", "clearing"].includes(b.id) ? 0 : b.produces && (b.family || b.id) !== "port" ? 1 : 2;
     assert.equal(b.tier, expected, b.id);
   }
   const g = createGame();
@@ -17,7 +17,7 @@ test("tiers par famille et étoiles sur les cartes", () => {
   assert.match(html, /aria-label="2 étoiles">★★/);
 });
 
-test("le marché initial exclut les tiers 2 et conserve les 77 cartes", () => {
+test("le marché initial exclut les tiers 2 et conserve les 91 cartes", () => {
   for (let seed = 0; seed < 50; seed++) {
     let state = seed + 1;
     const g = createGame(() => ((state = (state * 1664525 + 1013904223) >>> 0) / 2 ** 32));
@@ -25,11 +25,12 @@ test("le marché initial exclut les tiers 2 et conserve les 77 cartes", () => {
     assert.ok(g.buildingMarket.every(id => BUILDINGS[id].tier === 1));
     assert.equal(new Set(g.buildingMarket.map(id => BUILDINGS[id].family || id)).size, 4);
     const cards = [...g.buildingMarket, ...g.buildingDeck];
-    assert.equal(cards.length, 77);
-    assert.equal(cards.filter(id => id === "house").length, 8);
+    assert.equal(cards.length, 91);
+    assert.equal(cards.filter(id => id === "house").length, 7);
     assert.equal(cards.filter(id => id === "tunnel").length, 6);
-    assert.equal(cards.filter(id => BUILDINGS[id].tier === 2).length, 27);
-    assert.equal(cards.filter(id => BUILDINGS[id].tier === 0).length, 20);
+    assert.equal(cards.filter(id => BUILDINGS[id].tier === 1).length, 30);
+    assert.equal(cards.filter(id => BUILDINGS[id].tier === 2).length, 39);
+    assert.equal(cards.filter(id => BUILDINGS[id].tier === 0).length, 22);
   }
 });
 

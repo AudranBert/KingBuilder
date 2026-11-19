@@ -14,11 +14,12 @@ test("configuration sans mutation : trois ressources, quatre unités et nouveaux
  assert.equal(Object.keys(c.units).length,4);assert.equal(c.units.soldier.moves,3);assert.equal(c.units.emissary.moves,3);assert.equal(c.units.king.moves,3);assert.equal(c.units.worker.moves,0);assert.equal(c.units.worker.recruitment,"house");
  assert.equal(c.buildings.chancellery.onBuildUnit,"emissary");assert.equal(c.buildings.castle.garrison,1);assert.equal(c.rules.turnLimit,25);
 });
-test("pioche : chaque exemplaire et chaque variante sont conservés, huit maisons et six tunnels",()=>{
- const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,77);
+test("pioche : chaque exemplaire et chaque variante sont conservés, quantités par famille et variantes conservées",()=>{
+ const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,91);
  for(const id of c.buildingPool){const family=c.buildings[id].family||id;counts[family]=(counts[family]||0)+1;}
- assert.equal(counts.house,8);assert.equal(counts.tunnel,6);assert.equal(counts.chancellery,3);assert.equal(counts.monument,3);assert.ok(Object.values(counts).every(n=>n<=12));
- for(const family of ["farm","sawmill","quarry","mine","port","mill"]){
+ assert.deepEqual(counts,{house:7,farm:6,sawmill:6,quarry:6,mine:6,bridge:6,tunnel:6,port:5,clearing:10,mill:5,barracks:6,outpost:6,chancellery:5,monument:5,fisher:6});
+ assert.equal(c.buildingPool.length,c.buildingDeckSize);assert.equal(counts.castle,undefined);
+ for(const family of ["farm","sawmill","quarry","mine","port","mill","fisher"]){
  const variants=Object.values(c.buildings).filter(b=>(b.family||b.id)===family);assert.equal(variants.length,3);
  for(const b of variants){assert.deepEqual(b.cost,c.buildings[family].cost);assert.equal(b.production,c.buildings[family].production);}}
 });
@@ -39,8 +40,8 @@ test("références de ressources, terrains, unités et bonus invalides refusées
 });
 test("identifiants en double et poids dépassant la pioche ou la famille refusés",()=>{
  const a=configs();a[0].shapes.push(a[0].shapes[0]);assert.throws(()=>compileConfiguration(...a),/double/);
- const b=configs();b[1].buildings[0].weight=100;assert.throws(()=>compileConfiguration(...b),/poids/);
- const c=configs();c[1].buildings[0].weight=13;c[1].buildings.find(b=>b.id==="clearing").weight=3;assert.throws(()=>compileConfiguration(...c),/maxFamilyCopies/);
+ const b=configs();b[1].buildings[0].weight=b[1].deckSize+1;assert.throws(()=>compileConfiguration(...b),/poids/);
+ const c=configs();c[1].buildings[0].weight=13;c[1].buildings.find(b=>b.id==="clearing").weight=1;assert.throws(()=>compileConfiguration(...c),/maxFamilyCopies/);
 });
 test("roi et ouvrier obligatoires, ouvriers sans déplacement, coûts négatifs refusés",()=>{
  for(const change of [c=>c[3].units=c[3].units.filter(u=>u.id!=="king"),c=>c[3].units=c[3].units.filter(u=>u.id!=="worker"),

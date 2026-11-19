@@ -1,5 +1,5 @@
 {
-  "deckSize": 77,
+  "deckSize": 91,
   "startingBuilding": "castle",
   "buildings": [
     {
@@ -16,7 +16,7 @@
       ],
       "description": "+1 ouvrier.",
       "pattern": "Une case de plaine ou de forêt.",
-      "weight": 8,
+      "weight": 7,
       "layout": [
         "B"
       ],
@@ -214,7 +214,7 @@
         }
       },
       "production": 1,
-      "tier": 1,
+      "tier": 2,
       "points": 1
     },
     {
@@ -227,7 +227,7 @@
       ],
       "description": "+2 matériaux ; forêt → plaine.",
       "pattern": "Une forêt libre. Action sans bâtiment permanent.",
-      "weight": 8,
+      "weight": 10,
       "layout": [
         "B"
       ],
@@ -285,7 +285,7 @@
       "id": "barracks",
       "name": "Caserne",
       "icon": "assets/textures/buildings-barracks.svg",
-      "weight": 5,
+      "weight": 6,
       "cost": {
         "food": 1,
         "material": 2
@@ -403,7 +403,7 @@
       },
       "production": 1,
       "family": "port",
-      "tier": 1,
+      "tier": 2,
       "points": 1
     },
     {
@@ -629,7 +629,7 @@
       "produces": "gold",
       "description": "+1 or / tour.",
       "pattern": "Une entrée sur plaine et trois cases de rivière en coude.",
-      "weight": 2,
+      "weight": 1,
       "layout": [
         "Bww",
         "..w"
@@ -644,7 +644,7 @@
       },
       "production": 1,
       "family": "port",
-      "tier": 1,
+      "tier": 2,
       "points": 1
     },
     {
@@ -755,7 +755,7 @@
       ],
       "legend": {},
       "tier": 2,
-      "weight": 3,
+      "weight": 6,
       "points": 1,
       "garrison": 1,
       "traversable": true
@@ -778,7 +778,7 @@
       ],
       "legend": {},
       "tier": 2,
-      "weight": 3,
+      "weight": 5,
       "points": 1,
       "onBuildUnit": "emissary",
       "unique": true
@@ -809,8 +809,98 @@
         }
       },
       "tier": 2,
-      "weight": 3,
+      "weight": 5,
       "points": 6
+    },
+    {
+      "id": "fisher",
+      "name": "Bateau de pêche",
+      "icon": "assets/textures/buildings-fisher.svg",
+      "cost": {
+        "material": 1
+      },
+      "terrain": [
+        "river"
+      ],
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
+      "pattern": "Trois cases de rivière en ligne ; le bateau occupe une extrémité.",
+      "weight": 2,
+      "layout": [
+        "Brr"
+      ],
+      "legend": {
+        "r": {
+          "terrain": [
+            "river"
+          ],
+          "role": "water"
+        }
+      },
+      "production": 1,
+      "tier": 1,
+      "points": 1
+    },
+    {
+      "id": "fisher_bank",
+      "name": "Cabane de pêcheur",
+      "icon": "assets/textures/buildings-fisher.svg",
+      "cost": {
+        "material": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
+      "pattern": "Une plaine pour la cabane suivie de deux cases de rivière en ligne.",
+      "weight": 2,
+      "layout": [
+        "Brr"
+      ],
+      "legend": {
+        "r": {
+          "terrain": [
+            "river"
+          ],
+          "role": "water"
+        }
+      },
+      "production": 1,
+      "family": "fisher",
+      "tier": 1,
+      "points": 1
+    },
+    {
+      "id": "fisher_corner",
+      "name": "Cabane de pêcheur",
+      "icon": "assets/textures/buildings-fisher.svg",
+      "cost": {
+        "material": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
+      "pattern": "Deux cases de rivière côte à côte ; la cabane sur plaine sous une extrémité.",
+      "weight": 2,
+      "layout": [
+        "rr",
+        ".B"
+      ],
+      "legend": {
+        "r": {
+          "terrain": [
+            "river"
+          ],
+          "role": "water"
+        }
+      },
+      "production": 1,
+      "family": "fisher",
+      "tier": 1,
+      "points": 1
     }
   ],
   "maxFamilyCopies": 12

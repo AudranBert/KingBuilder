@@ -32,7 +32,7 @@ Une partie reste active tant que la page reste ouverte. Choisir un mode depuis l
 - Les joueurs révèlent des tuiles de terrain depuis un marché commun de quatre offres. Les terrains restent utilisables par les deux joueurs.
 - Les empreintes des bâtiments et leurs terrains requis forment le puzzle. Tous les éléments du motif doivent être révélés et respecter les terrains. Les annexes compatibles peuvent se chevaucher ; seules les cases occupées par un bâtiment lui-même bloquent une autre construction. L’entrée doit être à une case maximum du bâtisseur, sans diagonale.
 - Le marché initial propose quatre familles différentes de bâtiments à une étoile. La maison appartient au niveau deux étoiles et arrive après le déblocage des bâtiments avancés.
-- Niveaux : 0 étoile pour défrichement, pont et tunnel ; 1 étoile pour les producteurs de ressources ; 2 étoiles pour tous les autres bâtiments.
+- Niveaux : 0 étoile pour défrichement, pont et tunnel ; 1 étoile pour les fermes, scieries, carrières, mines et pêcheurs ; 2 étoiles pour les ports et tous les autres bâtiments.
 - Les montagnes et les rivières sont infranchissables, sauf sur un tunnel, un pont ou un avant-poste. Les joueurs doivent préserver leurs accès.
 - Seuls les bâtiments, leurs annexes et les drapeaux contrôlés portent des contours de propriété. Les terrains explorés n’appartiennent à personne.
 
@@ -40,7 +40,7 @@ Une partie reste active tant que la page reste ouverte. Choisir un mode depuis l
 
 | Ressource | Production | Utilisation |
 | --- | --- | --- |
-| Nourriture | Fermes | Maisons, casernes, recrutement |
+| Nourriture | Fermes et pêcheurs | Maisons, casernes, recrutement |
 | Matériaux | Scieries et carrières | Construction |
 | Or | Mines, ports et missions | Banque, bâtiments avancés et relances |
 

@@ -138,6 +138,35 @@ test("ferme en Z et scierie en T : rotations, réservation et production", () =>
     }
   }
 });
+test("pêcheurs : trois motifs, terrain du bâtiment, rotations et récolte avec ouvrier", () => {
+  for (const [type, terrain, waterCount] of [["fisher", "river", 2], ["fisher_bank", "plain", 2], ["fisher_corner", "plain", 2]]) {
+    for (let r = 0; r < 4; r++) {
+      const g = setup(type, r);
+      const parts = patternAt(type, 7, 7, r);
+      assert.equal(parts.length, 3);
+      assert.equal(parts.filter(c => c.role === "water").length, waterCount);
+      assert.equal(g.board[key(7, 7)].terrain, terrain);
+      const invalid = structuredClone(g);
+      invalid.board[key(7, 7)].terrain = terrain === "river" ? "plain" : "river";
+      assert.throws(() => build(invalid, 0, 7, 7, r));
+      const water = parts.find(c => c.role === "water");
+      const dry = structuredClone(g);
+      dry.board[key(water.x, water.y)].terrain = "plain";
+      assert.throws(() => build(dry, 0, 7, 7, r));
+      const material = g.players[0].resources.material;
+      build(g, 0, 7, 7, r);
+      assert.equal(g.players[0].resources.material, material - 1);
+      assert.equal(productionAmount(g, 7, 7), 0);
+      assign(g, 7, 7);
+      assert.equal(productionAmount(g, 7, 7), 1);
+      for (const c of parts) assert.equal(buildingAt(g, c.x, c.y).building.type, type);
+      const food = g.players[0].resources.food;
+      endTurn(g);
+      assert.equal(g.players[0].resources.food, food + 1);
+    }
+  }
+});
+
 test("le moulin reconnaît et bonifie la ferme en Z", () => {
   const g = setup("farm_z");
   build(g, 0, 7, 7);
