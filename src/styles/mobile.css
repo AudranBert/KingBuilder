@@ -3,7 +3,7 @@
 .placement-help,
 .placement-help:empty {
   display: block;
-  height: 5.5rem;
+  height: 3.75rem;
   overflow-y: auto;
   overflow-wrap: anywhere;
   scrollbar-gutter: stable;
@@ -17,6 +17,7 @@
 }
 
 @media (max-width: 850px) {
+  .placement-help, .placement-help:empty { height: 4rem; }
   .game-layout > .land-column { display: contents; }
   .land-column > .market-panel { order: 1; width: 100%; }
   .land-column > .workers-panel {
@@ -102,4 +103,8 @@
     padding: 12px 16px;
     bottom: max(12px, env(safe-area-inset-bottom));
   }
+}
+
+@media (max-width: 380px) {
+  .placement-help, .placement-help:empty { height: 5rem; }
 }

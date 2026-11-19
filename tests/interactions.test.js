@@ -13,8 +13,17 @@ import {
   dragFromCard,
   dragPreview,
   moveUnitTo,
+  placementErrorText,
 } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
+
+test("le bandeau garde seulement la cause du blocage et préfixe les erreurs", () => {
+  assert.equal(placementErrorText("Moulin : terrain incompatible, il faut plaine ou champs à la place de montagne. Entrée sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine."),
+    "Impossible : il faut plaine ou champs ici.");
+  assert.equal(placementErrorText("Le motif sort du plateau."), "Impossible : la tuile dépasse du plateau.");
+  assert.equal(placementErrorText("Ressources insuffisantes : il manque 2 bois (or insuffisant)."),
+    "Impossible : ressources insuffisantes : il manque 2 bois (or insuffisant).");
+});
 
 test("glisser le roi suit un chemin de trois cases et épuise ses déplacements", () => {
   const g = createGame();

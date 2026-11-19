@@ -14,7 +14,28 @@ import {
   buyTerrainError,
   openingError,
   workerAssignmentError,
+  BUILDINGS,
 } from "../engine.js";
+
+export function placementErrorText(error) {
+  const terrain = error.match(/terrain incompatible, il faut (.*?) à la place de /);
+  if (terrain) return `Impossible : il faut ${terrain[1]} ici.`;
+  const adjacency = Object.values(BUILDINGS).find(b =>
+    b.adjacency?.length && error === `${b.name} : ${b.pattern}`);
+  if (adjacency?.adjacency.every(rule => rule.terrain === "field" && rule.owned && rule.range === "edge"))
+    return "Impossible : l’entrée doit toucher un de vos champs.";
+  const short = {
+    "Le motif doit tenir sur des cases vides, sans chevauchement.": "la tuile doit tenir sur des cases vides.",
+    "Votre action de construction / exploration est déjà terminée.": "cette unité a déjà agi.",
+    "Cette unité a déjà terminé son action.": "cette unité a déjà agi.",
+    "Toutes les cases du motif doivent être explorées.": "explorez toutes les cases du motif.",
+    "Le motif chevauche une case de bâtiment ou un champ réservé.": "un bâtiment ou un champ occupe le motif.",
+    "Le motif sort du plateau.": "la tuile dépasse du plateau.",
+    "Choisissez votre propre bâtiment de production.": "choisissez un de vos bâtiments de production.",
+  };
+  const message = short[error] || error.replace(/^(Impossible|Erreur)\s*:\s*/i, "");
+  return `Impossible : ${message.charAt(0).toLowerCase()}${message.slice(1)}`;
+}
 export function placementGuidance(g, placement) {
   const results = new Map();
   if (!placement || !["terrain", "building", "single-terrain"].includes(placement.kind)) return results;

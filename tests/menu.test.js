@@ -135,7 +135,7 @@ test("clic droit : la sélection de tuile est effacée", (t) => {
   const app = mount(t);
   app.start("solo");
   app.selectTile();
-  assert.match(app.node("#placement-help").textContent, /placement/);
+  assert.match(app.node("#placement-help").textContent, /case verte|Impossible :/);
   let prevented = false;
   app.node(".game-layout").dispatch("contextmenu", { preventDefault() { prevented = true; } });
   assert.equal(prevented, true);

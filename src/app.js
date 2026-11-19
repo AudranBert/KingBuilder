@@ -33,7 +33,7 @@ import {
   key,
 } from "./engine.js";
 import { createUIState } from "./ui/state.js";
-import { dragFromCard, dragPreview, moveUnitTo as localMoveUnitTo, placementGuidance } from "./ui/interactions.js";
+import { dragFromCard, dragPreview, moveUnitTo as localMoveUnitTo, placementGuidance, placementErrorText } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
@@ -173,31 +173,46 @@ export function startGame() {
     if (game.finished) showResults();
   }
   const board = createBoard($("#board"), $("#map-scroll"), handleCell, previewPlacement);
-  function placementHelp(message) {
+  function placementHelp(result) {
     const choice = ui.drag || ui.placement;
     const mobile = window.matchMedia("(pointer: coarse), (max-width: 850px)").matches;
     $("#rotate-placement").disabled = game.finished || !["terrain", "building"].includes(choice?.kind);
     $("#cancel-placement").disabled = !choice;
-    if (!choice || !["terrain", "building", "single-terrain"].includes(choice.kind)) {
+    if (!choice) {
       $("#placement-help").textContent = game.opening
-        ? (mobile ? "Touchez une tuile, puis une case vide du plateau pour la poser." : "Choisissez une tuile, puis posez-la sur des cases vides. R : pivoter.")
-        : "Choisissez une carte ou une unité pour jouer.";
+        ? "Choisissez une tuile terrain."
+        : "Choisissez une tuile ou une unité.";
       return;
     }
-    if (message) {
-      $("#placement-help").textContent = message;
+    if (result?.error) {
+      $("#placement-help").textContent = placementErrorText(result.error);
       return;
     }
-    const count = [...placementGuidance(game, choice).values()].filter(result => !result.error).length;
-    $("#placement-help").textContent = mobile
-      ? `${count} placement(s) possible(s). ${count ? "Touchez une case verte pour poser la carte." : "Essayez de pivoter ou choisissez une autre carte ou unité."}`
-      : `${count} placement(s) possible(s) dans cette orientation. ${count ? "Choisissez une case verte ou glissez la carte." : "Essayez une rotation, une autre unité ou une autre carte."} R ou molette : pivoter · Échap : annuler.`;
+    if (result && ui.drag) {
+      $("#placement-help").textContent = "Relâchez pour placer.";
+      return;
+    }
+    if (["terrain", "building", "single-terrain"].includes(choice.kind)) {
+      const options = [...placementGuidance(game, choice).values()];
+      if (!options.some(option => !option.error)) {
+        const reasons = new Set(options.map(option => option.error));
+        $("#placement-help").textContent = reasons.size === 1
+          ? placementErrorText(options[0].error)
+          : "Impossible : aucun emplacement. Pivotez ou changez de tuile.";
+        return;
+      }
+    }
+    const action = mobile ? "Touchez" : "Cliquez sur";
+    const instruction = choice.kind === "worker" ? "un de vos bâtiments de production pour y affecter l’ouvrier."
+      : choice.kind === "unit" ? "une case accessible pour déplacer l’unité."
+      : `une case verte pour poser ${choice.kind === "building" ? "le bâtiment" : choice.kind === "single-terrain" ? "le terrain" : "la tuile terrain"}.`;
+    $("#placement-help").textContent = `${action} ${instruction}`;
   }
   function previewPlacement(pos) {
     if (ui.drag) return;
     const result = dragPreview(game, ui.placement, pos);
     board.preview(result);
-    placementHelp(result?.error || (result ? "Placement possible · Cliquez pour placer." : null));
+    placementHelp(result);
   }
   function html(selector, value) {
     const node = $(selector);
@@ -785,7 +800,7 @@ export function startGame() {
       ui.drag.position = pos;
       const result = dragPreview(game, ui.drag, pos);
       board.preview(result);
-      placementHelp(result?.error || (result ? "Placement possible · Relâchez pour placer." : null));
+      placementHelp(result);
     },
     ghost() {
       const d = ui.drag;
