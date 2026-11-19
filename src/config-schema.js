@@ -146,17 +146,28 @@ export function compileConfiguration(
   gameConfig = structuredClone(gameConfig);
   integer(gameConfig.boardSize, "game-rules.json.boardSize", 3);
   integer(gameConfig.turnLimit, "game-rules.json.turnLimit", 1);
+  object(gameConfig.trade, "game-rules.json.trade");
+  integer(gameConfig.trade.basePrice, "game-rules.json.trade.basePrice", 1);
+  integer(gameConfig.trade.producerSurcharge, "game-rules.json.trade.producerSurcharge");
+  integer(gameConfig.trade.singleTerrainCost, "game-rules.json.trade.singleTerrainCost", 1);
+  if (!Array.isArray(gameConfig.flags) || gameConfig.flags.length !== 5)
+    fail("game-rules.json.flags", "cinq drapeaux attendus.");
+  const flagPositions = new Set();
+  for (const flag of gameConfig.flags) {
+    for (const axis of ["x", "y"]) {
+      integer(flag[axis], `game-rules.json.flags.${axis}`);
+      if (flag[axis] >= gameConfig.boardSize) fail("game-rules.json.flags", "drapeau hors plateau.");
+    }
+    const position = `${flag.x},${flag.y}`;
+    if (flagPositions.has(position)) fail("game-rules.json.flags", "drapeau répété.");
+    flagPositions.add(position);
+  }
   object(gameConfig.scoring, "game-rules.json.scoring");
-  for (const name of ["tile", "building", "unit", "prestige"])
+  for (const name of ["building", "flag"])
     integer(gameConfig.scoring[name], `game-rules.json.scoring.${name}`);
-  const rate = gameConfig.scoring.resource;
-  if (!Number.isFinite(rate) || rate < 0 || !/^\d+(\.\d{1,4})?$/.test(String(rate)))
-    fail("game-rules.json.scoring.resource", "nombre positif ou nul avec au plus quatre décimales attendu.");
-  for (const obsolete of ["worker", "resourceDivisor"])
-    if (Object.hasOwn(gameConfig.scoring, obsolete))
-      fail(`game-rules.json.scoring.${obsolete}`, "champ supprimé : utilisez les points des unités et le coefficient resource.");
+  integer(gameConfig.scoring.goldPerPoint, "game-rules.json.scoring.goldPerPoint", 1);
+  integer(gameConfig.scoring.flag, "game-rules.json.scoring.flag");
   integer(gameConfig.startingWorkers, "game-rules.json.startingWorkers");
-  integer(gameConfig.workerRecruitmentLimitPerTurn, "game-rules.json.workerRecruitmentLimitPerTurn");
   object(gameConfig.markets, "game-rules.json.markets");
   for (const field of ["terrainSize", "buildingSize", "advancedFromReplacement"])
     integer(gameConfig.markets[field], `game-rules.json.markets.${field}`, 1);
@@ -173,17 +184,16 @@ export function compileConfiguration(
       if (!Number.isFinite(player.start[axis]) || player.start[axis] < 0 || player.start[axis] > 1)
         fail("game-rules.json.players.start", "coordonnées relatives entre 0 et 1 attendues.");
   }
-  object(gameConfig.prestige, "game-rules.json.prestige");
+  object(gameConfig.gold, "game-rules.json.gold");
   for (const field of [
     "startingAmount",
     "firstPlayerStartingAmount",
     "rerollCost",
     "rerollLimitPerTurn",
-    "wildcardCost",
   ])
     integer(
-      gameConfig.prestige[field],
-      `game-rules.json.prestige.${field}`,
+      gameConfig.gold[field],
+      `game-rules.json.gold.${field}`,
       field.endsWith("StartingAmount") || field === "startingAmount" ? 0 : 1,
     );
   object(tileConfig, "terrain-tiles.json");
@@ -226,9 +236,7 @@ export function compileConfiguration(
     integer(unit.moves, `${path}.moves`, unit.id === "worker" ? 0 : 1);
     if (unit.id === "worker" && unit.moves !== 0)
       fail(`${path}.moves`, "les ouvriers s’affectent sans déplacement : 0 requis.");
-    integer(unit.population, `${path}.population`, unit.id === "king" ? 0 : 1);
-    integer(unit.points, `${path}.points`);
-    const expected = unit.id === "king" ? "initial" : unit.id === "worker" ? "direct" : "building";
+    const expected = unit.id === "king" ? "initial" : unit.id === "worker" ? "house" : "building";
     if (unit.recruitment !== expected)
       fail(`${path}.recruitment`, `utilisez ${expected} pour cette unité.`);
     if (unit.recruitment === "initial" && Object.keys(unit.cost).length)
@@ -288,6 +296,10 @@ export function compileConfiguration(
   const buildings = index(buildingConfig.buildings, "buildings.json.buildings");
   for (const b of Object.values(buildings)) {
     const path = `buildings.json.${b.id}`;
+    for (const field of ["points", "garrison", "grantsWorker"])
+      if (b[field] !== undefined) integer(b[field], `${path}.${field}`);
+    if (b.unique !== undefined && typeof b.unique !== "boolean") fail(path, "unique doit être un booléen.");
+    if (b.onBuildUnit !== undefined && !units[b.onBuildUnit]) fail(path, "unité initiale inconnue.");
     label(b.icon, `${path}.icon`);
     label(b.description, `${path}.description`);
     label(b.pattern, `${path}.pattern`);
@@ -344,7 +356,6 @@ export function compileConfiguration(
         fail(path, "trains doit référencer des unités connues, hors roi et ouvrier.");
       integer(b.trainingLimit, `${path}.trainingLimit`, 1);
     }
-    if (b.housing !== undefined) integer(b.housing, `${path}.housing`, 1);
     if (b.traversable !== undefined && typeof b.traversable !== "boolean")
       fail(path, "traversable doit être un booléen.");
     if (b.adjacentOn !== undefined)
@@ -353,7 +364,6 @@ export function compileConfiguration(
       b.transformTo !== undefined &&
       (!terrainIds.includes(b.transformTo) ||
         b.produces ||
-        b.housing ||
         b.boost ||
         b.trains ||
         cells.length !== 1)
@@ -394,9 +404,9 @@ export function compileConfiguration(
     buildingConfig.deckSize,
   );
   if (!buildingPool.length) fail("buildings.json", "la pioche doit contenir un bâtiment constructible.");
-  if (Array.from({ length: buildingConfig.deckSize }, (_, i) =>
-    buildingPool[i % buildingPool.length]).filter(id => buildings[id].tier <= gameConfig.markets.initialMaxTier).length < gameConfig.markets.buildingSize)
-    fail("buildings.json", "pas assez de bâtiments éligibles pour le marché initial.");
+  if (new Set(buildingPool.filter(id => buildings[id].tier === gameConfig.markets.initialMaxTier)
+    .map(id => buildings[id].family || id)).size < gameConfig.markets.buildingSize)
+    fail("buildings.json", "pas assez de familles différentes du niveau initial.");
   if (tileConfig.deckSize < gameConfig.markets.terrainSize)
     fail("game-rules.json.markets.terrainSize", "le marché dépasse la pioche.");
   for (const b of Object.values(buildings)) {
@@ -414,10 +424,10 @@ export function compileConfiguration(
         fail(`buildings.json.${family}`, "la famille dépasse maxFamilyCopies, variantes comprises.");
     }
   }
-  if (!buildings[buildingConfig.startingBuilding]?.housing)
+  if (!buildings[buildingConfig.startingBuilding]?.garrison)
     fail(
       "buildings.json.startingBuilding",
-      "choisissez un bâtiment doté de logements.",
+      "choisissez un bâtiment doté d’une garnison.",
     );
   const start = buildings[buildingConfig.startingBuilding];
   if (
@@ -449,9 +459,9 @@ export function compileConfiguration(
       fail(path, "la difficulté dépasse maxDifficulty.");
     integer(m.target, `${path}.target`, 1);
     object(m.reward, `${path}.reward`);
-    integer(m.reward.prestige, `${path}.reward.prestige`, 1);
-    if (Object.keys(m.reward).some((k) => k !== "prestige"))
-      fail(path, "seule une récompense de prestige est prise en charge.");
+    integer(m.reward.gold, `${path}.reward.gold`, 1);
+    if (Object.keys(m.reward).some((k) => k !== "gold"))
+      fail(path, "seule une récompense en or est prise en charge.");
     for (const [field, metric, definitions] of [
       ["terrain", "revealed", terrainDefinitions],
       ["building", "built", buildings],

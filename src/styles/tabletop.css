@@ -64,6 +64,21 @@ body {
   content: "";
 }
 
+.territory-border {
+  position: absolute;
+  inset: -1px;
+  z-index: 3;
+  pointer-events: none;
+  border: 0 solid #d99a32;
+}
+.territory-border.territory-jade {
+  border-color: #34735f;
+}
+.territory-border.border-top { border-top-width: 3px; }
+.territory-border.border-right { border-right-width: 3px; }
+.territory-border.border-bottom { border-bottom-width: 3px; }
+.territory-border.border-left { border-left-width: 3px; }
+
 
 
 
@@ -195,7 +210,8 @@ body {
   }
 }
 [data-tile],
-[data-building] {
+[data-building],
+[data-single-terrain] {
   touch-action: none;
   user-select: none;
   cursor: grab;
@@ -381,6 +397,29 @@ main {
 .game-layout {
   gap: 14px;
 }
+.opening-status {
+  padding: 10px 14px;
+  background: #e9efd9;
+  color: #31462d;
+  font-weight: 700;
+  text-align: center;
+}
+.opening-status[hidden] { display: none; }
+.game-layout.opening > .building-column,
+.game-layout.opening > #end-turn,
+.game-layout.opening .workers-panel,
+.game-layout.opening .missions,
+.game-layout.opening .board-modes [data-mode],
+.game-layout.opening .selection,
+.game-layout.opening .trade-info,
+.game-layout.opening .harvest-panel,
+.game-layout.opening #reroll-terrain { display: none; }
+@media (min-width: 1051px) {
+  .game-layout.opening { grid-template-columns: minmax(210px, 1fr) minmax(400px, 2.5fr); }
+}
+@media (min-width: 851px) and (max-width: 1050px) {
+  .game-layout.opening > .land-column { grid-column: 1 / -1; }
+}
 .market-panel {
   padding: 12px;
 }
@@ -398,6 +437,8 @@ main {
   padding: 6px 12px;
   position: relative;
 }
+#undo-action { font-weight: 700; border-color: #b99b67; background: #fff5dc; white-space: nowrap; }
+#undo-action:disabled { opacity: .55; }
 .board-toolbar .round {
   position: absolute;
   left: 50%;
@@ -452,6 +493,11 @@ main {
 .tile-controls {
   margin-top: 10px;
 }
+#single-terrain { margin-top: 12px; }
+.single-terrain-label { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; color: #66563e; font-size: 12px; }
+.single-terrain-market { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+.single-terrain-market .tile-card { min-height: 48px; padding: 5px; }
+.single-terrain-market .asset-icon { width: 25px; height: 25px; }
 .game-layout > aside:empty {
   display: none;
 }
@@ -575,6 +621,9 @@ main {
   font-weight: 700;
 }
 .reroll {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: 12px;
   padding: 5px 8px;
   white-space: nowrap;
@@ -649,7 +698,9 @@ main {
 .building-info { min-width: 0; overflow-wrap: anywhere; }
 .building-info strong { font-size: 14px; line-height: 1.4; }
 .building-effect { display: block; font-size: 12px; line-height: 1.45; margin: 5px 0; color: #493e2f; }
-.building-card .cost { font-size: 12px; }
+.building-card .cost { font-size: 12px; max-width: none; flex-wrap: nowrap; justify-content: flex-start; align-items: center; white-space: nowrap; gap: 7px; }
+.building-card .cost > span { display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0; }
+.building-pattern-slot { width: 72px; height: 72px; flex: 0 0 72px; display: grid; place-items: center; }
 .selected-building { display: grid; gap: 6px; flex: 1 1 220px; }
 .selected-building > span { font-size: 13px; line-height: 1.5; }
 .selected-building button { justify-self: start; min-height: 44px; }
@@ -682,3 +733,20 @@ main {
 .diagram-cell .asset-icon { width: 85%; height: 85%; }
 
 .cell { background-size: cover; }
+.cell.selected { outline: 3px solid #fff; outline-offset: -4px; }
+.cell.combat-target { outline: 3px solid #ac302b; outline-offset: -3px; box-shadow: inset 0 0 0 5px #e66b5540; }
+.control-flag { position: absolute; top: 0; left: 3px; z-index: 4; font: bold clamp(17px, 2.4vw, 28px) Georgia, serif; text-shadow: 0 1px 2px #fff; pointer-events: none; }
+.control-flag.neutral { color: #5f6061; }
+.control-flag.amber { color: #b76a13; }
+.control-flag.jade { color: #167b69; }
+.garrison-badge { position: absolute; bottom: 0; left: 2px; z-index: 4; color: #292820; font-size: 12px; background: #fff4d4; border-radius: 3px; padding: 0 2px; pointer-events: none; }
+.military-piece sup { position: absolute; right: -3px; bottom: -3px; top: auto; background: #3e301c; color: white; border: 1px solid #fff4d4; border-radius: 10px; padding: 1px 4px; font: 700 12px system-ui; }
+.military-piece.jade sup { background: #185f50; }
+.emissary-piece { left: 0; right: auto; width: 40%; }
+.army-controls, .combat-summary { display: grid; gap: 7px; flex: 1 1 220px; font-size: 13px; }
+.army-controls label { display: flex; align-items: center; gap: 10px; }
+.army-controls select { min-height: 36px; min-width: 65px; padding: 4px; }
+.combat-summary { padding: 10px; background: #f6ded2; border-radius: 6px; }
+.trade-info { padding: 10px 14px; font-size: 12px; line-height: 1.5; background: #f5e9cc; border-top: 1px solid #cdb98a; }
+.trade-info small { display: block; }
+.workers-panel > small { display: block; margin: 8px 0; }

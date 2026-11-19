@@ -1,6 +1,6 @@
 // Shared mouse, pen and touch drag lifecycle. A click never starts placement.
 const sourceSelector =
-  "[data-tile],[data-building],[data-worker-drag],[data-unit-drag]";
+  "[data-tile],[data-building],[data-single-terrain],[data-worker-drag],[data-unit-drag]";
 export function installDrag({
   root,
   begin,

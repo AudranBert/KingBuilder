@@ -1,5 +1,5 @@
 {
-  "deckSize": 66,
+  "deckSize": 89,
   "startingBuilding": "castle",
   "buildings": [
     {
@@ -7,35 +7,36 @@
       "name": "Maison",
       "icon": "assets/textures/buildings-house.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "food": 2,
+        "material": 2
       },
       "terrain": [
         "plain",
         "forest"
       ],
-      "description": "2 places pour vos ouvriers.",
+      "description": "+1 ouvrier.",
       "pattern": "Une case de plaine ou de forêt.",
-      "weight": 12,
+      "weight": 7,
       "layout": [
         "B"
       ],
       "legend": {},
-      "housing": 2,
-      "tier": 1
+      "tier": 2,
+      "points": 1,
+      "grantsWorker": 1
     },
     {
       "id": "farm",
       "name": "Ferme",
       "icon": "assets/textures/buildings-farm.svg",
       "cost": {
-        "wood": 1
+        "material": 1
       },
       "terrain": [
         "plain"
       ],
-      "produces": "wheat",
-      "description": "1 blé par tour avec un ouvrier.",
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
       "pattern": "Une plaine centrale + 4 plaines orthogonales, transformées en champs.",
       "weight": 2,
       "layout": [
@@ -53,68 +54,79 @@
         }
       },
       "production": 1,
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "sawmill",
       "name": "Scierie",
       "icon": "assets/textures/buildings-sawmill.svg",
       "cost": {
-        "stone": 1
+        "material": 1
       },
       "terrain": [
         "forest"
       ],
-      "produces": "wood",
-      "description": "1 bois par tour avec un ouvrier.",
+      "produces": "material",
+      "description": "+1 matériau / tour.",
       "pattern": "Deux forêts adjacentes : scierie et réserve de bois.",
       "weight": 2,
       "layout": [
         "Bt"
       ],
       "legend": {
-        "t": { "terrain": ["forest"], "role": "timber" }
+        "t": {
+          "terrain": [
+            "forest"
+          ],
+          "role": "timber"
+        }
       },
       "production": 1,
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "quarry",
       "name": "Carrière",
       "icon": "assets/textures/buildings-quarry.svg",
       "cost": {
-        "wood": 1,
-        "wheat": 1
+        "material": 1
       },
       "terrain": [
         "plain"
       ],
-      "produces": "stone",
-      "description": "1 pierre par tour avec un ouvrier.",
+      "produces": "material",
+      "description": "+1 matériau / tour.",
       "pattern": "Deux plaines adjacentes : carrière et zone d’extraction.",
       "weight": 2,
       "layout": [
         "Bq"
       ],
       "legend": {
-        "q": { "terrain": ["plain"], "role": "quarry" }
+        "q": {
+          "terrain": [
+            "plain"
+          ],
+          "role": "quarry"
+        }
       },
       "production": 1,
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "mine",
       "name": "Mine",
       "icon": "assets/textures/buildings-mine.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
         "plain"
       ],
-      "produces": "iron",
-      "description": "1 fer par tour avec un ouvrier.",
+      "produces": "gold",
+      "description": "+1 or / tour.",
       "pattern": "Une plaine d’entrée suivie de 3 montagnes en ligne.",
       "weight": 2,
       "layout": [
@@ -129,19 +141,20 @@
         }
       },
       "production": 1,
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "bridge",
       "name": "Pont",
       "icon": "assets/textures/buildings-bridge.svg",
       "cost": {
-        "wood": 2
+        "material": 2
       },
       "terrain": [
         "river"
       ],
-      "description": "Sa case rivière devient traversable.",
+      "description": "Passage.",
       "pattern": "Une case de rivière.",
       "weight": 6,
       "layout": [
@@ -149,21 +162,42 @@
       ],
       "legend": {},
       "traversable": true,
-      "tier": 0
+      "tier": 0,
+      "points": 1
+    },
+    {
+      "id": "tunnel",
+      "name": "Tunnel",
+      "icon": "assets/textures/buildings-tunnel.svg",
+      "cost": {
+        "material": 2
+      },
+      "terrain": [
+        "mountain"
+      ],
+      "description": "Passage.",
+      "pattern": "Une case de montagne.",
+      "weight": 6,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "traversable": true,
+      "tier": 0,
+      "points": 1
     },
     {
       "id": "port",
       "name": "Port",
       "icon": "assets/textures/buildings-port.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
         "plain"
       ],
-      "produces": "wheat",
-      "description": "1 blé par tour avec un ouvrier.",
+      "produces": "gold",
+      "description": "+1 or / tour.",
       "pattern": "Une plaine avec 3 cases de rivière alignées sur un côté.",
       "weight": 2,
       "layout": [
@@ -180,7 +214,8 @@
         }
       },
       "production": 1,
-      "tier": 1
+      "tier": 2,
+      "points": 1
     },
     {
       "id": "clearing",
@@ -190,7 +225,7 @@
       "terrain": [
         "forest"
       ],
-      "description": "Gratuit : transforme une forêt en plaine libre et donne immédiatement 2 bois.",
+      "description": "+2 matériaux ; forêt → plaine.",
       "pattern": "Une forêt libre. Action sans bâtiment permanent.",
       "weight": 8,
       "layout": [
@@ -199,29 +234,35 @@
       "legend": {},
       "transformTo": "plain",
       "onBuildGain": {
-        "wood": 2
+        "material": 2
       },
-      "tier": 0
+      "tier": 0,
+      "points": 0
     },
     {
       "id": "mill",
       "name": "Moulin",
       "icon": "assets/textures/buildings-mill.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
-        "plain"
+        "plain",
+        "field"
       ],
-      "description": "Double le blé de vos fermes voisines, sans cumul.",
-      "pattern": "Deux plaines adjacentes pour le moulin et sa cour ; l’entrée touche un champ par un bord et votre ferme par un bord ou un coin.",
+      "description": "Nourriture des fermes voisines ×2.",
+      "pattern": "Entrée sur plaine ou champ, voisine d’un de vos champs ; une plaine pour la cour.",
       "weight": 1,
       "layout": [
         "Bc"
       ],
       "legend": {
-        "c": { "terrain": ["plain"], "role": "courtyard" }
+        "c": {
+          "terrain": [
+            "plain"
+          ],
+          "role": "courtyard"
+        }
       },
       "adjacency": [
         {
@@ -229,11 +270,6 @@
           "range": "edge",
           "owned": true,
           "terrain": "field"
-        },
-        {
-          "building": "farm",
-          "range": "touching",
-          "owned": true
         }
       ],
       "boost": {
@@ -242,16 +278,17 @@
         "range": "touching",
         "owned": true
       },
-      "tier": 2
+      "tier": 2,
+      "points": 1
     },
     {
       "id": "barracks",
       "name": "Caserne",
       "icon": "assets/textures/buildings-barracks.svg",
-      "weight": 5,
+      "weight": 6,
       "cost": {
-        "wood": 2,
-        "stone": 2
+        "food": 1,
+        "material": 2
       },
       "terrain": [
         "plain"
@@ -260,54 +297,65 @@
         "Bc"
       ],
       "legend": {
-        "c": { "terrain": ["plain"], "role": "courtyard" }
+        "c": {
+          "terrain": [
+            "plain"
+          ],
+          "role": "courtyard"
+        }
       },
-      "description": "Recrute au choix une unité par tour, sans ouvrier.",
+      "description": "+1 soldat offert ; 1 recrutement / tour.",
       "pattern": "Deux plaines adjacentes : caserne et cour d’entraînement.",
       "trains": [
-        "cavalry"
+        "soldier"
       ],
       "trainingLimit": 1,
-      "tier": 2
+      "tier": 2,
+      "points": 1,
+      "onBuildUnit": "soldier"
     },
     {
       "id": "quarry_mountain",
       "name": "Carrière",
       "icon": "assets/textures/buildings-quarry.svg",
       "cost": {
-        "wood": 1,
-        "wheat": 1
+        "material": 1
       },
       "terrain": [
         "mountain"
       ],
-      "produces": "stone",
-      "description": "1 pierre par tour avec un ouvrier.",
+      "produces": "material",
+      "description": "+1 matériau / tour.",
       "pattern": "Deux montagnes adjacentes : carrière et zone d’extraction.",
       "weight": 2,
       "layout": [
         "Bq"
       ],
       "legend": {
-        "q": { "terrain": ["mountain"], "role": "quarry" }
+        "q": {
+          "terrain": [
+            "mountain"
+          ],
+          "role": "quarry"
+        }
       },
       "production": 1,
       "family": "quarry",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "mine_square",
       "name": "Mine",
       "icon": "assets/textures/buildings-mine.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
         "plain"
       ],
-      "produces": "iron",
-      "description": "1 fer par tour avec un ouvrier.",
+      "produces": "gold",
+      "description": "+1 or / tour.",
       "pattern": "Une plaine d’entrée à côté d’un carré de 2 × 2 montagnes.",
       "weight": 2,
       "layout": [
@@ -324,21 +372,21 @@
       },
       "production": 1,
       "family": "mine",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "port_square",
       "name": "Port",
       "icon": "assets/textures/buildings-port.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
         "plain"
       ],
-      "produces": "wheat",
-      "description": "1 blé par tour avec un ouvrier.",
+      "produces": "gold",
+      "description": "+1 or / tour.",
       "pattern": "Une plaine d’entrée à côté d’un carré de 2 × 2 cases de rivière.",
       "weight": 2,
       "layout": [
@@ -355,38 +403,40 @@
       },
       "production": 1,
       "family": "port",
-      "tier": 1
+      "tier": 2,
+      "points": 1
     },
     {
       "id": "castle",
-      "name": "Château",
+      "name": "Donjon",
       "icon": "assets/textures/buildings-castle.svg",
       "cost": {},
       "terrain": [
         "plain"
       ],
-      "description": "Bâtiment de départ uniquement, non constructible. 2 places de population.",
+      "description": "Garnison 1 ; donjon conquis = défaite.",
       "pattern": "Une case de plaine.",
       "constructible": false,
       "layout": [
         "B"
       ],
       "legend": {},
-      "housing": 2,
-      "tier": 0
+      "tier": 2,
+      "points": 0,
+      "garrison": 1
     },
     {
       "id": "farm_z",
       "name": "Ferme",
       "icon": "assets/textures/buildings-farm.svg",
       "cost": {
-        "wood": 1
+        "material": 1
       },
       "terrain": [
         "plain"
       ],
-      "produces": "wheat",
-      "description": "1 blé par tour avec un ouvrier.",
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
       "pattern": "Cinq plaines en Z : une entrée et quatre champs.",
       "weight": 2,
       "layout": [
@@ -405,26 +455,26 @@
       },
       "production": 1,
       "family": "farm",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "sawmill_cross",
       "name": "Scierie",
       "icon": "assets/textures/buildings-sawmill.svg",
       "cost": {
-        "stone": 1
+        "material": 1
       },
       "terrain": [
         "forest"
       ],
-      "produces": "wood",
-      "description": "1 bois par tour avec un ouvrier.",
-      "pattern": "Cinq forêts en croix : une entrée et quatre cases forestières réservées.",
+      "produces": "material",
+      "description": "+1 matériau / tour.",
+      "pattern": "Quatre forêts en T : une entrée et trois cases forestières réservées.",
       "weight": 2,
       "layout": [
         ".t.",
-        "tBt",
-        ".t."
+        "tBt"
       ],
       "legend": {
         "t": {
@@ -436,20 +486,21 @@
       },
       "production": 1,
       "family": "sawmill",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "farm_t",
       "name": "Ferme",
       "icon": "assets/textures/buildings-farm.svg",
       "cost": {
-        "wood": 1
+        "material": 1
       },
       "terrain": [
         "plain"
       ],
-      "produces": "wheat",
-      "description": "1 blé par tour avec un ouvrier.",
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
       "pattern": "Cinq plaines en T : une entrée et quatre champs.",
       "weight": 2,
       "layout": [
@@ -468,26 +519,27 @@
       },
       "production": 1,
       "family": "farm",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "sawmill_l",
       "name": "Scierie",
       "icon": "assets/textures/buildings-sawmill.svg",
       "cost": {
-        "stone": 1
+        "material": 1
       },
       "terrain": [
         "forest"
       ],
-      "produces": "wood",
-      "description": "1 bois par tour avec un ouvrier.",
-      "pattern": "Cinq forêts en L : une entrée et quatre cases forestières réservées.",
+      "produces": "material",
+      "description": "+1 matériau / tour.",
+      "pattern": "Quatre forêts en L : une entrée et trois cases forestières réservées.",
       "weight": 2,
       "layout": [
         "t..",
         "t..",
-        "Btt"
+        "Bt."
       ],
       "legend": {
         "t": {
@@ -499,21 +551,21 @@
       },
       "production": 1,
       "family": "sawmill",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "quarry_ridge",
       "name": "Carrière",
       "icon": "assets/textures/buildings-quarry.svg",
       "cost": {
-        "wood": 1,
-        "wheat": 1
+        "material": 1
       },
       "terrain": [
         "plain"
       ],
-      "produces": "stone",
-      "description": "1 pierre par tour avec un ouvrier.",
+      "produces": "material",
+      "description": "+1 matériau / tour.",
       "pattern": "Une entrée sur plaine et deux montagnes en coude.",
       "weight": 2,
       "layout": [
@@ -530,21 +582,21 @@
       },
       "production": 1,
       "family": "quarry",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "mine_l",
       "name": "Mine",
       "icon": "assets/textures/buildings-mine.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
         "plain"
       ],
-      "produces": "iron",
-      "description": "1 fer par tour avec un ouvrier.",
+      "produces": "gold",
+      "description": "+1 or / tour.",
       "pattern": "Une entrée sur plaine et trois montagnes en coude.",
       "weight": 2,
       "layout": [
@@ -561,23 +613,23 @@
       },
       "production": 1,
       "family": "mine",
-      "tier": 1
+      "tier": 1,
+      "points": 1
     },
     {
       "id": "port_l",
       "name": "Port",
       "icon": "assets/textures/buildings-port.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
         "plain"
       ],
-      "produces": "wheat",
-      "description": "1 blé par tour avec un ouvrier.",
+      "produces": "gold",
+      "description": "+1 or / tour.",
       "pattern": "Une entrée sur plaine et trois cases de rivière en coude.",
-      "weight": 2,
+      "weight": 1,
       "layout": [
         "Bww",
         "..w"
@@ -592,21 +644,22 @@
       },
       "production": 1,
       "family": "port",
-      "tier": 1
+      "tier": 2,
+      "points": 1
     },
     {
       "id": "mill_line",
       "name": "Moulin",
       "icon": "assets/textures/buildings-mill.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
-        "plain"
+        "plain",
+        "field"
       ],
-      "description": "Double le blé de vos fermes voisines, sans cumul.",
-      "pattern": "Deux plaines en ligne : entrée et cour réservée.",
+      "description": "Nourriture des fermes voisines ×2.",
+      "pattern": "Entrée sur plaine ou champ, voisine d’un champ allié ; cour sur plaine.",
       "weight": 2,
       "layout": [
         "Bp"
@@ -625,11 +678,6 @@
           "range": "edge",
           "owned": true,
           "terrain": "field"
-        },
-        {
-          "building": "farm",
-          "range": "touching",
-          "owned": true
         }
       ],
       "boost": {
@@ -639,21 +687,22 @@
         "owned": true
       },
       "family": "mill",
-      "tier": 2
+      "tier": 2,
+      "points": 1
     },
     {
       "id": "mill_l",
       "name": "Moulin",
       "icon": "assets/textures/buildings-mill.svg",
       "cost": {
-        "wood": 2,
-        "stone": 1
+        "material": 2
       },
       "terrain": [
-        "plain"
+        "plain",
+        "field"
       ],
-      "description": "Double le blé de vos fermes voisines, sans cumul.",
-      "pattern": "Trois plaines en L : entrée et deux cases de cour réservées.",
+      "description": "Nourriture des fermes voisines ×2.",
+      "pattern": "Entrée sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine.",
       "weight": 2,
       "layout": [
         "Bp",
@@ -673,11 +722,6 @@
           "range": "edge",
           "owned": true,
           "terrain": "field"
-        },
-        {
-          "building": "farm",
-          "range": "touching",
-          "owned": true
         }
       ],
       "boost": {
@@ -687,7 +731,176 @@
         "owned": true
       },
       "family": "mill",
-      "tier": 2
+      "tier": 2,
+      "points": 1
+    },
+    {
+      "id": "outpost",
+      "name": "Avant-poste",
+      "icon": "assets/textures/buildings-outpost.svg",
+      "cost": {
+        "material": 2
+      },
+      "terrain": [
+        "plain",
+        "forest",
+        "mountain",
+        "river",
+        "field"
+      ],
+      "description": "Garnison 1.",
+      "pattern": "Une case révélée libre.",
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "tier": 2,
+      "weight": 6,
+      "points": 1,
+      "garrison": 1,
+      "traversable": true
+    },
+    {
+      "id": "chancellery",
+      "name": "Chancellerie",
+      "icon": "assets/textures/buildings-chancellery.svg",
+      "cost": {
+        "material": 4,
+        "gold": 3
+      },
+      "terrain": [
+        "plain"
+      ],
+      "description": "+1 émissaire ; unique.",
+      "pattern": "Une case de plaine.",
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "tier": 2,
+      "weight": 5,
+      "points": 1,
+      "onBuildUnit": "emissary",
+      "unique": true
+    },
+    {
+      "id": "monument",
+      "name": "Monument",
+      "icon": "assets/textures/buildings-monument.svg",
+      "cost": {
+        "material": 3,
+        "gold": 2
+      },
+      "terrain": [
+        "plain"
+      ],
+      "description": "6 points.",
+      "pattern": "Quatre plaines en carré.",
+      "layout": [
+        "Bc",
+        "cc"
+      ],
+      "legend": {
+        "c": {
+          "terrain": [
+            "plain"
+          ],
+          "role": "courtyard"
+        }
+      },
+      "tier": 2,
+      "weight": 5,
+      "points": 6
+    },
+    {
+      "id": "fisher",
+      "name": "Bateau de pêche",
+      "icon": "assets/textures/buildings-fisher.svg",
+      "cost": {
+        "material": 1
+      },
+      "terrain": [
+        "river"
+      ],
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
+      "pattern": "Trois cases de rivière en ligne ; le bateau occupe une extrémité.",
+      "weight": 2,
+      "layout": [
+        "Brr"
+      ],
+      "legend": {
+        "r": {
+          "terrain": [
+            "river"
+          ],
+          "role": "water"
+        }
+      },
+      "production": 1,
+      "tier": 1,
+      "points": 1
+    },
+    {
+      "id": "fisher_bank",
+      "name": "Cabane de pêcheur",
+      "icon": "assets/textures/buildings-fisher.svg",
+      "cost": {
+        "material": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
+      "pattern": "Une plaine pour la cabane suivie de deux cases de rivière en ligne.",
+      "weight": 2,
+      "layout": [
+        "Brr"
+      ],
+      "legend": {
+        "r": {
+          "terrain": [
+            "river"
+          ],
+          "role": "water"
+        }
+      },
+      "production": 1,
+      "family": "fisher",
+      "tier": 1,
+      "points": 1
+    },
+    {
+      "id": "fisher_corner",
+      "name": "Cabane de pêcheur",
+      "icon": "assets/textures/buildings-fisher.svg",
+      "cost": {
+        "material": 1
+      },
+      "terrain": [
+        "plain"
+      ],
+      "produces": "food",
+      "description": "+1 nourriture / tour.",
+      "pattern": "Deux cases de rivière côte à côte ; la cabane sur plaine sous une extrémité.",
+      "weight": 2,
+      "layout": [
+        "rr",
+        ".B"
+      ],
+      "legend": {
+        "r": {
+          "terrain": [
+            "river"
+          ],
+          "role": "water"
+        }
+      },
+      "production": 1,
+      "family": "fisher",
+      "tier": 1,
+      "points": 1
     }
   ],
   "maxFamilyCopies": 12

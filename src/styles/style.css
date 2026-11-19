@@ -97,8 +97,7 @@ h2 {
   letter-spacing: 1.5px;
   color: var(--muted);
 }
-.session i,
-.save-dot {
+.session i {
   display: inline-block;
   width: 6px;
   height: 6px;
@@ -595,11 +594,6 @@ footer > span:first-child {
 footer .muted {
   color: #949a8c;
   letter-spacing: 0;
-}
-.save-dot {
-  width: 5px;
-  height: 5px;
-  margin: 0 0 0 5px;
 }
 #toast {
   position: fixed;

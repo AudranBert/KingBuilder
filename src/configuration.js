@@ -46,7 +46,6 @@ export const START_RESOURCES = Object.fromEntries(
     .filter(([, r]) => !r.calculated)
     .map(([id, r]) => [id, r.startingAmount]),
 );
-export const RECRUITMENT_COST = CONFIG.units.worker.cost;
 export const BUILDINGS = CONFIG.buildings;
 
 export const UNIT_DEFINITIONS = CONFIG.units;

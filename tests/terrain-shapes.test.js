@@ -1,26 +1,27 @@
+import { createSandboxGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  createGame,
   key,
   placement,
   transformed,
   explore,
   score,
 } from "../src/engine.js";
+import { CONFIG } from "../src/configuration.js";
 const coordinates = (cells) => cells.map((c) => key(c.x, c.y)).sort();
 function getTile(g, id) {
   return [...g.tileMarket, ...g.tileDeck].find((t) => t.id === id);
 }
-test("la pioche de 60 tuiles comprend treize formes et exclut anneau et rectangle", () => {
+test("la pioche de 60 tuiles comprend dix-sept formes, dont quatre de six cases", () => {
   const g = createGame();
   const tiles = [...g.tileMarket, ...g.tileDeck];
   assert.equal(tiles.length, 60);
   assert.equal(
     new Set(tiles.map((t) => JSON.stringify(coordinates(t.cells)))).size,
-    13,
+    17,
   );
-  assert.ok(tiles.every((t) => t.cells.length <= 5));
+  assert.ok(tiles.every((t) => t.cells.length <= 6));
   assert.deepEqual(
     coordinates(getTile(g, 5).cells),
     ["1,0", "0,1", "1,1", "2,1", "1,2"].sort(),
@@ -63,7 +64,22 @@ test("croix et U pivotent sans remplir leurs vides et restent posables", () => {
       assert.equal(placement(g, 0, 7, 7, r), null);
     }
 });
-test("révéler la croix ou le U donne cinq points et laisse les vides inexplorés", () => {
+test("les douze tuiles de six cases pivotent et explorent exactement six cases", () => {
+  for (const definition of CONFIG.tiles.filter(tile => tile.cells.length === 6))
+    for (let rotation = 0; rotation < 4; rotation++) {
+      const g = createGame();
+      g.tileMarket[0] = [...g.tileMarket, ...g.tileDeck].find(tile => tile.definitionId === definition.id);
+      g.players[0].x = 6;
+      g.players[0].y = 7;
+      const cells = placement(g, 0, 7, 7, rotation);
+      assert.equal(cells?.length, 6, definition.id);
+      const before = Object.keys(g.board).length;
+      explore(g, 0, 7, 7, rotation);
+      assert.equal(Object.keys(g.board).length, before + 6);
+      assert.equal(g.players[0].revealed, 6);
+    }
+});
+test("révéler la croix ou le U révèle cinq cases sans points directs et laisse les vides inexplorés", () => {
   for (const id of [5, 6]) {
     const g = createGame();
     g.tileMarket[0] = getTile(g, id);
@@ -74,7 +90,7 @@ test("révéler la croix ou le U donne cinq points et laisse les vides inexplor�
     const count = Object.keys(g.board).length;
     explore(g, 0, 7, 7);
     assert.equal(Object.keys(g.board).length, count + 5);
-    assert.equal(score(g, 0).tiles, 5);
+    assert.equal(g.players[0].revealed, 5);
     for (let x = 6; x <= 9; x++)
       for (let y = 7; y <= 9; y++)
         if (!occupied.has(key(x, y)))
@@ -150,7 +166,7 @@ test("tous les nouveaux motifs pivotent, préservent les trous et marquent uniqu
       const before = Object.keys(g.board).length;
       explore(g, 0, 7, 7, r);
       assert.equal(Object.keys(g.board).length, before + cells.length);
-      assert.equal(score(g, 0).tiles, cells.length);
+      assert.equal(g.players[0].revealed, cells.length);
       empty.forEach((k) => assert.deepEqual(g.board[k], { terrain: "forest" }));
     }
 });

@@ -1,10 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createGame, endTurn, RULES, moveError } from "../src/engine.js";
-import { validateGame, createPersistence, SAVE_KEY } from "../src/storage.js";
+import { validateGame } from "../src/validation.js";
 import { playersView, missionsView, resultsView } from "../src/ui/views.js";
 
-test("solo : un royaume, 20 tours et sauvegarde rechargeable", () => {
+test("solo : un royaume et 25 tours", () => {
   const game = createGame(Math.random, "solo");
   assert.equal(game.players.length, 1);
   assert.equal(Object.values(game.board).filter((c) => c.building).length, 1);
@@ -24,18 +24,9 @@ test("solo : un royaume, 20 tours et sauvegarde rechargeable", () => {
   }
   endTurn(game);
   assert.equal(game.finished, true);
-  const values = new Map();
-  const storage = {
-    getItem: (k) => values.get(k),
-    setItem: (k, v) => values.set(k, v),
-  };
-  const persistence = createPersistence(storage);
-  assert.equal(persistence.save(game), true);
-  assert.deepEqual(persistence.load(), game);
-  assert.ok(values.has(SAVE_KEY));
 });
 
-test("local : alternance des deux joueurs et compatibilité des anciennes sauvegardes", () => {
+test("local : alternance des deux joueurs", () => {
   const game = createGame();
   assert.equal(game.mode, "local");
   endTurn(game);
@@ -48,7 +39,7 @@ test("local : alternance des deux joueurs et compatibilité des anciennes sauveg
   assert.equal(validateGame(game), game);
 });
 
-test("les modes verrouillés et les sauvegardes incohérentes sont refusés", () => {
+test("les modes verrouillés et les états incohérents sont refusés", () => {
   for (const mode of ["bot", "online"])
     assert.throws(() => createGame(Math.random, mode));
   const game = createGame(Math.random, "solo");

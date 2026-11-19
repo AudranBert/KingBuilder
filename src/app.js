@@ -2,20 +2,25 @@ import { parseKey } from "./geometry.js";
 import { installDrag } from "./ui/drag.js";
 import {
   RULES,
+  GAME_DEFAULTS,
   createGame,
-  PRESTIGE,
+  buyTerrain,
+  startOpening,
+  placeOpeningTile,
+  GOLD,
   MISSIONS,
+  RESOURCE_DEFINITIONS,
   buildingPayment,
   buildError,
   rerollMarket,
   rerollError,
   actor,
   movementPaths,
+  attackPaths,
+  selectArmy,
   pawns,
   explore,
   build,
-  recruit,
-  recruitError,
   assign,
   endTurn,
   selectUnit,
@@ -30,25 +35,25 @@ import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
   e,
-  costHTML,
   costText,
-  populationHTML,
+  iconHTML,
   terrainDiagram,
   buildingDiagram,
 } from "./ui/html.js";
-import { RECRUITMENT_COST, UNIT_DEFINITIONS } from "./configuration.js";
 import {
   playersView,
   missionsView,
   barracksView,
   workersView,
   terrainMarketView,
+  singleTerrainView,
   buildingMarketView,
   buildingDetailsView,
   selectionView,
   resultsView,
   rulesView,
   harvestView,
+  tradeView,
 } from "./ui/views.js";
 
 export function startGame() {
@@ -57,7 +62,10 @@ export function startGame() {
     markup = new WeakMap();
   let game = createGame(),
     toastTimer;
-  let nextMode = game.mode || "local";
+  let undoState = null;
+  let pendingBuild = null;
+  let nextMode = "local",
+    nextSettings = structuredClone(GAME_DEFAULTS);
   let inMenu = true;
   function showMenu() {
     drag.cancel();
@@ -79,8 +87,10 @@ export function startGame() {
   const board = createBoard($("#board"), $("#map-scroll"), handleCell, previewPlacement);
   function placementHelp(message) {
     const choice = ui.drag || ui.placement;
-    if (!choice || !["terrain", "building"].includes(choice.kind)) {
-      $("#placement-help").textContent = "";
+    if (!choice || !["terrain", "building", "single-terrain"].includes(choice.kind)) {
+      $("#placement-help").textContent = game.opening
+        ? "Choisissez une tuile, puis posez-la sur des cases vides. R : pivoter."
+        : "";
       return;
     }
     if (message) {
@@ -112,63 +122,81 @@ export function startGame() {
       4500,
     );
   }
-  function act(action, { message } = {}) {
+  function act(action, { message, undoable = true, clearUndo = false } = {}) {
+    const before = undoable ? structuredClone(game) : null;
+    const signature = undoable ? JSON.stringify(game) : null;
     try {
       const previousClaims = game.missions.claimed.length;
       action();
+      if (clearUndo) undoState = null;
+      else if (undoable && JSON.stringify(game) !== signature) undoState = before;
       const won = game.missions.claimed.slice(previousClaims);
       render();
+      if (game.finished) showResults();
       if (won.length)
         toast(
           won
             .map(
               (c) =>
-                `${MISSIONS[c.id].name} : +${MISSIONS[c.id].reward.prestige} ✦`,
+                `${MISSIONS[c.id].name} : +${MISSIONS[c.id].reward.gold} or`,
             )
             .join(" · "),
         );
       else if (message) toast(message);
       return true;
     } catch (error) {
+      if (undoable && JSON.stringify(game) !== signature) {
+        game = before;
+        render();
+      }
       toast(error.message);
       return false;
     }
   }
   function render() {
+    const opening = game.opening;
+    $(".game-layout").classList.toggle("opening", Boolean(opening));
+    $("#opening-status").hidden = !opening;
+    $("#opening-status").textContent = opening
+      ? `Préparation ${opening.step + 1}/${opening.totalPlacements} · ${game.players[game.active].name} · ${opening.tiles.length} tuiles au choix`
+      : "";
     html("#players", playersView(game));
     html("#missions", missionsView(game));
     $("#missions").style.setProperty("--mission-columns", RULES.missionMarketSize);
-    $("#tile-market").style.setProperty("--terrain-columns", RULES.markets.terrainSize);
+    $("#tile-market").style.setProperty("--terrain-columns", opening ? 3 : RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
         error = rerollError(game, kind);
-      button.textContent = `↻ ${PRESTIGE.rerollCost} ✦`;
+      button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
       button.disabled = Boolean(error);
       button.title =
-        error || `Remplacer les offres pour ${PRESTIGE.rerollCost} prestige`;
+        error || `Remplacer les offres pour ${GOLD.rerollCost} or`;
     }
     html("#barracks-list", barracksView(game));
     html("#worker-list", workersView(game));
     html("#tile-market", terrainMarketView(game, ui));
+    html("#single-terrain", singleTerrainView(game, ui));
     html("#building-market", buildingMarketView(game, ui));
     html("#selection", selectionView(game, ui));
     html("#harvest", harvestView(game));
     placementHelp();
-    const recruitReason = recruitError(game);
-    html("#recruit", `+ ${e(UNIT_DEFINITIONS.worker.name)} <small>${costHTML(RECRUITMENT_COST)} · ${populationHTML(UNIT_DEFINITIONS.worker.population)}</small>`);
-    $("#recruit").disabled = Boolean(recruitReason);
-    $("#recruit-reason").textContent = recruitReason || "";
-    $("#end-turn").innerHTML = game.finished
+    html("#trade-info", tradeView(game));
+    $("#end-turn").disabled = Boolean(opening);
+    $("#end-turn").innerHTML = opening
+      ? "Posez une tuile terrain"
+      : game.finished
       ? "Voir les résultats →"
       : `<strong>Fin de tour →</strong><small>${harvestView(game).match(/Fin du tour : ([^<]+)/)?.[1] || "aucune récolte"}</small>`;
-    $("#round").innerHTML =
-      `${String(game.round).padStart(2, "0")} <small>/ ${RULES.rounds}</small>`;
+    $("#round").innerHTML = opening
+      ? `0 <small>/ ${game.turnLimit}</small>`
+      : `${String(game.round).padStart(2, "0")} <small>/ ${game.turnLimit}</small>`;
     $("#rotation-label").textContent = `${ui.rotation * 90}°`;
     $("#building-rotation-label").textContent = `${ui.buildingRotation * 90}°`;
     $("#rotate").disabled = game.finished || !game.tileMarket.length;
 
     $("#rotate-building").disabled =
-      game.finished || !game.buildingMarket.length;
+      game.finished || Boolean(opening) || !game.buildingMarket.length;
+    $("#undo-action").disabled = !undoState;
     for (const button of document.querySelectorAll("[data-mode]")) {
       button.setAttribute(
         "aria-pressed",
@@ -185,7 +213,7 @@ export function startGame() {
       ui.selected = null;
       ui.drag = null;
       ui.placement = null;
-    });
+    }, { undoable: false });
   }
   function handleCell(x, y) {
     if (ui.drag) return;
@@ -193,25 +221,30 @@ export function startGame() {
       const d = ui.placement;
       if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
       else act(() => {
-        explore(game, d.index, x, y, d.rotation);
+        if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
+        else if (game.opening) placeOpeningTile(game, d.index, x, y, d.rotation);
+        else explore(game, d.index, x, y, d.rotation);
         ui.placement = null;
       });
       return;
     }
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
-    if (own.length && !game.finished && ui.mode !== "inspect") {
+    if (own.length && !game.finished && ui.mode !== "inspect" && !(actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
       chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
       return;
     }
     ui.selected = { x, y };
+    if (ui.mode === "move" && attackPaths(game).has(key(x,y))) {
+      render();
+      return;
+    }
     if (ui.mode === "move" && movementPaths(game).has(key(x, y)))
       act(() => moveUnitTo(game, x, y));
     else render();
   }
-  let pendingBuild = null;
   function requestBuild(pos, index, rotation) {
     const error = buildError(game, index, pos.x, pos.y, rotation, {
-      allowPrestige: true,
+      allowGold: true,
     });
     if (error) {
       toast(error);
@@ -230,16 +263,16 @@ export function startGame() {
       y: pos.y,
       payment,
     };
-    if (!payment.prestige) {
+    if (!payment.gold) {
       completeBuild(attempt);
       return;
     }
     pendingBuild = attempt;
     const missing = costText(payment.missing);
     $("#prestige-warning").textContent =
-      `Il manque ${missing}. Utiliser ${payment.prestige} point(s) de prestige ? Cela représente ${payment.prestige * RULES.points.prestige} points de fin de partie. Les ressources disponibles seront aussi dépensées.`;
+      `Il manque ${missing}. Acheter ces ressources à la banque pour ${payment.gold} or ? Les ressources disponibles seront aussi dépensées.`;
     $("#prestige-dialog .confirm").textContent =
-      `Utiliser ${payment.prestige} ✦`;
+      `Payer ${payment.gold} or`;
     $("#prestige-dialog").showModal();
   }
   function completeBuild(attempt) {
@@ -256,8 +289,8 @@ export function startGame() {
         )
           throw Error("Le placement ou son coût a changé. Réessayez.");
         build(game, attempt.index, attempt.x, attempt.y, attempt.rotation, {
-          allowPrestige: attempt.payment.prestige > 0,
-          expectedPrestige: attempt.payment.prestige,
+          allowGold: attempt.payment.gold > 0,
+          expectedGold: attempt.payment.gold,
         });
         ui.placement = null;
         ui.selected = { x: attempt.x, y: attempt.y };
@@ -310,7 +343,9 @@ export function startGame() {
     const a = totalScore(game, 0),
       b = game.players.length > 1 ? totalScore(game, 1) : 0;
     $("#winner").textContent =
-      game.mode === "solo"
+      game.victory === "conquest"
+        ? `${game.players[game.winner].name} conquiert le donjon et remporte la partie !`
+        : game.mode === "solo"
         ? `Votre royaume : ${a} points`
         : a === b
           ? "Deux couronnes, une victoire partagée."
@@ -320,9 +355,9 @@ export function startGame() {
   }
 
   document.addEventListener("click", (event) => {
-    const card = event.target.closest("[data-building],[data-tile]");
+    const card = event.target.closest("[data-building],[data-tile],[data-single-terrain]");
     const detail = event.target.closest("[data-building-details]");
-    if (card && !game.finished) {
+    if (card && !game.finished && !(game.opening && card.hasAttribute("data-building"))) {
       ui.placement = dragFromCard(card, ui);
       ui.selected = null;
       render();
@@ -353,6 +388,9 @@ export function startGame() {
       ? parseKey(button.dataset.position)
       : null;
     switch (button.dataset.action) {
+      case "attack":
+        act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
+        break;
       case "move":
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
@@ -368,12 +406,23 @@ export function startGame() {
   });
   $("#rotate").addEventListener("click", () => rotate("terrain"));
   $("#rotate-building").addEventListener("click", () => rotate("building"));
-  $("#recruit").addEventListener("click", () =>
-    act(() => recruit(game), {
-      message: `${UNIT_DEFINITIONS.worker.name} disponible pour une affectation.`,
-    }),
-  );
+  document.addEventListener("change", event => {
+    if (event.target.matches("[data-army-size]")) act(() => selectArmy(game,Number(event.target.value)), { undoable: false });
+  });
+  $("#undo-action").addEventListener("click", () => {
+    if (!undoState) return;
+    game = undoState;
+    undoState = null;
+    pendingBuild = null;
+    ui.selected = null;
+    ui.placement = null;
+    ui.drag = null;
+    if ($("#result-dialog").open) $("#result-dialog").close();
+    render();
+    toast("Dernière action annulée.");
+  });
   $("#end-turn").addEventListener("click", () => {
+    if (game.opening) return;
     if (game.finished) {
       showResults();
       return;
@@ -382,13 +431,14 @@ export function startGame() {
       endTurn(game);
       ui.selected = null;
       ui.placement = null;
-    });
+    }, { undoable: false, clearUndo: true });
     if (game.finished) showResults();
     else toast(`${game.players[game.active].name} : à vous de jouer.`);
   });
-  $("#rules-button").addEventListener("click", () =>
-    $("#rules-dialog").showModal(),
-  );
+  $("#rules-button").addEventListener("click", () => {
+    html(".rules-content", rulesView(game));
+    $("#rules-dialog").showModal();
+  });
   $("#building-details-dialog .close-building-details").addEventListener("click", () =>
     $("#building-details-dialog").close(),
   );
@@ -399,7 +449,8 @@ export function startGame() {
   $("#menu-button").addEventListener("click", showMenu);
   function requestNewGame(mode) {
     nextMode = mode;
-    beginNewGame();
+    $("#settings-mode").textContent = mode === "solo" ? "Partie solo" : "Partie locale";
+    $("#game-settings-dialog").showModal();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
     button.addEventListener("click", () =>
@@ -408,11 +459,13 @@ export function startGame() {
   function beginNewGame() {
     const created = act(
       () => {
-        game = createGame(Math.random, nextMode);
-        $("#game-notice").hidden = true;
+        game = createGame(Math.random, nextMode, nextSettings);
+        startOpening(game);
         Object.assign(ui, createUIState());
       },
       {
+        undoable: false,
+        clearUndo: true,
         message:
           nextMode === "solo"
             ? "Votre royaume s’éveille."
@@ -420,9 +473,50 @@ export function startGame() {
       },
     );
     if (created) {
+      $("#game-settings-dialog").close();
       enterGame();
     }
   }
+  const settingInputs = {
+    rounds: ["#setting-rounds", "#setting-rounds-value", "tours"],
+    openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value", "tuiles"],
+    boardSize: ["#setting-board", "#setting-board-value", "grille"],
+    material: ["#setting-material", "#setting-material-value", "bois"],
+    food: ["#setting-food", "#setting-food-value", "blé"],
+    gold: ["#setting-gold", "#setting-gold-value", "or"],
+  };
+  function updateSettingLabels() {
+    for (const [name, [inputSelector, outputSelector]] of Object.entries(settingInputs)) {
+      const value = Number($(inputSelector).value),
+        output = $(outputSelector);
+      output.textContent = name === "boardSize" ? `${value} × ${value}` : String(value);
+    }
+  }
+  for (const [name, [inputSelector]] of Object.entries(settingInputs)) {
+    const input = $(inputSelector),
+      defaultValue = Object.hasOwn(GAME_DEFAULTS.resources, name)
+        ? GAME_DEFAULTS.resources[name]
+        : GAME_DEFAULTS[name];
+    input.value = defaultValue;
+    input.addEventListener("input", updateSettingLabels);
+  }
+  updateSettingLabels();
+  $("#settings-cancel").addEventListener("click", () =>
+    $("#game-settings-dialog").close(),
+  );
+  $("#settings-start").addEventListener("click", () => {
+    nextSettings = {
+      rounds: Number($("#setting-rounds").value),
+      openingTilesPerPlayer: Number($("#setting-opening").value),
+      boardSize: Number($("#setting-board").value),
+      resources: {
+        material: Number($("#setting-material").value),
+        food: Number($("#setting-food").value),
+        gold: Number($("#setting-gold").value),
+      },
+    };
+    beginNewGame();
+  });
   $(".close-results").addEventListener("click", () =>
     $("#result-dialog").close(),
   );
@@ -437,6 +531,8 @@ export function startGame() {
       drag.cancel();
       ui.selected = null;
       ui.placement = null;
+      game.selectedUnitId = null;
+      game.armySelection = null;
       render();
       event.preventDefault();
     }
@@ -450,13 +546,23 @@ export function startGame() {
       event.preventDefault();
     }
   });
+  $(".game-layout").addEventListener("contextmenu", event => {
+    event.preventDefault();
+    drag.cancel();
+    ui.selected = null;
+    ui.placement = null;
+    ui.drag = null;
+    game.selectedUnitId = null;
+    game.armySelection = null;
+    render();
+  });
   const drag = installDrag({
     root: $(".game-layout"),
     begin(card) {
       ui.drag = dragFromCard(card, ui);
       ui.placement = null;
       ui.selected = null;
-      if (ui.drag.kind === "unit") selectUnit(game, ui.drag.id);
+      if (ui.drag.kind === "unit" && ui.drag.id !== game.selectedUnitId) selectUnit(game, ui.drag.id);
       render();
     },
     preview(pos) {
@@ -469,9 +575,11 @@ export function startGame() {
       const d = ui.drag;
       if (!d) return "";
       if (d.kind === "terrain")
-        return terrainDiagram(game.tileMarket[d.index], d.rotation);
+        return terrainDiagram((game.opening ? game.opening.tiles : game.tileMarket)[d.index], d.rotation);
       if (d.kind === "building")
         return buildingDiagram(game.buildingMarket[d.index], d.rotation);
+      if (d.kind === "single-terrain")
+        return terrainDiagram({ cells: [{ x: 0, y: 0, terrain: d.terrain }] });
       return piece(d.kind === "worker" ? "worker" : actor(game).type);
     },
     drop(pos) {
@@ -484,7 +592,11 @@ export function startGame() {
       else if (d.kind === "worker")
         act(() => assignWorker(game, d.id, pos.x, pos.y));
       else if (d.kind === "terrain")
-        act(() => explore(game, d.index, pos.x, pos.y, d.rotation));
+        act(() => game.opening
+          ? placeOpeningTile(game, d.index, pos.x, pos.y, d.rotation)
+          : explore(game, d.index, pos.x, pos.y, d.rotation));
+      else if (d.kind === "single-terrain")
+        act(() => buyTerrain(game, d.terrain, pos.x, pos.y));
       else requestBuild(pos, d.index, d.rotation);
     },
     end() {
@@ -492,7 +604,7 @@ export function startGame() {
       render();
     },
   });
-  html(".rules-content", rulesView());
+  html(".rules-content", rulesView(game));
   render();
   showMenu();
 }

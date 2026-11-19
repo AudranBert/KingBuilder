@@ -1,5 +1,5 @@
 import { CONFIG } from "./configuration.js";
-export const PRESTIGE = CONFIG.rules.prestige;
+export const GOLD = CONFIG.rules.gold;
 export const MISSIONS = CONFIG.missions;
 export function emptyProgress() {
   return { terrain: {}, built: {}, recruited: 0 };
@@ -34,16 +34,12 @@ function revealMission(g, id) {
   g.missions.baselines ??= {};
   g.missions.baselines[id] = g.players.map((_, owner) => missionProgress(g, id, owner));
 }
-export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
+export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
   g.rerollsUsed ??= 0;
   for (const [owner, p] of g.players.entries()) {
-    p.prestige ??=
-      owner === 0
-        ? PRESTIGE.firstPlayerStartingAmount
-        : PRESTIGE.startingAmount;
     if (!p.progress) {
       p.progress = emptyProgress();
-      // Historic terrain before transformations is unavailable in older saves.
+      // Historic terrain before transformations is unavailable in older states.
       const spawn = CONFIG.rules.players[owner].start;
       const startKey = `${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.x * CONFIG.rules.boardSize))},${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.y * CONFIG.rules.boardSize))}`;
       for (const [position, c] of Object.entries(g.board)) {
@@ -76,7 +72,7 @@ export function initializePrestige(g, missionOrder = Object.keys(MISSIONS)) {
     }
     g.missions = { market, deck, claimed: [], tiered: 1 };
   } else if (g.missions.tiered === undefined) {
-    // Preserve offers, ownership and rewards in existing saves; add new variants once.
+    // Preserve offers, ownership and rewards in existing states; add new variants once.
     const known = new Set([
       ...g.missions.market,
       ...g.missions.deck,
@@ -98,7 +94,7 @@ export function settleMissions(g, owner = g.active) {
       i++;
       continue;
     }
-    g.players[owner].prestige += m.reward.prestige;
+    g.players[owner].resources.gold += m.reward.gold;
     g.missions.claimed.push({ id, owner, round: g.round });
     won.push(id);
     g.missions.market.splice(i, 1);
@@ -119,34 +115,47 @@ export function settleMissions(g, owner = g.active) {
 export function buildingPayment(g, index) {
   const cost = CONFIG.buildings[g.buildingMarket[index]]?.cost;
   if (!cost) return null;
+  return costPayment(g, cost);
+}
+export function tradePrice(g, resource) {
+  if (resource === "gold") return null;
+  const producers = Object.values(g.board).filter(c =>
+    c.building && c.building.owner !== g.active && CONFIG.buildings[c.building.type]?.produces === resource).length;
+  return CONFIG.rules.trade.basePrice + producers * CONFIG.rules.trade.producerSurcharge;
+}
+export function costPayment(g, cost) {
   const p = g.players[g.active],
     resources = {},
     missing = {};
-  let missingCount = 0;
+  let gold = cost.gold || 0;
   for (const [id, n] of Object.entries(cost)) {
+    if (id === "gold") continue;
     const held = p.resources[id] ?? 0;
     if (!Number.isSafeInteger(held) || held < 0) return null;
     resources[id] = Math.min(n, held);
     if (n > held) {
       missing[id] = n - held;
-      missingCount += n - held;
+      gold += (n - held) * tradePrice(g, id);
     }
   }
-  const prestige = missingCount * PRESTIGE.wildcardCost;
+  const purchaseGold = gold - (cost.gold || 0);
+  resources.gold = gold;
   return {
     resources,
     missing,
-    prestige,
-    affordable: Number.isSafeInteger(p.prestige) && p.prestige >= prestige,
+    gold: purchaseGold,
+    totalGold: gold,
+    affordable: Number.isSafeInteger(p.resources.gold) && p.resources.gold >= gold,
   };
 }
 export function rerollError(g, kind) {
   if (g.finished) return "La partie est terminée.";
+  if (g.opening) return "Terminez d’abord la préparation du terrain.";
   if (!["terrain", "building"].includes(kind)) return "Marché inconnu.";
-  if (g.rerollsUsed >= PRESTIGE.rerollLimitPerTurn)
+  if (g.rerollsUsed >= GOLD.rerollLimitPerTurn)
     return "Relance déjà utilisée ce tour.";
-  if (g.players[g.active].prestige < PRESTIGE.rerollCost)
-    return "Prestige insuffisant.";
+  if (g.players[g.active].resources.gold < GOLD.rerollCost)
+    return "Or insuffisant.";
   const market = kind === "terrain" ? g.tileMarket : g.buildingMarket,
     deck = kind === "terrain" ? g.tileDeck : g.buildingDeck;
   if (!market.length || deck.length < market.length)

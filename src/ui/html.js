@@ -21,10 +21,6 @@ export function iconHTML(path, className = "asset-icon") {
   const url = new URL(`../../${path}`, import.meta.url).href;
   return `<img class="${e(className)}" src="${e(url)}" alt="" aria-hidden="true">`;
 }
-export function populationHTML(amount, capacity = null) {
-  const value = capacity === null ? String(amount) : `${amount}/${capacity}`;
-  return `<span class="population-value" title="Population" aria-label="${e(value)} population">${e(value)} ${iconHTML(RESOURCE_ICONS.population)}</span>`;
-}
 export function costHTML(cost) {
   return (
     Object.entries(cost)
@@ -45,12 +41,12 @@ export function costText(cost) {
   );
 }
 export const coordinates = (x, y) => `${x + 1}, ${y + 1}`;
-export function diagram(cells, { building = null, large = false } = {}) {
+export function diagram(cells, { building = null, large = false, maxSize = 64 } = {}) {
   if (!cells.length) return "";
   const { minX, maxX, minY, maxY } = bounds(cells),
     step = Math.min(
       building ? (large ? 40 : 24) : 20,
-      (building ? (large ? 200 : 96) : 64) / Math.max(maxX - minX + 1, maxY - minY + 1),
+      (building ? (large ? 200 : 72) : maxSize) / Math.max(maxX - minX + 1, maxY - minY + 1),
     );
   const width = (maxX - minX + 1) * step,
     height = (maxY - minY + 1) * step;
@@ -72,8 +68,8 @@ export function diagram(cells, { building = null, large = false } = {}) {
     .join("");
   return `<span class="tile-diagram" aria-hidden="true" style="width:${width}px;height:${Math.max(building ? 15 : 46, height)}px">${content}</span>`;
 }
-export function terrainDiagram(tile, rotation = 0) {
-  return diagram(transformed(tile, rotation));
+export function terrainDiagram(tile, rotation = 0, maxSize = 64) {
+  return diagram(transformed(tile, rotation), { maxSize });
 }
 export function buildingDiagram(type, rotation = 0, large = false) {
   return diagram(buildingPattern(type, rotation), {

@@ -26,7 +26,7 @@
           ><span
             ><strong>Solo</strong
             ><small
-              >Bâtissez votre royaume et visez le meilleur score en 20
+              >Bâtissez votre royaume et visez le meilleur score en 25
               tours.</small
             ></span
           ><span aria-hidden="true">→</span>
@@ -72,7 +72,6 @@
       </nav>
     </header>
     <main aria-busy="true" hidden>
-      <div id="game-notice" class="game-notice" role="status" hidden></div>
       <section id="players" class="players" aria-label="Royaumes"></section>
       <div class="game-layout">
         <div class="land-column">
@@ -86,16 +85,14 @@
               ></button>
             </div>
             <div id="tile-market" class="tile-market"></div>
+            <div id="single-terrain"></div>
             <div class="tile-controls">
               <button id="rotate">↻ Pivoter</button
               ><span id="rotation-label">0°</span>
             </div>
           </section>
           <section class="workers-panel" aria-label="Ouvriers disponibles">
-            <button id="recruit" class="secondary">
-              Recruter un ouvrier <small>1 blé</small>
-            </button>
-            <small id="recruit-reason" class="disabled-reason"></small>
+            <strong>Ouvriers disponibles</strong>
             <div id="worker-list" data-worker-reserve></div>
           </section>
         </div>
@@ -111,13 +108,14 @@
                 Déplacer</button
               ><button data-mode="inspect" aria-pressed="false">
                 Inspecter
-              </button>
+              </button><button id="undo-action" class="secondary" aria-label="Annuler la dernière action" title="Annuler la dernière action" disabled>↶ Annuler</button>
             </div>
             <div class="round" aria-label="Tour de jeu" title="Tour de jeu">
               <img src="assets/textures/icon-hourglass.svg" alt="" />
-              <strong id="round">01 / 20</strong>
+              <strong id="round">01 / 25</strong>
             </div>
           </div>
+          <div id="opening-status" class="opening-status" role="status" hidden></div>
           <div id="map-scroll" class="map-scroll">
             <div
               id="board"
@@ -128,6 +126,7 @@
           </div>
           <div id="selection" class="selection" aria-live="polite"></div>
           <div id="placement-help" class="placement-help" role="status"></div>
+          <div id="trade-info" class="trade-info"></div>
           <div id="harvest" class="harvest-panel" aria-live="polite"></div>
         </section>
         <button id="end-turn" class="primary">Fin de tour →</button>
@@ -152,6 +151,41 @@
       </div>
     </main>
     <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="game-settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <span class="eyebrow" id="settings-mode">Nouvelle partie</span>
+      <h2 id="settings-title">Préparer le royaume</h2>
+      <p class="settings-intro">Ajustez les règles avant de poser la première tuile.</p>
+      <div class="settings-list">
+        <label class="setting-row" for="setting-rounds">
+          <span><strong>Nombre de tours</strong><small>De 20 à 40 tours par joueur</small></span>
+          <output id="setting-rounds-value" for="setting-rounds">25</output>
+          <input id="setting-rounds" type="range" min="20" max="40" step="1" value="25" />
+        </label>
+        <label class="setting-row" for="setting-opening">
+          <span><strong>Tuiles de préparation</strong><small>À placer par chaque joueur avant le tour 1</small></span>
+          <output id="setting-opening-value" for="setting-opening">2</output>
+          <input id="setting-opening" type="range" min="0" max="4" step="1" value="2" />
+        </label>
+        <label class="setting-row" for="setting-board">
+          <span><strong>Taille de la grille</strong><small>De 7 × 7 à 15 × 15 cases</small></span>
+          <output id="setting-board-value" for="setting-board">11 × 11</output>
+          <input id="setting-board" type="range" min="7" max="15" step="1" value="11" />
+        </label>
+      </div>
+      <fieldset class="resource-settings">
+        <legend>Ressources de départ</legend>
+        <p>Le deuxième joueur reçoit toujours 1 or supplémentaire.</p>
+        <div class="resource-sliders">
+          <label for="setting-material"><img src="assets/textures/resources-wood.svg" alt="" /><span>Bois</span><output id="setting-material-value" for="setting-material">3</output><input id="setting-material" type="range" min="0" max="10" step="1" value="3" /></label>
+          <label for="setting-food"><img src="assets/textures/resources-wheat.svg" alt="" /><span>Blé</span><output id="setting-food-value" for="setting-food">2</output><input id="setting-food" type="range" min="0" max="10" step="1" value="2" /></label>
+          <label for="setting-gold"><img src="assets/textures/resources-gold.svg" alt="" /><span>Or</span><output id="setting-gold-value" for="setting-gold">1</output><input id="setting-gold" type="range" min="0" max="10" step="1" value="1" /></label>
+        </div>
+      </fieldset>
+      <div class="dialog-actions settings-actions">
+        <button id="settings-cancel" class="secondary" type="button">Annuler</button>
+        <button id="settings-start" class="primary" type="button">Lancer la partie →</button>
+      </div>
+    </dialog>
     <dialog id="building-details-dialog" aria-labelledby="building-details-title">
       <div id="building-details-content"></div>
       <button class="primary close-building-details" autofocus>Fermer les détails</button>
@@ -170,7 +204,7 @@
       <button class="primary close-results">Voir le plateau →</button>
     </dialog>
     <dialog id="prestige-dialog" aria-labelledby="prestige-title">
-      <h2 id="prestige-title">Utiliser du prestige ?</h2>
+      <h2 id="prestige-title">Acheter les ressources manquantes ?</h2>
       <p id="prestige-warning"></p>
       <div class="dialog-actions">
         <button class="cancel secondary">Annuler</button
