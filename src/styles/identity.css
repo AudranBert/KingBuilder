@@ -1,0 +1,93 @@
+/* Shared identity: printed terrain tiles, forest ink and a golden crown. */
+:root {
+  --kingdom-green: #355c48;
+  --kingdom-gold: #b7802f;
+  --kingdom-paper: #faf6e9;
+}
+body:has(#main-menu:not([hidden])) {
+  background:
+    radial-gradient(ellipse at 50% 18%, #fffdf5 0, transparent 65%),
+    radial-gradient(circle, #8a957822 1px, transparent 1px), #eee9d9;
+  background-size: auto, 24px 24px, auto;
+}
+.main-menu { max-width: 990px; padding: 46px 28px 32px; }
+.menu-intro { gap: 0; }
+.menu-crest, .brand-icon {
+  display: block;
+  width: 120px;
+  height: 120px;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  transform: rotate(-6deg);
+}
+.menu-crest img, .brand-icon img { display: block; width: 100%; height: 100%; }
+.menu-intro h1 {
+  margin: 18px 0 12px;
+  font-family: "DM Sans", sans-serif;
+  font-size: clamp(46px, 6.6vw, 78px);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -4px;
+  color: var(--kingdom-green);
+  text-shadow: 0 3px 0 #fffdf4;
+}
+.menu-intro h1 span { color: var(--kingdom-gold); }
+.terrain-ribbon { display: flex; gap: 5px; margin-top: 22px; }
+.terrain-ribbon i { width: 20px; height: 8px; border-radius: 2px; background: #9fb66d; }
+.terrain-ribbon i:nth-child(2) { background: #678f7a; }
+.terrain-ribbon i:nth-child(3) { background: #8abbbd; }
+.terrain-ribbon i:nth-child(4) { background: #edbd55; }
+.terrain-ribbon i:nth-child(5) { background: #a8aaa0; }
+.mode-grid { margin-top: 30px; gap: 20px; }
+.mode-card {
+  --card-edge: #9aaa7b;
+  position: relative;
+  min-height: 130px;
+  gap: 21px;
+  padding: 24px;
+  border: 2px solid #d4d6bd;
+  border-bottom-color: var(--card-edge);
+  border-radius: 16px;
+  background: var(--kingdom-paper);
+  box-shadow: 0 5px 0 var(--card-edge), 0 9px 16px #355c4808;
+  transition: transform .16s, background .16s, box-shadow .16s;
+}
+.mode-card[data-game-mode="local"] { --card-edge: #bc9978; border-color: #dfcebb; }
+#online-menu { --card-edge: #80aab2; border-color: #c0d7d7; }
+.catalogue-entry { --card-edge: #c0a361; border-color: #dfd2ac; min-height: 108px; margin-top: 24px; }
+.mode-card:hover:not(:disabled) {
+  background: #fffdf5;
+  border-color: var(--card-edge);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 0 var(--card-edge), 0 13px 20px #355c4810;
+}
+.mode-card:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 2px 0 var(--card-edge); }
+.mode-card .mode-icon { display: block; width: 68px; min-width: 68px; height: 68px; letter-spacing: normal; }
+.mode-icon img { display: block; width: 100%; height: 100%; }
+.mode-card strong { font-size: 20px; margin-bottom: 6px; color: #35513e; letter-spacing: -.4px; }
+.mode-card small { font-size: 12px; color: #69715e; line-height: 1.5; }
+.mode-card > span:last-child:not(:nth-child(2)) { color: #748563; font-size: 22px; }
+.mode-card:disabled { opacity: 1; background: #eaeade; border-color: #d7dacb; box-shadow: 0 5px 0 #b8bfab; }
+.mode-card:disabled strong, .mode-card:disabled small { color: #707a67; }
+.mode-card:disabled .mode-icon { opacity: .75; }
+.mode-lock { margin-top: 9px; background: #dce0d0; padding: 4px 8px; border-radius: 5px; color: #65705d; font-size: 10px; }
+.topbar .brand { color: var(--kingdom-green); font-size: 23px; letter-spacing: -1px; gap: 10px; }
+.topbar .brand-light { color: var(--kingdom-gold); font-weight: 700; }
+.topbar .brand-icon { width: 43px; height: 43px; flex: 0 0 43px; }
+@media (max-width: 620px) {
+  .main-menu { padding: 28px 18px; }
+  .menu-crest { width: 94px; height: 94px; }
+  .menu-intro h1 { letter-spacing: -2.5px; margin-top: 14px; }
+  .terrain-ribbon { margin-top: 16px; }
+  .mode-grid { gap: 16px; margin-top: 25px; }
+  .mode-card { min-height: 110px; padding: 18px; gap: 15px; }
+  .mode-card .mode-icon { width: 58px; min-width: 58px; height: 58px; }
+  .mode-card strong { font-size: 18px; }
+  .catalogue-entry { margin-top: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mode-card { transition: none; }
+}

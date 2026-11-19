@@ -800,7 +800,7 @@ export function buildError(
     if (!inside(g, c.x, c.y)) return "Le motif sort du plateau.";
     const target = g.board[key(c.x, c.y)];
     if (!target) return "Toutes les cases du motif doivent être explorées.";
-    if (target.flag && type !== "outpost") return "Seul un avant-poste peut être construit sur un drapeau.";
+    if (target.flag && type !== "outpost") return "Seule une tour peut être construit sur un drapeau.";
     if (target.building || (target.overlay && (c.transformTo || b.transformTo)))
       return "Le motif chevauche une case de bâtiment ou un champ réservé.";
     if (!c.terrain.includes(target.terrain))

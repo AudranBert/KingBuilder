@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: kingbuilder-multiplayer
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev && npm run check:config
+    startCommand: npm run start:online
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: 22
+      - key: ALLOWED_ORIGINS
+        value: https://audranbert.github.io
+      - key: MAX_ROOMS
+        value: 200
+      - key: ROOM_TTL_HOURS
+        value: 6

@@ -1,5 +1,6 @@
 import { iconHTML } from "./html.js";
 import { piece } from "./pieces.js";
+import { CONFIG } from "../configuration.js";
 import {
   RULES,
   GOLD,
@@ -36,6 +37,35 @@ import {
   terrainDiagram,
   buildingDiagram,
 } from "./html.js";
+
+export function catalogueView({ tier = "all", tileSize = "all", terrain = "all", tileSort = "size" } = {}) {
+  const families = new Map();
+  for (const b of Object.values(BUILDINGS)) {
+    const id = b.family || b.id;
+    if (!families.has(id)) families.set(id, []);
+    families.get(id).push(b);
+  }
+  const legend = `<p class="building-legend">${Object.values(TERRAINS).map(t => `<span><i style="background:${t.color}">${iconHTML(t.icon)}</i>${e(t.name)}</span>`).join("")}</p>`;
+  const visibleFamilies = [...families.values()].filter(v => tier === "all" || v[0].tier === Number(tier)).sort((a, b) => a[0].tier - b[0].tier);
+  const terrainCount = tile => new Set(tile.cells.map(c => c.terrain)).size;
+  const terrainSignature = tile => [...new Set(tile.cells.map(c => TERRAINS[c.terrain].name))].sort().join(" / ");
+  const tiles = CONFIG.tiles.filter(tile => (tileSize === "all" || tile.cells.length === Number(tileSize)) && (terrain === "all" || tile.cells.some(c => c.terrain === terrain)));
+  tiles.sort((a, b) => {
+    const primary = tileSort === "size-desc" ? b.cells.length - a.cells.length
+      : tileSort === "terrain" ? terrainSignature(a).localeCompare(terrainSignature(b), "fr")
+      : tileSort === "diversity" ? terrainCount(a) - terrainCount(b)
+      : a.cells.length - b.cells.length;
+    return primary || a.cells.length - b.cells.length || a.name.localeCompare(b.name, "fr");
+  });
+  const options = (values, current) => values.map(([value, label]) => `<option value="${e(value)}" ${String(value) === String(current) ? "selected" : ""}>${e(label)}</option>`).join("");
+  const tierFilters = `<div class="catalogue-filters" role="group" aria-label="Filtrer les bâtiments par tier">${["all", 0, 1, 2, 3].map(value => `<button data-catalogue-tier="${value}" aria-pressed="${String(tier) === String(value)}">${value === "all" ? "Tous les tiers" : `Tier ${value}`}</button>`).join("")}</div>`;
+  const tileFilters = `<div class="catalogue-filters"><label>Nombre de cases<select data-catalogue-filter="tileSize">${options([["all", "Toutes les tailles"], ...[...new Set(CONFIG.tiles.map(t => t.cells.length))].sort((a,b) => a-b).map(n => [n, `${n} cases`])], tileSize)}</select></label><label>Terrain présent<select data-catalogue-filter="terrain">${options([["all", "Tous les terrains"], ...[...new Set(CONFIG.tiles.flatMap(t => t.cells.map(c => c.terrain)))].map(id => [id, TERRAINS[id].name])], terrain)}</select></label><label>Trier par<select data-catalogue-filter="tileSort">${options([["size", "Nombre de cases croissant"], ["size-desc", "Nombre de cases décroissant"], ["terrain", "Type de terrain"], ["diversity", "Nombre de types de terrain"]], tileSort)}</select></label></div>`;
+  return `${legend}<section id="catalogue-buildings" aria-label="Cartes Bâtiment">${tierFilters}<p role="status">${visibleFamilies.length} / ${families.size} familles · ${CONFIG.buildingDeckSize} cartes dans la pioche. Les variantes sont regroupées.</p><div class="catalogue-grid">${visibleFamilies.map(variants => {
+    const b = variants[0];
+    const quantity = variants.reduce((sum, v) => sum + (v.constructible === false ? 0 : v.weight), 0);
+    return `<article class="catalogue-card" data-catalogue-family="${e(b.family || b.id)}"><h3>${buildingStars(b)} ${e([...new Set(variants.map(v => v.name))].join(" / "))}</h3><p>${b.constructible === false ? "Bâtiment de départ · hors pioche" : `${quantity} exemplaires · Coût : ${costHTML(b.cost)}`}</p><p>${e(buildingDescription(b))} · ${b.points || 0} point(s)</p><div class="catalogue-patterns">${variants.map(v => `<figure data-catalogue-building="${e(v.id)}"><div class="catalogue-diagram">${buildingDiagram(v.id, 0, true)}</div><figcaption>${e(v.pattern)}</figcaption></figure>`).join("")}</div></article>`;
+  }).join("")}</div>${visibleFamilies.length ? "" : '<p class="empty-state">Aucun bâtiment dans ce tier pour le moment.</p>'}</section><section id="catalogue-tiles" aria-label="Tuiles Terrain" hidden>${tileFilters}<p role="status">${tiles.length} / ${CONFIG.tiles.length} tuiles · ${CONFIG.tileDeckSize} exemplaires dans la pioche.</p><div class="catalogue-grid">${tiles.map(tile => `<article class="catalogue-card" data-catalogue-tile="${e(tile.id)}"><h3>${e(tile.name)}</h3><div class="catalogue-diagram">${terrainDiagram(tile, 0, 160)}</div><p>${tile.cells.length} cases · ${e(CONFIG.shapes[tile.shapeId].name)}</p><p>${e(terrainSignature(tile))} · ${terrainCount(tile)} type(s) de terrain</p><p>${e(tile.intent || "")}</p></article>`).join("")}</div>${tiles.length ? "" : '<p class="empty-state">Aucune tuile ne correspond à ces filtres.</p>'}</section>`;
+}
 
 export function playersView(g) {
   return g.players
@@ -231,9 +261,15 @@ export function armyControlsView(g) {
   return `<div class="army-controls"><strong>${iconHTML(UNIT_DEFINITIONS.soldier.icon)} ${total.length} · ${ready.length} disponible(s)</strong>${ready.length ? `<label>Effectif <select data-army-size aria-label="Effectif de la pile sélectionnée">${ready.map((_,i) => `<option value="${i+1}" ${selectedSoldiers(g).length === i+1 ? "selected" : ""}>${i+1}</option>`).join("")}</select></label>` : "<span>Activation terminée</span>"}</div>`;
 }
 export function tradeView(g) {
-  return `<span title="Achat des ressources manquantes : prix de base ${RULES.trade.basePrice} + ${RULES.trade.producerSurcharge} par producteur adverse"><strong>Banque</strong> · ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} → ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} · ${iconHTML(RESOURCE_DEFINITIONS.material.icon)} → ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}</span>`;
+  return `<span title="Achat des ressources manquantes : prix de base ${RULES.trade.basePrice} + ${RULES.trade.producerSurcharge} par producteur adverse"><strong>Banque</strong> · ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} · ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}</span>`;
 }
 export function rulesView(g) {
+  const buildingFamilies = new Map();
+  for (const b of Object.values(BUILDINGS)) {
+    const family = b.family || b.id;
+    if (!buildingFamilies.has(family)) buildingFamilies.set(family, []);
+    buildingFamilies.get(family).push(b);
+  }
   const size = g?.boardSize ?? RULES.size,
     rounds = g?.turnLimit ?? RULES.rounds,
     openingCount = g?.openingTilesPerPlayer ?? 2,
@@ -248,9 +284,14 @@ export function rulesView(g) {
   <h3>Banque et missions</h3><p>Pour construire ou recruter, achetez les ressources manquantes à la banque en or. Une ressource coûte ${RULES.trade.basePrice} ors plus ${RULES.trade.producerSurcharge} par bâtiment adverse qui peut la produire, même sans ouvrier. L’or ne s’achète pas. Les missions donnent de l’or ; renouveler un marché coûte ${GOLD.rerollCost} or, une fois par tour. L’or remplace entièrement le prestige.</p>
   <h3>Soldats et armées</h3><p>Une caserne fournit un premier soldat gratuit et permet un recrutement payant par tour. Chaque nouvelle unité apparaît sur son bâtiment et reste grisée jusqu’au prochain tour. Les soldats sur une même case forment une pile ; choisissez son effectif pour la diviser. Chaque pion conserve ses déplacements et son activation après une fusion. Une armée possède 3 déplacements puis une action de combat ; elle n’explore pas et ne construit pas.</p>
   <h3>Combat et occupation</h3><p>Attaque = nombre de soldats ; défense = nombre de soldats + 1. Le vainqueur conserve la différence des forces. À égalité, les armées sont éliminées. 7 contre 5 : 1 attaquant survit ; 5 contre 5 : 1 défenseur survit. L’occupation d’une cible sans défense consomme aussi l’action. Le résultat est annoncé avant confirmation.</p>
-  <h3>Drapeaux, garnisons et destruction</h3><p>Les cinq drapeaux sont révélés au départ. Une armée doit occuper leur case pour les capturer ; ils gardent leur couleur après son départ. Un avant-poste peut être construit sur toute case révélée libre, quel que soit son terrain. Sur un drapeau, il en prend le contrôle. Sa case devient praticable. Avant-poste et donjon disposent d’un soldat fixe, renforçable par une armée, avec un seul bonus défensif +1. La garnison persiste jusqu’à une occupation ennemie avec au moins un survivant, même après une égalité.</p><p>Occuper la case réelle d’un bâtiment ennemi le détruit ; ses terrains annexes ne sont pas des cibles. Toute l’empreinte est libérée et ses terrains restent révélés. L’ouvrier retourne dans sa réserve. Le roi capturé retourne au donjon ; l’émissaire retourne à sa Chancellerie, ou au donjon si elle a disparu. Ils perdent leur prochain tour d’activation.</p>
+  <h3>Drapeaux, garnisons et destruction</h3><p>Les cinq drapeaux sont révélés au départ. Une armée doit occuper leur case pour les capturer ; ils gardent leur couleur après son départ. Une tour peut être construite sur toute case révélée libre, quel que soit son terrain. Sur un drapeau, elle en prend le contrôle. Sa case devient praticable. Tour et donjon disposent d’un soldat fixe, renforçable par une armée, avec un seul bonus défensif +1. La garnison persiste jusqu’à une occupation ennemie avec au moins un survivant, même après une égalité.</p><p>Occuper la case réelle d’un bâtiment ennemi le détruit ; ses terrains annexes ne sont pas des cibles. Toute l’empreinte est libérée et ses terrains restent révélés. L’ouvrier retourne dans sa réserve. Le roi capturé retourne au donjon ; l’émissaire retourne à sa Chancellerie, ou au donjon si elle a disparu. Ils perdent leur prochain tour d’activation.</p>
   <h3>Émissaire du roi</h3><p>Une Chancellerie coûteuse fournit une seconde unité d’exploration et de construction. Un émissaire et une Chancellerie maximum par royaume. L’émissaire ne combat pas et ne contrôle pas les drapeaux.</p>
-  <h3>Bâtiments</h3>${Object.values(BUILDINGS).map(b => `<p><strong>${e(b.name)}</strong> — ${e(costText(b.cost))}. ${e(b.pattern)} ${e(buildingDescription(b))} ${b.points || 0} point(s).</p>`).join("")}`;
+  <h3>Bâtiments</h3>${[...buildingFamilies.values()].map(variants => {
+    const b = variants[0];
+    const names = [...new Set(variants.map(v => v.name))].join(" / ");
+    const patterns = [...new Set(variants.map(v => v.pattern))];
+    return `<p><strong>${e(names)}</strong> — ${e(costText(b.cost))}. ${e(buildingDescription(b))} ${b.points || 0} point(s). ${patterns.length > 1 ? "Motifs possibles : " : ""}${patterns.map(e).join(" ; ")}</p>`;
+  }).join("")}`;
 }
 
 export function missionsView(g) {

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+  <rect x="9" y="13" width="102" height="102" rx="23" fill="#355c48"/>
+  <rect x="9" y="6" width="102" height="102" rx="23" fill="#f9f3dc" stroke="#355c48" stroke-width="3"/>
+  <clipPath id="tile"><rect x="16" y="13" width="88" height="88" rx="16"/></clipPath>
+  <g clip-path="url(#tile)">
+    <path fill="#e2e8b8" d="M16 13h88v88H16z"/>
+    <path d="M16 54Q38 35 64 54t40-3v50H16" fill="#bfce8c"/>
+    <path d="M16 79Q40 57 66 78t38-5v28H16" fill="#9fb66d"/>
+    <path d="M80 37Q59 59 80 72t-3 36" fill="none" stroke="#f9f3dc" stroke-width="20"/>
+    <path d="M80 37Q59 59 80 72t-3 36" fill="none" stroke="#8abbbd" stroke-width="13"/>
+    <path d="M25 83v-7m0 7-4-4m4 4 4-4m21 13v-6" fill="none" stroke="#6f8d4b" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <path d="m30 30 16 12 14-23 14 23 16-12-7 35H37Z" fill="#edbd55" stroke="#806032" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M37 65h46v10H37z" fill="#dca449" stroke="#806032" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M43 68h34" stroke="#ffe6a1" stroke-width="3" stroke-linecap="round"/>
+  <path d="m60 43 5 7-5 7-5-7z" fill="#427b64"/>
+</svg>
