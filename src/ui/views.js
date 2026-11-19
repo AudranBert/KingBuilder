@@ -233,9 +233,15 @@ export function armyControlsView(g) {
 export function tradeView(g) {
   return `<span title="Achat des ressources manquantes : prix de base ${RULES.trade.basePrice} + ${RULES.trade.producerSurcharge} par producteur adverse"><strong>Banque</strong> · ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} → ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} · ${iconHTML(RESOURCE_DEFINITIONS.material.icon)} → ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}</span>`;
 }
-export function rulesView() {
-  return `<h3>Deux façons de gagner</h3><p>Plateau ${RULES.size} × ${RULES.size}. Occuper le donjon adverse avec une armée survivante donne une victoire immédiate. Sinon, après ${RULES.rounds} tours par joueur, les bâtiments, les drapeaux et l’or restant départagent les royaumes. Chaque drapeau vaut ${RULES.points.flag} points ; chaque groupe de ${RULES.points.goldPerPoint} ors restants vaut 1 point. Les ouvriers, les unités, la nourriture, les matériaux et l’exploration ne donnent pas de points. Égalité : victoire partagée.</p>
-  <h3>Préparation</h3><p>Avant le tour 1, cinq tuiles terrain de 5 ou 6 cases sont proposées. Chacun en place deux sur des cases libres, dans l’ordre Jade → Ambre → Jade → Ambre. Une tuile posée quitte le choix commun ; les poses ne consomment pas d’action et ne comptent pas pour les missions. En solo, placez deux tuiles.</p>
+export function rulesView(g) {
+  const size = g?.boardSize ?? RULES.size,
+    rounds = g?.turnLimit ?? RULES.rounds,
+    openingCount = g?.openingTilesPerPlayer ?? 2,
+    openingLead = openingCount && (g?.players.length ?? 2) > 1
+      ? ", en commençant par Jade"
+      : "";
+  return `<h3>Deux façons de gagner</h3><p>Plateau ${size} × ${size}. Occuper le donjon adverse avec une armée survivante donne une victoire immédiate. Sinon, après ${rounds} tours par joueur, les bâtiments, les drapeaux et l’or restant départagent les royaumes. Chaque drapeau vaut ${RULES.points.flag} points ; chaque groupe de ${RULES.points.goldPerPoint} ors restants vaut 1 point. Les ouvriers, les unités, la nourriture, les matériaux et l’exploration ne donnent pas de points. Égalité : victoire partagée.</p>
+  <h3>Préparation</h3><p>Avant le tour 1, chaque joueur place ${openingCount} tuile${openingCount === 1 ? "" : "s"} terrain de 5 ou 6 cases sur des cases libres${openingLead}. Ces poses ne consomment pas d’action et ne comptent pas pour les missions.</p>
   <h3>Commandes</h3><p>Un clic droit efface la sélection. ↶ annule uniquement la dernière action ; le bouton se désactive ensuite et l’annulation ne passe pas d’un tour à l’autre.</p>
   <h3>Explorer et construire</h3><p>Le roi et l’émissaire disposent de 3 déplacements orthogonaux puis d’une action : explorer ou construire. L’action termine leur activation. Les terrains révélés sont communs. Sélectionnez ou glissez une carte ; R ou la molette la fait pivoter. Pour ${RULES.trade.singleTerrainCost} or, choisissez directement une case de plaine, forêt, montagne ou rivière voisine de l’unité : cette pose utilise son action. L’entrée d’un bâtiment doit être à une case maximum du bâtisseur. Son motif doit être révélé et respecter les terrains ; les annexes compatibles peuvent se chevaucher, mais les cases des bâtiments ne se chevauchent jamais.</p>
   <h3>Économie et ouvriers</h3><p>Une maison coûte 2 nourritures et 2 matériaux et donne immédiatement un ouvrier, affectable sans trajet ni coût. Un ouvrier par producteur ; récolte en fin de tour. Ferme : nourriture ; scierie et carrière : matériaux ; mine et port : or. Un moulin sur plaine ou champ doit toucher un champ allié et double la nourriture de cette ferme, sans cumul. Aucun logement ni recrutement séparé d’ouvrier.</p>

@@ -2,6 +2,7 @@ import { parseKey } from "./geometry.js";
 import { installDrag } from "./ui/drag.js";
 import {
   RULES,
+  GAME_DEFAULTS,
   createGame,
   buyTerrain,
   startOpening,
@@ -63,7 +64,8 @@ export function startGame() {
     toastTimer;
   let undoState = null;
   let pendingBuild = null;
-  let nextMode = "local";
+  let nextMode = "local",
+    nextSettings = structuredClone(GAME_DEFAULTS);
   let inMenu = true;
   function showMenu() {
     drag.cancel();
@@ -156,7 +158,7 @@ export function startGame() {
     $(".game-layout").classList.toggle("opening", Boolean(opening));
     $("#opening-status").hidden = !opening;
     $("#opening-status").textContent = opening
-      ? `Préparation ${opening.step + 1}/${game.players.length === 2 ? 4 : 2} · ${game.players[game.active].name} · ${opening.tiles.length} tuiles au choix`
+      ? `Préparation ${opening.step + 1}/${opening.totalPlacements} · ${game.players[game.active].name} · ${opening.tiles.length} tuiles au choix`
       : "";
     html("#players", playersView(game));
     html("#missions", missionsView(game));
@@ -186,8 +188,8 @@ export function startGame() {
       ? "Voir les résultats →"
       : `<strong>Fin de tour →</strong><small>${harvestView(game).match(/Fin du tour : ([^<]+)/)?.[1] || "aucune récolte"}</small>`;
     $("#round").innerHTML = opening
-      ? `0 <small>/ ${RULES.rounds}</small>`
-      : `${String(game.round).padStart(2, "0")} <small>/ ${RULES.rounds}</small>`;
+      ? `0 <small>/ ${game.turnLimit}</small>`
+      : `${String(game.round).padStart(2, "0")} <small>/ ${game.turnLimit}</small>`;
     $("#rotation-label").textContent = `${ui.rotation * 90}°`;
     $("#building-rotation-label").textContent = `${ui.buildingRotation * 90}°`;
     $("#rotate").disabled = game.finished || !game.tileMarket.length;
@@ -433,9 +435,10 @@ export function startGame() {
     if (game.finished) showResults();
     else toast(`${game.players[game.active].name} : à vous de jouer.`);
   });
-  $("#rules-button").addEventListener("click", () =>
-    $("#rules-dialog").showModal(),
-  );
+  $("#rules-button").addEventListener("click", () => {
+    html(".rules-content", rulesView(game));
+    $("#rules-dialog").showModal();
+  });
   $("#building-details-dialog .close-building-details").addEventListener("click", () =>
     $("#building-details-dialog").close(),
   );
@@ -446,7 +449,8 @@ export function startGame() {
   $("#menu-button").addEventListener("click", showMenu);
   function requestNewGame(mode) {
     nextMode = mode;
-    beginNewGame();
+    $("#settings-mode").textContent = mode === "solo" ? "Partie solo" : "Partie locale";
+    $("#game-settings-dialog").showModal();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
     button.addEventListener("click", () =>
@@ -455,7 +459,7 @@ export function startGame() {
   function beginNewGame() {
     const created = act(
       () => {
-        game = createGame(Math.random, nextMode);
+        game = createGame(Math.random, nextMode, nextSettings);
         startOpening(game);
         Object.assign(ui, createUIState());
       },
@@ -469,9 +473,50 @@ export function startGame() {
       },
     );
     if (created) {
+      $("#game-settings-dialog").close();
       enterGame();
     }
   }
+  const settingInputs = {
+    rounds: ["#setting-rounds", "#setting-rounds-value", "tours"],
+    openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value", "tuiles"],
+    boardSize: ["#setting-board", "#setting-board-value", "grille"],
+    material: ["#setting-material", "#setting-material-value", "bois"],
+    food: ["#setting-food", "#setting-food-value", "blé"],
+    gold: ["#setting-gold", "#setting-gold-value", "or"],
+  };
+  function updateSettingLabels() {
+    for (const [name, [inputSelector, outputSelector]] of Object.entries(settingInputs)) {
+      const value = Number($(inputSelector).value),
+        output = $(outputSelector);
+      output.textContent = name === "boardSize" ? `${value} × ${value}` : String(value);
+    }
+  }
+  for (const [name, [inputSelector]] of Object.entries(settingInputs)) {
+    const input = $(inputSelector),
+      defaultValue = Object.hasOwn(GAME_DEFAULTS.resources, name)
+        ? GAME_DEFAULTS.resources[name]
+        : GAME_DEFAULTS[name];
+    input.value = defaultValue;
+    input.addEventListener("input", updateSettingLabels);
+  }
+  updateSettingLabels();
+  $("#settings-cancel").addEventListener("click", () =>
+    $("#game-settings-dialog").close(),
+  );
+  $("#settings-start").addEventListener("click", () => {
+    nextSettings = {
+      rounds: Number($("#setting-rounds").value),
+      openingTilesPerPlayer: Number($("#setting-opening").value),
+      boardSize: Number($("#setting-board").value),
+      resources: {
+        material: Number($("#setting-material").value),
+        food: Number($("#setting-food").value),
+        gold: Number($("#setting-gold").value),
+      },
+    };
+    beginNewGame();
+  });
   $(".close-results").addEventListener("click", () =>
     $("#result-dialog").close(),
   );
@@ -559,7 +604,7 @@ export function startGame() {
       render();
     },
   });
-  html(".rules-content", rulesView());
+  html(".rules-content", rulesView(game));
   render();
   showMenu();
 }

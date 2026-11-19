@@ -45,10 +45,12 @@ export function validateGame(game, { legacy = false } = {}) {
     record(game) && game.version === 5,
     "version inconnue.",
   );
-  requireValid(
-    game.boardSize === undefined || game.boardSize === RULES.size,
-    "dimensions du plateau modifiées.",
-  );
+  const boardSize = game.boardSize ?? RULES.size,
+    turnLimit = game.turnLimit ?? RULES.rounds;
+  requireValid(Number.isSafeInteger(boardSize) && boardSize >= 7 && boardSize <= 15,
+    "dimensions du plateau incorrectes.");
+  requireValid(Number.isSafeInteger(turnLimit) && turnLimit >= 20 && turnLimit <= 40,
+    "limite de tours incorrecte.");
   requireValid(
     Array.isArray(game.players) &&
       (game.mode === "solo"
@@ -63,7 +65,7 @@ export function validateGame(game, { legacy = false } = {}) {
       game.active < game.players.length &&
       Number.isSafeInteger(game.round) &&
       game.round >= 1 &&
-      game.round <= RULES.rounds,
+      game.round <= turnLimit,
     "tour incorrect.",
   );
   requireValid(
@@ -85,7 +87,7 @@ export function validateGame(game, { legacy = false } = {}) {
   for (const [position, cell] of Object.entries(game.board)) {
     const [x, y] = parseKey(position);
     requireValid(
-      inside(x, y, RULES.size) &&
+      inside(x, y, boardSize) &&
         key(x, y) === position &&
         record(cell) &&
         TERRAINS[cell.terrain],
@@ -124,14 +126,14 @@ export function validateGame(game, { legacy = false } = {}) {
       );
   }
   for (const player of game.players) {
-    requireValid(record(player.home) && inside(player.home.x,player.home.y,RULES.size) &&
+    requireValid(record(player.home) && inside(player.home.x,player.home.y,boardSize) &&
       Boolean(game.board[key(player.home.x,player.home.y)]), "donjon d’origine incorrect.");
     requireValid(nonnegative(player.kingSkip) && player.kingSkip <= 1, "retour du roi incorrect.");
     requireValid(nonnegative(player.nextUnitId), "compteur d’unités incorrect.");
     requireValid(
       record(player) &&
         typeof player.name === "string" &&
-        inside(player.x, player.y, RULES.size) &&
+        inside(player.x, player.y, boardSize) &&
         game.board[key(player.x, player.y)],
       "position du roi incorrecte.",
     );
@@ -168,7 +170,7 @@ export function validateGame(game, { legacy = false } = {}) {
           !["king", "worker"].includes(unit.type) &&
             nonnegative(unit.id) &&
             !ids.has(unit.id) &&
-            inside(unit.x, unit.y, RULES.size) &&
+            inside(unit.x, unit.y, boardSize) &&
             game.board[key(unit.x, unit.y)] &&
             nonnegative(unit.moves) &&
             unit.moves <= UNIT_DEFINITIONS[unit.type].moves &&

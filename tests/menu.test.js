@@ -96,6 +96,10 @@ function mount(t) {
   return {
     node: (selector) => nodes.get(selector),
     mode: (mode) => modes.find((b) => b.dataset.gameMode === mode),
+    start(mode) {
+      this.mode(mode).click();
+      nodes.get("#settings-start").click();
+    },
     selectTile() {
       const card = { dataset: { tile: "0" }, hasAttribute: name => name === "data-tile", closest: selector => selector.startsWith("[data-building],[data-tile]") ? card : null };
       documentListeners.get("click")({ target: card });
@@ -117,7 +121,7 @@ function mount(t) {
 
 test("annulation : une seule pose peut être reprise, puis le bouton se désactive", (t) => {
   const app = mount(t);
-  app.mode("solo").click();
+  app.start("solo");
   app.prepare(1);
   assert.equal(app.node("#undo-action").disabled, false);
   app.node("#undo-action").click();
@@ -129,7 +133,7 @@ test("annulation : une seule pose peut être reprise, puis le bouton se désacti
 
 test("clic droit : la sélection de tuile est effacée", (t) => {
   const app = mount(t);
-  app.mode("solo").click();
+  app.start("solo");
   app.selectTile();
   assert.match(app.node("#placement-help").textContent, /placement/);
   let prevented = false;
@@ -143,12 +147,12 @@ test("menu : lancement solo, retour et résultat après 25 tours", (t) => {
   assert.equal(app.node("#main-menu").hidden, false);
   assert.equal(app.node("main").hidden, true);
   assert.equal(app.node("#resume-game"), undefined);
-  app.mode("solo").click();
+  app.start("solo");
   assert.equal(app.node("main").hidden, false);
   app.node("#end-turn").click();
   app.node("#menu-button").click();
   assert.equal(app.node("#main-menu").hidden, false);
-  app.mode("solo").click();
+  app.start("solo");
   assert.equal(app.node("#main-menu").hidden, true);
   app.prepare(2);
   for (let i = 0; i < RULES.rounds; i++) app.node("#end-turn").click();
@@ -158,23 +162,40 @@ test("menu : lancement solo, retour et résultat après 25 tours", (t) => {
 
 test("menu : choisir un mode relance toujours une partie neuve", (t) => {
   const app = mount(t);
-  app.mode("local").click();
+  app.start("local");
   assert.equal(app.node("main").hidden, false);
   app.node("#end-turn").click();
   assert.equal(app.node("#opening-status").textContent.includes("1/4"), true);
   app.node("#menu-button").click();
-  app.mode("solo").click();
+  app.start("solo");
   assert.equal(app.node("#main-menu").hidden, true);
   assert.equal(app.node("main").hidden, false);
   app.node("#menu-button").click();
-  app.mode("local").click();
+  app.start("local");
   assert.equal(app.node("main").hidden, false);
   assert.equal(app.node("#opening-status").textContent.includes("1/4"), true);
 });
 
+test("menu : les curseurs configurent la nouvelle partie avant son lancement", (t) => {
+  const app = mount(t);
+  app.mode("local").click();
+  assert.equal(app.node("#game-settings-dialog").open, true);
+  assert.equal(app.node("main").hidden, true);
+  app.node("#setting-rounds").value = 20;
+  app.node("#setting-opening").value = 4;
+  app.node("#setting-board").value = 7;
+  app.node("#setting-material").value = 6;
+  app.node("#setting-food").value = 4;
+  app.node("#setting-gold").value = 2;
+  app.node("#settings-start").click();
+  assert.equal(app.node("#game-settings-dialog").open, false);
+  assert.match(app.node("#round").innerHTML, /20/);
+  assert.match(app.node("#opening-status").textContent, /Préparation 1\/8/);
+});
+
 test("la molette pivote la carte survolée et garde le défilement ailleurs", (t) => {
   const app = mount(t);
-  app.mode("solo").click();
+  app.start("solo");
   const layout = app.node(".game-layout");
   let prevented = 0;
   const target = (attribute) => ({

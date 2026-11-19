@@ -31,33 +31,39 @@ export function territoryBorders(g, x, y) {
 
 export function createBoard(element, scrollElement, onCell, onPreview = () => {}) {
   const cells = new Map();
-  let focusPosition = null;
-  for (let y = 0; y < RULES.size; y++) {
-    const row = document.createElement("div");
-    row.className = "board-row";
-    row.setAttribute("role", "row");
-    for (let x = 0; x < RULES.size; x++) {
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "cell";
-      button.dataset.x = x;
-      button.dataset.y = y;
-      button.setAttribute("role", "gridcell");
-      button.setAttribute("aria-rowindex", y + 1);
-      button.setAttribute("aria-colindex", x + 1);
-      button.tabIndex = -1;
-      row.append(button);
-      cells.set(key(x, y), button);
+  let focusPosition = null,
+    size = 0;
+  function createCells(nextSize) {
+    size = nextSize;
+    cells.clear();
+    focusPosition = null;
+    if (element.replaceChildren) element.replaceChildren();
+    else element.innerHTML = "";
+    for (let y = 0; y < size; y++) {
+      const row = document.createElement("div");
+      row.className = "board-row";
+      row.setAttribute("role", "row");
+      for (let x = 0; x < size; x++) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "cell";
+        button.dataset.x = x;
+        button.dataset.y = y;
+        button.setAttribute("role", "gridcell");
+        button.setAttribute("aria-rowindex", y + 1);
+        button.setAttribute("aria-colindex", x + 1);
+        button.tabIndex = -1;
+        row.append(button);
+        cells.set(key(x, y), button);
+      }
+      element.append(row);
     }
-    element.append(row);
+    element.style.gridTemplateColumns = `repeat(${size},var(--cell))`;
+    element.setAttribute("aria-rowcount", size);
+    element.setAttribute("aria-colcount", size);
+    element.setAttribute("aria-label", `Plateau de ${size} par ${size} cases`);
   }
-  element.style.gridTemplateColumns = `repeat(${RULES.size},var(--cell))`;
-  element.setAttribute("aria-rowcount", RULES.size);
-  element.setAttribute("aria-colcount", RULES.size);
-  element.setAttribute(
-    "aria-label",
-    `Plateau de ${RULES.size} par ${RULES.size} cases`,
-  );
+  createCells(RULES.size);
   element.addEventListener("click", (event) => {
     const cell = event.target.closest("[data-x]");
     if (cell) {
@@ -85,7 +91,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
     event.preventDefault();
     const x = +cell.dataset.x + delta[0],
       y = +cell.dataset.y + delta[1];
-    if (!inside(x, y, RULES.size)) return;
+    if (!inside(x, y, size)) return;
     cell.tabIndex = -1;
     const next = cells.get(key(x, y));
     next.tabIndex = 0;
@@ -109,21 +115,21 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
       number(frame.paddingRight) +
       number(frame.borderLeftWidth) +
       number(frame.borderRightWidth) +
-      (RULES.size - 1) * number(frame.columnGap);
+      (size - 1) * number(frame.columnGap);
     const frameHeight =
       number(frame.paddingTop) +
       number(frame.paddingBottom) +
       number(frame.borderTopWidth) +
       number(frame.borderBottomWidth) +
-      (RULES.size - 1) * number(frame.rowGap);
-    const size =
+      (size - 1) * number(frame.rowGap);
+    const cellSize =
       Math.floor(
         Math.min(
-          (availableWidth - frameWidth) / RULES.size,
-          (availableHeight - frameHeight) / RULES.size,
+          (availableWidth - frameWidth) / size,
+          (availableHeight - frameHeight) / size,
         ) * 10,
       ) / 10;
-    if (size > 0) element.style.setProperty("--cell", `${size}px`);
+    if (cellSize > 0) element.style.setProperty("--cell", `${cellSize}px`);
   }
   new ResizeObserver(fitBoard).observe(scrollElement);
   requestAnimationFrame(fitBoard);
@@ -133,6 +139,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
   }
   return {
     render(g, ui) {
+      if (size !== (g.boardSize ?? RULES.size)) createCells(g.boardSize ?? RULES.size);
       const exhausted = (pawn) =>
         g.finished ||
         (pawn.type === "king"

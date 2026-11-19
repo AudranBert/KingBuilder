@@ -54,6 +54,32 @@ export const RULES = {
   startResources: START_RESOURCES,
   points: CONFIG.rules.scoring,
 };
+export const GAME_DEFAULTS = Object.freeze({
+  rounds: 25,
+  openingTilesPerPlayer: 2,
+  boardSize: 11,
+  resources: Object.freeze({ material: 3, food: 2, gold: 1 }),
+});
+export function gameSettings(settings = {}) {
+  const resources = { ...GAME_DEFAULTS.resources, ...(settings.resources || {}) };
+  const result = {
+    rounds: settings.rounds ?? GAME_DEFAULTS.rounds,
+    openingTilesPerPlayer:
+      settings.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
+    boardSize: settings.boardSize ?? GAME_DEFAULTS.boardSize,
+    resources,
+  };
+  if (!Number.isInteger(result.rounds) || result.rounds < 20 || result.rounds > 40)
+    throw Error("Le nombre de tours doit être compris entre 20 et 40.");
+  if (!Number.isInteger(result.openingTilesPerPlayer) || result.openingTilesPerPlayer < 0 || result.openingTilesPerPlayer > 4)
+    throw Error("Le nombre de tuiles de préparation doit être compris entre 0 et 4.");
+  if (!Number.isInteger(result.boardSize) || result.boardSize < 7 || result.boardSize > 15)
+    throw Error("La taille de la grille doit être comprise entre 7 et 15.");
+  for (const [id, amount] of Object.entries(resources))
+    if (!Object.hasOwn(GAME_DEFAULTS.resources, id) || !Number.isInteger(amount) || amount < 0 || amount > 10)
+      throw Error("Les ressources de départ doivent être comprises entre 0 et 10.");
+  return result;
+}
 // Every occupied part points to one anchor; only the anchor stores the building.
 export function buildingAt(g, x, y) {
   const c = g.board[key(x, y)];
@@ -126,6 +152,15 @@ export function productionAmount(g, x, y) {
 }
 export function migrateGame(g) {
   if (g.version !== 5) throw Error("Les anciennes règles ne sont plus compatibles.");
+  g.boardSize ??= RULES.size;
+  g.turnLimit ??= RULES.rounds;
+  g.openingTilesPerPlayer ??= GAME_DEFAULTS.openingTilesPerPlayer;
+  g.startingResources ??= { ...RULES.startResources };
+  if (g.opening) {
+    g.opening.perPlayer ??= g.openingTilesPerPlayer;
+    g.opening.totalPlacements ??=
+      g.opening.perPlayer * g.players.length;
+  }
   g.buildingReplacements ??= RULES.markets.advancedFromReplacement;
   for (const cell of Object.values(g.board)) {
     if (cell.overlay?.role === "field") cell.terrain = "field";
@@ -215,7 +250,7 @@ export function assignWorker(g, id, x, y) {
     site = x === null ? null : buildingAt(g, x, y);
   w.building = site ? key(site.x, site.y) : null;
 }
-const inside = (x, y) => withinBoard(x, y, RULES.size);
+const inside = (g, x, y) => withinBoard(x, y, g.boardSize ?? RULES.size);
 const shuffle = (a, rng) => {
   for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
@@ -223,9 +258,18 @@ const shuffle = (a, rng) => {
   }
   return a;
 };
-export function createGame(rng = Math.random, mode = "local") {
+export function createGame(rng = Math.random, mode = "local", settings = null) {
   if (!["solo", "local"].includes(mode))
     throw Error("Mode de jeu indisponible.");
+  const options = settings === null
+      ? {
+          rounds: RULES.rounds,
+          openingTilesPerPlayer: GAME_DEFAULTS.openingTilesPerPlayer,
+          boardSize: RULES.size,
+          resources: { ...RULES.startResources },
+        }
+      : gameSettings(settings),
+    size = options.boardSize;
   const tileDeck = shuffle(
     CONFIG.tiles.map((tile, id) => ({
       id,
@@ -257,12 +301,15 @@ export function createGame(rng = Math.random, mode = "local") {
     .slice(0, mode === "solo" ? 1 : RULES.players.length)
     .map(p => ({
       name: p.name,
-      x: Math.min(RULES.size - 1, Math.floor(p.start.x * RULES.size)),
-      y: Math.min(RULES.size - 1, Math.floor(p.start.y * RULES.size)),
+      x: Math.min(size - 1, Math.floor(p.start.x * size)),
+      y: Math.min(size - 1, Math.floor(p.start.y * size)),
     }))
     .map((p, owner) => ({
       ...p,
-      resources: { ...RULES.startResources, gold: RULES.startResources.gold + (owner === 0 ? GOLD.firstPlayerStartingAmount : GOLD.startingAmount) },
+      resources: {
+        ...options.resources,
+        gold: options.resources.gold + (owner === 1 ? 1 : 0),
+      },
       workers: RULES.startingWorkers,
       units: [],
       workerAssignments: Array.from({ length: RULES.startingWorkers }, (_, id) => ({ id, building: null })),
@@ -279,7 +326,7 @@ export function createGame(rng = Math.random, mode = "local") {
       cells: patternAt(CONFIG.startingBuilding, p.x, p.y, rotation),
     }));
     const chosen = candidates.find(({ cells }) =>
-      cells.every((c) => inside(c.x, c.y) && !board[key(c.x, c.y)]),
+      cells.every((c) => inside({ boardSize: size }, c.x, c.y) && !board[key(c.x, c.y)]),
     );
     if (!chosen)
       throw Error(
@@ -307,17 +354,22 @@ export function createGame(rng = Math.random, mode = "local") {
     for (let dy = -1; dy <= 1; dy++) {
       for (let dx = -1; dx <= 1; dx++) {
         const x = p.x + dx, y = p.y + dy;
-        if (Math.abs(dx) + Math.abs(dy) === 1 && inside(x,y) && !board[key(x,y)]) board[key(x,y)] = { terrain: "plain" };
+        if (Math.abs(dx) + Math.abs(dy) === 1 && inside({ boardSize: size }, x,y) && !board[key(x,y)]) board[key(x,y)] = { terrain: "plain" };
       }
     }
   }
   for (const flag of RULES.flags) {
-    board[key(flag.x, flag.y)] = { terrain: "plain", flag: { owner: null } };
+    const x = Math.round((flag.x / (RULES.size - 1)) * (size - 1)),
+      y = Math.round((flag.y / (RULES.size - 1)) * (size - 1));
+    board[key(x, y)] = { terrain: "plain", flag: { owner: null } };
   }
   const game = {
     version: 5,
     mode,
-    boardSize: RULES.size,
+    boardSize: size,
+    turnLimit: options.rounds,
+    openingTilesPerPlayer: options.openingTilesPerPlayer,
+    startingResources: { ...options.resources },
     players,
     board,
     tileDeck,
@@ -347,19 +399,28 @@ export function createGame(rng = Math.random, mode = "local") {
 export function startOpening(g) {
   if (g.opening || g.round !== 1 || g.active !== 0 || g.players.some(p => p.revealed))
     throw Error("La préparation ne peut commencer qu’avant la partie.");
-  const indexes = g.tileDeck.map((tile, i) => tile.cells.length >= 5 ? i : -1)
-    .filter(i => i >= 0).slice(0, 5);
-  if (indexes.length < 5) throw Error("La pioche ne contient pas cinq grandes tuiles.");
+  const perPlayer = g.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
+    totalPlacements = perPlayer * g.players.length;
+  if (!totalPlacements) {
+    g.opening = null;
+    note(g, "Aucune tuile de préparation : le premier tour commence.");
+    return;
+  }
+  const offerCount = Math.max(5, totalPlacements + 1),
+    indexes = g.tileDeck.map((tile, i) => tile.cells.length >= 5 ? i : -1)
+      .filter(i => i >= 0).slice(0, offerCount);
+  if (indexes.length < offerCount)
+    throw Error(`La pioche ne contient pas ${offerCount} grandes tuiles.`);
   const tiles = indexes.map(i => g.tileDeck[i]);
   for (const i of indexes.reverse()) g.tileDeck.splice(i, 1);
-  g.opening = { tiles, step: 0 };
+  g.opening = { tiles, step: 0, totalPlacements, perPlayer };
   g.active = g.players.length === 2 ? 1 : 0;
-  note(g, "Préparation : cinq tuiles communes, deux poses par joueur.");
+  note(g, `Préparation : ${perPlayer} tuile${perPlayer === 1 ? "" : "s"} à poser par joueur.`);
 }
 export function openingError(g, index, x, y, rotation = 0) {
   if (!g.opening) return "La préparation est terminée.";
   if (g.finished) return "La partie est terminée.";
-  if (!Number.isInteger(index) || !g.opening.tiles[index]) return "Choisissez une des cinq tuiles disponibles.";
+  if (!Number.isInteger(index) || !g.opening.tiles[index]) return "Choisissez une des tuiles disponibles.";
   return tilePlacement(g, g.opening.tiles[index], x, y, rotation)
     ? null : "Le motif doit tenir sur des cases vides, sans chevauchement.";
 }
@@ -370,7 +431,7 @@ export function placeOpeningTile(g, index, x, y, rotation = 0) {
   for (const c of cells) g.board[key(c.x, c.y)] = { terrain: c.terrain };
   g.opening.tiles.splice(index, 1);
   g.opening.step++;
-  if (g.opening.step === (g.players.length === 2 ? 4 : 2)) {
+  if (g.opening.step === g.opening.totalPlacements) {
     g.tileDeck.push(...g.opening.tiles);
     g.opening = null;
     g.active = 0;
@@ -504,7 +565,7 @@ export function attackError(g, x, y) {
   const unit = actor(g);
   if (unit.type !== "soldier") return "Seule une armée peut combattre ou capturer un drapeau.";
   if (unit.acted || unit.ended) return "Cette armée a déjà terminé son action.";
-  if (!inside(x,y) || distance(unit,{x,y}) !== 1) return "La cible doit être voisine, sans diagonale.";
+  if (!inside(g,x,y) || distance(unit,{x,y}) !== 1) return "La cible doit être voisine, sans diagonale.";
   const cell = g.board[key(x,y)];
   if (!cell || !walkable(cell)) return "Cette cible est inaccessible.";
   if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return "Aucune cible adverse ni drapeau neutre sur cette case.";
@@ -581,7 +642,7 @@ export function attackPaths(g) {
     const [x,y] = parseKey(position);
     for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
       const tx=x+dx,ty=y+dy,k=key(tx,ty);
-      if (!inside(tx,ty) || !walkable(g.board[k]) || (!hostileSite(g,tx,ty) && !enemyAt(g,tx,ty))) continue;
+      if (!inside(g,tx,ty) || !walkable(g.board[k]) || (!hostileSite(g,tx,ty) && !enemyAt(g,tx,ty))) continue;
       if (!paths.has(k)) paths.set(k,path);
     }
   }
@@ -593,7 +654,7 @@ export function moveError(g, x, y) {
   const unit = actor(g);
   if (unit.moves < 1 || unit.acted || unit.ended)
     return "Cette unité a terminé ses déplacements.";
-  if (!inside(x, y) || distance(unit, { x, y }) !== 1)
+  if (!inside(g, x, y) || distance(unit, { x, y }) !== 1)
     return "Choisissez une case voisine, sans diagonale.";
   if (enemyAt(g, x, y)) return "Un pion adverse occupe cette case : utilisez le combat.";
   if (hostileSite(g, x, y)) return "Cette position doit être occupée avec une action de combat.";
@@ -645,7 +706,7 @@ function tilePlacement(g, tile, x, y, rotation = 0, anchor = 0) {
   }));
   if (
     !cells.length ||
-    cells.some((c) => !inside(c.x, c.y) || g.board[key(c.x, c.y)])
+    cells.some((c) => !inside(g, c.x, c.y) || g.board[key(c.x, c.y)])
   )
     return null;
   return cells;
@@ -694,7 +755,7 @@ export function buyTerrainError(g, terrain, x, y) {
   const unit = actor(g);
   if (unit.type === "soldier") return "Les soldats ne peuvent pas explorer.";
   if (unit.acted || unit.ended) return "Cette unité a déjà terminé son action.";
-  if (!inside(x, y) || g.board[key(x, y)]) return "Choisissez une case inexplorée.";
+  if (!inside(g, x, y) || g.board[key(x, y)]) return "Choisissez une case inexplorée.";
   if (distance(unit, { x, y }) !== RULES.placement.explorationContactDistance)
     return "La case doit être voisine de l’unité, sans diagonale.";
   if (g.players[g.active].resources.gold < RULES.trade.singleTerrainCost)
@@ -736,7 +797,7 @@ export function buildError(
   if (!isRotation(rotation)) return "Orientation de bâtiment incorrecte.";
   const cells = patternAt(type, x, y, rotation);
   for (const c of cells) {
-    if (!inside(c.x, c.y)) return "Le motif sort du plateau.";
+    if (!inside(g, c.x, c.y)) return "Le motif sort du plateau.";
     const target = g.board[key(c.x, c.y)];
     if (!target) return "Toutes les cases du motif doivent être explorées.";
     if (target.flag && type !== "outpost") return "Seul un avant-poste peut être construit sur un drapeau.";
@@ -922,7 +983,7 @@ export function endTurn(g) {
   if (earned.length) note(g, `${p.name} récolte : ${earned.join(", ")}.`);
   awardMissions(g);
   const lastPlayer = g.active === g.players.length - 1;
-  if (lastPlayer && g.round >= RULES.rounds) {
+  if (lastPlayer && g.round >= (g.turnLimit ?? RULES.rounds)) {
     g.finished = true;
     note(
       g,
@@ -979,7 +1040,7 @@ export function movementPaths(g) {
         k = key(x, y);
       if (
         seen.has(k) ||
-        !inside(x, y) ||
+        !inside(g, x, y) ||
         !walkable(g.board[k]) ||
         enemyAt(g, x, y) || hostileSite(g, x, y)
       )

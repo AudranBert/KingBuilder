@@ -18,8 +18,8 @@ import {
 export function placementGuidance(g, placement) {
   const results = new Map();
   if (!placement || !["terrain", "building", "single-terrain"].includes(placement.kind)) return results;
-  for (let y = 0; y < RULES.size; y++)
-    for (let x = 0; x < RULES.size; x++)
+  for (let y = 0; y < (g.boardSize ?? RULES.size); y++)
+    for (let x = 0; x < (g.boardSize ?? RULES.size); x++)
       results.set(key(x, y), dragPreview(g, placement, { x, y }));
   return results;
 }
