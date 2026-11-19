@@ -9,20 +9,23 @@
       content="Deux rois, une terre inconnue. Explorez, construisez et faites prospérer votre royaume dans un jeu de stratégie à deux."
     />
     <title>KingBuilder — Le duel des royaumes</title>
+    <link rel="icon" type="image/svg+xml" href="assets/identity/kingbuilder.svg" />
     <link rel="stylesheet" href="src/styles/style.css" />
     <link rel="stylesheet" href="src/styles/ui.css" />
     <link rel="stylesheet" href="src/styles/tabletop.css" />
     <link rel="stylesheet" href="src/styles/menu.css" />
+    <link rel="stylesheet" href="src/styles/identity.css" />
   </head>
   <body>
     <section id="main-menu" class="main-menu" aria-labelledby="menu-title">
       <div class="menu-intro">
-        <span class="menu-crest" aria-hidden="true">♛</span>
+        <span class="menu-crest" aria-hidden="true"><img src="assets/identity/kingbuilder.svg" alt="" /></span>
         <h1 id="menu-title">King<span>Builder</span></h1>
+        <div class="terrain-ribbon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div class="mode-grid" aria-label="Modes de jeu">
         <button class="mode-card" data-game-mode="solo">
-          <span class="mode-icon" aria-hidden="true">♔</span
+          <span class="mode-icon" aria-hidden="true"><img src="assets/identity/solo.svg" alt="" /></span
           ><span
             ><strong>Solo</strong
             ><small
@@ -31,31 +34,31 @@
           ><span aria-hidden="true">→</span>
         </button>
         <button class="mode-card" disabled>
-          <span class="mode-icon" aria-hidden="true">♟</span
+          <span class="mode-icon" aria-hidden="true"><img src="assets/identity/bot.svg" alt="" /></span
           ><span
             ><strong>Versus bot</strong
             ><small>Affrontez l’ordinateur</small
-            ><span class="mode-lock">🔒 Bientôt disponible</span></span
+            ><span class="mode-lock">Bientôt disponible</span></span
           >
         </button>
         <button class="mode-card" data-game-mode="local">
-          <span class="mode-icon" aria-hidden="true">♔♔</span
+          <span class="mode-icon" aria-hidden="true"><img src="assets/identity/local.svg" alt="" /></span
           ><span
-            ><strong>Local multiplayer</strong
+            ><strong>À deux, en local</strong
             ><small
               >Deux joueurs sur le même écran</small
             ></span
           ><span aria-hidden="true">→</span>
         </button>
-        <button class="mode-card" id="online-menu"><span class="mode-icon" aria-hidden="true">◎</span><span><strong>Jouer en ligne</strong><small>Créez une partie ou rejoignez un ami.</small></span></button>
+        <button class="mode-card" id="online-menu"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/online.svg" alt="" /></span><span><strong>Jouer en ligne</strong><small>Créez une partie ou rejoignez un ami.</small></span><span aria-hidden="true">→</span></button>
       </div>
-      <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true">▧</span><span><strong>Catalogue</strong><small>Toutes les cartes Bâtiment et toutes les tuiles Terrain.</small></span><span aria-hidden="true">→</span></button>
+      <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/catalogue.svg" alt="" /></span><span><strong>Catalogue</strong><small>Les tuiles et bâtiments de votre prochain royaume.</small></span><span aria-hidden="true">→</span></button>
       <section id="game-history" class="game-history" aria-labelledby="history-title" hidden><h2 id="history-title">Dernières parties</h2><div id="history-list"></div></section>
     </section>
     <header class="topbar" hidden>
       <a class="brand" href="./"
-        ><span class="brand-icon">▧</span
-        ><span>KING<span class="brand-light">BUILDER</span></span></a
+        ><span class="brand-icon" aria-hidden="true"><img src="assets/identity/kingbuilder.svg" alt="" /></span
+        ><span>King<span class="brand-light">Builder</span></span></a
       >
       <nav>
         <button id="rules-button">Les règles <span>↗</span></button
@@ -212,7 +215,6 @@
       <button class="primary close-rules">Fermer</button>
     </dialog>
     <dialog id="result-dialog" aria-labelledby="winner">
-      <span class="eyebrow">LES CHRONIQUES S’ACHÈVENT</span>
       <h2 id="winner"></h2>
       <div id="results"></div>
       <button class="primary close-results">Voir le plateau →</button>
