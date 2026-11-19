@@ -26,8 +26,7 @@
           ><span
             ><strong>Solo</strong
             ><small
-              >Bâtissez votre royaume et visez le meilleur score en 25
-              tours.</small
+              >Sans adversaire</small
             ></span
           ><span aria-hidden="true">→</span>
         </button>
@@ -35,7 +34,7 @@
           <span class="mode-icon" aria-hidden="true">♟</span
           ><span
             ><strong>Versus bot</strong
-            ><small>Affrontez un royaume contrôlé par l’ordinateur.</small
+            ><small>Affrontez l’ordinateur</small
             ><span class="mode-lock">🔒 Bientôt disponible</span></span
           >
         </button>
@@ -44,21 +43,14 @@
           ><span
             ><strong>Local multiplayer</strong
             ><small
-              >Deux royaumes, deux joueurs, à tour de rôle sur le même
-              écran.</small
+              >Deux joueurs sur le même écran</small
             ></span
           ><span aria-hidden="true">→</span>
         </button>
-        <button class="mode-card" disabled>
-          <span class="mode-icon" aria-hidden="true">◎</span
-          ><span
-            ><strong>Online multiplayer</strong
-            ><small>Défiez d’autres joueurs en ligne.</small
-            ><span class="mode-lock">🔒 Bientôt disponible</span></span
-          >
-        </button>
+        <button class="mode-card" id="online-menu"><span class="mode-icon" aria-hidden="true">◎</span><span><strong>Jouer en ligne</strong><small>Créez une partie ou rejoignez un ami.</small></span></button>
       </div>
       <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true">▧</span><span><strong>Catalogue</strong><small>Toutes les cartes Bâtiment et toutes les tuiles Terrain.</small></span><span aria-hidden="true">→</span></button>
+      <section id="game-history" class="game-history" aria-labelledby="history-title" hidden><h2 id="history-title">Dernières parties</h2><div id="history-list"></div></section>
     </section>
     <header class="topbar" hidden>
       <a class="brand" href="./"
@@ -73,6 +65,7 @@
       </nav>
     </header>
     <main aria-busy="true" hidden>
+      <p id="online-status" role="status" hidden style="overflow-wrap:anywhere"></p>
       <section id="players" class="players" aria-label="Royaumes"></section>
       <div class="game-layout">
         <div class="land-column">
@@ -152,10 +145,18 @@
       </div>
     </main>
     <div id="toast" role="status" aria-live="polite"></div>
+    <dialog id="online-dialog" class="online-dialog" aria-labelledby="online-title">
+      <h2 id="online-title">Jouer en ligne</h2>
+      <div id="nickname-row"><input id="nickname" maxlength="24" autocomplete="nickname" placeholder="Votre pseudo" aria-label="Votre pseudo" /></div>
+      <button id="online-create" class="primary" type="button">Créer une partie</button>
+      <div class="online-join"><label for="online-code">Rejoindre avec un code</label><input id="online-code" maxlength="10" autocomplete="off" placeholder="Code de 10 caractères" /><button id="online-join" class="primary" type="button">Rejoindre</button></div>
+      <div class="dialog-actions"><button id="online-resume" class="secondary" type="button">Reprendre ma partie</button><button id="online-close" class="secondary" type="button">Fermer</button></div>
+    </dialog>
     <dialog id="game-settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
       <span class="eyebrow" id="settings-mode">Nouvelle partie</span>
       <h2 id="settings-title">Préparer le royaume</h2>
-      <p class="settings-intro">Ajustez les règles avant de poser la première tuile.</p>
+      <div id="lobby-info" hidden><p id="lobby-players" role="status"></p><p>Code : <strong id="lobby-code"></strong></p><button id="lobby-copy-link" type="button">Copier le lien</button> <button id="lobby-copy-code" type="button">Copier le code</button></div>
+      <label id="setting-clock-row" class="setting-row" hidden for="setting-clock"><span><strong>Temps maximum par tour</strong><small>La préparation du terrain reste sans limite.</small></span><select id="setting-clock"><option value="0">Sans limite</option><option value="30">30 secondes</option><option value="60">1 minute</option><option value="90">1 min 30</option><option value="120">2 minutes</option><option value="150">2 min 30</option><option value="180">3 minutes</option></select></label>
       <div class="settings-list">
         <label class="setting-row" for="setting-rounds">
           <span><strong>Nombre de tours</strong><small>De 20 à 40 tours par joueur</small></span>
@@ -185,6 +186,7 @@
       <div class="dialog-actions settings-actions">
         <button id="settings-cancel" class="secondary" type="button">Annuler</button>
         <button id="settings-start" class="primary" type="button">Lancer la partie →</button>
+        <button id="lobby-start" class="primary" type="button" hidden>Lancer la partie →</button>
       </div>
     </dialog>
     <dialog id="catalogue-dialog" aria-labelledby="catalogue-title">

@@ -1,18 +1,19 @@
 import { parseKey } from "./geometry.js";
+import { OnlineClient } from './online.js';
 import { installDrag } from "./ui/drag.js";
 import {
   RULES,
   GAME_DEFAULTS,
   createGame,
-  buyTerrain,
+  buyTerrain as localBuyTerrain,
   startOpening,
-  placeOpeningTile,
+  placeOpeningTile as localPlaceOpeningTile,
   GOLD,
   MISSIONS,
   RESOURCE_DEFINITIONS,
   buildingPayment,
   buildError,
-  rerollMarket,
+  rerollMarket as localRerollMarket,
   rerollError,
   actor,
   buildingAt,
@@ -20,18 +21,18 @@ import {
   attackPaths,
   selectArmy,
   pawns,
-  explore,
-  build,
-  assign,
-  endTurn,
+  explore as localExplore,
+  build as localBuild,
+  assign as localAssign,
+  endTurn as localEndTurn,
   selectUnit,
-  assignWorker,
-  trainUnit,
+  assignWorker as localAssignWorker,
+  trainUnit as localTrainUnit,
   totalScore,
   key,
 } from "./engine.js";
 import { createUIState } from "./ui/state.js";
-import { dragFromCard, dragPreview, moveUnitTo, placementGuidance } from "./ui/interactions.js";
+import { dragFromCard, dragPreview, moveUnitTo as localMoveUnitTo, placementGuidance } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
@@ -70,13 +71,96 @@ export function startGame() {
     nextSettings = structuredClone(GAME_DEFAULTS);
   let inMenu = true;
   let unitCellClick = null;
+  let announcedTurn = null;
+  function announceTurn() {
+    if (inMenu || game.finished || game.mode === 'solo') return;
+    const turn = `${game.onlineCode || 'local'}:${game.round}:${game.active}:${game.opening?.step ?? 'play'}`;
+    if (announcedTurn === turn) return;
+    announcedTurn = turn;
+    if (online.session && game.active !== online.session.player) return;
+    toast(online.session ? 'À vous de jouer' : `Au tour du royaume ${game.active === 0 ? 'd’Ambre' : 'de Jade'}`);
+  }
+  let queuedCommand = null;
+  const online = new OnlineClient(result => {
+    const changed = result.code !== game.onlineCode || result.revision !== game.onlineRevision;
+    if (changed) {
+      const selected = game.selectedUnitId, army = game.armySelection;
+      game = result.game;
+      if (game.active === result.player && selected !== null && game.players[game.active].units.some(u => u.id === selected)) {
+        game.selectedUnitId = selected; game.armySelection = army;
+      }
+      game.onlineRevision = result.revision;
+      game.onlineCode = result.code;
+      undoState = null; pendingBuild = null;
+      Object.assign(ui, createUIState());
+    }
+    render();
+    if (changed && game.finished && !inMenu) showResults();
+    if (!result.started) showLobby(result, changed);
+    else if (inMenu) { $('#game-settings-dialog').close(); enterGame(); }
+  }, error => { $('#online-status').textContent = `Connexion interrompue : ${error.message} Nouvelle tentative…`; });
+  function showLobby(session, syncSettings = true) {
+    inMenu = true;
+    $('#lobby-info').hidden = false;
+    $('#settings-title').textContent = session.joined ? 'Partie prête' : 'En attente du deuxième joueur';
+    $('#setting-clock-row').hidden = false;
+    $('#setting-clock').disabled = session.player !== 0;
+    if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-clock').value = session.settings.turnSeconds ?? 0;
+    $('#settings-mode').textContent = session.player === 0 ? 'Vous êtes l’hôte' : 'Invité';
+    $('#lobby-code').textContent = session.code;
+    $('#lobby-players').textContent = `${session.game.players[0].name} (Ambre) · ${session.joined ? session.game.players[1].name + ' (Jade)' : 'En attente du deuxième joueur…'}`;
+    $('#settings-start').hidden = true;
+    $('#lobby-start').hidden = session.player !== 0;
+    $('#lobby-start').disabled = !session.joined || online.busy;
+    for (const [name, [selector]] of Object.entries(settingInputs)) {
+      $(selector).disabled = session.player !== 0;
+      if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $(selector).value = session.settings.resources[name] ?? session.settings[name];
+    }
+    updateSettingLabels();
+    if (!$('#game-settings-dialog').open) $('#game-settings-dialog').showModal();
+  }
+  const mutation = (type, fn) => (state, ...args) => {
+    if (online.session) {
+      if (online.busy || !online.session.joined || state.active !== online.session.player) throw Error('Attendez votre tour.');
+      queuedCommand = { type, args, unit: state.selectedUnitId, army: state.armySelection?.length ?? null };
+      return;
+    }
+    return fn(state, ...args);
+  };
+  const buyTerrain = mutation('buyTerrain', localBuyTerrain), placeOpeningTile = mutation('placeOpeningTile', localPlaceOpeningTile),
+    rerollMarket = mutation('rerollMarket', localRerollMarket), explore = mutation('explore', localExplore),
+    build = mutation('build', localBuild), assign = mutation('assign', localAssign), endTurn = mutation('endTurn', localEndTurn),
+    assignWorker = mutation('assignWorker', localAssignWorker), trainUnit = mutation('trainUnit', localTrainUnit),
+    moveUnitTo = mutation('moveUnitTo', localMoveUnitTo);
   function showMenu() {
+    refreshHistory();
+    clearTimeout(toastTimer);
+    $('#toast').classList.remove('visible');
+    announcedTurn = null;
     drag.cancel();
     inMenu = true;
     $("#main-menu").hidden = false;
     $("header").hidden = true;
     $("main").hidden = true;
     $("[data-game-mode='solo']").focus();
+  }
+  async function refreshHistory() {
+    if (!globalThis.location?.href || !/^https?:/.test(globalThis.location.href)) return;
+    const preview = new URL(globalThis.location.href).searchParams.get('previewHistory') === '1';
+    if (preview) {
+      $('#game-history').hidden = false;
+      html('#history-list', '<div class="history-row"><span>Alice <strong>24</strong></span><span class="history-versus">contre</span><span>Bob <strong>18</strong></span><span class="history-winner">♛ Alice</span></div><p class="history-preview-note">Aperçu · partie fictive</p>');
+      return;
+    }
+    try {
+      const client = new OnlineClient(() => {}, () => {});
+      await client.configure();
+      const result = await client.request('/history');
+      $('#game-history').hidden = !result.enabled;
+      html('#history-list', result.games.length ? result.games.map(item =>
+        `<div class="history-row"><span>${e(item.names[0])} <strong>${e(item.scores[0])}</strong></span><span class="history-versus">contre</span><span>${e(item.names[1])} <strong>${e(item.scores[1])}</strong></span><span class="history-winner">${item.winner === null ? 'Égalité' : `♛ ${e(item.names[item.winner])}`}</span></div>`
+      ).join('') : '<p>Aucune partie terminée pour le moment.</p>');
+    } catch { $('#game-history').hidden = true; }
   }
   function enterGame() {
     inMenu = false;
@@ -126,11 +210,18 @@ export function startGame() {
     );
   }
   function act(action, { message, undoable = true, clearUndo = false } = {}) {
+    queuedCommand = null;
     const before = undoable ? structuredClone(game) : null;
     const signature = undoable ? JSON.stringify(game) : null;
     try {
       const previousClaims = game.missions.claimed.length;
       action();
+      if (queuedCommand) {
+        const command = queuedCommand;
+        online.send(command).then(() => { if (game.finished) showResults(); }).catch(error => toast(error.message)).finally(render);
+        render();
+        return true;
+      }
       if (clearUndo) undoState = null;
       else if (undoable && JSON.stringify(game) !== signature) undoState = before;
       const won = game.missions.claimed.slice(previousClaims);
@@ -157,6 +248,17 @@ export function startGame() {
     }
   }
   function render() {
+    announceTurn();
+    const session = online.session;
+    $('#online-status').hidden = !session;
+    if (session) {
+      const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
+      $('#online-status').textContent = `Partie ${session.code} · Vous : ${game.players[session.player].name} · ${!session.joined ? 'En attente d’un adversaire' : online.busy ? 'Envoi du coup…' : game.active === session.player ? 'À vous de jouer' : 'Tour de votre adversaire'} · Invitation : ${invite.href}`;
+      if (session.deadline && !game.finished) $('#online-status').textContent += ` · Temps restant : ${Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))} s`;
+      $('#menu-button').textContent = game.finished ? 'Revenir au menu principal' : 'Abandonner et revenir au menu';
+    } else {
+      $('#menu-button').textContent = 'Revenir au menu principal';
+    }
     const opening = game.opening;
     $(".game-layout").classList.toggle("opening", Boolean(opening));
     $("#opening-status").hidden = !opening;
@@ -169,7 +271,7 @@ export function startGame() {
     $("#tile-market").style.setProperty("--terrain-columns", opening ? 3 : RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
-        error = rerollError(game, kind);
+        error = session ? session.rerollErrors[kind] : rerollError(game, kind);
       button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
       button.disabled = Boolean(error);
       button.title =
@@ -199,7 +301,8 @@ export function startGame() {
 
     $("#rotate-building").disabled =
       game.finished || Boolean(opening) || !game.buildingMarket.length;
-    $("#undo-action").disabled = !undoState;
+    $("#undo-action").disabled = Boolean(session) || !undoState;
+    if (session && (online.busy || !session.joined || game.active !== session.player)) $('#end-turn').disabled = true;
     for (const button of document.querySelectorAll("[data-mode]")) {
       button.setAttribute(
         "aria-pressed",
@@ -359,7 +462,9 @@ export function startGame() {
     const a = totalScore(game, 0),
       b = game.players.length > 1 ? totalScore(game, 1) : 0;
     $("#winner").textContent =
-      game.victory === "conquest"
+      game.victory === 'resignation'
+        ? `${game.players[game.winner].name} gagne par abandon !`
+        : game.victory === "conquest"
         ? `${game.players[game.winner].name} conquiert le donjon et remporte la partie !`
         : game.mode === "solo"
         ? `Votre royaume : ${a} points`
@@ -450,7 +555,6 @@ export function startGame() {
       ui.placement = null;
     }, { undoable: false, clearUndo: true });
     if (game.finished) showResults();
-    else toast(`${game.players[game.active].name} : à vous de jouer.`);
   });
   $("#rules-button").addEventListener("click", () => {
     html(".rules-content", rulesView(game));
@@ -463,7 +567,15 @@ export function startGame() {
     $("#rules-dialog").close(),
   );
   $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
-  $("#menu-button").addEventListener("click", showMenu);
+  $("#menu-button").addEventListener("click", async () => {
+    if (online.session) {
+      try {
+        if (!game.finished && online.session.started) await online.resign();
+        else online.stop();
+      } catch (error) { toast(error.message); return; }
+    }
+    showMenu();
+  });
   const catalogueFilters = { tier: "all", tileSize: "all", terrain: "all", tileSort: "size" };
   let catalogueSection = "buildings";
   function renderCatalogue() {
@@ -504,8 +616,16 @@ export function startGame() {
     button.addEventListener("click", () => $("#catalogue-dialog").close());
   });
   function requestNewGame(mode) {
+    $('#setting-clock-row').hidden = true;
+    online.stop();
+    $('#lobby-info').hidden = true;
+    $('#lobby-start').hidden = true;
+    $('#settings-title').textContent = 'Préparer le royaume';
+    $('#settings-start').hidden = false;
+    $('#settings-start').textContent = 'Lancer la partie →';
+    for (const [, [selector]] of Object.entries(settingInputs)) $(selector).disabled = false;
     nextMode = mode;
-    $("#settings-mode").textContent = mode === "solo" ? "Partie solo" : "Partie locale";
+    $("#settings-mode").textContent = mode === "solo" ? "Partie solo" : mode === 'online' ? 'Partie en ligne' : "Partie locale";
     $("#game-settings-dialog").showModal();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
@@ -513,6 +633,10 @@ export function startGame() {
       requestNewGame(button.dataset.gameMode),
     );
   function beginNewGame() {
+    if (nextMode === 'online') {
+      online.connect(null, nextSettings).catch(error => toast(error.message));
+      return;
+    }
     const created = act(
       () => {
         game = createGame(Math.random, nextMode, nextSettings);
@@ -555,13 +679,28 @@ export function startGame() {
         : GAME_DEFAULTS[name];
     input.value = defaultValue;
     input.addEventListener("input", updateSettingLabels);
+    input.addEventListener('change', scheduleLobbySave);
+  }
+  let lobbySaveTimer;
+  $('#setting-clock').addEventListener('change', scheduleLobbySave);
+  function scheduleLobbySave() {
+    clearTimeout(lobbySaveTimer);
+    if (!online.session || online.session.started || online.session.player !== 0) return;
+    lobbySaveTimer = setTimeout(async () => {
+      if (!online.session || online.session.started) return;
+      if (online.busy) { scheduleLobbySave(); return; }
+      try { await online.lobby(collectSettings()); } catch (error) { toast(`Réglages non enregistrés : ${error.message}`); }
+    }, 300);
   }
   updateSettingLabels();
-  $("#settings-cancel").addEventListener("click", () =>
-    $("#game-settings-dialog").close(),
-  );
-  $("#settings-start").addEventListener("click", () => {
+  $("#settings-cancel").addEventListener("click", () => {
+    if (online.session && !online.session.started) online.stop();
+    $("#game-settings-dialog").close();
+  });
+  $('#game-settings-dialog').addEventListener('cancel', () => { if (online.session && !online.session.started) online.stop(); });
+  function collectSettings() {
     nextSettings = {
+      turnSeconds: Number($('#setting-clock').value || 0),
       rounds: Number($("#setting-rounds").value),
       openingTilesPerPlayer: Number($("#setting-opening").value),
       boardSize: Number($("#setting-board").value),
@@ -571,7 +710,12 @@ export function startGame() {
         gold: Number($("#setting-gold").value),
       },
     };
-    beginNewGame();
+    return nextSettings;
+  }
+  $("#settings-start").addEventListener("click", () => {
+    collectSettings();
+    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast('Réglages enregistrés.')).catch(error => toast(error.message));
+    else beginNewGame();
   });
   $(".close-results").addEventListener("click", () =>
     $("#result-dialog").close(),
@@ -661,6 +805,31 @@ export function startGame() {
     },
   });
   html(".rules-content", rulesView(game));
+  $('#online-create').addEventListener('click', () => {
+    $('#online-dialog').close();
+    online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toast(error.message));
+  });
+  $('#online-menu').addEventListener('click', () => $('#online-dialog').showModal());
+  $('#online-close').addEventListener('click', () => $('#online-dialog').close());
+  $('#lobby-start').addEventListener('click', () => {
+    clearTimeout(lobbySaveTimer);
+    online.lobby(collectSettings(), true).catch(error => toast(error.message));
+  });
+  for (const [id, link] of [['lobby-copy-link', true], ['lobby-copy-code', false]]) $( '#' + id).addEventListener('click', async () => {
+    try {
+      const url = new URL(globalThis.location.href); url.hash = `join=${online.session.code}`;
+      await navigator.clipboard.writeText(link ? url.href : online.session.code);
+      toast(link ? 'Lien copié.' : 'Code copié.');
+    } catch { toast('Copie impossible. Le code est affiché dans le salon.'); }
+  });
+  $('#online-join').addEventListener('click', () => {
+    const code = $('#online-code').value.trim().toUpperCase();
+    if (!/^[A-F0-9]{10}$/.test(code)) return toast('Saisissez un code de partie de 10 caractères.');
+    $('#online-dialog').close();
+    online.connect(code, undefined, $('#nickname').value).catch(error => toast(error.message));
+  });
+  $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toast(error.message)); });
+  if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); $('#online-dialog').showModal(); }
   render();
   showMenu();
 }

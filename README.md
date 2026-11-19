@@ -1,5 +1,7 @@
 # KingBuilder
 
+Le mode multijoueur privé temporaire dispose d’un serveur Node.js sans base de données. Installation locale, déploiement Render gratuit, configuration et administration : [guide multijoueur](docs/multiplayer.md).
+
 Jeu de placement de tuiles en duel, en français, jouable à deux sur le même écran. Le terrain est commun : explorez, développez votre économie et disputez les positions adverses.
 
 ## Jouer

@@ -4,9 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "start:online": "node backend/start.mjs",
     "build": "node scripts/build.mjs",
     "start": "node server.mjs",
     "test": "node --test",
     "check:config": "node scripts/check-config.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.23.1"
   }
 }

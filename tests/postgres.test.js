@@ -1,0 +1,30 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { PostgresRooms } from '../backend/postgres-rooms.mjs';
+import { GAME_DEFAULTS } from '../src/engine.js';
+
+test('PostgreSQL : reprise, concurrence et rollback', { skip: !process.env.TEST_DATABASE_URL }, async t => {
+  const { default: pg } = await import('pg');
+  const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL, max: 3 });
+  t.after(() => pool.end());
+  const rooms = new PostgresRooms(pool);
+  await rooms.initialize();
+  const host = await rooms.create({ ...GAME_DEFAULTS, openingTilesPerPlayer: 0 });
+  t.after(() => pool.query('DELETE FROM kingbuilder_rooms WHERE code = $1', [host.code]));
+  t.after(() => pool.query('DELETE FROM kingbuilder_history WHERE code = $1', [host.code]));
+  const joins = await Promise.allSettled([rooms.join(host.code), rooms.join(host.code)]);
+  assert.equal(joins.filter(r => r.status === 'fulfilled').length, 1);
+  const guest = joins.find(r => r.status === 'fulfilled').value;
+  const restarted = new PostgresRooms(pool);
+  assert.equal((await restarted.read(host.code, host.token)).joined, true);
+  await rooms.lobby(host.code, host.token, { revision: 0, start: true });
+  const request = { id: 'persisted', revision: 1, command: { type: 'endTurn', args: [] } };
+  const results = await Promise.all([rooms.command(host.code, host.token, request), restarted.command(host.code, host.token, request)]);
+  assert.ok(results.every(r => r.revision === 2));
+  await assert.rejects(restarted.command(host.code, guest.token, { id: 'invalid', revision: 1, command: { type: 'build', args: [999, 0, 0] } }));
+  assert.equal((await restarted.read(host.code, guest.token)).revision, 2);
+  await restarted.resign(host.code, host.token);
+  const history = await restarted.history();
+  assert.equal(history.enabled, true);
+  assert.ok(history.games.some(g => g.names[0] === 'Ambre' && g.winner === 1 && g.scores.length === 2));
+});
