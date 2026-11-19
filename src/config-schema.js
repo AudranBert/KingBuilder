@@ -149,6 +149,7 @@ export function compileConfiguration(
   object(gameConfig.trade, "game-rules.json.trade");
   integer(gameConfig.trade.basePrice, "game-rules.json.trade.basePrice", 1);
   integer(gameConfig.trade.producerSurcharge, "game-rules.json.trade.producerSurcharge");
+  integer(gameConfig.trade.singleTerrainCost, "game-rules.json.trade.singleTerrainCost", 1);
   if (!Array.isArray(gameConfig.flags) || gameConfig.flags.length !== 5)
     fail("game-rules.json.flags", "cinq drapeaux attendus.");
   const flagPositions = new Set();
@@ -162,8 +163,9 @@ export function compileConfiguration(
     flagPositions.add(position);
   }
   object(gameConfig.scoring, "game-rules.json.scoring");
-  for (const name of ["building"])
+  for (const name of ["building", "flag"])
     integer(gameConfig.scoring[name], `game-rules.json.scoring.${name}`);
+  integer(gameConfig.scoring.goldPerPoint, "game-rules.json.scoring.goldPerPoint", 1);
   integer(gameConfig.scoring.flag, "game-rules.json.scoring.flag");
   integer(gameConfig.startingWorkers, "game-rules.json.startingWorkers");
   object(gameConfig.markets, "game-rules.json.markets");

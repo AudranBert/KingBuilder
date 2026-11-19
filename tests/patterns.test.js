@@ -117,12 +117,12 @@ test("variantes carrées : quatre terrains réservés, rotation et production", 
     }
   }
 });
-test("ferme en Z et scierie en croix : rotations, réservation et production", () => {
+test("ferme en Z et scierie en T : rotations, réservation et production", () => {
   for (const [type, role, resource] of [["farm_z", "field", "food"], ["sawmill_cross", "timber", "material"]]) {
     for (let r = 0; r < 4; r++) {
       const g = setup(type, r);
       const parts = patternAt(type, 7, 7, r).filter(c => c.role !== "building");
-      assert.equal(parts.length, 4);
+      assert.equal(parts.length, type === "sawmill_cross" ? 3 : 4);
       const invalid = structuredClone(g);
       invalid.board[key(parts[0].x, parts[0].y)].terrain = "river";
       assert.throws(() => build(invalid, 0, 7, 7, r));
@@ -233,7 +233,7 @@ test("défricher gratuitement donne deux bois, consomme son action et remplace l
   endTurn(g);
   endTurn(g);
   g.buildingMarket[0] = "house";
-  g.players[0].resources.food = 1;
+  g.players[0].resources.food = 2;
   build(g, 0, 7, 7);
 });
 function farmAndMill() {

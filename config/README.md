@@ -1,6 +1,6 @@
 # Configuration de KingBuilder
 
-Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commencer une nouvelle partie après toute modification des catalogues ou des règles. Les sauvegardes de l’ancien système sont copiées avant remplacement.
+Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commencer une nouvelle partie après toute modification des catalogues ou des règles.
 
 ## Fichiers
 
@@ -10,7 +10,7 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 | `resources.json` | Matériaux (`material`), nourriture (`food`), or (`gold`) |
 | `units.json` | Roi, ouvrier, soldat et émissaire |
 | `buildings.json` | Coûts, motifs, production, garnisons et points |
-| `terrain-tiles.json` | Treize formes et soixante tuiles prédéfinies |
+| `terrain-tiles.json` | Dix-sept formes et soixante tuiles prédéfinies, de deux à six cases |
 | `terrains.json` | Terrains, traversabilité et apparence |
 | `missions.json` | Missions communes, contribution et récompenses en or |
 
@@ -23,17 +23,19 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 - `flags` : cinq coordonnées entières absolues `{ "x": 6, "y": 6 }`, à l’intérieur du plateau et sans doublon. Ces cases sont révélées sur plaine.
 - `scoring.flag` : points de chaque drapeau contrôlé (4).
 - `scoring.building` : valeur de repli des bâtiments sans champ `points` (1).
+- `scoring.goldPerPoint` : nombre de pièces d’or pour 1 point au décompte final (2).
 - `trade.basePrice` : prix de base d’une ressource achetée à la banque (2).
 - `trade.producerSurcharge` : supplément par producteur adverse de la ressource (1).
+- `trade.singleTerrainCost` : prix d’une case de terrain choisie à l’unité (1 or).
 - `gold.firstPlayerStartingAmount` / `gold.startingAmount` : supplément d’or initial du premier / second joueur (0 / 1), ajouté à l’or de `resources.json`.
 - `gold.rerollCost` / `gold.rerollLimitPerTurn` : coût et quota commun des relances (1 / 1).
 - `placement.constructionRange` : portée orthogonale de construction (1).
 - `placement.explorationContactDistance` : distance de contact d’une tuile explorée (1).
-- `markets.terrainSize` / `markets.buildingSize` : nombre d’offres (3 / 3).
+- `markets.terrainSize` / `markets.buildingSize` : nombre d’offres (4 / 4). Au départ, seules les trois cases directement voisines par un bord de chaque donjon sont révélées en plaine, sans les diagonales.
 - `markets.initialMaxTier` : niveau exact au départ (1), puis niveau maximal avant le déblocage avancé. Le marché initial doit contenir des familles différentes ; prévoir assez de familles de ce niveau. La maison est de niveau 2.
 - `markets.advancedFromReplacement` : remplacement partagé à partir duquel les bâtiments avancés entrent (2).
 
-Le score utilise uniquement les bâtiments et drapeaux. La population et le prestige n’existent plus.
+Le score final utilise les bâtiments, les drapeaux et l’or restant. La population et le prestige n’existent plus.
 
 ## Ressources
 
@@ -41,10 +43,10 @@ Chaque entrée contient `id`, `name`, `icon`, `startingAmount` et `points` (0 po
 
 ## Unités
 
-- `king` : `recruitment: "initial"`, coût vide et 2 déplacements.
+- `king` : `recruitment: "initial"`, coût vide et 3 déplacements.
 - `worker` : `recruitment: "house"`, coût vide, 0 déplacement ; affectation directe.
-- `soldier` : `recruitment: "building"`, coût de 2 nourritures et 2 déplacements ; armées et combat.
-- `emissary` : `recruitment: "building"`, coût vide car inclus dans la Chancellerie, 2 déplacements ; construction et exploration.
+- `soldier` : `recruitment: "building"`, coût de 2 nourritures et 3 déplacements ; armées et combat.
+- `emissary` : `recruitment: "building"`, coût vide car inclus dans la Chancellerie, 3 déplacements ; construction et exploration.
 
 Les comportements militaires et les retours des bâtisseurs sont attachés à ces rôles. Ajouter une entrée à `units.json` ne suffit pas à créer une nouvelle règle de combat.
 
@@ -52,7 +54,7 @@ Les comportements militaires et les retours des bâtisseurs sont attachés à ce
 
 Champs communs : `id`, `name`, `icon`, `cost`, `terrain`, `description`, `pattern`, `layout`, `legend`, `tier`, `weight` et `points`. Garder `description` courte ; l’interface affiche des pictogrammes pour les effets connus.
 
-Répartition actuelle de `tier` : 0 pour défrichement et pont, 1 pour les producteurs de ressources (`produces`), 2 pour tous les autres bâtiments, y compris les moulins et avant-postes. Le donjon reste hors pioche.
+Répartition actuelle de `tier` : 0 pour défrichement, pont et tunnel, 1 pour les producteurs de ressources (`produces`), 2 pour tous les autres bâtiments, y compris les moulins et avant-postes. Le donjon reste hors pioche.
 
 `layout` dessine l’empreinte : `B` est la case réelle du bâtiment, les points sont des vides, les autres symboles renvoient à `legend`. L’empreinte doit être reliée par les bords et contenir exactement un `B`. Chaque symbole annexe indique ses terrains et son rôle. La rotation s’applique autour de `B`.
 
@@ -83,16 +85,16 @@ Effets :
 - `trains` + `trainingLimit` : recrutements payants et quota par tour du propriétaire.
 - `unique` : limite à un bâtiment et son émissaire par joueur.
 - `garrison` : garnison fixe (1 dans les règles actuelles).
-- `traversable` : rend la case praticable, notamment pont et avant-poste.
+- `traversable` : rend la case praticable, notamment pont, tunnel et avant-poste.
 - `boost` : producteur ciblé, multiplicateur, voisinage `edge` ou `touching`, propriété requise.
 - `adjacency` : conditions de voisinage d’un bâtiment ou rôle annexe.
 - `transformTo` + `onBuildGain` : action de transformation d’une case, sans bâtiment permanent.
 - `constructible: false` : bâtiment initial hors pioche (donjon).
 - `family` : variante d’un bâtiment de base, notamment pour les missions et bonus.
 
-L’avant-poste accepte tous les terrains révélés libres, y compris un drapeau ; il ne peut pas chevaucher une empreinte. Sur un drapeau, sa garnison en prend le contrôle. Sa case devient praticable.
+L’avant-poste accepte tous les terrains révélés sans bâtiment, y compris un drapeau ou une annexe compatible. Sur un drapeau, sa garnison en prend le contrôle. Sa case devient praticable.
 
-`deckSize` correspond à la pioche, actuellement 75. `weight` indique les exemplaires ; `maxFamilyCopies` limite une famille à 12 cartes, variantes comprises. Le donjon reste hors pioche.
+`deckSize` correspond à la pioche, actuellement 77. `weight` indique les exemplaires ; `maxFamilyCopies` limite une famille à 12 cartes, variantes comprises. Le donjon reste hors pioche.
 
 ## Missions
 

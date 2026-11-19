@@ -10,14 +10,14 @@ const originals=await Promise.all(names.map(n=>readFile(new URL(`../config/${n}.
 const configs=()=>structuredClone(originals);
 test("configuration sans mutation : trois ressources, quatre unités et nouveaux bâtiments",()=>{
  const input=configs(),before=structuredClone(input),c=compileConfiguration(...input);
- assert.deepEqual(input,before);assert.equal(Object.keys(c.shapes).length,13);assert.equal(Object.keys(c.resources).length,3);
- assert.equal(Object.keys(c.units).length,4);assert.equal(c.units.soldier.moves,2);assert.equal(c.units.worker.recruitment,"house");
+ assert.deepEqual(input,before);assert.equal(Object.keys(c.shapes).length,17);assert.equal(Object.keys(c.resources).length,3);
+ assert.equal(Object.keys(c.units).length,4);assert.equal(c.units.soldier.moves,3);assert.equal(c.units.emissary.moves,3);assert.equal(c.units.king.moves,3);assert.equal(c.units.worker.moves,0);assert.equal(c.units.worker.recruitment,"house");
  assert.equal(c.buildings.chancellery.onBuildUnit,"emissary");assert.equal(c.buildings.castle.garrison,1);assert.equal(c.rules.turnLimit,25);
 });
-test("pioche : chaque exemplaire et chaque variante sont conservés, maisons limitées à douze",()=>{
- const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,75);
+test("pioche : chaque exemplaire et chaque variante sont conservés, huit maisons et six tunnels",()=>{
+ const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,77);
  for(const id of c.buildingPool){const family=c.buildings[id].family||id;counts[family]=(counts[family]||0)+1;}
- assert.equal(counts.house,12);assert.equal(counts.chancellery,3);assert.equal(counts.monument,3);assert.ok(Object.values(counts).every(n=>n<=12));
+ assert.equal(counts.house,8);assert.equal(counts.tunnel,6);assert.equal(counts.chancellery,3);assert.equal(counts.monument,3);assert.ok(Object.values(counts).every(n=>n<=12));
  for(const family of ["farm","sawmill","quarry","mine","port","mill"]){
  const variants=Object.values(c.buildings).filter(b=>(b.family||b.id)===family);assert.equal(variants.length,3);
  for(const b of variants){assert.deepEqual(b.cost,c.buildings[family].cost);assert.equal(b.production,c.buildings[family].production);}}
@@ -40,7 +40,7 @@ test("références de ressources, terrains, unités et bonus invalides refusées
 test("identifiants en double et poids dépassant la pioche ou la famille refusés",()=>{
  const a=configs();a[0].shapes.push(a[0].shapes[0]);assert.throws(()=>compileConfiguration(...a),/double/);
  const b=configs();b[1].buildings[0].weight=100;assert.throws(()=>compileConfiguration(...b),/poids/);
- const c=configs();c[1].buildings[0].weight=13;c[1].buildings.find(b=>b.id==="clearing").weight=7;assert.throws(()=>compileConfiguration(...c),/maxFamilyCopies/);
+ const c=configs();c[1].buildings[0].weight=13;c[1].buildings.find(b=>b.id==="clearing").weight=3;assert.throws(()=>compileConfiguration(...c),/maxFamilyCopies/);
 });
 test("roi et ouvrier obligatoires, ouvriers sans déplacement, coûts négatifs refusés",()=>{
  for(const change of [c=>c[3].units=c[3].units.filter(u=>u.id!=="king"),c=>c[3].units=c[3].units.filter(u=>u.id!=="worker"),

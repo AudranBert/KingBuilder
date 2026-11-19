@@ -102,15 +102,25 @@ export function harvestView(g) {
 
 export function terrainMarketView(g, ui) {
   return (
-    g.tileMarket
+    (g.opening ? g.opening.tiles : g.tileMarket)
       .map((tile, i) => {
         const choice = ui.drag || ui.placement;
         const selected = choice?.kind === "terrain" && choice.index === i;
-        return `<button class="tile-card ${selected ? "selected" : ""}" draggable="false" title="${e(tile.name)}${tile.intent ? " · " + e(tile.intent) : ""}" data-tile="${i}" aria-pressed="${selected}" aria-label="${e(tile.name || "Tuile terrain")}, ${tile.cells.length} cases" ${g.finished ? "disabled" : ""}>${terrainDiagram(tile, ui.rotation)}</button>`;
+        return `<button class="tile-card ${selected ? "selected" : ""}" draggable="false" title="${e(tile.name)}${tile.intent ? " · " + e(tile.intent) : ""}" data-tile="${i}" aria-pressed="${selected}" aria-label="${e(tile.name || "Tuile terrain")}, ${tile.cells.length} cases" ${g.finished ? "disabled" : ""}>${terrainDiagram(tile, ui.rotation, RULES.markets.terrainSize >= 4 ? 48 : 64)}</button>`;
       })
       .join("") ||
     '<p class="empty-state">La pioche de terrains est épuisée.</p>'
   );
+}
+export function singleTerrainView(g, ui) {
+  if (g.opening) return "";
+  const unit = actor(g);
+  const cost = RULES.trade.singleTerrainCost;
+  const disabled = g.finished || unit.type === "soldier" || unit.acted || unit.ended || g.players[g.active].resources.gold < cost;
+  return `<div class="single-terrain-label" title="Acheter une case de terrain pour ${cost} or">${cost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → 1 case</div><div class="single-terrain-market" aria-label="Acheter une case de terrain pour ${cost} or">${["plain", "forest", "mountain", "river"].map(id => {
+    const selected = (ui.drag || ui.placement)?.kind === "single-terrain" && (ui.drag || ui.placement).terrain === id;
+    return `<button class="tile-card ${selected ? "selected" : ""}" data-single-terrain="${id}" draggable="false" aria-label="Acheter une case de ${e(TERRAINS[id].name.toLowerCase())} pour ${cost} or" aria-pressed="${selected}" title="${e(TERRAINS[id].name)} · ${cost} or" ${disabled ? "disabled" : ""}>${iconHTML(TERRAINS[id].icon)}</button>`;
+  }).join("")}</div>`;
 }
 export function buildingMarketView(g, ui) {
   return (
@@ -119,7 +129,7 @@ export function buildingMarketView(g, ui) {
         const b = BUILDINGS[type],
           choice = ui.drag || ui.placement,
           selected = choice?.kind === "building" && choice.index === i;
-        return `<div class="building-offer"><button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les placements · Glisser pour construire" data-building="${i}" aria-pressed="${selected}"><span class="building-pattern-slot">${buildingDiagram(type, ui.buildingRotation)}</span><span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${buildingEffectHTML(b)}</span><span class="cost">${costHTML(b.cost)}${b.points ? `<span class="building-points">· ${b.points} ★</span>` : ""}</span></span></button><button class="secondary offer-details" data-building-details="${e(type)}" data-building-orientation="${ui.buildingRotation}" aria-haspopup="dialog" aria-label="Voir les détails de ${e(b.name)}" title="Voir les détails de ${e(b.name)}">i</button></div>`;
+        return `<div class="building-offer"><button class="building-card ${selected ? "selected" : ""}" draggable="false" title="Cliquer pour les placements · Glisser pour construire" data-building="${i}" aria-pressed="${selected}" ${g.opening ? "disabled" : ""}><span class="building-pattern-slot">${buildingDiagram(type, ui.buildingRotation)}</span><span class="building-info"><strong>${buildingStars(b)} ${e(b.name)}</strong><span class="building-effect">${buildingEffectHTML(b)}</span><span class="cost">${costHTML(b.cost)}${b.points ? `<span class="building-points">· ${b.points} ★</span>` : ""}</span></span></button><button class="secondary offer-details" data-building-details="${e(type)}" data-building-orientation="${ui.buildingRotation}" aria-haspopup="dialog" aria-label="Voir les détails de ${e(b.name)}" title="Voir les détails de ${e(b.name)}">i</button></div>`;
       })
       .join("") ||
     '<p class="empty-state">La pioche de bâtiments est épuisée.</p>'
@@ -138,7 +148,7 @@ function buildingEffectHTML(b) {
   else if (b.onBuildUnit) effect = `+1 ${iconHTML(UNIT_DEFINITIONS[b.onBuildUnit].icon)} · max. 1`;
   else if (b.garrison) effect = `${iconHTML("assets/textures/icon-shield.svg")} ${b.garrison} + 1`;
   else if (b.transformTo) effect = `${iconHTML(TERRAINS.forest.icon)} → ${iconHTML(TERRAINS[b.transformTo].icon)} · +${b.onBuildGain.material} ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}`;
-  else if (b.traversable) effect = `${iconHTML(TERRAINS.river.icon)} → ↔`;
+  else if (b.traversable) effect = `${iconHTML(TERRAINS[b.terrain[0]].icon)} → ↔`;
   else if (b.id === "monument") effect = `★ ${b.points}`;
   else effect = e(label);
   return `<span title="${e(label)}" aria-label="${e(label)}">${effect}</span>`;
@@ -150,7 +160,10 @@ export function buildingDetailsView(type, rotation = 0) {
   const b = BUILDINGS[type];
   if (!b) return "";
   const terrains = [...new Set(b.cells.flatMap(c => [...c.terrain, ...(c.transformTo ? [c.transformTo] : [])]))];
-  return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(b.name)}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${iconHTML(TERRAINS[id].icon)}</i>${e(TERRAINS[id].name)}</span>`).join("")}</p><p>${e(b.pattern)}</p><p><strong>Effet :</strong> ${e(buildingDescription(b))} Valeur : ${b.points || 0} point(s).</p><p><strong>${b.constructible === false ? "Disponibilité" : "Coût"} :</strong> ${b.constructible === false ? "Bâtiment de départ uniquement" : costHTML(b.cost)}</p><p class="building-placement-help">${b.constructible === false ? `${e(b.name)} possède une garnison fixe de 1. Son occupation entraîne la défaite.` : `Le symbole marque l’entrée : placez-la à ${RULES.placement.constructionRange} case(s) maximum de l’unité, sans diagonale. Le motif peut pivoter ; toutes ses cases doivent être libres et respecter les terrains indiqués.`}</p>`;
+  const effect = b.id === "monument"
+    ? `Pas d’effet. Valeur : ${b.points} point(s).`
+    : `<strong>Effet :</strong> ${e(buildingDescription(b))} Valeur : ${b.points || 0} point(s).`;
+  return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(b.name)}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${iconHTML(TERRAINS[id].icon)}</i>${e(TERRAINS[id].name)}</span>`).join("")}</p><p>${e(b.pattern)}</p><p>${effect}</p><p><strong>${b.constructible === false ? "Disponibilité" : "Coût"} :</strong> ${b.constructible === false ? "Bâtiment de départ uniquement" : costHTML(b.cost)}</p>`;
 }
 
 export function selectionView(g, ui) {
@@ -203,7 +216,7 @@ export function resultsView(g) {
         )
           .map(
             ([id, n]) =>
-              `<p><span>${{ flags: "Drapeaux", tiles: "Cases révélées", buildings: "Bâtiments", workers: UNIT_DEFINITIONS.worker.name, units: "Unités", prestige: "Prestige", resources: "Ressources" }[id]}</span><strong>${n}</strong></p>`,
+              `<p><span>${{ flags: "Drapeaux", buildings: "Bâtiments", gold: `Or (${RULES.points.goldPerPoint} = 1 ★)` }[id]}</span><strong>${n}</strong></p>`,
           )
           .join(
             "",
@@ -221,11 +234,13 @@ export function tradeView(g) {
   return `<span title="Achat des ressources manquantes : prix de base ${RULES.trade.basePrice} + ${RULES.trade.producerSurcharge} par producteur adverse"><strong>Banque</strong> · ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} → ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} · ${iconHTML(RESOURCE_DEFINITIONS.material.icon)} → ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}</span>`;
 }
 export function rulesView() {
-  return `<h3>Deux façons de gagner</h3><p>Plateau ${RULES.size} × ${RULES.size}. Occuper le donjon adverse avec une armée survivante donne une victoire immédiate. Sinon, après ${RULES.rounds} tours par joueur, les bâtiments et les drapeaux contrôlés départagent les royaumes. Chaque drapeau vaut ${RULES.points.flag} points. Les ouvriers, les unités, les ressources et l’exploration ne donnent pas de points. Égalité : victoire partagée.</p>
-  <h3>Explorer et construire</h3><p>Le roi et l’émissaire disposent de 2 déplacements orthogonaux puis d’une action : explorer ou construire. L’action termine leur activation. Les terrains révélés sont communs. Sélectionnez ou glissez une carte ; R ou la molette la fait pivoter. L’entrée d’un bâtiment doit être à une case maximum du bâtisseur. Tout son motif doit être révélé, libre et respecter les terrains.</p>
-  <h3>Économie et ouvriers</h3><p>Une maison donne immédiatement un ouvrier, affectable sans trajet ni coût. Un ouvrier par producteur ; récolte en fin de tour. Ferme : nourriture ; scierie et carrière : matériaux ; mine et port : or. Les moulins doublent la nourriture des fermes voisines, sans cumul. Aucun logement ni recrutement séparé d’ouvrier.</p>
+  return `<h3>Deux façons de gagner</h3><p>Plateau ${RULES.size} × ${RULES.size}. Occuper le donjon adverse avec une armée survivante donne une victoire immédiate. Sinon, après ${RULES.rounds} tours par joueur, les bâtiments, les drapeaux et l’or restant départagent les royaumes. Chaque drapeau vaut ${RULES.points.flag} points ; chaque groupe de ${RULES.points.goldPerPoint} ors restants vaut 1 point. Les ouvriers, les unités, la nourriture, les matériaux et l’exploration ne donnent pas de points. Égalité : victoire partagée.</p>
+  <h3>Préparation</h3><p>Avant le tour 1, cinq tuiles terrain de 5 ou 6 cases sont proposées. Chacun en place deux sur des cases libres, dans l’ordre Jade → Ambre → Jade → Ambre. Une tuile posée quitte le choix commun ; les poses ne consomment pas d’action et ne comptent pas pour les missions. En solo, placez deux tuiles.</p>
+  <h3>Commandes</h3><p>Un clic droit efface la sélection. ↶ annule uniquement la dernière action ; le bouton se désactive ensuite et l’annulation ne passe pas d’un tour à l’autre.</p>
+  <h3>Explorer et construire</h3><p>Le roi et l’émissaire disposent de 3 déplacements orthogonaux puis d’une action : explorer ou construire. L’action termine leur activation. Les terrains révélés sont communs. Sélectionnez ou glissez une carte ; R ou la molette la fait pivoter. Pour ${RULES.trade.singleTerrainCost} or, choisissez directement une case de plaine, forêt, montagne ou rivière voisine de l’unité : cette pose utilise son action. L’entrée d’un bâtiment doit être à une case maximum du bâtisseur. Son motif doit être révélé et respecter les terrains ; les annexes compatibles peuvent se chevaucher, mais les cases des bâtiments ne se chevauchent jamais.</p>
+  <h3>Économie et ouvriers</h3><p>Une maison coûte 2 nourritures et 2 matériaux et donne immédiatement un ouvrier, affectable sans trajet ni coût. Un ouvrier par producteur ; récolte en fin de tour. Ferme : nourriture ; scierie et carrière : matériaux ; mine et port : or. Un moulin sur plaine ou champ doit toucher un champ allié et double la nourriture de cette ferme, sans cumul. Aucun logement ni recrutement séparé d’ouvrier.</p>
   <h3>Banque et missions</h3><p>Pour construire ou recruter, achetez les ressources manquantes à la banque en or. Une ressource coûte ${RULES.trade.basePrice} ors plus ${RULES.trade.producerSurcharge} par bâtiment adverse qui peut la produire, même sans ouvrier. L’or ne s’achète pas. Les missions donnent de l’or ; renouveler un marché coûte ${GOLD.rerollCost} or, une fois par tour. L’or remplace entièrement le prestige.</p>
-  <h3>Soldats et armées</h3><p>Une caserne fournit un premier soldat gratuit et permet un recrutement payant par tour. Chaque nouvelle unité apparaît sur son bâtiment et reste grisée jusqu’au prochain tour. Les soldats sur une même case forment une pile ; choisissez son effectif pour la diviser. Chaque pion conserve ses déplacements et son activation après une fusion. Une armée possède 2 déplacements puis une action de combat ; elle n’explore pas et ne construit pas.</p>
+  <h3>Soldats et armées</h3><p>Une caserne fournit un premier soldat gratuit et permet un recrutement payant par tour. Chaque nouvelle unité apparaît sur son bâtiment et reste grisée jusqu’au prochain tour. Les soldats sur une même case forment une pile ; choisissez son effectif pour la diviser. Chaque pion conserve ses déplacements et son activation après une fusion. Une armée possède 3 déplacements puis une action de combat ; elle n’explore pas et ne construit pas.</p>
   <h3>Combat et occupation</h3><p>Attaque = nombre de soldats ; défense = nombre de soldats + 1. Le vainqueur conserve la différence des forces. À égalité, les armées sont éliminées. 7 contre 5 : 1 attaquant survit ; 5 contre 5 : 1 défenseur survit. L’occupation d’une cible sans défense consomme aussi l’action. Le résultat est annoncé avant confirmation.</p>
   <h3>Drapeaux, garnisons et destruction</h3><p>Les cinq drapeaux sont révélés au départ. Une armée doit occuper leur case pour les capturer ; ils gardent leur couleur après son départ. Un avant-poste peut être construit sur toute case révélée libre, quel que soit son terrain. Sur un drapeau, il en prend le contrôle. Sa case devient praticable. Avant-poste et donjon disposent d’un soldat fixe, renforçable par une armée, avec un seul bonus défensif +1. La garnison persiste jusqu’à une occupation ennemie avec au moins un survivant, même après une égalité.</p><p>Occuper la case réelle d’un bâtiment ennemi le détruit ; ses terrains annexes ne sont pas des cibles. Toute l’empreinte est libérée et ses terrains restent révélés. L’ouvrier retourne dans sa réserve. Le roi capturé retourne au donjon ; l’émissaire retourne à sa Chancellerie, ou au donjon si elle a disparu. Ils perdent leur prochain tour d’activation.</p>
   <h3>Émissaire du roi</h3><p>Une Chancellerie coûteuse fournit une seconde unité d’exploration et de construction. Un émissaire et une Chancellerie maximum par royaume. L’émissaire ne combat pas et ne contrôle pas les drapeaux.</p>

@@ -1,5 +1,5 @@
 {
-  "deckSize": 75,
+  "deckSize": 77,
   "startingBuilding": "castle",
   "buildings": [
     {
@@ -7,8 +7,8 @@
       "name": "Maison",
       "icon": "assets/textures/buildings-house.svg",
       "cost": {
-        "food": 1,
-        "material": 1
+        "food": 2,
+        "material": 2
       },
       "terrain": [
         "plain",
@@ -16,7 +16,7 @@
       ],
       "description": "+1 ouvrier.",
       "pattern": "Une case de plaine ou de forêt.",
-      "weight": 12,
+      "weight": 8,
       "layout": [
         "B"
       ],
@@ -166,6 +166,27 @@
       "points": 1
     },
     {
+      "id": "tunnel",
+      "name": "Tunnel",
+      "icon": "assets/textures/buildings-tunnel.svg",
+      "cost": {
+        "material": 2
+      },
+      "terrain": [
+        "mountain"
+      ],
+      "description": "Passage.",
+      "pattern": "Une case de montagne.",
+      "weight": 6,
+      "layout": [
+        "B"
+      ],
+      "legend": {},
+      "traversable": true,
+      "tier": 0,
+      "points": 1
+    },
+    {
       "id": "port",
       "name": "Port",
       "icon": "assets/textures/buildings-port.svg",
@@ -226,10 +247,11 @@
         "material": 2
       },
       "terrain": [
-        "plain"
+        "plain",
+        "field"
       ],
       "description": "Nourriture des fermes voisines ×2.",
-      "pattern": "Deux plaines adjacentes pour le moulin et sa cour ; l’entrée touche un champ par un bord et votre ferme par un bord ou un coin.",
+      "pattern": "Entrée sur plaine ou champ, voisine d’un de vos champs ; une plaine pour la cour.",
       "weight": 1,
       "layout": [
         "Bc"
@@ -248,11 +270,6 @@
           "range": "edge",
           "owned": true,
           "terrain": "field"
-        },
-        {
-          "building": "farm",
-          "range": "touching",
-          "owned": true
         }
       ],
       "boost": {
@@ -453,12 +470,11 @@
       ],
       "produces": "material",
       "description": "+1 matériau / tour.",
-      "pattern": "Cinq forêts en croix : une entrée et quatre cases forestières réservées.",
+      "pattern": "Quatre forêts en T : une entrée et trois cases forestières réservées.",
       "weight": 2,
       "layout": [
         ".t.",
-        "tBt",
-        ".t."
+        "tBt"
       ],
       "legend": {
         "t": {
@@ -518,12 +534,12 @@
       ],
       "produces": "material",
       "description": "+1 matériau / tour.",
-      "pattern": "Cinq forêts en L : une entrée et quatre cases forestières réservées.",
+      "pattern": "Quatre forêts en L : une entrée et trois cases forestières réservées.",
       "weight": 2,
       "layout": [
         "t..",
         "t..",
-        "Btt"
+        "Bt."
       ],
       "legend": {
         "t": {
@@ -639,10 +655,11 @@
         "material": 2
       },
       "terrain": [
-        "plain"
+        "plain",
+        "field"
       ],
       "description": "Nourriture des fermes voisines ×2.",
-      "pattern": "Deux plaines en ligne : entrée et cour réservée.",
+      "pattern": "Entrée sur plaine ou champ, voisine d’un champ allié ; cour sur plaine.",
       "weight": 2,
       "layout": [
         "Bp"
@@ -661,11 +678,6 @@
           "range": "edge",
           "owned": true,
           "terrain": "field"
-        },
-        {
-          "building": "farm",
-          "range": "touching",
-          "owned": true
         }
       ],
       "boost": {
@@ -686,10 +698,11 @@
         "material": 2
       },
       "terrain": [
-        "plain"
+        "plain",
+        "field"
       ],
       "description": "Nourriture des fermes voisines ×2.",
-      "pattern": "Trois plaines en L : entrée et deux cases de cour réservées.",
+      "pattern": "Entrée sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine.",
       "weight": 2,
       "layout": [
         "Bp",
@@ -709,11 +722,6 @@
           "range": "edge",
           "owned": true,
           "terrain": "field"
-        },
-        {
-          "building": "farm",
-          "range": "touching",
-          "owned": true
         }
       ],
       "boost": {

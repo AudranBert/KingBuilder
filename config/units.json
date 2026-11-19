@@ -7,7 +7,7 @@
       "cost": {
         "food": 2
       },
-      "moves": 2,
+      "moves": 3,
       "recruitment": "building"
     },
     {
@@ -15,7 +15,7 @@
       "name": "Émissaire du roi",
       "icon": "assets/textures/units-cavalry.svg",
       "cost": {},
-      "moves": 2,
+      "moves": 3,
       "recruitment": "building"
     },
     {
@@ -31,7 +31,7 @@
       "name": "Roi",
       "icon": "assets/textures/units-king.svg",
       "cost": {},
-      "moves": 2,
+      "moves": 3,
       "recruitment": "initial"
     }
   ]

@@ -42,8 +42,8 @@ test("60 tuiles fixes, sans répétition et sans tirage aléatoire de terrains",
   a[0].cells[0].terrain = "river";
   assert.deepEqual(contents(deck(createGame(() => 0.8))), contents(b));
 });
-test("les 13 formes, les fermes, mines et ports ont des motifs exploitables", () => {
-  assert.equal(new Set(CONFIG.tiles.map((t) => t.shapeId)).size, 13);
+test("les 17 formes, les fermes, mines et ports ont des motifs exploitables", () => {
+  assert.equal(new Set(CONFIG.tiles.map((t) => t.shapeId)).size, 17);
   assert.ok(CONFIG.tiles.some((t) => t.pattern.join("/") === ".P./PPP/.P."));
   assert.ok(CONFIG.tiles.some((t) => t.pattern.join("/") === "PMMM"));
   assert.ok(CONFIG.tiles.some((t) => t.pattern.join("/") === "RRR/.P./.P."));
@@ -84,16 +84,14 @@ test("les erreurs du catalogue sont identifiées avant de lancer la partie", () 
   }
 });
 
-test("la répartition des 246 cases respecte les cibles à une case près", () => {
+test("les tailles suivent la répartition demandée et les montagnes restent près de 10 %", () => {
   const counts = { plain: 0, forest: 0, river: 0, mountain: 0 };
-  for (const tile of CONFIG.tiles)
+  const sizes = { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+  for (const tile of CONFIG.tiles) {
+    sizes[tile.cells.length]++;
     for (const cell of tile.cells) counts[cell.terrain]++;
-  assert.deepEqual(counts, { plain: 89, forest: 64, river: 54, mountain: 39 });
-  for (const [terrain, target] of Object.entries({
-    plain: 0.36,
-    forest: 0.26,
-    river: 0.22,
-    mountain: 0.16,
-  }))
-    assert.ok(Math.abs(counts[terrain] - 246 * target) < 1);
+  }
+  assert.deepEqual(sizes, { 2: 3, 3: 12, 4: 15, 5: 18, 6: 12 });
+  assert.deepEqual(counts, { plain: 111, forest: 74, river: 53, mountain: 26 });
+  assert.ok(Math.abs(counts.mountain / 264 - 0.10) < 0.005);
 });

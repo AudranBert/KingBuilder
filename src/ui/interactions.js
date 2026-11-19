@@ -11,11 +11,13 @@ import {
   transformed,
   buildError,
   exploreError,
+  buyTerrainError,
+  openingError,
   workerAssignmentError,
 } from "../engine.js";
 export function placementGuidance(g, placement) {
   const results = new Map();
-  if (!placement || !["terrain", "building"].includes(placement.kind)) return results;
+  if (!placement || !["terrain", "building", "single-terrain"].includes(placement.kind)) return results;
   for (let y = 0; y < RULES.size; y++)
     for (let x = 0; x < RULES.size; x++)
       results.set(key(x, y), dragPreview(g, placement, { x, y }));
@@ -30,6 +32,8 @@ export function dragFromCard(card, ui) {
     };
   if (data.workerDrag !== undefined)
     return { kind: "worker", id: Number(data.workerDrag) };
+  if (data.singleTerrain !== undefined)
+    return { kind: "single-terrain", terrain: data.singleTerrain };
   return data.tile !== undefined
     ? { kind: "terrain", index: Number(data.tile), rotation: ui.rotation }
     : {
@@ -62,13 +66,16 @@ export function dragPreview(g, drag, pos) {
         allowGold: true,
       }),
     };
+  if (drag.kind === "single-terrain")
+    return { cells: [{ x, y }], error: buyTerrainError(g, drag.terrain, x, y) };
   return {
-    cells: transformed(g.tileMarket[drag.index], drag.rotation).map((c) => ({
+    cells: transformed(g.opening ? g.opening.tiles[drag.index] : g.tileMarket[drag.index], drag.rotation).map((c) => ({
       ...c,
       x: c.x + x,
       y: c.y + y,
     })),
-    error: exploreError(g, drag.index, x, y, drag.rotation),
+    error: g.opening ? openingError(g, drag.index, x, y, drag.rotation)
+      : exploreError(g, drag.index, x, y, drag.rotation),
   };
 }
 export function moveUnitTo(g, x, y) {

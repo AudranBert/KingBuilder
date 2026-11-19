@@ -3,7 +3,7 @@ const menu = document.querySelector("#main-menu");
 const loader = document.createElement("div");
 loader.className = "loading-status";
 loader.setAttribute("role", "status");
-loader.textContent = "Chargement de la partie…";
+loader.textContent = "Préparation du jeu…";
 document.body.prepend(loader);
 document.querySelector("header").inert = true;
 main.inert = true;

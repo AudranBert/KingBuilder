@@ -39,7 +39,7 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
   for (const [owner, p] of g.players.entries()) {
     if (!p.progress) {
       p.progress = emptyProgress();
-      // Historic terrain before transformations is unavailable in older saves.
+      // Historic terrain before transformations is unavailable in older states.
       const spawn = CONFIG.rules.players[owner].start;
       const startKey = `${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.x * CONFIG.rules.boardSize))},${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.y * CONFIG.rules.boardSize))}`;
       for (const [position, c] of Object.entries(g.board)) {
@@ -72,7 +72,7 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
     }
     g.missions = { market, deck, claimed: [], tiered: 1 };
   } else if (g.missions.tiered === undefined) {
-    // Preserve offers, ownership and rewards in existing saves; add new variants once.
+    // Preserve offers, ownership and rewards in existing states; add new variants once.
     const known = new Set([
       ...g.missions.market,
       ...g.missions.deck,
@@ -150,6 +150,7 @@ export function costPayment(g, cost) {
 }
 export function rerollError(g, kind) {
   if (g.finished) return "La partie est terminée.";
+  if (g.opening) return "Terminez d’abord la préparation du terrain.";
   if (!["terrain", "building"].includes(kind)) return "Marché inconnu.";
   if (g.rerollsUsed >= GOLD.rerollLimitPerTurn)
     return "Relance déjà utilisée ce tour.";

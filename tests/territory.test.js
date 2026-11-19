@@ -15,6 +15,6 @@ test("la frontière suit les bâtiments et leurs annexes, pas le terrain explor�
 });
 test("les cases révélées sont communes et sans contour de propriété",()=>{
  const g=createGame();g.tileMarket[0]={cells:[{x:0,y:0,terrain:"plain"},{x:1,y:0,terrain:"forest"}]};
- explore(g,0,1,6);assert.equal(g.board[key(1,6)].owner,undefined);
+ g.players[0].x=1;explore(g,0,2,6);assert.equal(g.board[key(2,6)].owner,undefined);
  assert.deepEqual(territoryBorders(g,1,6),[]);
 });

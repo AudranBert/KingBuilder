@@ -4,7 +4,7 @@ import {createGame,selectUnit,actor,move,explore,build,trainUnit,trainError,endT
 function emissary(){const g=createGame();g.board["2,6"]={terrain:"plain"};g.players[0].x=2;g.players[0].resources={material:10,food:10,gold:10};g.buildingMarket[0]="chancellery";build(g,0,2,6);endTurn(g);endTurn(g);selectUnit(g,0);return g;}
 test("l’émissaire explore et construit sans consommer l’activation du roi",()=>{
  const g=emissary();g.tileMarket[0]={cells:[{x:0,y:0,terrain:"plain"}]};explore(g,0,3,6);
- assert.equal(g.acted,false);assert.equal(actor(g).acted,true);assert.equal(g.moves,2);
+ assert.equal(g.acted,false);assert.equal(actor(g).acted,true);assert.equal(g.moves,3);
  endTurn(g);endTurn(g);selectUnit(g,0);g.buildingMarket[0]="house";build(g,0,3,6);
  assert.equal(g.board["3,6"].building.type,"house");assert.equal(g.players[0].workers,2);assert.equal(g.acted,false);
 });

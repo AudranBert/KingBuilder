@@ -3,12 +3,13 @@
   "turnLimit": 25,
   "scoring": {
     "building": 1,
-    "flag": 4
+    "flag": 4,
+    "goldPerPoint": 2
   },
   "startingWorkers": 1,
   "markets": {
-    "terrainSize": 3,
-    "buildingSize": 3,
+    "terrainSize": 4,
+    "buildingSize": 4,
     "initialMaxTier": 1,
     "advancedFromReplacement": 2
   },
@@ -34,7 +35,8 @@
   ],
   "trade": {
     "basePrice": 2,
-    "producerSurcharge": 1
+    "producerSurcharge": 1,
+    "singleTerrainCost": 1
   },
   "flags": [
     {

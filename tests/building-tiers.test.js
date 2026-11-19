@@ -6,7 +6,7 @@ import { buildingMarketView } from "../src/ui/views.js";
 
 test("tiers par famille et étoiles sur les cartes", () => {
   for (const b of Object.values(BUILDINGS)) {
-    const expected = ["bridge", "clearing"].includes(b.id) ? 0 : b.produces ? 1 : 2;
+    const expected = ["bridge", "tunnel", "clearing"].includes(b.id) ? 0 : b.produces ? 1 : 2;
     assert.equal(b.tier, expected, b.id);
   }
   const g = createGame();
@@ -17,18 +17,19 @@ test("tiers par famille et étoiles sur les cartes", () => {
   assert.match(html, /aria-label="2 étoiles">★★/);
 });
 
-test("le marché initial exclut les tiers 2 sans changer les 75 cartes", () => {
+test("le marché initial exclut les tiers 2 et conserve les 77 cartes", () => {
   for (let seed = 0; seed < 50; seed++) {
     let state = seed + 1;
     const g = createGame(() => ((state = (state * 1664525 + 1013904223) >>> 0) / 2 ** 32));
-    assert.equal(g.buildingMarket.length, 3);
+    assert.equal(g.buildingMarket.length, 4);
     assert.ok(g.buildingMarket.every(id => BUILDINGS[id].tier === 1));
-    assert.equal(new Set(g.buildingMarket.map(id => BUILDINGS[id].family || id)).size, 3);
+    assert.equal(new Set(g.buildingMarket.map(id => BUILDINGS[id].family || id)).size, 4);
     const cards = [...g.buildingMarket, ...g.buildingDeck];
-    assert.equal(cards.length, 75);
-    assert.equal(cards.filter(id => id === "house").length, 12);
-    assert.equal(cards.filter(id => BUILDINGS[id].tier === 2).length, 31);
-    assert.equal(cards.filter(id => BUILDINGS[id].tier === 0).length, 14);
+    assert.equal(cards.length, 77);
+    assert.equal(cards.filter(id => id === "house").length, 8);
+    assert.equal(cards.filter(id => id === "tunnel").length, 6);
+    assert.equal(cards.filter(id => BUILDINGS[id].tier === 2).length, 27);
+    assert.equal(cards.filter(id => BUILDINGS[id].tier === 0).length, 20);
   }
 });
 
@@ -43,7 +44,7 @@ test("le premier remplacement après construction écarte le tier 2 sans le perd
   assert.equal(g.buildingReplacements, 1);
   // The other kingdom makes the second purchase in this shared market.
   g.active = 1;
-  g.moves = 2;
+  g.moves = 3;
   g.kingEnded = false;
   g.acted = false;
   g.buildingMarket[1] = "house";
@@ -68,10 +69,10 @@ test("dès le deuxième remplacement chacun des trois tiers est autorisé", () =
 test("la première relance exclut les tiers 2 et la deuxième les autorise", () => {
   const g = createGame();
   g.players[0].resources.gold = 5;
-  g.buildingDeck = ["mill", "barracks", "sawmill", "bridge", "farm_t"];
+  g.buildingDeck = ["mill", "barracks", "sawmill", "bridge", "farm_t", "quarry"];
   const cards = [...g.buildingMarket, ...g.buildingDeck].sort();
   rerollMarket(g, "building");
-  assert.deepEqual(g.buildingMarket, ["sawmill", "bridge", "farm_t"]);
+  assert.deepEqual(g.buildingMarket, ["sawmill", "bridge", "farm_t", "quarry"]);
   assert.equal(g.buildingReplacements, 1);
   g.rerollsUsed = 0;
   rerollMarket(g, "building");
@@ -90,7 +91,7 @@ test("une relance de terrains ne débloque pas les bâtiments de tier 2", () => 
 test("une première relance sans assez de cartes éligibles est refusée sans mutation", () => {
   const g = createGame();
   g.players[0].resources.gold = 5;
-  g.buildingDeck = ["mill", "barracks", "house"];
+  g.buildingDeck = ["mill", "barracks", "house", "farm_t"];
   const before = structuredClone(g);
   assert.match(rerollError(g, "building"), /tier 1 ou inférieur/);
   assert.throws(() => rerollMarket(g, "building"));

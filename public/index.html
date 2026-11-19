@@ -20,7 +20,6 @@
         <span class="menu-crest" aria-hidden="true">♛</span>
         <h1 id="menu-title">King<span>Builder</span></h1>
       </div>
-      <button id="resume-game" class="primary" hidden>Reprendre la partie</button>
       <div class="mode-grid" aria-label="Modes de jeu">
         <button class="mode-card" data-game-mode="solo">
           <span class="mode-icon" aria-hidden="true">♔</span
@@ -73,7 +72,6 @@
       </nav>
     </header>
     <main aria-busy="true" hidden>
-      <div id="game-notice" class="game-notice" role="status" hidden></div>
       <section id="players" class="players" aria-label="Royaumes"></section>
       <div class="game-layout">
         <div class="land-column">
@@ -87,6 +85,7 @@
               ></button>
             </div>
             <div id="tile-market" class="tile-market"></div>
+            <div id="single-terrain"></div>
             <div class="tile-controls">
               <button id="rotate">↻ Pivoter</button
               ><span id="rotation-label">0°</span>
@@ -109,13 +108,14 @@
                 Déplacer</button
               ><button data-mode="inspect" aria-pressed="false">
                 Inspecter
-              </button>
+              </button><button id="undo-action" class="secondary" aria-label="Annuler la dernière action" title="Annuler la dernière action" disabled>↶ Annuler</button>
             </div>
             <div class="round" aria-label="Tour de jeu" title="Tour de jeu">
               <img src="assets/textures/icon-hourglass.svg" alt="" />
               <strong id="round">01 / 25</strong>
             </div>
           </div>
+          <div id="opening-status" class="opening-status" role="status" hidden></div>
           <div id="map-scroll" class="map-scroll">
             <div
               id="board"

@@ -1,11 +1,14 @@
-import { createPersistence } from "./storage.js";
 import { parseKey } from "./geometry.js";
 import { installDrag } from "./ui/drag.js";
 import {
   RULES,
   createGame,
+  buyTerrain,
+  startOpening,
+  placeOpeningTile,
   GOLD,
   MISSIONS,
+  RESOURCE_DEFINITIONS,
   buildingPayment,
   buildError,
   rerollMarket,
@@ -32,6 +35,7 @@ import { createBoard } from "./ui/board.js";
 import {
   e,
   costText,
+  iconHTML,
   terrainDiagram,
   buildingDiagram,
 } from "./ui/html.js";
@@ -41,6 +45,7 @@ import {
   barracksView,
   workersView,
   terrainMarketView,
+  singleTerrainView,
   buildingMarketView,
   buildingDetailsView,
   selectionView,
@@ -54,19 +59,16 @@ export function startGame() {
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
-  let localStore;
-  try { localStore = window.localStorage; } catch {}
-  const persistence = createPersistence(localStore);
-  let game = persistence.load(),
+  let game = createGame(),
     toastTimer;
-  let nextMode = game.mode || "local";
+  let undoState = null;
+  let pendingBuild = null;
+  let nextMode = "local";
   let inMenu = true;
   function showMenu() {
     drag.cancel();
     inMenu = true;
     $("#main-menu").hidden = false;
-    try { $("#resume-game").hidden = !localStore?.getItem("kingbuilder-save-v1"); }
-    catch { $("#resume-game").hidden = true; }
     $("header").hidden = true;
     $("main").hidden = true;
     $("[data-game-mode='solo']").focus();
@@ -77,15 +79,16 @@ export function startGame() {
     $("header").hidden = false;
     $("main").hidden = false;
     render();
-    if (persistence.notice) { $("#game-notice").hidden = false; $("#game-notice").textContent = persistence.notice; }
     $("#menu-button").focus();
     if (game.finished) showResults();
   }
   const board = createBoard($("#board"), $("#map-scroll"), handleCell, previewPlacement);
   function placementHelp(message) {
     const choice = ui.drag || ui.placement;
-    if (!choice || !["terrain", "building"].includes(choice.kind)) {
-      $("#placement-help").textContent = "";
+    if (!choice || !["terrain", "building", "single-terrain"].includes(choice.kind)) {
+      $("#placement-help").textContent = game.opening
+        ? "Choisissez une tuile, puis posez-la sur des cases vides. R : pivoter."
+        : "";
       return;
     }
     if (message) {
@@ -117,10 +120,14 @@ export function startGame() {
       4500,
     );
   }
-  function act(action, { message } = {}) {
+  function act(action, { message, undoable = true, clearUndo = false } = {}) {
+    const before = undoable ? structuredClone(game) : null;
+    const signature = undoable ? JSON.stringify(game) : null;
     try {
       const previousClaims = game.missions.claimed.length;
       action();
+      if (clearUndo) undoState = null;
+      else if (undoable && JSON.stringify(game) !== signature) undoState = before;
       const won = game.missions.claimed.slice(previousClaims);
       render();
       if (game.finished) showResults();
@@ -136,19 +143,29 @@ export function startGame() {
       else if (message) toast(message);
       return true;
     } catch (error) {
+      if (undoable && JSON.stringify(game) !== signature) {
+        game = before;
+        render();
+      }
       toast(error.message);
       return false;
     }
   }
   function render() {
+    const opening = game.opening;
+    $(".game-layout").classList.toggle("opening", Boolean(opening));
+    $("#opening-status").hidden = !opening;
+    $("#opening-status").textContent = opening
+      ? `Préparation ${opening.step + 1}/${game.players.length === 2 ? 4 : 2} · ${game.players[game.active].name} · ${opening.tiles.length} tuiles au choix`
+      : "";
     html("#players", playersView(game));
     html("#missions", missionsView(game));
     $("#missions").style.setProperty("--mission-columns", RULES.missionMarketSize);
-    $("#tile-market").style.setProperty("--terrain-columns", RULES.markets.terrainSize);
+    $("#tile-market").style.setProperty("--terrain-columns", opening ? 3 : RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
         error = rerollError(game, kind);
-      button.textContent = `↻ ${GOLD.rerollCost} or`;
+      button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
       button.disabled = Boolean(error);
       button.title =
         error || `Remplacer les offres pour ${GOLD.rerollCost} or`;
@@ -156,22 +173,28 @@ export function startGame() {
     html("#barracks-list", barracksView(game));
     html("#worker-list", workersView(game));
     html("#tile-market", terrainMarketView(game, ui));
+    html("#single-terrain", singleTerrainView(game, ui));
     html("#building-market", buildingMarketView(game, ui));
     html("#selection", selectionView(game, ui));
     html("#harvest", harvestView(game));
     placementHelp();
     html("#trade-info", tradeView(game));
-    $("#end-turn").innerHTML = game.finished
+    $("#end-turn").disabled = Boolean(opening);
+    $("#end-turn").innerHTML = opening
+      ? "Posez une tuile terrain"
+      : game.finished
       ? "Voir les résultats →"
       : `<strong>Fin de tour →</strong><small>${harvestView(game).match(/Fin du tour : ([^<]+)/)?.[1] || "aucune récolte"}</small>`;
-    $("#round").innerHTML =
-      `${String(game.round).padStart(2, "0")} <small>/ ${RULES.rounds}</small>`;
+    $("#round").innerHTML = opening
+      ? `0 <small>/ ${RULES.rounds}</small>`
+      : `${String(game.round).padStart(2, "0")} <small>/ ${RULES.rounds}</small>`;
     $("#rotation-label").textContent = `${ui.rotation * 90}°`;
     $("#building-rotation-label").textContent = `${ui.buildingRotation * 90}°`;
     $("#rotate").disabled = game.finished || !game.tileMarket.length;
 
     $("#rotate-building").disabled =
-      game.finished || !game.buildingMarket.length;
+      game.finished || Boolean(opening) || !game.buildingMarket.length;
+    $("#undo-action").disabled = !undoState;
     for (const button of document.querySelectorAll("[data-mode]")) {
       button.setAttribute(
         "aria-pressed",
@@ -181,10 +204,6 @@ export function startGame() {
     }
     board.render(game, ui);
     board.preview(dragPreview(game, ui.drag, ui.drag?.position));
-    if (!inMenu && !persistence.save(game)) {
-      $("#game-notice").hidden = false;
-      $("#game-notice").textContent = persistence.notice;
-    }
   }
   function chooseUnit(id) {
     act(() => {
@@ -192,7 +211,7 @@ export function startGame() {
       ui.selected = null;
       ui.drag = null;
       ui.placement = null;
-    });
+    }, { undoable: false });
   }
   function handleCell(x, y) {
     if (ui.drag) return;
@@ -200,7 +219,9 @@ export function startGame() {
       const d = ui.placement;
       if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
       else act(() => {
-        explore(game, d.index, x, y, d.rotation);
+        if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
+        else if (game.opening) placeOpeningTile(game, d.index, x, y, d.rotation);
+        else explore(game, d.index, x, y, d.rotation);
         ui.placement = null;
       });
       return;
@@ -219,7 +240,6 @@ export function startGame() {
       act(() => moveUnitTo(game, x, y));
     else render();
   }
-  let pendingBuild = null;
   function requestBuild(pos, index, rotation) {
     const error = buildError(game, index, pos.x, pos.y, rotation, {
       allowGold: true,
@@ -333,9 +353,9 @@ export function startGame() {
   }
 
   document.addEventListener("click", (event) => {
-    const card = event.target.closest("[data-building],[data-tile]");
+    const card = event.target.closest("[data-building],[data-tile],[data-single-terrain]");
     const detail = event.target.closest("[data-building-details]");
-    if (card && !game.finished) {
+    if (card && !game.finished && !(game.opening && card.hasAttribute("data-building"))) {
       ui.placement = dragFromCard(card, ui);
       ui.selected = null;
       render();
@@ -385,9 +405,22 @@ export function startGame() {
   $("#rotate").addEventListener("click", () => rotate("terrain"));
   $("#rotate-building").addEventListener("click", () => rotate("building"));
   document.addEventListener("change", event => {
-    if (event.target.matches("[data-army-size]")) act(() => selectArmy(game,Number(event.target.value)));
+    if (event.target.matches("[data-army-size]")) act(() => selectArmy(game,Number(event.target.value)), { undoable: false });
+  });
+  $("#undo-action").addEventListener("click", () => {
+    if (!undoState) return;
+    game = undoState;
+    undoState = null;
+    pendingBuild = null;
+    ui.selected = null;
+    ui.placement = null;
+    ui.drag = null;
+    if ($("#result-dialog").open) $("#result-dialog").close();
+    render();
+    toast("Dernière action annulée.");
   });
   $("#end-turn").addEventListener("click", () => {
+    if (game.opening) return;
     if (game.finished) {
       showResults();
       return;
@@ -396,7 +429,7 @@ export function startGame() {
       endTurn(game);
       ui.selected = null;
       ui.placement = null;
-    });
+    }, { undoable: false, clearUndo: true });
     if (game.finished) showResults();
     else toast(`${game.players[game.active].name} : à vous de jouer.`);
   });
@@ -411,7 +444,6 @@ export function startGame() {
   );
   $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
   $("#menu-button").addEventListener("click", showMenu);
-  $("#resume-game").addEventListener("click",enterGame);
   function requestNewGame(mode) {
     nextMode = mode;
     beginNewGame();
@@ -424,10 +456,12 @@ export function startGame() {
     const created = act(
       () => {
         game = createGame(Math.random, nextMode);
-        $("#game-notice").hidden = true;
+        startOpening(game);
         Object.assign(ui, createUIState());
       },
       {
+        undoable: false,
+        clearUndo: true,
         message:
           nextMode === "solo"
             ? "Votre royaume s’éveille."
@@ -452,6 +486,8 @@ export function startGame() {
       drag.cancel();
       ui.selected = null;
       ui.placement = null;
+      game.selectedUnitId = null;
+      game.armySelection = null;
       render();
       event.preventDefault();
     }
@@ -464,6 +500,16 @@ export function startGame() {
       rotate();
       event.preventDefault();
     }
+  });
+  $(".game-layout").addEventListener("contextmenu", event => {
+    event.preventDefault();
+    drag.cancel();
+    ui.selected = null;
+    ui.placement = null;
+    ui.drag = null;
+    game.selectedUnitId = null;
+    game.armySelection = null;
+    render();
   });
   const drag = installDrag({
     root: $(".game-layout"),
@@ -484,9 +530,11 @@ export function startGame() {
       const d = ui.drag;
       if (!d) return "";
       if (d.kind === "terrain")
-        return terrainDiagram(game.tileMarket[d.index], d.rotation);
+        return terrainDiagram((game.opening ? game.opening.tiles : game.tileMarket)[d.index], d.rotation);
       if (d.kind === "building")
         return buildingDiagram(game.buildingMarket[d.index], d.rotation);
+      if (d.kind === "single-terrain")
+        return terrainDiagram({ cells: [{ x: 0, y: 0, terrain: d.terrain }] });
       return piece(d.kind === "worker" ? "worker" : actor(game).type);
     },
     drop(pos) {
@@ -499,7 +547,11 @@ export function startGame() {
       else if (d.kind === "worker")
         act(() => assignWorker(game, d.id, pos.x, pos.y));
       else if (d.kind === "terrain")
-        act(() => explore(game, d.index, pos.x, pos.y, d.rotation));
+        act(() => game.opening
+          ? placeOpeningTile(game, d.index, pos.x, pos.y, d.rotation)
+          : explore(game, d.index, pos.x, pos.y, d.rotation));
+      else if (d.kind === "single-terrain")
+        act(() => buyTerrain(game, d.terrain, pos.x, pos.y));
       else requestBuild(pos, d.index, d.rotation);
     },
     end() {

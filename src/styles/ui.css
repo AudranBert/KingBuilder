@@ -143,22 +143,6 @@
 .tile-market .empty-state {
   grid-column: 1/-1;
 }
-.game-notice {
-  background: #f1e6c8;
-  color: #64552f;
-  border: 1px solid #d9c68f;
-  padding: 13px 16px;
-  border-radius: 7px;
-  font-size: 12px;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-.game-notice[hidden] {
-  display: none;
-}
-.save-unavailable {
-  color: #a35a3d;
-}
 .loading-status {
   position: fixed;
   inset: 0;
@@ -272,11 +256,6 @@ button {
   }
   .round {
     padding-left: 8px;
-  }
-  #save-status {
-    max-width: 170px;
-    line-height: 1.5;
-    text-align: right;
   }
 }
 @media (prefers-reduced-motion: reduce) {

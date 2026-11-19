@@ -117,6 +117,30 @@
         ".x.",
         ".x."
       ]
+    },
+    {
+      "id": "rect6",
+      "name": "Rectangle de 6",
+      "weight": 1,
+      "pattern": ["xxx", "xxx"]
+    },
+    {
+      "id": "stairs6",
+      "name": "Escalier de 6",
+      "weight": 1,
+      "pattern": ["xx..", ".xx.", "..xx"]
+    },
+    {
+      "id": "tall6",
+      "name": "Croix allongée de 6",
+      "weight": 1,
+      "pattern": [".x.", "xxx", ".x.", ".x."]
+    },
+    {
+      "id": "hook6",
+      "name": "L de 6",
+      "weight": 1,
+      "pattern": ["x...", "x...", "xxxx"]
     }
   ],
   "legend": {
@@ -201,9 +225,9 @@
       "shapeId": "corner4",
       "pattern": [
         "P..",
-        "PMM"
+        "PMF"
       ],
-      "intent": "Deux montagnes reliées avec accès de plaine"
+      "intent": "Montagne, forêt et accès de plaine"
     },
     {
       "id": "t4-1",
@@ -286,44 +310,45 @@
     },
     {
       "id": "zigzag4-2",
-      "name": "Forêt en biais",
-      "shapeId": "zigzag4",
+      "name": "Grand bois",
+      "shapeId": "rect6",
       "pattern": [
-        "FF.",
-        ".FP"
+        "FFF",
+        "FFP"
       ],
-      "intent": "Bois et clairière"
+      "intent": "Grand massif forestier et clairière"
     },
     {
       "id": "square4-2",
-      "name": "Bois compact",
-      "shapeId": "square4",
+      "name": "Bois et prairie",
+      "shapeId": "rect6",
       "pattern": [
-        "FF",
-        "FP"
+        "FFF",
+        "FPP"
       ],
-      "intent": "Réserve de bois"
+      "intent": "Forêt compacte avec deux plaines"
     },
     {
       "id": "cross5-2",
-      "name": "Forêt étoilée",
-      "shapeId": "cross5",
+      "name": "Forêt en équerre",
+      "shapeId": "hook6",
       "pattern": [
-        ".F.",
-        "FFF",
-        ".P."
+        "F...",
+        "F...",
+        "FFFP"
       ],
-      "intent": "Forêt et accès au sud"
+      "intent": "Bois continu et accès en bout"
     },
     {
       "id": "u5-2",
-      "name": "Bois en U",
-      "shapeId": "u5",
+      "name": "Bois en retour",
+      "shapeId": "hook6",
       "pattern": [
-        "F.F",
-        "FFF"
+        "F...",
+        "F...",
+        "FFPP"
       ],
-      "intent": "Réserve forestière à contourner"
+      "intent": "Quatre bois et deux plaines"
     },
     {
       "id": "corner4-2",
@@ -337,13 +362,13 @@
     },
     {
       "id": "t4-2",
-      "name": "Clairière en T",
-      "shapeId": "t4",
+      "name": "Clairière étendue",
+      "shapeId": "rect6",
       "pattern": [
-        ".P.",
-        "FFF"
+        "PPP",
+        "FFM"
       ],
-      "intent": "Accéder à trois forêts"
+      "intent": "Plaine, bois et montagne"
     },
     {
       "id": "line4-2",
@@ -367,13 +392,14 @@
     },
     {
       "id": "offset5-2",
-      "name": "Forêt étagée",
-      "shapeId": "offset5",
+      "name": "Forêt en L",
+      "shapeId": "hook6",
       "pattern": [
-        ".FF.",
-        ".FFP"
+        "F...",
+        "F...",
+        "FPPP"
       ],
-      "intent": "Forêt compacte avec clairière"
+      "intent": "Chemin de plaines bordé de bois"
     },
     {
       "id": "t5-2",
@@ -388,21 +414,21 @@
     },
     {
       "id": "line2-3",
-      "name": "Pied de falaise",
+      "name": "Plaine ouverte",
       "shapeId": "line2",
       "pattern": [
-        "PM"
+        "PP"
       ],
-      "intent": "Accès à la pierre"
+      "intent": "Deux plaines pour bâtir"
     },
     {
       "id": "line3-3",
       "name": "Contrefort",
       "shapeId": "line3",
       "pattern": [
-        "PMM"
+        "PMF"
       ],
-      "intent": "Préparer un massif minier"
+      "intent": "Accès à une montagne et une forêt"
     },
     {
       "id": "corner3-3",
@@ -416,44 +442,44 @@
     },
     {
       "id": "zigzag4-3",
-      "name": "Rivière en S",
-      "shapeId": "zigzag4",
+      "name": "Rivière en escalier",
+      "shapeId": "stairs6",
       "pattern": [
-        "PR.",
-        ".RR"
+        "PR..",
+        ".RR.",
+        "..PP"
       ],
-      "intent": "Créer un détour"
+      "intent": "Rive et détour de rivière"
     },
     {
       "id": "square4-3",
-      "name": "Berge droite",
-      "shapeId": "square4",
+      "name": "Berge en escalier",
+      "shapeId": "stairs6",
       "pattern": [
-        "RR",
-        "PP"
+        "RR..",
+        ".RP.",
+        "..PM"
       ],
-      "intent": "Passage le long de l’eau"
+      "intent": "Rive, passage et montagne"
     },
     {
       "id": "cross5-3",
-      "name": "Col montagneux",
-      "shapeId": "cross5",
+      "name": "Col étroit",
+      "shapeId": "line3",
       "pattern": [
-        ".M.",
-        "PMM",
-        ".P."
+        "PPM"
       ],
-      "intent": "Contourner le massif"
+      "intent": "Accès court à la montagne"
     },
     {
       "id": "u5-3",
-      "name": "Anse profonde",
-      "shapeId": "u5",
+      "name": "Petit méandre",
+      "shapeId": "corner3",
       "pattern": [
-        "R.R",
-        "RRR"
+        "RR",
+        "R."
       ],
-      "intent": "Obstacle d’eau et emplacements de ports"
+      "intent": "Coude de rivière compact"
     },
     {
       "id": "corner4-3",
@@ -467,13 +493,14 @@
     },
     {
       "id": "t4-3",
-      "name": "Confluence",
-      "shapeId": "t4",
+      "name": "Confluence étagée",
+      "shapeId": "stairs6",
       "pattern": [
-        ".R.",
-        "RRR"
+        "RR..",
+        ".RR.",
+        "..RP"
       ],
-      "intent": "Obstacle d’eau compact"
+      "intent": "Rivière continue et sortie sur plaine"
     },
     {
       "id": "line4-3",
@@ -489,21 +516,20 @@
       "name": "Crête en escalier",
       "shapeId": "stairs5",
       "pattern": [
-        "MM.",
-        ".MP",
+        "MF.",
+        ".PP",
         "..P"
       ],
-      "intent": "Montagnes continues et accès"
+      "intent": "Montagne, forêt et accès en escalier"
     },
     {
       "id": "offset5-3",
-      "name": "Anse étagée",
-      "shapeId": "offset5",
+      "name": "Bras d’eau",
+      "shapeId": "line3",
       "pattern": [
-        ".RR.",
-        ".RRR"
+        "RRR"
       ],
-      "intent": "Cinq eaux pour prolonger une rivière ou préparer un port"
+      "intent": "Trois eaux alignées"
     },
     {
       "id": "t5-3",
@@ -518,12 +544,14 @@
     },
     {
       "id": "line2-4",
-      "name": "Gué à bâtir",
-      "shapeId": "line2",
+      "name": "Gué ouvert",
+      "shapeId": "cross5",
       "pattern": [
-        "PR"
+        ".R.",
+        "PRP",
+        ".P."
       ],
-      "intent": "Accès à un pont"
+      "intent": "Rivière bordée de trois plaines"
     },
     {
       "id": "line3-4",
@@ -539,30 +567,34 @@
       "name": "Éperon rocheux",
       "shapeId": "corner3",
       "pattern": [
-        "MM",
+        "MP",
         "P."
       ],
       "intent": "Pierre et accès"
     },
     {
       "id": "zigzag4-4",
-      "name": "Crête en biais",
-      "shapeId": "zigzag4",
+      "name": "Chemin boisé",
+      "shapeId": "tall6",
       "pattern": [
-        "MM.",
-        ".MP"
+        ".F.",
+        "PFP",
+        ".P.",
+        ".P."
       ],
-      "intent": "Pierre et contournement"
+      "intent": "Forêt centrale et chemin de plaines"
     },
     {
       "id": "square4-4",
-      "name": "Plateau rocheux",
-      "shapeId": "square4",
+      "name": "Plateau allongé",
+      "shapeId": "tall6",
       "pattern": [
-        "MM",
-        "PP"
+        ".M.",
+        "PFP",
+        ".P.",
+        ".P."
       ],
-      "intent": "Carrière et zone habitable"
+      "intent": "Montagne et forêt accessibles par les plaines"
     },
     {
       "id": "cross5-4",
@@ -597,13 +629,15 @@
     },
     {
       "id": "t4-4",
-      "name": "Carrefour minéral",
-      "shapeId": "t4",
+      "name": "Carrefour allongé",
+      "shapeId": "tall6",
       "pattern": [
         ".M.",
-        "PMM"
+        "PFP",
+        ".F.",
+        ".P."
       ],
-      "intent": "Pierre et accès latéral"
+      "intent": "Pierre et bois autour des plaines"
     },
     {
       "id": "line4-4",
@@ -630,7 +664,7 @@
       "name": "Massif étagé",
       "shapeId": "offset5",
       "pattern": [
-        ".MM.",
+        ".MF.",
         ".MPP"
       ],
       "intent": "Pierre avec deux accès"

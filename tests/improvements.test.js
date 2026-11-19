@@ -5,7 +5,7 @@ import { key, score, harvestPreview, assignWorker, endTurn, build, migrateGame, 
 import { settleMissions, initializeMissions } from "../src/objectives.js";
 import { placementGuidance, dragPreview } from "../src/ui/interactions.js";
 import { harvestView, missionsView } from "../src/ui/views.js";
-import { validateGame, createPersistence, SAVE_KEY } from "../src/storage.js";
+import { validateGame } from "../src/validation.js";
 
 test("les stocks ne donnent plus de points", () => {
   const g = createGame(); g.players[0].resources = { material: 100, food: 100, gold: 100 };
@@ -17,6 +17,7 @@ test("prévision et récolte concordent avec moulin, affectation et réaffectati
   g.missions.market = [];
   g.board[key(3, 3)] = {terrain: "plain", building: {type: "farm", owner: 0}};
   g.board[key(4, 4)] = {terrain: "plain", building: {type: "mill", owner: 0}};
+  g.board[key(4, 3)] = {terrain: "field", overlay: {anchor: key(3, 3), role: "field", owner: 0}};
   g.board[key(6, 6)] = {terrain: "forest", building: {type: "sawmill", owner: 0}};
   g.board[key(7, 7)] = {terrain: "plain", building: {type: "farm", owner: 1}};
   assert.deepEqual(harvestPreview(g).inactive, ["3,3", "6,6"]);
@@ -42,7 +43,7 @@ test("les guides de placement respectent rotations, action, coût et terrains sa
   assert.deepEqual(g, before);
   g.players[0].resources.material = 0;
   g.players[0].resources.gold = 0;
-  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /1 matériaux/);
+  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /2 matériaux/);
   g.players[0].resources.material = 2;
   g.board[key(1, 6)].terrain = "river";
   assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /terrain incompatible/);
@@ -95,13 +96,10 @@ test("une mission sous son seuil garde son objectif et les stocks exigent un gai
   assert.deepEqual(settleMissions(g), ["stock-wood"]);
 });
 
-test("les seuils individuels des missions persistent et les sauvegardes invalides sont refusées", () => {
+test("les seuils individuels des missions restent stables et les états invalides sont refusés", () => {
   const g = farmMission();
   assert.match(missionsView(g), /2\/3/);
   assert.match(missionsView(g), /4\/5/);
-  const memory = new Map([[SAVE_KEY, JSON.stringify(g)]]);
-  const storage = {getItem: k => memory.get(k), setItem: (k,v) => memory.set(k,v)};
-  assert.deepEqual(createPersistence(storage).load(), g);
   g.players[0].progress.built.farm_t = 1;
   migrateGame(g);
   assert.equal(missionTarget(g, "built-farm-2"), 3);

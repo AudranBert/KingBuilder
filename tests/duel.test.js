@@ -8,7 +8,7 @@ import {
 } from "../src/engine.js";
 import { costPayment, tradePrice, settleMissions, initializeMissions } from "../src/objectives.js";
 import { moveUnitTo } from "../src/ui/interactions.js";
-import { createPersistence, validateGame, SAVE_KEY } from "../src/storage.js";
+import { validateGame } from "../src/validation.js";
 import { territoryBorders } from "../src/ui/board.js";
 import { armyControlsView, rulesView, tradeView } from "../src/ui/views.js";
 
@@ -18,7 +18,7 @@ function game() {
   for (let y=1;y<6;y++) for (let x=1;x<11;x++) g.board[key(x,y)] = {terrain:"plain"};
   return g;
 }
-function soldiers(g,owner,n,x,y,{ended=false,moves=2}={}) {
+function soldiers(g,owner,n,x,y,{ended=false,moves=3}={}) {
   const p=g.players[owner], out=[];
   for(let i=0;i<n;i++) {
     const unit={id:p.nextUnitId++,type:"soldier",x,y,moves,acted:ended,ended};
@@ -36,7 +36,7 @@ function prepareBuilding(g,type,x=2,y=2) {
 test("duel : trois ressources, cinq drapeaux symétriques, 25 tours et aucun score gratuit",()=>{
   const g=createGame();
   assert.deepEqual(Object.keys(g.players[0].resources).sort(),["food","gold","material"]);
-  assert.equal(RULES.rounds,25);assert.equal(g.moves,2);
+  assert.equal(RULES.rounds,25);assert.equal(g.moves,3);
   const flags=Object.entries(g.board).filter(([,c])=>c.flag);
   assert.equal(flags.length,5);
   for(const [pos,c] of flags) {
@@ -53,7 +53,7 @@ test("maison : ouvrier immédiat sans population et affectation après construct
   const before=g.players[0].workers;
   build(g,0,2,2);
   assert.equal(g.players[0].workers,before+1);
-  assert.equal(g.players[0].resources.food,49);assert.equal(g.players[0].resources.material,49);
+  assert.equal(g.players[0].resources.food,48);assert.equal(g.players[0].resources.material,48);
   g.board["8,2"]={terrain:"forest",building:{type:"sawmill",owner:0}};
   assignWorker(g,before,8,2);
   assert.equal(harvestPreview(g).amounts.material,1);
@@ -70,7 +70,7 @@ test("caserne : soldat offert, recrutement payant par tour et arrivée grisée",
   assert.equal(g.players[0].resources.food,food-2);
   assert.match(trainError(g,2,2,"soldier"),/déjà recruté/);
   endTurn(g);endTurn(g);
-  assert.ok(g.players[0].units.every(u=>u.moves===2&&!u.acted&&!u.ended));
+  assert.ok(g.players[0].units.every(u=>u.moves===3&&!u.acted&&!u.ended));
   assert.equal(trainError(g,2,2,"soldier"),null);
 });
 
@@ -78,7 +78,7 @@ test("chancellerie : émissaire unique, bâtisseur supplémentaire sans pouvoir 
   const g=game();prepareBuilding(g,"chancellery");build(g,0,2,2);
   const u=g.players[0].units[0];assert.equal(u.type,"emissary");assert.ok(u.ended);
   endTurn(g);endTurn(g);selectUnit(g,u.id);
-  assert.equal(actor(g).moves,2);
+  assert.equal(actor(g).moves,3);
   assert.match(attackError(g,3,2),/Seule une armée/);
   g.buildingMarket[0]="chancellery";
   assert.match(buildError(g,0,3,2),/Un seul émissaire/);
@@ -189,9 +189,9 @@ test("piles : séparation, fusion automatique et conservation du budget de chaqu
   const g=game(), units=soldiers(g,0,4,2,2);selectUnit(g,units[0].id);selectArmy(g,2);
   move(g,3,2);assert.equal(armyAt(g,0,2,2).length,2);assert.equal(armyAt(g,0,3,2).length,2);
   const fresh=soldiers(g,0,1,3,2)[0];selectUnit(g,fresh.id);
-  assert.equal(selectedSoldiers(g).length,3);assert.equal(actor(g).moves,1);
-  move(g,4,2);assert.equal(actor(g).moves,0);
-  assert.equal(g.players[0].units.find(u=>u.id===fresh.id).moves,1);
+  assert.equal(selectedSoldiers(g).length,3);assert.equal(actor(g).moves,2);
+  move(g,4,2);assert.equal(actor(g).moves,1);
+  assert.equal(g.players[0].units.find(u=>u.id===fresh.id).moves,2);
   assert.match(armyControlsView(g),/3 · 3 disponible/);
   selectArmy(g,1);assert.equal(actor(g).id,fresh.id);move(g,5,2);
   assert.equal(armyAt(g,0,4,2).length,2);assert.equal(armyAt(g,0,5,2).length,1);
@@ -224,10 +224,10 @@ test("commerce : prix par producteur adverse, aucune influence des affectations"
 });
 
 test("achat à la construction : confirmation exacte, paiement atomique et or non achetable",()=>{
-  const g=game();prepareBuilding(g,"house");g.players[0].resources={material:0,food:1,gold:2};
+  const g=game();prepareBuilding(g,"house");g.players[0].resources={material:0,food:1,gold:6};
   const before=structuredClone(g);
   assert.throws(()=>build(g,0,2,2,0,{allowGold:true,expectedGold:1}),/changé/);
-  assert.deepEqual(g,before);build(g,0,2,2,0,{allowGold:true,expectedGold:2});
+  assert.deepEqual(g,before);build(g,0,2,2,0,{allowGold:true,expectedGold:6});
   assert.deepEqual(g.players[0].resources,{material:0,food:0,gold:0});
   assert.equal(costPayment(g,{gold:1}).affordable,false);
 });
@@ -261,13 +261,7 @@ test("propriété visuelle : terrains communs, contour des bâtiments et drapeau
   assert.deepEqual(territoryBorders(g,3,2),["top","right","bottom"]);
 });
 
-test("sauvegardes : piles, couleurs et blocage des bâtisseurs conservés ; anciennes parties copiées",()=>{
+test("les piles, les couleurs et le blocage des bâtisseurs restent valides",()=>{
   const g=game();soldiers(g,0,2,2,2);g.players[1].kingSkip=1;g.board["6,6"].flag.owner=0;
   selectUnit(g,0);selectArmy(g,1);validateGame(g);
-  const memory=new Map(),storage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)};
-  const persistence=createPersistence(storage);persistence.save(g);
-  assert.deepEqual(persistence.load(),g);
-  const legacy=structuredClone(g);legacy.version=4;const raw=JSON.stringify(legacy);memory.set(SAVE_KEY,raw);
-  const loaded=createPersistence(storage).load();assert.equal(loaded.version,5);
-  assert.equal(memory.get(SAVE_KEY+"-backup"),raw);
 });

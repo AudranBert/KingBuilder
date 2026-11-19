@@ -16,29 +16,32 @@ import {
 } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
 
-test("glisser le roi suit un chemin de deux cases et épuise ses déplacements", () => {
+test("glisser le roi suit un chemin de trois cases et épuise ses déplacements", () => {
   const g = createGame();
   g.board[key(1, 6)] = { terrain: "forest" };
   g.board[key(2, 6)] = { terrain: "plain" };
+  g.board[key(3, 6)] = { terrain: "plain" };
   const before = structuredClone(g);
-  assert.deepEqual(dragPreview(g, { kind: "unit" }, { x: 2, y: 6 }), {
+  assert.deepEqual(dragPreview(g, { kind: "unit" }, { x: 3, y: 6 }), {
     cells: [
       { x: 1, y: 6 },
       { x: 2, y: 6 },
+      { x: 3, y: 6 },
     ],
     error: null,
   });
   assert.deepEqual(g, before);
-  moveUnitTo(g, 2, 6);
+  moveUnitTo(g, 3, 6);
   assert.deepEqual(
     [actor(g).x, actor(g).y, g.moves, g.acted],
-    [2, 6, 0, false],
+    [3, 6, 0, false],
   );
 });
 test("un dépôt inaccessible ne déplace pas partiellement le roi", () => {
   for (const terrain of ["mountain", "river", null]) {
     const g = createGame();
     if (terrain) g.board[key(1, 6)] = { terrain };
+    else delete g.board[key(1,6)];
     g.board[key(2, 6)] = { terrain: "plain" };
     const before = structuredClone(g);
     assert.ok(dragPreview(g, { kind: "unit" }, { x: 2, y: 6 }).error);
@@ -68,8 +71,8 @@ test("glisser un émissaire sélectionné ne dépense pas les déplacements du r
   );
   selectUnit(g, drag.id);
   moveUnitTo(g, 6, 5);
-  assert.equal(unit.moves, 1);
-  assert.equal(g.moves, 2);
+  assert.equal(unit.moves, 2);
+  assert.equal(g.moves, 3);
   assert.equal(unit.x, 6);
   assert.equal(
     dragFromCard({ dataset: { unitDrag: "" } }, createUIState()).id,

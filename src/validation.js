@@ -1,8 +1,6 @@
 import { parseKey } from "./geometry.js";
 import { CONFIG } from "./configuration.js";
 import {
-  createGame,
-  migrateGame,
   RULES,
   TERRAINS,
   BUILDINGS,
@@ -10,12 +8,11 @@ import {
 } from "./engine.js";
 import { inside, key, isRotation } from "./geometry.js";
 
-export const SAVE_KEY = "kingbuilder-save-v1";
 const record = (value) =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const nonnegative = (value) => Number.isSafeInteger(value) && value >= 0;
 function requireValid(condition, message) {
-  if (!condition) throw Error(`Sauvegarde incompatible : ${message}`);
+  if (!condition) throw Error(`État de partie invalide : ${message}`);
 }
 function validateTiles(tiles) {
   requireValid(Array.isArray(tiles), "pioche de terrains absente.");
@@ -280,61 +277,3 @@ export function validateGame(game, { legacy = false } = {}) {
   return game;
 }
 
-export function createPersistence(storage) {
-  let writable = Boolean(storage);
-  let notice = "";
-  function load() {
-    let raw;
-    try {
-      if (!storage) {
-        notice =
-          "La sauvegarde locale est indisponible. Gardez cet onglet ouvert.";
-        return createGame();
-      }
-      raw = storage.getItem(SAVE_KEY);
-      if (!raw) return createGame();
-      const game = JSON.parse(raw);
-      validateGame(game, { legacy: true });
-      return validateGame(migrateGame(game));
-    } catch (error) {
-      writable = false;
-      if (raw) {
-        try {
-          const base = SAVE_KEY + "-backup";
-          const backup = storage.getItem(base) ? `${base}-${Date.now()}` : base;
-          storage.setItem(backup, raw);
-          writable = true;
-          notice =
-            "La sauvegarde précédente était incompatible. Une copie a été conservée et une nouvelle partie est prête.";
-        } catch {
-          notice =
-            "La sauvegarde précédente est illisible. Elle reste conservée ; la partie actuelle ne pourra pas être enregistrée.";
-        }
-      } else
-        notice =
-          "La sauvegarde locale est indisponible. Gardez cet onglet ouvert.";
-      return createGame();
-    }
-  }
-  return {
-    load,
-    save(game) {
-      if (!writable) return false;
-      try {
-        storage.setItem(SAVE_KEY, JSON.stringify(game));
-        return true;
-      } catch {
-        writable = false;
-        notice =
-          "La sauvegarde locale est indisponible. Gardez cet onglet ouvert.";
-        return false;
-      }
-    },
-    get notice() {
-      return notice;
-    },
-    get writable() {
-      return writable;
-    },
-  };
-}

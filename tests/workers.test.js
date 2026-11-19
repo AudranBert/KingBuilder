@@ -8,7 +8,7 @@ test("ouvrier initial libre, sans position et sans recrutement séparé",()=>{
 });
 test("affectation lointaine et réaffectation gratuites, même après l’action du roi",()=>{
  const g=setup(),resources={...g.players[0].resources};g.acted=true;assignWorker(g,0,3,3);assignWorker(g,0,9,9);
- assert.deepEqual(g.players[0].resources,resources);assert.equal(g.moves,2);assert.equal(g.players[0].workerAssignments[0].building,"9,9");
+ assert.deepEqual(g.players[0].resources,resources);assert.equal(g.moves,3);assert.equal(g.players[0].workerAssignments[0].building,"9,9");
  assert.equal(harvestPreview(g).amounts.food,0);assert.equal(harvestPreview(g).amounts.material,1);
 });
 test("seule l’affectation finale produit ; libérer ne récolte rien",()=>{
