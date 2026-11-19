@@ -319,3 +319,5 @@ body:has(#main-menu[hidden]) .players:has(> :only-child) {
 .history-versus { opacity: .65; }
 .history-winner { margin-left: auto; font-weight: 600; }
 @media (max-width: 520px) { .history-row { gap: 6px; padding: 10px 8px; font-size: 12px; } .history-row strong { margin-left: 3px; } }
+.online-health { font-size: 13px; line-height: 1.5; color: #796342; margin: 8px 0 16px; }
+.online-health.healthy { color: #247344; font-weight: 600; }

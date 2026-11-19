@@ -1,5 +1,6 @@
 import { parseKey } from "./geometry.js";
 import { OnlineClient } from './online.js';
+import { monitorServerHealth } from './server-health.js';
 import { installDrag } from "./ui/drag.js";
 import {
   RULES,
@@ -809,7 +810,19 @@ export function startGame() {
     $('#online-dialog').close();
     online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toast(error.message));
   });
-  $('#online-menu').addEventListener('click', () => $('#online-dialog').showModal());
+  let stopHealthCheck;
+  function openOnlineDialog() {
+    $('#online-dialog').showModal();
+    stopHealthCheck?.();
+    stopHealthCheck = monitorServerHealth(healthy => {
+      const status = $('#online-health');
+      status.textContent = healthy === true ? '✓ Serveur disponible' : healthy === null ? 'Vérification du serveur…' : 'Serveur en attente ou indisponible · nouvel essai toutes les 10 s';
+      status.classList.toggle('healthy', healthy === true);
+      $('#online-create').disabled = healthy !== true;
+    });
+  }
+  $('#online-dialog').addEventListener('close', () => { stopHealthCheck?.(); });
+  $('#online-menu').addEventListener('click', openOnlineDialog);
   $('#online-close').addEventListener('click', () => $('#online-dialog').close());
   $('#lobby-start').addEventListener('click', () => {
     clearTimeout(lobbySaveTimer);
@@ -829,7 +842,7 @@ export function startGame() {
     online.connect(code, undefined, $('#nickname').value).catch(error => toast(error.message));
   });
   $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toast(error.message)); });
-  if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); $('#online-dialog').showModal(); }
+  if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); openOnlineDialog(); }
   render();
   showMenu();
 }
