@@ -175,10 +175,13 @@ export function startGame() {
   const board = createBoard($("#board"), $("#map-scroll"), handleCell, previewPlacement);
   function placementHelp(message) {
     const choice = ui.drag || ui.placement;
+    const mobile = window.matchMedia("(pointer: coarse), (max-width: 850px)").matches;
+    $("#rotate-placement").disabled = game.finished || !["terrain", "building"].includes(choice?.kind);
+    $("#cancel-placement").disabled = !choice;
     if (!choice || !["terrain", "building", "single-terrain"].includes(choice.kind)) {
       $("#placement-help").textContent = game.opening
-        ? "Choisissez une tuile, puis posez-la sur des cases vides. R : pivoter."
-        : "";
+        ? (mobile ? "Touchez une tuile, puis une case vide du plateau pour la poser." : "Choisissez une tuile, puis posez-la sur des cases vides. R : pivoter.")
+        : "Choisissez une carte ou une unité pour jouer.";
       return;
     }
     if (message) {
@@ -186,7 +189,9 @@ export function startGame() {
       return;
     }
     const count = [...placementGuidance(game, choice).values()].filter(result => !result.error).length;
-    $("#placement-help").textContent = `${count} placement(s) possible(s) dans cette orientation. ${count ? "Choisissez une case verte ou glissez la carte." : "Essayez une rotation, une autre unité ou une autre carte."} R ou molette : pivoter · Échap : annuler.`;
+    $("#placement-help").textContent = mobile
+      ? `${count} placement(s) possible(s). ${count ? "Touchez une case verte pour poser la carte." : "Essayez de pivoter ou choisissez une autre carte ou unité."}`
+      : `${count} placement(s) possible(s) dans cette orientation. ${count ? "Choisissez une case verte ou glissez la carte." : "Essayez une rotation, une autre unité ou une autre carte."} R ou molette : pivoter · Échap : annuler.`;
   }
   function previewPlacement(pos) {
     if (ui.drag) return;
@@ -256,9 +261,9 @@ export function startGame() {
       const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
       $('#online-status').textContent = `Partie ${session.code} · Vous : ${game.players[session.player].name} · ${!session.joined ? 'En attente d’un adversaire' : online.busy ? 'Envoi du coup…' : game.active === session.player ? 'À vous de jouer' : 'Tour de votre adversaire'} · Invitation : ${invite.href}`;
       if (session.deadline && !game.finished) $('#online-status').textContent += ` · Temps restant : ${Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))} s`;
-      $('#menu-button').textContent = game.finished ? 'Revenir au menu principal' : 'Abandonner et revenir au menu';
+      $('#menu-button').textContent = game.finished ? 'Menu principal' : 'Quitter la partie';
     } else {
-      $('#menu-button').textContent = 'Revenir au menu principal';
+      $('#menu-button').textContent = 'Menu principal';
     }
     const opening = game.opening;
     $(".game-layout").classList.toggle("opening", Boolean(opening));
@@ -529,6 +534,13 @@ export function startGame() {
   });
   $("#rotate").addEventListener("click", () => rotate("terrain"));
   $("#rotate-building").addEventListener("click", () => rotate("building"));
+  $("#rotate-placement").addEventListener("click", () => rotate());
+  $("#cancel-placement").addEventListener("click", () => {
+    drag.cancel();
+    ui.placement = null;
+    render();
+    board.preview(null);
+  });
   document.addEventListener("change", event => {
     if (event.target.matches("[data-army-size]")) act(() => selectArmy(game,Number(event.target.value)), { undoable: false });
   });

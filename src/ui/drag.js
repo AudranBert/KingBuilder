@@ -54,6 +54,8 @@ export function installDrag({
   root.addEventListener("pointerdown", (event) => {
     const card = event.target.closest(sourceSelector);
     if (!card || card.disabled || event.button !== 0 || pending) return;
+    // Cards use tap-to-place on touchscreens so a vertical swipe can scroll.
+    if (event.pointerType === "touch" && card.matches("[data-tile],[data-building],[data-single-terrain]")) return;
     pending = {
       id: event.pointerId,
       x: event.clientX,

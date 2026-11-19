@@ -47,6 +47,7 @@ test("un clic ne déclenche aucun placement ; glisser dépose une seule fois et 
     remove() {},
   };
   const card = {
+    matches() { return true; },
     closest() {
       return this;
     },
@@ -72,6 +73,11 @@ test("un clic ne déclenche aucun placement ; glisser dépose une seule fois et 
       drop: (p) => calls.push(["drop", p]),
       end: () => calls.push("end"),
     });
+    root.fire("pointerdown", { target: card, pointerType: "touch" });
+    const swipe = doc.fire("pointermove", { pointerType: "touch", clientY: 80 });
+    doc.fire("pointerup", { pointerType: "touch" });
+    assert.deepEqual(calls, [], "balayer une carte au doigt doit laisser défiler la page");
+    assert.equal(swipe.prevented, undefined);
     root.fire("pointerdown", { target: card });
     doc.fire("pointerup");
     assert.deepEqual(calls, []);

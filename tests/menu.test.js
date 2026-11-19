@@ -74,7 +74,7 @@ function mount(t) {
       createElement: element,
       addEventListener(type, fn) { documentListeners.set(type, fn); },
     },
-    window: { addEventListener() {} },
+    window: { addEventListener() {}, matchMedia: () => ({ matches: false }) },
     ResizeObserver: class {
       observe() {}
     },
@@ -207,4 +207,18 @@ test("la molette pivote la carte survolée et garde le défilement ailleurs", (t
   assert.equal(app.node("#building-rotation-label").textContent, "270°");
   layout.wheel({ target: { closest: () => null }, deltaY: 1, preventDefault: () => prevented++ });
   assert.equal(prevented, 2);
+});
+
+test("les commandes tactiles pivotent la sélection et permettent de l’annuler", (t) => {
+  const app = mount(t);
+  app.start("solo");
+  assert.equal(app.node("#rotate-placement").disabled, true);
+  app.selectTile();
+  assert.equal(app.node("#rotate-placement").disabled, false);
+  assert.equal(app.node("#cancel-placement").disabled, false);
+  app.node("#rotate-placement").click();
+  assert.equal(app.node("#rotation-label").textContent, "90°");
+  app.node("#cancel-placement").click();
+  assert.equal(app.node("#rotate-placement").disabled, true);
+  assert.equal(app.node("#cancel-placement").disabled, true);
 });
