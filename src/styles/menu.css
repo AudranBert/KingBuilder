@@ -13,6 +13,28 @@
   justify-items: center;
   gap: 16px;
 }
+.language-picker {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+.language-toggle {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 44px;
+  padding: 8px;
+  border: 1px solid #c9b48d;
+  border-radius: 8px;
+  background: #fcf7e9;
+  cursor: pointer;
+}
+.language-toggle img {
+  display: block;
+  width: 30px;
+  height: 20px;
+  border-radius: 2px;
+}
 .menu-crest {
   display: grid;
   place-items: center;

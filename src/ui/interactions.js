@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "../i18n.js";
 import {
   actor,
   RULES,
@@ -19,22 +20,22 @@ import {
 
 export function placementErrorText(error) {
   const terrain = error.match(/terrain incompatible, il faut (.*?) à la place de /);
-  if (terrain) return `Impossible : il faut ${terrain[1]} ici.`;
+  if (terrain) return sourceMessage("messages.cannotPlaceRequiresHere", [terrain[1]]);
   const adjacency = Object.values(BUILDINGS).find(b =>
     b.adjacency?.length && error === `${b.name} : ${b.pattern}`);
   if (adjacency?.adjacency.every(rule => rule.terrain === "field" && rule.owned && rule.range === "edge"))
-    return "Impossible : l’entrée doit toucher un de vos champs.";
+    return sourceMessage("messages.cannotPlaceTheEntranceMustTouchOne");
   const short = {
-    "Le motif doit tenir sur des cases vides, sans chevauchement.": "la tuile doit tenir sur des cases vides.",
-    "Votre action de construction / exploration est déjà terminée.": "cette unité a déjà agi.",
-    "Cette unité a déjà terminé son action.": "cette unité a déjà agi.",
-    "Toutes les cases du motif doivent être explorées.": "explorez toutes les cases du motif.",
-    "Le motif chevauche une case de bâtiment ou un champ réservé.": "un bâtiment ou un champ occupe le motif.",
-    "Le motif sort du plateau.": "la tuile dépasse du plateau.",
-    "Choisissez votre propre bâtiment de production.": "choisissez un de vos bâtiments de production.",
+    [sourceMessage("messages.thePatternMustFitOnEmptySpaces")]: sourceMessage("messages.theTileMustFitOnEmptySpaces"),
+    [sourceMessage("messages.yourBuildingExplorationActionIsAlreadyComplete")]: sourceMessage("messages.thisUnitHasAlreadyActed"),
+    [sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction")]: sourceMessage("messages.thisUnitHasAlreadyActed"),
+    [sourceMessage("messages.allSpacesInThePatternMustBe")]: sourceMessage("messages.exploreAllSpacesInThePattern"),
+    [sourceMessage("messages.thePatternOverlapsABuildingSpaceOr")]: sourceMessage("messages.aBuildingOrFieldOccupiesThePattern"),
+    [sourceMessage("messages.thePatternExtendsBeyondTheBoard")]: sourceMessage("messages.theTileExtendsBeyondTheBoard"),
+    [sourceMessage("messages.chooseYourOwnProductionBuilding")]: sourceMessage("messages.chooseOneOfYourProductionBuildings"),
   };
   const message = short[error] || error.replace(/^(Impossible|Erreur)\s*:\s*/i, "");
-  return `Impossible : ${message.charAt(0).toLowerCase()}${message.slice(1)}`;
+  return sourceMessage("messages.cannotPlace", [message.charAt(0).toLowerCase(), message.slice(1)]);
 }
 export function placementGuidance(g, placement) {
   const results = new Map();
@@ -75,7 +76,7 @@ export function dragPreview(g, drag, pos) {
     const path = movementPaths(g).get(key(x, y));
     return {
       cells: path || [pos],
-      error: path ? null : "Cette case est inaccessible.",
+      error: path ? null : sourceMessage("messages.thisSpaceIsUnreachable"),
     };
   }
   if (drag.kind === "worker")
@@ -104,7 +105,7 @@ export function moveUnitTo(g, x, y) {
   if (unit.x === x && unit.y === y) return;
   const combat = attackPaths(g).get(key(x,y));
   const path = combat || movementPaths(g).get(key(x, y));
-  if (!path) throw Error("Cette case est inaccessible pour cette unité.");
+  if (!path) throw Error(sourceMessage("messages.thisSpaceIsUnreachableForThisUnit"));
   for (const step of path) move(g, step.x, step.y);
   if (combat) attack(g,x,y);
 }

@@ -1,3 +1,4 @@
+import { t, definitionText, translateMessage, kingdomName, getLanguage, setLanguage, restoreLanguage, translateDocument } from "./i18n.js";
 import { parseKey } from "./geometry.js";
 import { OnlineClient } from './online.js';
 import { monitorServerHealth } from './server-health.js';
@@ -57,10 +58,13 @@ import {
   rulesView,
   catalogueView,
   harvestView,
+  harvestGains,
   tradeView,
 } from "./ui/views.js";
 
 export function startGame() {
+  restoreLanguage();
+  translateDocument();
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
@@ -79,7 +83,7 @@ export function startGame() {
     if (announcedTurn === turn) return;
     announcedTurn = turn;
     if (online.session && game.active !== online.session.player) return;
-    toast(online.session ? 'À vous de jouer' : `Au tour du royaume ${game.active === 0 ? 'd’Ambre' : 'de Jade'}`);
+    toast(online.session ? t("app.yourTurn") : t("app.turnForTheKingdom", [game.active === 0 ? t("app.ofAmber") : t("app.ofJade")]));
   }
   let queuedCommand = null;
   const online = new OnlineClient(result => {
@@ -99,17 +103,17 @@ export function startGame() {
     if (changed && game.finished && !inMenu) showResults();
     if (!result.started) showLobby(result, changed);
     else if (inMenu) { $('#game-settings-dialog').close(); enterGame(); }
-  }, error => { $('#online-status').textContent = `Connexion interrompue : ${error.message} Nouvelle tentative…`; });
+  }, error => { $('#online-status').textContent = t("app.connectionInterruptedRetrying", [translateMessage(error.message)]); });
   function showLobby(session, syncSettings = true) {
     inMenu = true;
     $('#lobby-info').hidden = false;
-    $('#settings-title').textContent = session.joined ? 'Partie prête' : 'En attente du deuxième joueur';
+    $('#settings-title').textContent = session.joined ? t("app.gameReady") : t("app.waitingForTheSecondPlayer");
     $('#setting-clock-row').hidden = false;
     $('#setting-clock').disabled = session.player !== 0;
     if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-clock').value = session.settings.turnSeconds ?? 0;
-    $('#settings-mode').textContent = session.player === 0 ? 'Vous êtes l’hôte' : 'Invité';
+    $('#settings-mode').textContent = session.player === 0 ? t("app.youAreTheHost") : t("app.guest");
     $('#lobby-code').textContent = session.code;
-    $('#lobby-players').textContent = `${session.game.players[0].name} (Ambre) · ${session.joined ? session.game.players[1].name + ' (Jade)' : 'En attente du deuxième joueur…'}`;
+    $('#lobby-players').textContent = t("app.amber", [kingdomName(session.game.players[0].name), session.joined ? kingdomName(session.game.players[1].name) + ' (Jade)' : t("app.waitingForTheSecondPlayer2")]);
     $('#settings-start').hidden = true;
     $('#lobby-start').hidden = session.player !== 0;
     $('#lobby-start').disabled = !session.joined || online.busy;
@@ -122,7 +126,7 @@ export function startGame() {
   }
   const mutation = (type, fn) => (state, ...args) => {
     if (online.session) {
-      if (online.busy || !online.session.joined || state.active !== online.session.player) throw Error('Attendez votre tour.');
+      if (online.busy || !online.session.joined || state.active !== online.session.player) throw Error(t("app.waitForYourTurn"));
       queuedCommand = { type, args, unit: state.selectedUnitId, army: state.armySelection?.length ?? null };
       return;
     }
@@ -150,7 +154,7 @@ export function startGame() {
     const preview = new URL(globalThis.location.href).searchParams.get('previewHistory') === '1';
     if (preview) {
       $('#game-history').hidden = false;
-      html('#history-list', '<div class="history-row"><span>Alice <strong>24</strong></span><span class="history-versus">contre</span><span>Bob <strong>18</strong></span><span class="history-winner">♛ Alice</span></div><p class="history-preview-note">Aperçu · partie fictive</p>');
+      html('#history-list', `<div class="history-row"><span>${t("refreshHistory.alice")}<strong>24</strong></span><span class="history-versus">${t("refreshHistory.versus")}</span><span>${t("refreshHistory.bob")}<strong>18</strong></span><span class="history-winner">${t("refreshHistory.alice2")}</span></div><p class="history-preview-note">${t("refreshHistory.previewFictionalGame")}</p>`);
       return;
     }
     try {
@@ -159,8 +163,8 @@ export function startGame() {
       const result = await client.request('/history');
       $('#game-history').hidden = !result.enabled;
       html('#history-list', result.games.length ? result.games.map(item =>
-        `<div class="history-row"><span>${e(item.names[0])} <strong>${e(item.scores[0])}</strong></span><span class="history-versus">contre</span><span>${e(item.names[1])} <strong>${e(item.scores[1])}</strong></span><span class="history-winner">${item.winner === null ? 'Égalité' : `♛ ${e(item.names[item.winner])}`}</span></div>`
-      ).join('') : '<p>Aucune partie terminée pour le moment.</p>');
+        `<div class="history-row"><span>${e(item.names[0])} <strong>${e(item.scores[0])}</strong></span><span class="history-versus">${t("refreshHistory.versus")}</span><span>${e(item.names[1])} <strong>${e(item.scores[1])}</strong></span><span class="history-winner">${item.winner === null ? t("app.draw") : `♛ ${e(item.names[item.winner])}`}</span></div>`
+      ).join('') : `<p>${t("refreshHistory.noCompletedGamesYet")}</p>`);
     } catch { $('#game-history').hidden = true; }
   }
   function enterGame() {
@@ -180,16 +184,16 @@ export function startGame() {
     $("#cancel-placement").disabled = !choice;
     if (!choice) {
       $("#placement-help").textContent = game.opening
-        ? "Choisissez une tuile terrain."
-        : "Choisissez une tuile ou une unité.";
+        ? t("app.chooseATerrainTile")
+        : t("app.chooseATileOrAUnit");
       return;
     }
     if (result?.error) {
-      $("#placement-help").textContent = placementErrorText(result.error);
+      $("#placement-help").textContent = translateMessage(placementErrorText(result.error));
       return;
     }
     if (result && ui.drag) {
-      $("#placement-help").textContent = "Relâchez pour placer.";
+      $("#placement-help").textContent = t("app.releaseToPlace");
       return;
     }
     if (["terrain", "building", "single-terrain"].includes(choice.kind)) {
@@ -197,15 +201,15 @@ export function startGame() {
       if (!options.some(option => !option.error)) {
         const reasons = new Set(options.map(option => option.error));
         $("#placement-help").textContent = reasons.size === 1
-          ? placementErrorText(options[0].error)
-          : "Impossible : aucun emplacement. Pivotez ou changez de tuile.";
+          ? translateMessage(placementErrorText(options[0].error))
+          : t("app.cannotPlaceHereRotateOrChooseAnother");
         return;
       }
     }
-    const action = mobile ? "Touchez" : "Cliquez sur";
-    const instruction = choice.kind === "worker" ? "un de vos bâtiments de production pour y affecter l’ouvrier."
-      : choice.kind === "unit" ? "une case accessible pour déplacer l’unité."
-      : `une case verte pour poser ${choice.kind === "building" ? "le bâtiment" : choice.kind === "single-terrain" ? "le terrain" : "la tuile terrain"}.`;
+    const action = mobile ? t("app.tap") : t("app.click");
+    const instruction = choice.kind === "worker" ? t("app.oneOfYourProductionBuildingsToAssign")
+      : choice.kind === "unit" ? t("app.aReachableSpaceToMoveTheUnit")
+      : t("app.aGreenSpaceToPlace", [choice.kind === "building" ? t("app.theBuilding") : choice.kind === "single-terrain" ? t("app.theTerrain") : t("app.theTerrainTile")]);
     $("#placement-help").textContent = `${action} ${instruction}`;
   }
   function previewPlacement(pos) {
@@ -222,7 +226,7 @@ export function startGame() {
     }
   }
   function toast(message) {
-    $("#toast").textContent = message;
+    $("#toast").textContent = translateMessage(message);
     $("#toast").classList.add("visible");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(
@@ -253,7 +257,7 @@ export function startGame() {
           won
             .map(
               (c) =>
-                `${MISSIONS[c.id].name} : +${MISSIONS[c.id].reward.gold} or`,
+                t("app.gold", [definitionText("missions", MISSIONS[c.id]), MISSIONS[c.id].reward.gold]),
             )
             .join(" · "),
         );
@@ -274,17 +278,17 @@ export function startGame() {
     $('#online-status').hidden = !session;
     if (session) {
       const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
-      $('#online-status').textContent = `Partie ${session.code} · Vous : ${game.players[session.player].name} · ${!session.joined ? 'En attente d’un adversaire' : online.busy ? 'Envoi du coup…' : game.active === session.player ? 'À vous de jouer' : 'Tour de votre adversaire'} · Invitation : ${invite.href}`;
-      if (session.deadline && !game.finished) $('#online-status').textContent += ` · Temps restant : ${Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))} s`;
-      $('#menu-button').textContent = game.finished ? 'Menu principal' : 'Quitter la partie';
+      $('#online-status').textContent = t("app.gameYouInvitation", [session.code, kingdomName(game.players[session.player].name), !session.joined ? t("app.waitingForAnOpponent") : online.busy ? t("app.sendingMove") : game.active === session.player ? t("app.yourTurn") : t("app.opponentSTurn"), invite.href]);
+      if (session.deadline && !game.finished) $('#online-status').textContent += t("app.timeLeftS", [Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))]);
+      $('#menu-button').textContent = game.finished ? t("app.mainMenu") : t("app.leaveGame");
     } else {
-      $('#menu-button').textContent = 'Menu principal';
+      $('#menu-button').textContent = t("app.mainMenu");
     }
     const opening = game.opening;
     $(".game-layout").classList.toggle("opening", Boolean(opening));
     $("#opening-status").hidden = !opening;
     $("#opening-status").textContent = opening
-      ? `Préparation ${opening.step + 1}/${opening.totalPlacements} · ${game.players[game.active].name} · ${opening.tiles.length} tuiles au choix`
+      ? t("app.setupTilesToChooseFrom", [opening.step + 1, opening.totalPlacements, kingdomName(game.players[game.active].name), opening.tiles.length])
       : "";
     html("#players", playersView(game));
     html("#missions", missionsView(game));
@@ -296,7 +300,7 @@ export function startGame() {
       button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
       button.disabled = Boolean(error);
       button.title =
-        error || `Remplacer les offres pour ${GOLD.rerollCost} or`;
+        translateMessage(error) || t("app.replaceOffersForGold", [GOLD.rerollCost]);
     }
     html("#barracks-list", barracksView(game));
     html("#worker-list", workersView(game));
@@ -309,10 +313,10 @@ export function startGame() {
     html("#trade-info", tradeView(game));
     $("#end-turn").disabled = Boolean(opening);
     $("#end-turn").innerHTML = opening
-      ? "Posez une tuile terrain"
+      ? t("app.placeATerrainTile")
       : game.finished
-      ? "Voir les résultats →"
-      : `<strong>Fin de tour →</strong><small>${harvestView(game).match(/Fin du tour : ([^<]+)/)?.[1] || "aucune récolte"}</small>`;
+      ? t("app.viewResults")
+      : `<strong>${t("render.endTurn")}</strong><small>${harvestGains(game)}</small>`;
     $("#round").innerHTML = opening
       ? `0 <small>/ ${game.turnLimit}</small>`
       : `${String(game.round).padStart(2, "0")} <small>/ ${game.turnLimit}</small>`;
@@ -410,9 +414,9 @@ export function startGame() {
     pendingBuild = attempt;
     const missing = costText(payment.missing);
     $("#prestige-warning").textContent =
-      `Il manque ${missing}. Acheter ces ressources à la banque pour ${payment.gold} or ? Les ressources disponibles seront aussi dépensées.`;
+      t("app.missingBuyTheseResourcesFromTheBank", [missing, payment.gold]);
     $("#prestige-dialog .confirm").textContent =
-      `Payer ${payment.gold} or`;
+      t("app.payGold", [payment.gold]);
     $("#prestige-dialog").showModal();
   }
   function completeBuild(attempt) {
@@ -427,7 +431,7 @@ export function startGame() {
           JSON.stringify(attempt.payment) !==
             JSON.stringify(buildingPayment(game, attempt.index))
         )
-          throw Error("Le placement ou son coût a changé. Réessayez.");
+          throw Error(t("app.thePlacementOrItsCostHasChanged"));
         build(game, attempt.index, attempt.x, attempt.y, attempt.rotation, {
           allowGold: attempt.payment.gold > 0,
           expectedGold: attempt.payment.gold,
@@ -435,7 +439,7 @@ export function startGame() {
         ui.placement = null;
         ui.selected = { x: attempt.x, y: attempt.y };
       },
-      { message: "Construction terminée." },
+      { message: t("app.constructionComplete") },
     );
   }
   $("#prestige-dialog .confirm").addEventListener("click", () => {
@@ -458,7 +462,7 @@ export function startGame() {
           ui.selected = null;
           ui.placement = null;
         },
-        { message: "Marché renouvelé." },
+        { message: t("app.marketRefreshed") },
       ),
     );
   function rotate(kind = ui.drag?.kind || ui.placement?.kind || "terrain", step = 1) {
@@ -484,14 +488,14 @@ export function startGame() {
       b = game.players.length > 1 ? totalScore(game, 1) : 0;
     $("#winner").textContent =
       game.victory === 'resignation'
-        ? `${game.players[game.winner].name} gagne par abandon !`
+        ? t("app.winsByResignation", [kingdomName(game.players[game.winner].name)])
         : game.victory === "conquest"
-        ? `${game.players[game.winner].name} conquiert le donjon et remporte la partie !`
+        ? t("app.conquersTheKeepAndWinsTheGame", [kingdomName(game.players[game.winner].name)])
         : game.mode === "solo"
-        ? `Votre royaume : ${a} points`
+        ? t("app.yourKingdomPoints", [a])
         : a === b
-          ? "Deux couronnes, une victoire partagée."
-          : `${game.players[a > b ? 0 : 1].name} l’emporte !`;
+          ? t("app.twoCrownsASharedVictory")
+          : t("app.wins", [kingdomName(game.players[a > b ? 0 : 1].name)]);
     html("#results", `<div class="result-grid">${resultsView(game)}</div>`);
     if (!$("#result-dialog").open) $("#result-dialog").showModal();
   }
@@ -542,7 +546,7 @@ export function startGame() {
         break;
       case "train":
         act(() => trainUnit(game, ...position, button.dataset.type), {
-          message: "Unité recrutée. Elle sera active au prochain tour.",
+          message: t("app.unitRecruitedItWillBeActiveNext"),
         });
         break;
     }
@@ -569,7 +573,7 @@ export function startGame() {
     ui.drag = null;
     if ($("#result-dialog").open) $("#result-dialog").close();
     render();
-    toast("Dernière action annulée.");
+    toast(t("app.lastActionUndone"));
   });
   $("#end-turn").addEventListener("click", () => {
     if (game.opening) return;
@@ -651,12 +655,12 @@ export function startGame() {
     online.stop();
     $('#lobby-info').hidden = true;
     $('#lobby-start').hidden = true;
-    $('#settings-title').textContent = 'Préparer le royaume';
+    $('#settings-title').textContent = t("app.setUpYourKingdom");
     $('#settings-start').hidden = false;
-    $('#settings-start').textContent = 'Lancer la partie →';
+    $('#settings-start').textContent = t("app.startGame");
     for (const [, [selector]] of Object.entries(settingInputs)) $(selector).disabled = false;
     nextMode = mode;
-    $("#settings-mode").textContent = mode === "solo" ? "Partie solo" : mode === 'online' ? 'Partie en ligne' : "Partie locale";
+    $("#settings-mode").textContent = mode === "solo" ? t("app.soloGame") : mode === 'online' ? t("app.onlineGame") : t("app.localGame");
     $("#game-settings-dialog").showModal();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
@@ -679,8 +683,8 @@ export function startGame() {
         clearUndo: true,
         message:
           nextMode === "solo"
-            ? "Votre royaume s’éveille."
-            : "Deux nouveaux royaumes s’éveillent.",
+            ? t("app.yourKingdomAwakens")
+            : t("app.newKingdomsAwaken"),
       },
     );
     if (created) {
@@ -689,12 +693,12 @@ export function startGame() {
     }
   }
   const settingInputs = {
-    rounds: ["#setting-rounds", "#setting-rounds-value", "tours"],
-    openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value", "tuiles"],
-    boardSize: ["#setting-board", "#setting-board-value", "grille"],
-    material: ["#setting-material", "#setting-material-value", "bois"],
-    food: ["#setting-food", "#setting-food-value", "blé"],
-    gold: ["#setting-gold", "#setting-gold-value", "or"],
+    rounds: ["#setting-rounds", "#setting-rounds-value"],
+    openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value"],
+    boardSize: ["#setting-board", "#setting-board-value"],
+    material: ["#setting-material", "#setting-material-value"],
+    food: ["#setting-food", "#setting-food-value"],
+    gold: ["#setting-gold", "#setting-gold-value"],
   };
   function updateSettingLabels() {
     for (const [name, [inputSelector, outputSelector]] of Object.entries(settingInputs)) {
@@ -720,7 +724,7 @@ export function startGame() {
     lobbySaveTimer = setTimeout(async () => {
       if (!online.session || online.session.started) return;
       if (online.busy) { scheduleLobbySave(); return; }
-      try { await online.lobby(collectSettings()); } catch (error) { toast(`Réglages non enregistrés : ${error.message}`); }
+      try { await online.lobby(collectSettings()); } catch (error) { toast(t("app.settingsNotSaved", [error.message])); }
     }, 300);
   }
   updateSettingLabels();
@@ -745,7 +749,7 @@ export function startGame() {
   }
   $("#settings-start").addEventListener("click", () => {
     collectSettings();
-    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast('Réglages enregistrés.')).catch(error => toast(error.message));
+    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast(t("app.settingsSaved"))).catch(error => toast(error.message));
     else beginNewGame();
   });
   $(".close-results").addEventListener("click", () =>
@@ -846,7 +850,7 @@ export function startGame() {
     stopHealthCheck?.();
     stopHealthCheck = monitorServerHealth(healthy => {
       const status = $('#online-health');
-      status.textContent = healthy === true ? '✓ Serveur disponible' : healthy === null ? 'Vérification du serveur…' : 'Serveur indisponible, nouvel essai dans 10s';
+      status.textContent = healthy === true ? t("app.serverAvailable") : healthy === null ? t("app.checkingServer") : t("app.serverUnavailableRetryingIn10s");
       status.classList.toggle('healthy', healthy === true);
       $('#online-create').disabled = healthy !== true;
     });
@@ -862,17 +866,34 @@ export function startGame() {
     try {
       const url = new URL(globalThis.location.href); url.hash = `join=${online.session.code}`;
       await navigator.clipboard.writeText(link ? url.href : online.session.code);
-      toast(link ? 'Lien copié.' : 'Code copié.');
-    } catch { toast('Copie impossible. Le code est affiché dans le salon.'); }
+      toast(link ? t("app.linkCopied") : t("app.codeCopied"));
+    } catch { toast(t("app.couldNotCopyTheCodeIsDisplayed")); }
   });
   $('#online-join').addEventListener('click', () => {
     const code = $('#online-code').value.trim().toUpperCase();
-    if (!/^[A-F0-9]{10}$/.test(code)) return toast('Saisissez un code de partie de 10 caractères.');
+    if (!/^[A-F0-9]{10}$/.test(code)) return toast(t("app.enterA10CharacterGameCode"));
     $('#online-dialog').close();
     online.connect(code, undefined, $('#nickname').value).catch(error => toast(error.message));
   });
   $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toast(error.message)); });
   if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); openOnlineDialog(); }
+  function updateLanguageFlag() {
+    $('#language-flag').src = new URL(`../assets/identity/flag-${getLanguage()}.svg`, import.meta.url).href;
+    $('#language-toggle').setAttribute('aria-label', t('language.switch'));
+  }
+  updateLanguageFlag();
+  $('#language-toggle').addEventListener('click', () => {
+    setLanguage(getLanguage() === 'fr' ? 'en' : 'fr');
+    clearTimeout(toastTimer);
+    $('#toast').textContent = '';
+    $('#toast').classList.remove('visible');
+    translateDocument();
+    updateLanguageFlag();
+    html('.rules-content', rulesView(game));
+    if ($('#catalogue-dialog').open) renderCatalogue();
+    render();
+    refreshHistory();
+  });
   render();
   showMenu();
 }

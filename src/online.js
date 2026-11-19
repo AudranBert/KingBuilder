@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "./i18n.js";
 export class OnlineClient {
   constructor(onState, onError) {
     this.onState = onState; this.onError = onError; this.session = null; this.timer = null; this.busy = false;
@@ -5,7 +6,7 @@ export class OnlineClient {
   }
   async configure() {
     const response = await fetch(new URL('../online-config.json', import.meta.url), { cache: 'no-store' });
-    if (!response.ok) throw Error('Configuration multijoueur introuvable.');
+    if (!response.ok) throw Error(sourceMessage("messages.multiplayerConfigurationNotFound"));
     const { apiUrl } = await response.json();
     this.url = new URL(apiUrl).href.replace(/\/$/, '');
   }
@@ -18,7 +19,7 @@ export class OnlineClient {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       const result = await response.json();
-      if (!response.ok) throw Error(result.error || 'Serveur indisponible.');
+      if (!response.ok) throw Error(result.error || sourceMessage("messages.serverUnavailable"));
       return result;
     } finally { clearTimeout(timer); }
   }
@@ -36,9 +37,9 @@ export class OnlineClient {
   async resume() {
     this.stop();
     const saved = JSON.parse(sessionStorage.getItem('kingbuilder-online') || 'null');
-    if (!saved) throw Error('Aucune partie à reprendre dans cet onglet.');
+    if (!saved) throw Error(sourceMessage("messages.noGameToResumeInThisTab"));
     await this.configure();
-    if (saved.url !== this.url) throw Error('L’adresse du serveur a changé.');
+    if (saved.url !== this.url) throw Error(sourceMessage("messages.theServerAddressHasChanged"));
     this.session = saved;
     this.accept(await this.request(`/rooms/${saved.code}`)); this.poll();
   }

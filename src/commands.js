@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "./i18n.js";
 import * as engine from './engine.js';
 import { moveUnitTo } from './ui/interactions.js';
 
@@ -12,7 +13,7 @@ const actions = Object.freeze({
 // Both clients and servers use this protocol. Never accept a client game state.
 export function applyCommand(state, command) {
   if (!command || !Object.hasOwn(actions, command.type) || !Array.isArray(command.args) || command.args.length > 6)
-    throw Error('Commande inconnue.');
+    throw Error(sourceMessage("messages.unknownCommand"));
   const game = structuredClone(state);
   if (!game.opening && !game.finished) {
     engine.selectUnit(game, command.unit ?? null);

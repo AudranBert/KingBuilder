@@ -2,7 +2,7 @@
 
 Le mode multijoueur privé temporaire dispose d’un serveur Node.js sans base de données. Installation locale, déploiement Render gratuit, configuration et administration : [guide multijoueur](docs/multiplayer.md).
 
-Jeu de placement de tuiles en duel, en français, jouable à deux sur le même écran. Le terrain est commun : explorez, développez votre économie et disputez les positions adverses.
+Jeu de placement de tuiles en duel, disponible en français et en anglais, jouable à deux sur le même écran. Le terrain est commun : explorez, développez votre économie et disputez les positions adverses.
 
 ## Jouer
 
@@ -15,6 +15,14 @@ npm start
 Ouvrir http://127.0.0.1:4173. Solo et Local multiplayer sont disponibles ; les modes bot et en ligne restent verrouillés. Avant chaque nouvelle partie, un menu permet de régler la durée, la préparation, les ressources initiales et la taille de la grille.
 
 Une partie reste active tant que la page reste ouverte. Choisir un mode depuis le menu lance une nouvelle partie.
+
+## Traductions
+
+Le drapeau du menu principal bascule entre le français et l’anglais à chaque clic. Le français est utilisé au premier lancement ; le choix est ensuite conservé dans le navigateur.
+
+Les textes sont regroupés dans `src/locales/fr.js` et `src/locales/en.js`, avec les mêmes clés dans les deux fichiers. Les vues utilisent `t(clé, paramètres)` ; les paramètres `{0}`, `{1}`, etc. peuvent être réordonnés selon la langue. Les traductions ne contiennent pas la mise en page HTML.
+
+Les noms et descriptions du catalogue utilisent des clés fondées sur les identifiants de configuration, par exemple `buildings.house.name`. Les textes statiques déclarent leur clé avec `data-i18n` et les attributs accessibles avec `data-i18n-aria-label`, `data-i18n-title` ou `data-i18n-placeholder`. Pour ajouter ou modifier un texte, mettre à jour les deux fichiers de langue ; les tests vérifient la parité et la couverture du catalogue.
 
 ## Règles du duel
 

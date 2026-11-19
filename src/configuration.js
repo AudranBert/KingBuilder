@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "./i18n.js";
 import { compileConfiguration } from "./config-schema.js";
 async function readJson(name) {
   const url = new URL(`../config/${name}.json`, import.meta.url);
@@ -21,7 +22,7 @@ const [tiles, buildings, resources, units, gameRules, terrains, missions] =
       "resources",
       "units",
       "game-rules",
-      "terrains",
+      sourceMessage("messages.terrain"),
       "missions",
     ].map(readJson),
   );

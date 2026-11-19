@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "./i18n.js";
 import {
   GOLD,
   MISSIONS,
@@ -70,14 +71,14 @@ export function gameSettings(settings = {}) {
     resources,
   };
   if (!Number.isInteger(result.rounds) || result.rounds < 20 || result.rounds > 40)
-    throw Error("Le nombre de tours doit être compris entre 20 et 40.");
+    throw Error(sourceMessage("messages.theNumberOfTurnsMustBeBetween"));
   if (!Number.isInteger(result.openingTilesPerPlayer) || result.openingTilesPerPlayer < 0 || result.openingTilesPerPlayer > 4)
-    throw Error("Le nombre de tuiles de préparation doit être compris entre 0 et 4.");
+    throw Error(sourceMessage("messages.theNumberOfSetupTilesMustBe"));
   if (!Number.isInteger(result.boardSize) || result.boardSize < 7 || result.boardSize > 15)
-    throw Error("La taille de la grille doit être comprise entre 7 et 15.");
+    throw Error(sourceMessage("messages.theBoardSizeMustBeBetween7"));
   for (const [id, amount] of Object.entries(resources))
     if (!Object.hasOwn(GAME_DEFAULTS.resources, id) || !Number.isInteger(amount) || amount < 0 || amount > 10)
-      throw Error("Les ressources de départ doivent être comprises entre 0 et 10.");
+      throw Error(sourceMessage("messages.startingResourcesMustBeBetween0And"));
   return result;
 }
 // Every occupied part points to one anchor; only the anchor stores the building.
@@ -151,7 +152,7 @@ export function productionAmount(g, x, y) {
   return definition.production * multiplier;
 }
 export function migrateGame(g) {
-  if (g.version !== 5) throw Error("Les anciennes règles ne sont plus compatibles.");
+  if (g.version !== 5) throw Error(sourceMessage("messages.olderRulesAreNoLongerCompatible"));
   g.boardSize ??= RULES.size;
   g.turnLimit ??= RULES.rounds;
   g.openingTilesPerPlayer ??= GAME_DEFAULTS.openingTilesPerPlayer;
@@ -168,7 +169,7 @@ export function migrateGame(g) {
   for (const c of Object.values(g.board))
     if (c.building && !BUILDINGS[c.building.type])
       throw Error(
-        "Cet état de partie utilise un bâtiment supprimé de la configuration.",
+        sourceMessage("messages.thisGameStateUsesABuildingRemoved"),
       );
   for (const p of g.players) {
     p.units ??= [];
@@ -202,7 +203,7 @@ export function migrateGame(g) {
     for (const unit of p.units)
       if (!UNIT_DEFINITIONS[unit.type])
         throw Error(
-          "Cet état de partie utilise une unité supprimée de la configuration.",
+          sourceMessage("messages.thisGameStateUsesAUnitRemoved"),
         );
   if (
     g.selectedUnitId !== null &&
@@ -225,22 +226,22 @@ export function workersAt(g, owner, x, y) {
   );
 }
 export function workerAssignmentError(g, id, x, y) {
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   const p = g.players[g.active],
     w = p.workerAssignments.find((w) => w.id === id);
-  if (!w) return `Choisissez un de vos ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
+  if (!w) return sourceMessage("messages.chooseOneOfYour", [UNIT_DEFINITIONS.worker.name.toLowerCase()]);
   if (x === null && y === null) return null;
   const site = buildingAt(g, x, y),
     b = site?.building;
   if (!b || b.owner !== g.active || !BUILDINGS[b.type].produces)
-    return "Choisissez votre propre bâtiment de production.";
+    return sourceMessage("messages.chooseYourOwnProductionBuilding");
   if (
     p.workerAssignments.some(
       (other) => other.id !== id && other.building === key(site.x, site.y),
     )
   )
-    return `Ce bâtiment accueille déjà un ${UNIT_DEFINITIONS.worker.name.toLowerCase()}.`;
+    return sourceMessage("messages.thisBuildingAlreadyHasA", [UNIT_DEFINITIONS.worker.name.toLowerCase()]);
   return null;
 }
 export function assignWorker(g, id, x, y) {
@@ -260,7 +261,7 @@ const shuffle = (a, rng) => {
 };
 export function createGame(rng = Math.random, mode = "local", settings = null) {
   if (!["solo", "local"].includes(mode))
-    throw Error("Mode de jeu indisponible.");
+    throw Error(sourceMessage("messages.gameModeUnavailable"));
   const options = settings === null
       ? {
           rounds: RULES.rounds,
@@ -293,7 +294,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
   for (let i = 0; i < RULES.markets.buildingSize; i++) {
     const index = buildingDeck.findIndex(id => BUILDINGS[id].tier === RULES.markets.initialMaxTier &&
       !initialFamilies.has(BUILDINGS[id].family || id));
-    if (index < 0) throw Error("Pas assez de familles différentes pour le marché initial.");
+    if (index < 0) throw Error(sourceMessage("messages.notEnoughDifferentFamiliesForTheInitial"));
     initialFamilies.add(BUILDINGS[buildingDeck[index]].family || buildingDeck[index]);
     buildingMarket.push(...buildingDeck.splice(index, 1));
   }
@@ -330,7 +331,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
     );
     if (!chosen)
       throw Error(
-        "Le motif du bâtiment de départ ne tient pas sur le plateau.",
+        sourceMessage("messages.theStartingBuildingPatternDoesNotFit"),
       );
     for (const c of chosen.cells) {
       const terrain =
@@ -389,7 +390,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
     log: [
       mode === "solo"
         ? "Votre royaume prend son essor."
-        : "Les deux royaumes prennent leur essor.",
+        : sourceMessage("messages.lesDeuxKingdomsPrennentLeurEssor"),
     ],
   };
   initializeMissions(game, shuffle(Object.keys(MISSIONS), rng));
@@ -398,31 +399,31 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
 // Shared draft before round one: J2, J1, J2, J1.
 export function startOpening(g) {
   if (g.opening || g.round !== 1 || g.active !== 0 || g.players.some(p => p.revealed))
-    throw Error("La préparation ne peut commencer qu’avant la partie.");
+    throw Error(sourceMessage("messages.setupCanOnlyBeginBeforeTheGame"));
   const perPlayer = g.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
     totalPlacements = perPlayer * g.players.length;
   if (!totalPlacements) {
     g.opening = null;
-    note(g, "Aucune tuile de préparation : le premier tour commence.");
+    note(g, sourceMessage("messages.noSetupTilesTheFirstTurnBegins"));
     return;
   }
   const offerCount = Math.max(5, totalPlacements + 1),
     indexes = g.tileDeck.map((tile, i) => tile.cells.length >= 5 ? i : -1)
       .filter(i => i >= 0).slice(0, offerCount);
   if (indexes.length < offerCount)
-    throw Error(`La pioche ne contient pas ${offerCount} grandes tuiles.`);
+    throw Error(sourceMessage("messages.theDeckDoesNotContainLargeTiles", [offerCount]));
   const tiles = indexes.map(i => g.tileDeck[i]);
   for (const i of indexes.reverse()) g.tileDeck.splice(i, 1);
   g.opening = { tiles, step: 0, totalPlacements, perPlayer };
   g.active = g.players.length === 2 ? 1 : 0;
-  note(g, `Préparation : ${perPlayer} tuile${perPlayer === 1 ? "" : "s"} à poser par joueur.`);
+  note(g, sourceMessage("messages.setupTuileToPlacePerPlayer", [perPlayer, perPlayer === 1 ? "" : "s"]));
 }
 export function openingError(g, index, x, y, rotation = 0) {
-  if (!g.opening) return "La préparation est terminée.";
-  if (g.finished) return "La partie est terminée.";
-  if (!Number.isInteger(index) || !g.opening.tiles[index]) return "Choisissez une des tuiles disponibles.";
+  if (!g.opening) return sourceMessage("messages.setupIsComplete");
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (!Number.isInteger(index) || !g.opening.tiles[index]) return sourceMessage("messages.chooseOneOfTheAvailableTiles");
   return tilePlacement(g, g.opening.tiles[index], x, y, rotation)
-    ? null : "Le motif doit tenir sur des cases vides, sans chevauchement.";
+    ? null : sourceMessage("messages.thePatternMustFitOnEmptySpaces");
 }
 export function placeOpeningTile(g, index, x, y, rotation = 0) {
   const error = openingError(g, index, x, y, rotation);
@@ -435,7 +436,7 @@ export function placeOpeningTile(g, index, x, y, rotation = 0) {
     g.tileDeck.push(...g.opening.tiles);
     g.opening = null;
     g.active = 0;
-    note(g, "Préparation terminée. Le premier tour commence.");
+    note(g, sourceMessage("messages.setupCompleteTheFirstTurnBegins"));
   } else {
     g.active = g.players.length === 2 ? 1 - g.active : 0;
   }
@@ -458,8 +459,8 @@ export function walkable(cell) {
   );
 }
 function available(g) {
-  if (g.finished) throw Error("La partie est terminée.");
-  if (g.opening) throw Error("Terminez d’abord la préparation du terrain.");
+  if (g.finished) throw Error(sourceMessage("messages.theGameIsOver"));
+  if (g.opening) throw Error(sourceMessage("messages.finishTerrainSetupFirst"));
 }
 function note(g, text) {
   g.log.unshift(text);
@@ -469,7 +470,7 @@ export function actor(g) {
   const p = g.players[g.active];
   if (g.selectedUnitId !== null && g.selectedUnitId !== undefined) {
     const unit = p.units.find((u) => u.id === g.selectedUnitId);
-    if (!unit) throw Error("Unité inconnue.");
+    if (!unit) throw Error(sourceMessage("messages.unknownUnit"));
     return {
       ...unit,
       ...(unit.type === "soldier" ? { count: selectedSoldiers(g).length, moves: Math.min(...selectedSoldiers(g).map(u => u.moves)), acted: selectedSoldiers(g).some(u => u.acted || u.ended) } : {}),
@@ -511,7 +512,7 @@ function updateActor(g, changes) {
 export function selectUnit(g, id) {
   available(g);
   if (id !== null && !g.players[g.active].units.some((u) => u.id === id))
-    throw Error("Choisissez une de vos unités.");
+    throw Error(sourceMessage("messages.chooseOneOfYourUnits"));
   g.selectedUnitId = id;
   g.armySelection = null;
 }
@@ -536,10 +537,10 @@ export function selectedSoldiers(g) {
 export function selectArmy(g, count) {
   available(g);
   const lead = g.players[g.active].units.find(u => u.id === g.selectedUnitId);
-  if (lead?.type !== "soldier") throw Error("Choisissez une armée.");
+  if (lead?.type !== "soldier") throw Error(sourceMessage("messages.chooseAnArmy"));
   const ready = armyAt(g, g.active, lead.x, lead.y).filter(u => !u.acted && !u.ended)
     .sort((a,b) => b.moves-a.moves || a.id-b.id);
-  if (!Number.isInteger(count) || count < 1 || count > ready.length) throw Error("Effectif invalide.");
+  if (!Number.isInteger(count) || count < 1 || count > ready.length) throw Error(sourceMessage("messages.invalidArmySize"));
   g.armySelection = ready.slice(0, count).map(u => u.id);
   g.selectedUnitId = g.armySelection[0];
 }
@@ -560,15 +561,15 @@ export function combatPreview(g, x, y) {
     defenderSurvivors: Math.min(defenders + garrison, Math.max(0, defense-attack)), defenderOwner };
 }
 export function attackError(g, x, y) {
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   const unit = actor(g);
-  if (unit.type !== "soldier") return "Seule une armée peut combattre ou capturer un drapeau.";
-  if (unit.acted || unit.ended) return "Cette armée a déjà terminé son action.";
-  if (!inside(g,x,y) || distance(unit,{x,y}) !== 1) return "La cible doit être voisine, sans diagonale.";
+  if (unit.type !== "soldier") return sourceMessage("messages.onlyAnArmyCanFightOrCapture");
+  if (unit.acted || unit.ended) return sourceMessage("messages.thisArmyHasAlreadyCompletedItsAction");
+  if (!inside(g,x,y) || distance(unit,{x,y}) !== 1) return sourceMessage("messages.theTargetMustBeAdjacentNotDiagonal");
   const cell = g.board[key(x,y)];
-  if (!cell || !walkable(cell)) return "Cette cible est inaccessible.";
-  if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return "Aucune cible adverse ni drapeau neutre sur cette case.";
+  if (!cell || !walkable(cell)) return sourceMessage("messages.thisTargetIsUnreachable");
+  if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return sourceMessage("messages.thereIsNoEnemyTargetOrNeutral");
   return null;
 }
 export function destroyBuilding(g, x, y) {
@@ -585,14 +586,14 @@ export function destroyBuilding(g, x, y) {
     delete part.overlay;
   }
   delete cell.building;
-  note(g, `${BUILDINGS[b.type].name} détruit.`);
+  note(g, sourceMessage("messages.destroyed", [BUILDINGS[b.type].name]));
 }
 function returnBuilders(g, owner, x, y) {
   const p = g.players[owner];
   if (!p) return;
   if (p.x === x && p.y === y) {
     Object.assign(p, p.home); p.kingSkip = 1;
-    note(g, `${p.name} : le roi retourne au donjon et perd son prochain tour d’activation.`);
+    note(g, sourceMessage("messages.theKingReturnsToTheKeepAnd", [p.name]));
   }
   for (const unit of p.units) {
     if (unit.type !== "emissary" || unit.x !== x || unit.y !== y) continue;
@@ -629,7 +630,7 @@ export function attack(g, x, y) {
   }
   g.selectedUnitId = survivors[0]?.id ?? null;
   g.armySelection = survivors.length ? survivors.map(u => u.id) : null;
-  note(g, `Combat ${result.attack} contre ${result.defense} : ${survivors.length} attaquant(s) survivant(s).${g.victory === "conquest" ? " Donjon conquis : victoire immédiate !" : ""}`);
+  note(g, sourceMessage("messages.combatVersusSurvivingAttackerS", [result.attack, result.defense, survivors.length, g.victory === "conquest" ? sourceMessage("messages.keepConqueredImmediateVictory") : ""]));
   return result;
 }
 // Targets accessible within the unit's remaining movement steps. The final occupation
@@ -649,24 +650,24 @@ export function attackPaths(g) {
   return paths;
 }
 export function moveError(g, x, y) {
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   const unit = actor(g);
   if (unit.moves < 1 || unit.acted || unit.ended)
-    return "Cette unité a terminé ses déplacements.";
+    return sourceMessage("messages.thisUnitHasFinishedMoving");
   if (!inside(g, x, y) || distance(unit, { x, y }) !== 1)
-    return "Choisissez une case voisine, sans diagonale.";
-  if (enemyAt(g, x, y)) return "Un pion adverse occupe cette case : utilisez le combat.";
-  if (hostileSite(g, x, y)) return "Cette position doit être occupée avec une action de combat.";
+    return sourceMessage("messages.chooseAnAdjacentSpaceNotDiagonal");
+  if (enemyAt(g, x, y)) return sourceMessage("messages.anEnemyPieceOccupiesThisSpaceUse");
+  if (hostileSite(g, x, y)) return sourceMessage("messages.thisPositionMustBeOccupiedUsingA");
   if (g.board[key(x, y)] && !walkable(g.board[key(x, y)]))
-    return "Ce terrain est infranchissable.";
+    return sourceMessage("messages.thisTerrainIsImpassable");
   return null;
 }
 export function move(g, x, y) {
   const error = moveError(g, x, y);
   if (error) throw Error(error);
   if (!g.board[key(x, y)]) {
-    if (actor(g).type === "soldier") throw Error("Les soldats ne peuvent pas explorer.");
+    if (actor(g).type === "soldier") throw Error(sourceMessage("messages.soldiersCannotExplore"));
     return "explore";
   }
   if (actor(g).type === "soldier") {
@@ -715,17 +716,17 @@ export function placement(g, index, x, y, rotation = 0, anchor = 0) {
   return tilePlacement(g, g.tileMarket[index], x, y, rotation, anchor);
 }
 export function exploreError(g, index, x, y, rotation = 0, anchor = 0) {
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   const unit = actor(g);
-  if (unit.type === "soldier") return "Les soldats ne peuvent pas explorer.";
-  if (unit.acted || unit.ended) return "Cette unité a déjà terminé son action.";
-  if (g.board[key(x, y)]) return "Choisissez une case inexplorée.";
+  if (unit.type === "soldier") return sourceMessage("messages.soldiersCannotExplore");
+  if (unit.acted || unit.ended) return sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction");
+  if (g.board[key(x, y)]) return sourceMessage("messages.chooseAnUnexploredSpace");
   const cells = placement(g, index, x, y, rotation, anchor);
   if (!cells)
-    return "Le motif doit tenir sur des cases vides, sans chevauchement.";
+    return sourceMessage("messages.thePatternMustFitOnEmptySpaces");
   if (!cells.some((c) => distance(unit, c) === RULES.placement.explorationContactDistance))
-    return `Une case de la tuile doit être à ${RULES.placement.explorationContactDistance} case(s) de l’unité, sans diagonale.`;
+    return sourceMessage("messages.oneSpaceOfTheTileMustBe", [RULES.placement.explorationContactDistance]);
   return null;
 }
 export function explore(g, index, x, y, rotation = 0, anchor = 0) {
@@ -744,22 +745,22 @@ export function explore(g, index, x, y, rotation = 0, anchor = 0) {
   updateActor(g, { moves: 0, acted: true });
   if (g.tileDeck.length) g.tileMarket[index] = g.tileDeck.shift();
   else g.tileMarket.splice(index, 1);
-  note(g, `${p.name} explore ${cells.length} cases.`);
+  note(g, sourceMessage("messages.exploreSpaces", [p.name, cells.length]));
   awardMissions(g);
 }
 export function buyTerrainError(g, terrain, x, y) {
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   if (!["plain", "forest", "mountain", "river"].includes(terrain))
-    return "Choisissez un terrain disponible.";
+    return sourceMessage("messages.chooseAnAvailableTerrain");
   const unit = actor(g);
-  if (unit.type === "soldier") return "Les soldats ne peuvent pas explorer.";
-  if (unit.acted || unit.ended) return "Cette unité a déjà terminé son action.";
-  if (!inside(g, x, y) || g.board[key(x, y)]) return "Choisissez une case inexplorée.";
+  if (unit.type === "soldier") return sourceMessage("messages.soldiersCannotExplore");
+  if (unit.acted || unit.ended) return sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction");
+  if (!inside(g, x, y) || g.board[key(x, y)]) return sourceMessage("messages.chooseAnUnexploredSpace");
   if (distance(unit, { x, y }) !== RULES.placement.explorationContactDistance)
-    return "La case doit être voisine de l’unité, sans diagonale.";
+    return sourceMessage("messages.theSpaceMustBeAdjacentToThe");
   if (g.players[g.active].resources.gold < RULES.trade.singleTerrainCost)
-    return `Il faut ${RULES.trade.singleTerrainCost} or.`;
+    return sourceMessage("messages.requiresGold", [RULES.trade.singleTerrainCost]);
   return null;
 }
 export function buyTerrain(g, terrain, x, y) {
@@ -771,7 +772,7 @@ export function buyTerrain(g, terrain, x, y) {
   p.revealed++;
   p.progress.terrain[terrain] = (p.progress.terrain[terrain] || 0) + 1;
   updateActor(g, { moves: 0, acted: true });
-  note(g, `${p.name} achète une case de ${TERRAINS[terrain].name.toLowerCase()} pour ${RULES.trade.singleTerrainCost} or.`);
+  note(g, sourceMessage("messages.buysASpaceOfForGold", [p.name, TERRAINS[terrain].name.toLowerCase(), RULES.trade.singleTerrainCost]));
   awardMissions(g);
 }
 export function buildError(
@@ -786,30 +787,30 @@ export function buildError(
     b = BUILDINGS[type],
     p = g.players[g.active],
     unit = actor(g);
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   if (unit.acted || unit.ended)
-    return "Votre action de construction / exploration est déjà terminée.";
-  if (unit.type === "soldier") return "Les soldats ne peuvent pas construire.";
-  if (!b) return "Choisissez une tuile bâtiment.";
-  if (b.unique && (p.units.some(u => u.type === b.onBuildUnit) || Object.values(g.board).some(c => c.building?.owner === g.active && c.building.type === type))) return "Un seul émissaire et une seule Chancellerie par royaume.";
-  if (b.constructible === false) return "Ce bâtiment est réservé au départ et ne peut pas être construit.";
-  if (!isRotation(rotation)) return "Orientation de bâtiment incorrecte.";
+    return sourceMessage("messages.yourBuildingExplorationActionIsAlreadyComplete");
+  if (unit.type === "soldier") return sourceMessage("messages.soldiersCannotBuild");
+  if (!b) return sourceMessage("messages.chooseABuildingTile");
+  if (b.unique && (p.units.some(u => u.type === b.onBuildUnit) || Object.values(g.board).some(c => c.building?.owner === g.active && c.building.type === type))) return sourceMessage("messages.onlyOneEmissaryAndOneChancelleryPer");
+  if (b.constructible === false) return sourceMessage("messages.thisBuildingIsOnlyAvailableAtThe");
+  if (!isRotation(rotation)) return sourceMessage("messages.invalidBuildingOrientation");
   const cells = patternAt(type, x, y, rotation);
   for (const c of cells) {
-    if (!inside(g, c.x, c.y)) return "Le motif sort du plateau.";
+    if (!inside(g, c.x, c.y)) return sourceMessage("messages.thePatternExtendsBeyondTheBoard");
     const target = g.board[key(c.x, c.y)];
-    if (!target) return "Toutes les cases du motif doivent être explorées.";
-    if (target.flag && type !== "outpost") return "Seule une tour peut être construit sur un drapeau.";
+    if (!target) return sourceMessage("messages.allSpacesInThePatternMustBe");
+    if (target.flag && type !== "outpost") return sourceMessage("messages.onlyATowerCanBeBuiltOn");
     if (target.building || (target.overlay && (c.transformTo || b.transformTo)))
-      return "Le motif chevauche une case de bâtiment ou un champ réservé.";
+      return sourceMessage("messages.thePatternOverlapsABuildingSpaceOr");
     if (!c.terrain.includes(target.terrain))
-      return `${b.name} : terrain incompatible, il faut ${c.terrain.map(id => TERRAINS[id].name.toLowerCase()).join(" ou ")} à la place de ${TERRAINS[target.terrain].name.toLowerCase()}. ${b.pattern}`;
-    if (enemyAt(g, c.x, c.y)) return "Un pion adverse occupe le motif.";
+      return sourceMessage("messages.incompatibleTerrainRequiresInsteadOf", [b.name, c.terrain.map(id => TERRAINS[id].name.toLowerCase()).join(sourceMessage("messages.or")), TERRAINS[target.terrain].name.toLowerCase(), b.pattern]);
+    if (enemyAt(g, c.x, c.y)) return sourceMessage("messages.anEnemyPieceOccupiesThePattern");
   }
   const d = distance(unit, { x, y });
   if (d > RULES.placement.constructionRange)
-    return `Placez l’entrée à ${RULES.placement.constructionRange} case(s) maximum de l’unité, sans diagonale.`;
+    return sourceMessage("messages.placeTheEntranceWithinSpaceSOf", [RULES.placement.constructionRange]);
   if (b.adjacency?.some((rule) => !meetsAdjacency(g, rule, x, y, g.active)))
     return `${b.name} : ${b.pattern}`;
   if (
@@ -820,7 +821,7 @@ export function buildError(
       const held = Number.isFinite(p.resources[id]) ? p.resources[id] : 0;
       return n > held ? [`${n - held} ${RESOURCES[id].toLowerCase()}`] : [];
     });
-    return `Ressources insuffisantes : il manque ${missing.join(", ")} (or insuffisant).`;
+    return sourceMessage("messages.insufficientResourcesMissingNotEnoughGold", [missing.join(", ")]);
   }
   return null;
 }
@@ -840,12 +841,12 @@ export function build(
     p = g.players[g.active];
   const payment = buildingPayment(g, index);
   if (expectedGold !== undefined && payment?.gold !== expectedGold)
-    throw Error("Le coût en or a changé. Confirmez à nouveau.");
+    throw Error(sourceMessage("messages.theGoldCostHasChangedPleaseConfirm"));
   if (
     payment?.gold &&
     (!allowGold || expectedGold !== payment.gold)
   )
-    throw Error("Confirmez l’achat des ressources à la banque.");
+    throw Error(sourceMessage("messages.confirmTheResourcePurchaseFromTheBank"));
   payCost(p.resources, payment.resources);
 
   if (b.transformTo) g.board[key(x, y)].terrain = b.transformTo;
@@ -880,24 +881,24 @@ export function build(
   note(
     g,
     b.transformTo
-      ? `${p.name} utilise : ${b.name.toLowerCase()}.`
-      : `${p.name} construit : ${b.name.toLowerCase()}.`,
+      ? sourceMessage("messages.uses", [p.name, b.name.toLowerCase()])
+      : sourceMessage("messages.builds", [p.name, b.name.toLowerCase()]),
   );
   awardMissions(g);
 }
 export function trainError(g, x, y, type) {
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   const b = g.board[key(x, y)]?.building,
     def = BUILDINGS[b?.type],
     unit = UNIT_DEFINITIONS[type];
   if (!b || b.owner !== g.active || !unit || ["king", "worker"].includes(type) || !def.trains?.includes(type))
-    return "Choisissez une de vos casernes et une unité disponible.";
+    return sourceMessage("messages.chooseOneOfYourBarracksAndAn");
   if (b.trainingRound === g.round && (b.trainedCount || 0) >= def.trainingLimit)
-    return "Cette caserne a déjà recruté ce tour-ci.";
-  if (enemyAt(g, x, y)) return "Un pion adverse occupe la caserne.";
+    return sourceMessage("messages.theseBarracksHaveAlreadyRecruitedThisTurn");
+  if (enemyAt(g, x, y)) return sourceMessage("messages.anEnemyPieceOccupiesTheBarracks");
   if (!costPayment(g, unit.cost)?.affordable)
-    return "Ressources insuffisantes pour cette unité.";
+    return sourceMessage("messages.insufficientResourcesForThisUnit");
   return null;
 }
 export function trainUnit(g, x, y, type) {
@@ -914,13 +915,13 @@ export function trainUnit(g, x, y, type) {
     b.trainedCount = 0;
   }
   b.trainedCount++;
-  note(g, `${p.name} recrute : ${def.name.toLowerCase()}.`);
+  note(g, sourceMessage("messages.recruits", [p.name, def.name.toLowerCase()]));
   awardMissions(g);
   return unit;
 }
 export const assigned = (g, i) =>
   g.players[i].workerAssignments.filter((w) => w.building !== null).length;
-export function recruitError() { return "Construisez une maison pour obtenir un ouvrier."; }
+export function recruitError() { return sourceMessage("messages.buildAHouseToGainAWorker"); }
 export function recruit() { throw Error(recruitError()); }
 function addWorker(g) {
   const p = g.players[g.active];
@@ -940,7 +941,7 @@ export function assign(g, x, y) {
   const site = buildingAt(g, x, y),
     b = site?.building;
   if (!b || b.owner !== g.active || !BUILDINGS[b.type].produces)
-    throw Error("Choisissez votre propre bâtiment de production.");
+    throw Error(sourceMessage("messages.chooseYourOwnProductionBuilding"));
   const target = key(site.x, site.y),
     p = g.players[g.active],
     current = p.workerAssignments.find((w) => w.building === target);
@@ -951,7 +952,7 @@ export function assign(g, x, y) {
   const free = p.workerAssignments.find((w) => w.building === null);
   if (!free)
     throw Error(
-      "Tous vos ouvriers sont affectés. Réaffectez-en un depuis le panneau des ouvriers.",
+      sourceMessage("messages.allYourWorkersAreAssignedReassignOne"),
     );
   assignWorker(g, free.id, site.x, site.y);
 }
@@ -980,7 +981,7 @@ export function endTurn(g) {
     p.resources[r] += n;
     earned.push(`${n} ${RESOURCES[r].toLowerCase()}`);
   }
-  if (earned.length) note(g, `${p.name} récolte : ${earned.join(", ")}.`);
+  if (earned.length) note(g, sourceMessage("messages.harvests", [p.name, earned.join(", ")]));
   awardMissions(g);
   const lastPlayer = g.active === g.players.length - 1;
   if (lastPlayer && g.round >= (g.turnLimit ?? RULES.rounds)) {
@@ -988,8 +989,8 @@ export function endTurn(g) {
     note(
       g,
       g.mode === "solo"
-        ? "La partie est terminée. Votre royaume est évalué aux points."
-        : "La partie est terminée. Les royaumes sont départagés aux points.",
+        ? sourceMessage("messages.theGameIsOverYourKingdomIs")
+        : sourceMessage("messages.theGameIsOverTheKingdomsAre"),
     );
     return;
   }
@@ -1058,7 +1059,7 @@ function awardMissions(g) {
   for (const id of settleMissions(g))
     note(
       g,
-      `${g.players[g.active].name} : ${MISSIONS[id].name} (+${MISSIONS[id].reward.gold} or).`,
+      sourceMessage("messages.gold", [g.players[g.active].name, MISSIONS[id].name, MISSIONS[id].reward.gold]),
     );
 }
 function drawBuildingOffers(g, count) {
@@ -1087,6 +1088,6 @@ export function rerollMarket(g, kind) {
   g.rerollsUsed++;
   note(
     g,
-    `${g.players[g.active].name} relance le marché (${GOLD.rerollCost} or).`,
+    sourceMessage("messages.rerollsTheMarketGold", [g.players[g.active].name, GOLD.rerollCost]),
   );
 }

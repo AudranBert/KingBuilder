@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { startGame } from "../src/app.js";
 import { RULES } from "../src/engine.js";
+import { LANGUAGE_KEY } from "../src/i18n.js";
 
 // Run the application event handlers with an in-memory DOM.
 function mount(t) {
@@ -221,4 +222,36 @@ test("les commandes tactiles pivotent la sélection et permettent de l’annuler
   app.node("#cancel-placement").click();
   assert.equal(app.node("#rotate-placement").disabled, true);
   assert.equal(app.node("#cancel-placement").disabled, true);
+});
+
+test("langue : français par défaut, bascule immédiate et choix mémorisé", (t) => {
+  const saved = new Map();
+  const previous = Object.getOwnPropertyDescriptor(globalThis, "localStorage");
+  Object.defineProperty(globalThis, "localStorage", {
+    configurable: true,
+    value: { getItem: key => saved.get(key), setItem: (key, value) => saved.set(key, value) },
+  });
+  t.after(() => previous ? Object.defineProperty(globalThis, "localStorage", previous) : delete globalThis.localStorage);
+  const app = mount(t);
+  assert.match(app.node("#language-flag").src, /flag-fr\.svg$/);
+  assert.match(app.node(".rules-content").innerHTML, /Le but/);
+  app.node("#language-toggle").click();
+  assert.match(app.node("#language-flag").src, /flag-en\.svg$/);
+  assert.equal(saved.get(LANGUAGE_KEY), "en");
+  assert.match(app.node(".rules-content").innerHTML, /The goal/);
+  assert.match(app.node("#players").innerHTML, /Kingdom of Amber/);
+  app.start("solo");
+  assert.match(app.node("#opening-status").textContent, /Setup 1\/2/);
+  assert.match(app.node("#tile-market").innerHTML, /spaces/);
+  app.prepare(2);
+  assert.match(app.node("#end-turn").innerHTML, /End turn/);
+  for (let i = 0; i < RULES.rounds; i++) app.node("#end-turn").click();
+  assert.match(app.node("#winner").textContent, /Your kingdom : \d+ points|Your kingdom: \d+ points/);
+  const reloaded = mount(t);
+  assert.match(reloaded.node("#language-flag").src, /flag-en\.svg$/);
+  assert.match(reloaded.node(".rules-content").innerHTML, /The goal/);
+  reloaded.node("#language-toggle").click();
+  assert.match(reloaded.node("#language-flag").src, /flag-fr\.svg$/);
+  assert.equal(saved.get(LANGUAGE_KEY), "fr");
+  assert.match(reloaded.node(".rules-content").innerHTML, /Le but/);
 });
