@@ -261,7 +261,7 @@ export function armyControlsView(g) {
   return `<div class="army-controls"><strong>${iconHTML(UNIT_DEFINITIONS.soldier.icon)} ${total.length} · ${ready.length} disponible(s)</strong>${ready.length ? `<label>Effectif <select data-army-size aria-label="Effectif de la pile sélectionnée">${ready.map((_,i) => `<option value="${i+1}" ${selectedSoldiers(g).length === i+1 ? "selected" : ""}>${i+1}</option>`).join("")}</select></label>` : "<span>Activation terminée</span>"}</div>`;
 }
 export function tradeView(g) {
-  return `<span title="Achat des ressources manquantes : prix de base ${RULES.trade.basePrice} + ${RULES.trade.producerSurcharge} par producteur adverse"><strong>Banque</strong> · ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} → ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} · ${iconHTML(RESOURCE_DEFINITIONS.material.icon)} → ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}</span>`;
+  return `<span title="Achat des ressources manquantes : prix de base ${RULES.trade.basePrice} + ${RULES.trade.producerSurcharge} par producteur adverse"><strong>Banque</strong> · ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} · ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}</span>`;
 }
 export function rulesView(g) {
   const buildingFamilies = new Map();

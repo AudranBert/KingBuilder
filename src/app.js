@@ -15,6 +15,7 @@ import {
   rerollMarket,
   rerollError,
   actor,
+  buildingAt,
   movementPaths,
   attackPaths,
   selectArmy,
@@ -68,6 +69,7 @@ export function startGame() {
   let nextMode = "local",
     nextSettings = structuredClone(GAME_DEFAULTS);
   let inMenu = true;
+  let unitCellClick = null;
   function showMenu() {
     drag.cancel();
     inMenu = true;
@@ -209,6 +211,7 @@ export function startGame() {
     board.preview(dragPreview(game, ui.drag, ui.drag?.position));
   }
   function chooseUnit(id) {
+    unitCellClick = null;
     act(() => {
       selectUnit(game, id);
       ui.selected = null;
@@ -217,6 +220,8 @@ export function startGame() {
     }, { undoable: false });
   }
   function handleCell(x, y) {
+    const previousUnitClick = unitCellClick;
+    unitCellClick = null;
     if (ui.drag) return;
     if (ui.placement) {
       const d = ui.placement;
@@ -230,8 +235,18 @@ export function startGame() {
       return;
     }
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
+    if (ui.mode !== "inspect" && own.length && buildingAt(game, x, y) &&
+        previousUnitClick?.game === game && previousUnitClick.owner === game.active &&
+        previousUnitClick.x === x && previousUnitClick.y === y &&
+        previousUnitClick.id === game.selectedUnitId &&
+        actor(game).x === x && actor(game).y === y) {
+      ui.selected = { x, y };
+      render();
+      return;
+    }
     if (own.length && !game.finished && ui.mode !== "inspect" && !(actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
       chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
+      unitCellClick = { game, owner: game.active, x, y, id: game.selectedUnitId };
       return;
     }
     ui.selected = { x, y };
@@ -356,6 +371,7 @@ export function startGame() {
   }
 
   document.addEventListener("click", (event) => {
+    if (!event.target.closest("#board")) unitCellClick = null;
     const card = event.target.closest("[data-building],[data-tile],[data-single-terrain]");
     const detail = event.target.closest("[data-building-details]");
     if (card && !game.finished && !(game.opening && card.hasAttribute("data-building"))) {

@@ -220,7 +220,8 @@ test("commerce : prix par producteur adverse, aucune influence des affectations"
   const payment=costPayment(g,{material:2,food:1,gold:3});
   assert.equal(payment.gold,10);assert.equal(payment.totalGold,13);assert.equal(payment.affordable,true);
   assert.deepEqual(payment.resources,{material:0,food:0,gold:13});
-  assert.match(tradeView(g),/→ 4/);
+  assert.match(tradeView(g), /2 <img[^>]+resources-gold\.svg[^>]*> → <img[^>]+resources-wheat\.svg/);
+  assert.match(tradeView(g), /4 <img[^>]+resources-gold\.svg[^>]*> → <img[^>]+resources-wood\.svg/);
 });
 
 test("achat à la construction : confirmation exacte, paiement atomique et or non achetable",()=>{
