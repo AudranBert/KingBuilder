@@ -60,6 +60,10 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
       p.progress.recruited = Math.max(0, p.workers - CONFIG.rules.startingWorkers);
     }
   }
+  if (g.missionsEnabled === false) {
+    g.missions = { market: [], deck: [], claimed: [], tiered: 1, baselines: {} };
+    return;
+  }
   if (!g.missions) {
     const deck = [...missionOrder];
     const market = [];
@@ -87,6 +91,7 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
 }
 export function settleMissions(g, owner = g.active) {
   const won = [];
+  if (g.missionsEnabled === false) return won;
   // Each offer needs fresh progress after its reveal, for each player.
   for (let i = 0; i < g.missions.market.length; ) {
     const id = g.missions.market[i],

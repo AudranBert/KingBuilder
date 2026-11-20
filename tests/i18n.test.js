@@ -50,8 +50,8 @@ test("l’anglais traduit l’interface sans modifier la partie ni les pseudos",
     assert.match(playersView(game), /Materials/);
     assert.equal(t("buildings.house.name"), "House");
     assert.equal(t("static.catalogue"), "Catalog");
-    assert.equal(t("selectionView.control", [e("Maison <King>"), 1]), "Control Maison &lt;King&gt; 1");
-    assert.equal(t("selectionView.control", ["Maison {1}", 7]), "Control Maison {1} 7");
+    assert.equal(t("app.amber", [e("Maison <King>"), 1]), "Maison &lt;King&gt; (Amber) · 1");
+    assert.equal(t("app.amber", ["Maison {1}", 7]), "Maison {1} (Amber) · 7");
     assert.equal(kingdomName("Maison"), "Maison");
     assert.match(catalogueView(), /soldier granted; recruit 1 \/ turn/);
     assert.match(catalogueView(), /losing your keep means defeat/);

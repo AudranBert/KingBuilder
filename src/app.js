@@ -33,7 +33,7 @@ import {
   totalScore,
   key,
 } from "./engine.js";
-import { createUIState } from "./ui/state.js";
+import { createUIState, hasSelectedUnit } from "./ui/state.js";
 import { dragFromCard, dragPreview, moveUnitTo as localMoveUnitTo, placementGuidance, placementErrorText } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
@@ -62,13 +62,13 @@ import {
   tradeView,
 } from "./ui/views.js";
 
-export function startGame() {
+export function startGame({ initialGame = null } = {}) {
   restoreLanguage();
   translateDocument();
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
-  let game = createGame(),
+  let game = initialGame ?? createGame(),
     toastTimer;
   let undoState = null;
   let pendingBuild = null;
@@ -90,14 +90,17 @@ export function startGame() {
     const changed = result.code !== game.onlineCode || result.revision !== game.onlineRevision;
     if (changed) {
       const selected = game.selectedUnitId, army = game.armySelection;
+      const selection = ui.unitSelection;
+      const sameTurn = game.active === result.game.active && game.round === result.game.round && game.onlineCode === result.code;
       game = result.game;
-      if (game.active === result.player && selected !== null && game.players[game.active].units.some(u => u.id === selected)) {
+      if (sameTurn && game.active === result.player && selected !== null && game.players[game.active].units.some(u => u.id === selected)) {
         game.selectedUnitId = selected; game.armySelection = army;
       }
       game.onlineRevision = result.revision;
       game.onlineCode = result.code;
       undoState = null; pendingBuild = null;
       Object.assign(ui, createUIState());
+      if (sameTurn && selection) ui.unitSelection = selection;
     }
     render();
     if (changed && game.finished && !inMenu) showResults();
@@ -110,7 +113,9 @@ export function startGame() {
     $('#settings-title').textContent = session.joined ? t("app.gameReady") : t("app.waitingForTheSecondPlayer");
     $('#setting-clock-row').hidden = false;
     $('#setting-clock').disabled = session.player !== 0;
+    $('#setting-missions').disabled = session.player !== 0;
     if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-clock').value = session.settings.turnSeconds ?? 0;
+    if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-missions').checked = session.settings.missionsEnabled ?? GAME_DEFAULTS.missionsEnabled;
     $('#settings-mode').textContent = session.player === 0 ? t("app.youAreTheHost") : t("app.guest");
     $('#lobby-code').textContent = session.code;
     $('#lobby-players').textContent = t("app.amber", [kingdomName(session.game.players[0].name), session.joined ? kingdomName(session.game.players[1].name) + ' (Jade)' : t("app.waitingForTheSecondPlayer2")]);
@@ -180,12 +185,15 @@ export function startGame() {
   function placementHelp(result) {
     const choice = ui.drag || ui.placement;
     const mobile = window.matchMedia("(pointer: coarse), (max-width: 850px)").matches;
+    $(".game-layout").classList.toggle("has-placement", Boolean(choice));
+    $('#placement-rotation-label').textContent = `${(choice?.kind === 'building' ? ui.buildingRotation : ui.rotation) * 90}°`;
     $("#rotate-placement").disabled = game.finished || !["terrain", "building"].includes(choice?.kind);
     $("#cancel-placement").disabled = !choice;
     if (!choice) {
       $("#placement-help").textContent = game.opening
         ? t("app.chooseATerrainTile")
-        : t("app.chooseATileOrAUnit");
+        : !hasSelectedUnit(game, ui) ? t("placement.selectUnitFirst")
+        : mobile ? t("placement.touchGuide") : t("placement.chooseDestination");
       return;
     }
     if (result?.error) {
@@ -273,6 +281,7 @@ export function startGame() {
     }
   }
   function render() {
+    if (ui.unitSelection && !hasSelectedUnit(game, ui)) ui.unitSelection = null;
     announceTurn();
     const session = online.session;
     $('#online-status').hidden = !session;
@@ -292,18 +301,19 @@ export function startGame() {
       : "";
     html("#players", playersView(game));
     html("#missions", missionsView(game));
+    $('#missions').hidden = game.missionsEnabled === false;
     $("#missions").style.setProperty("--mission-columns", RULES.missionMarketSize);
     $("#tile-market").style.setProperty("--terrain-columns", opening ? 3 : RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
         error = session ? session.rerollErrors[kind] : rerollError(game, kind);
       button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
-      button.disabled = Boolean(error);
+      button.disabled = Boolean(error) || ui.mode === 'inspect';
       button.title =
         translateMessage(error) || t("app.replaceOffersForGold", [GOLD.rerollCost]);
     }
-    html("#barracks-list", barracksView(game));
-    html("#worker-list", workersView(game));
+    html("#barracks-list", barracksView(game, ui));
+    html("#worker-list", workersView(game, ui));
     html("#tile-market", terrainMarketView(game, ui));
     html("#single-terrain", singleTerrainView(game, ui));
     html("#building-market", buildingMarketView(game, ui));
@@ -342,12 +352,13 @@ export function startGame() {
     unitCellClick = null;
     act(() => {
       selectUnit(game, id);
+      ui.unitSelection = { id, owner: game.active, round: game.round };
       ui.selected = null;
       ui.drag = null;
       ui.placement = null;
     }, { undoable: false });
   }
-  function handleCell(x, y) {
+  function handleCell(x, y, clickedUnitId) {
     const previousUnitClick = unitCellClick;
     unitCellClick = null;
     if (ui.drag) return;
@@ -355,7 +366,8 @@ export function startGame() {
       const d = ui.placement;
       if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
       else act(() => {
-        if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
+        if (d.kind === "worker") assignWorker(game, d.id, x, y);
+        else if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
         else if (game.opening) placeOpeningTile(game, d.index, x, y, d.rotation);
         else explore(game, d.index, x, y, d.rotation);
         ui.placement = null;
@@ -363,7 +375,22 @@ export function startGame() {
       return;
     }
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
-    if (ui.mode !== "inspect" && own.length && buildingAt(game, x, y) &&
+    if (clickedUnitId !== undefined && !game.finished && !game.opening && ui.mode !== 'inspect') {
+      chooseUnit(clickedUnitId === '' ? null : Number(clickedUnitId));
+      return;
+    }
+    if (hasSelectedUnit(game, ui)) {
+      const unit = actor(game);
+      if (unit.acted || unit.ended || unit.moves < 1) {
+        ui.unitSelection = null;
+        if (unit.x === x && unit.y === y) {
+          ui.selected = { x, y };
+          render();
+          return;
+        }
+      }
+    }
+    if (hasSelectedUnit(game, ui) && own.length && buildingAt(game, x, y) &&
         previousUnitClick?.game === game && previousUnitClick.owner === game.active &&
         previousUnitClick.x === x && previousUnitClick.y === y &&
         previousUnitClick.id === game.selectedUnitId &&
@@ -372,17 +399,17 @@ export function startGame() {
       render();
       return;
     }
-    if (own.length && !game.finished && ui.mode !== "inspect" && !(actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
-      chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
+    if (own.length && !game.finished && !game.opening && ui.mode !== "inspect" && !(hasSelectedUnit(game, ui) && actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
+      chooseUnit((hasSelectedUnit(game, ui) ? own.find((p) => p.id !== game.selectedUnitId) || own[0] : own[0]).id);
       unitCellClick = { game, owner: game.active, x, y, id: game.selectedUnitId };
       return;
     }
     ui.selected = { x, y };
-    if (ui.mode === "move" && attackPaths(game).has(key(x,y))) {
+    if (hasSelectedUnit(game, ui) && attackPaths(game).has(key(x,y))) {
       render();
       return;
     }
-    if (ui.mode === "move" && movementPaths(game).has(key(x, y)))
+    if (hasSelectedUnit(game, ui) && movementPaths(game).has(key(x, y)))
       act(() => moveUnitTo(game, x, y));
     else render();
   }
@@ -476,7 +503,7 @@ export function startGame() {
   }
   $(".game-layout").addEventListener("wheel", (event) => {
     const hovered = event.target.closest?.("[data-tile],[data-building]");
-    const kind = ui.drag?.kind || ui.placement?.kind ||
+    const kind = ui.drag?.kind ||
       (hovered?.hasAttribute("data-building") ? "building" :
         hovered?.hasAttribute("data-tile") ? "terrain" : null);
     if (game.finished || !["terrain", "building"].includes(kind)) return;
@@ -501,10 +528,15 @@ export function startGame() {
   }
 
   document.addEventListener("click", (event) => {
+    if (event.target.closest('[data-close-dialog]')) {
+      $(`#${event.target.closest('[data-close-dialog]').dataset.closeDialog}`).close();
+      return;
+    }
     if (!event.target.closest("#board")) unitCellClick = null;
     const card = event.target.closest("[data-building],[data-tile],[data-single-terrain]");
     const detail = event.target.closest("[data-building-details]");
     if (card && !game.finished && !(game.opening && card.hasAttribute("data-building"))) {
+      if (ui.mode === 'inspect') return;
       ui.placement = dragFromCard(card, ui);
       ui.selected = null;
       render();
@@ -517,28 +549,42 @@ export function startGame() {
       $("#building-details-dialog").showModal();
       return;
     }
-    const unit = event.target.closest("[data-unit]");
-    if (unit) {
-      chooseUnit(unit.dataset.unit === "" ? null : Number(unit.dataset.unit));
+    const worker = event.target.closest('[data-worker-drag]');
+    if (worker && !game.finished && ui.mode !== 'inspect') {
+      ui.placement = { kind: 'worker', id: Number(worker.dataset.workerDrag) };
+      ui.selected = null;
+      render();
+      return;
+    }
+    if (ui.placement?.kind === 'worker' && event.target.closest('[data-worker-reserve]')) {
+      act(() => {
+        assignWorker(game, ui.placement.id, null, null);
+        ui.placement = null;
+      });
       return;
     }
     const mode = event.target.closest("[data-mode]");
     if (mode) {
       ui.mode = mode.dataset.mode;
+      ui.unitSelection = null;
+      game.selectedUnitId = null;
+      game.armySelection = null;
       ui.placement = null;
       render();
       return;
     }
     const button = event.target.closest("[data-action]");
-    if (!button || button.disabled) return;
+    if (!button || button.disabled || ui.mode === 'inspect') return;
     const position = button.dataset.position
       ? parseKey(button.dataset.position)
       : null;
     switch (button.dataset.action) {
       case "attack":
+        if (!hasSelectedUnit(game, ui)) return;
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
       case "move":
+        if (!hasSelectedUnit(game, ui)) return;
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
       case "assign":
@@ -561,7 +607,10 @@ export function startGame() {
     board.preview(null);
   });
   document.addEventListener("change", event => {
-    if (event.target.matches("[data-army-size]")) act(() => selectArmy(game,Number(event.target.value)), { undoable: false });
+    if (event.target.matches("[data-army-size]") && hasSelectedUnit(game, ui)) act(() => {
+      selectArmy(game,Number(event.target.value));
+      ui.unitSelection.id = game.selectedUnitId;
+    }, { undoable: false });
   });
   $("#undo-action").addEventListener("click", () => {
     if (!undoState) return;
@@ -651,6 +700,7 @@ export function startGame() {
     button.addEventListener("click", () => $("#catalogue-dialog").close());
   });
   function requestNewGame(mode) {
+    $('#setting-missions').disabled = false;
     $('#setting-clock-row').hidden = true;
     online.stop();
     $('#lobby-info').hidden = true;
@@ -717,6 +767,8 @@ export function startGame() {
     input.addEventListener('change', scheduleLobbySave);
   }
   let lobbySaveTimer;
+  $('#setting-missions').checked = GAME_DEFAULTS.missionsEnabled;
+  $('#setting-missions').addEventListener('change', scheduleLobbySave);
   $('#setting-clock').addEventListener('change', scheduleLobbySave);
   function scheduleLobbySave() {
     clearTimeout(lobbySaveTimer);
@@ -739,6 +791,7 @@ export function startGame() {
       rounds: Number($("#setting-rounds").value),
       openingTilesPerPlayer: Number($("#setting-opening").value),
       boardSize: Number($("#setting-board").value),
+      missionsEnabled: $('#setting-missions').checked,
       resources: {
         material: Number($("#setting-material").value),
         food: Number($("#setting-food").value),
@@ -766,6 +819,7 @@ export function startGame() {
       drag.cancel();
       ui.selected = null;
       ui.placement = null;
+      ui.unitSelection = null;
       game.selectedUnitId = null;
       game.armySelection = null;
       render();
@@ -787,17 +841,22 @@ export function startGame() {
     ui.selected = null;
     ui.placement = null;
     ui.drag = null;
+    ui.unitSelection = null;
     game.selectedUnitId = null;
     game.armySelection = null;
     render();
   });
   const drag = installDrag({
     root: $(".game-layout"),
+    canStart: card => ui.mode !== 'inspect' && (!game.opening || card.hasAttribute('data-tile')),
     begin(card) {
       ui.drag = dragFromCard(card, ui);
       ui.placement = null;
       ui.selected = null;
-      if (ui.drag.kind === "unit" && ui.drag.id !== game.selectedUnitId) selectUnit(game, ui.drag.id);
+      if (ui.drag.kind === "unit") {
+        selectUnit(game, ui.drag.id);
+        ui.unitSelection = { id: ui.drag.id, owner: game.active, round: game.round };
+      }
       render();
     },
     preview(pos) {
@@ -844,18 +903,29 @@ export function startGame() {
     $('#online-dialog').close();
     online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toast(error.message));
   });
-  let stopHealthCheck;
+  let stopHealthCheck, resumeCheck = 0;
   function openOnlineDialog() {
     $('#online-dialog').showModal();
+    $('#online-resume').disabled = true;
     stopHealthCheck?.();
-    stopHealthCheck = monitorServerHealth(healthy => {
+    resumeCheck++;
+    stopHealthCheck = monitorServerHealth(async healthy => {
+      const check = ++resumeCheck;
       const status = $('#online-health');
       status.textContent = healthy === true ? t("app.serverAvailable") : healthy === null ? t("app.checkingServer") : t("app.serverUnavailableRetryingIn10s");
       status.classList.toggle('healthy', healthy === true);
       $('#online-create').disabled = healthy !== true;
+      $('#online-join').disabled = healthy !== true;
+      $('#online-resume').disabled = true;
+      if (healthy === true) {
+        try {
+          const available = await online.canResume();
+          if (check === resumeCheck && $('#online-dialog').open) $('#online-resume').disabled = !available;
+        } catch { /* Keep the saved session after temporary network failures. */ }
+      }
     });
   }
-  $('#online-dialog').addEventListener('close', () => { stopHealthCheck?.(); });
+  $('#online-dialog').addEventListener('close', () => { resumeCheck++; stopHealthCheck?.(); });
   $('#online-menu').addEventListener('click', openOnlineDialog);
   $('#online-close').addEventListener('click', () => $('#online-dialog').close());
   $('#lobby-start').addEventListener('click', () => {
@@ -895,5 +965,6 @@ export function startGame() {
     refreshHistory();
   });
   render();
-  showMenu();
+  if (initialGame) enterGame();
+  else showMenu();
 }

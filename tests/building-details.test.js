@@ -24,6 +24,19 @@ test("les détails exposent motif, étoiles, coût et effet sans survol", () => 
   assert.match(buildingDetailsView("clearing"), /Gratuit/);
 });
 
+test('tour et donjon affichent leur défense totale avec le même bouton d’information', () => {
+  const g = createGame(), p = g.players[g.active];
+  for (const type of ['castle', 'outpost']) {
+    g.board[key(p.x, p.y)].building = { type, owner: g.active };
+    const html = selectionView(g, { mode: 'inspect', selected: { x: p.x, y: p.y } });
+    assert.match(html, /icon-shield\.svg[^>]*> 2/);
+    assert.doesNotMatch(html, /1 \+ 1|ⓘ/);
+    assert.match(html, /class="secondary offer-details">i<\/button>/);
+    assert.match(html, /class="selected-building-icon"[^>]*><strong>/);
+    assert.ok(html.includes(BUILDINGS[type].icon));
+  }
+});
+
 test("cartes du marché et inspection des bâtiments posés donnent accès aux détails", () => {
   const g = createGame();
   g.buildingMarket = ["mine_square"];

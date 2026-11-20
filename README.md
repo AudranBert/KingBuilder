@@ -14,7 +14,7 @@ npm start
 
 Ouvrir http://127.0.0.1:4173. Solo et Local multiplayer sont disponibles ; les modes bot et en ligne restent verrouillés. Avant chaque nouvelle partie, un menu permet de régler la durée, la préparation, les ressources initiales et la taille de la grille.
 
-Une partie reste active tant que la page reste ouverte. Choisir un mode depuis le menu lance une nouvelle partie.
+Une partie reste active tant que la page reste ouverte. Choisir un mode depuis le menu lance une nouvelle partie. Les réglages proposent aussi un interrupteur « Missions communes », activé par défaut : le désactiver retire les objectifs et leurs récompenses pour cette partie. En ligne, ce choix appartient à l’hôte.
 
 ## Traductions
 
@@ -120,8 +120,12 @@ Un roi pris retourne au donjon et ne peut pas agir pendant son prochain tour. L�
 ## Commandes
 
 - Cliquer une carte affiche ses placements ; cliquer une case verte la pose. Le glisser-déposer reste disponible.
+- Le mode **Jouer** ne sélectionne aucune unité automatiquement : cliquer d’abord le roi ou une unité, puis sa destination. Le mode **Inspecter** affiche les informations des cases sans déplacer les pièces. Un changement de mode, Échap, un clic droit ou un nouveau tour retire la sélection.
+- Pour une armée, l’épée indique la puissance du groupe sélectionné ; le bouclier indique la défense de sa case, avec tous les soldats présents, la garnison éventuelle et le bonus défensif. Le nombre de soldats reste affiché sur le pion du plateau.
 - Les quatre pictogrammes sous les tuiles de terrain permettent d’acheter une case précise pour 1 or.
-- R ou la molette fait pivoter la carte ; Échap annule la sélection.
+- Sur ordinateur, R ou la molette sur une carte fait pivoter la pièce ; Échap annule la sélection.
+- Sur téléphone, toucher une carte puis une case permet de la poser ; sa poignée ⠿ permet aussi de la glisser. La barre de placement reste accessible en bas de l’écran pour pivoter ou annuler. Glisser près du bord fait défiler la page ou le plateau.
+- Les ouvriers se glissent vers les producteurs, ou se sélectionnent par un toucher avant de choisir un bâtiment. Le plateau peut défiler sur les petits écrans pour conserver des cases utilisables.
 - Le clic droit efface la sélection. Le bouton ↶ annule une seule dernière action ; il se réactive après une nouvelle action et se vide au changement de tour.
 - Sélectionner une unité puis une case dorée la déplace. Sélectionner une cible rouge prépare un combat.
 - Pour une armée, le sélecteur **Effectif** choisit combien de pions partent ensemble.

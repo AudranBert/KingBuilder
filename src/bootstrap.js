@@ -13,7 +13,11 @@ main.inert = true;
 menu.inert = true;
 try {
   const { startGame } = await import("./app.js");
-  startGame();
+  const url = new URL(location.href);
+  if (['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) && url.searchParams.get('test') === 'army-2') {
+    const { createArmyTestGame } = await import('./test-scenarios.js');
+    startGame({ initialGame: createArmyTestGame() });
+  } else startGame();
 } catch (error) {
   menu.hidden = true;
   main.hidden = false;

@@ -39,6 +39,14 @@ export function placementErrorText(error) {
 }
 export function placementGuidance(g, placement) {
   const results = new Map();
+  if (placement?.kind === 'worker') {
+    for (const [position, cell] of Object.entries(g.board)) {
+      if (cell.building?.owner !== g.active || !BUILDINGS[cell.building.type].produces) continue;
+      const [x, y] = position.split(',').map(Number);
+      results.set(position, dragPreview(g, placement, { x, y }));
+    }
+    return results;
+  }
   if (!placement || !["terrain", "building", "single-terrain"].includes(placement.kind)) return results;
   for (let y = 0; y < (g.boardSize ?? RULES.size); y++)
     for (let x = 0; x < (g.boardSize ?? RULES.size); x++)

@@ -3,6 +3,7 @@
   --ink: #3c4231;
   --line: #d6c8aa;
   --cell: 34px;
+  --board-frame: #c1af8b;
 }
 body {
   background:
@@ -42,7 +43,7 @@ body {
   padding: 10px;
   border: 5px solid #99764c;
   border-radius: 9px;
-  background: #c1af8b;
+  background: var(--board-frame);
   box-shadow:
     0 5px 0 #775736,
     0 12px 20px #49331b30,
@@ -680,8 +681,9 @@ main {
 .market-heading-icon { display: block; width: 32px; height: 32px; object-fit: contain; }
 .building-offer { position: relative; min-width: 0; }
 .building-offer .building-card { width: 100%; }
-.building-offer .offer-details { position: absolute; top: 7px; right: 7px; z-index: 2; width: 25px; height: 25px; min-height: 0; padding: 0; border-radius: 50%; font: 700 14px Georgia, serif; line-height: 1; background: #fff9e9; color: #76532b; }
-.building-offer .offer-details:hover { background: #f4dfad; }
+.building-offer .offer-details, .selected-building .offer-details { width: 25px; height: 25px; min-height: 0; padding: 0; border-radius: 50%; font: 700 14px Georgia, serif; line-height: 1; background: #fff9e9; color: #76532b; }
+.building-offer .offer-details { position: absolute; top: 7px; right: 7px; z-index: 2; }
+.building-offer .offer-details:hover, .selected-building .offer-details:hover { background: #f4dfad; }
 .cell.placement-available { outline: 3px solid #237e46; outline-offset: -3px; box-shadow: inset 0 0 0 5px #8ee5ab80; }
 .cell.placement-blocked { cursor: help; }
 .inactive-producer { position: absolute; right: 2px; top: 2px; background: #842b20; color: white; border-radius: 50%; width: 15px; height: 15px; font-size: 12px; line-height: 15px; z-index: 3; }
@@ -701,7 +703,9 @@ main {
 .building-card .cost { font-size: 12px; max-width: none; flex-wrap: nowrap; justify-content: flex-start; align-items: center; white-space: nowrap; gap: 7px; }
 .building-card .cost > span { display: inline-flex; align-items: center; gap: 3px; flex-shrink: 0; }
 .building-pattern-slot { width: 72px; height: 72px; flex: 0 0 72px; display: grid; place-items: center; }
-.selected-building { display: grid; gap: 6px; flex: 1 1 220px; }
+.selected-building { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; min-width: 0; }
+.selected-building > strong { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.selected-building .offer-details { flex: 0 0 auto; }
 .selected-building > span { font-size: 13px; line-height: 1.5; }
 .selected-building button { justify-self: start; min-height: 44px; }
 #building-details-dialog { width: min(520px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: calc(100dvh - 24px); overflow-y: auto; padding: 24px; }
@@ -744,6 +748,13 @@ main {
 .military-piece.jade sup { background: #185f50; }
 .emissary-piece { left: 0; right: auto; width: 40%; }
 .army-controls, .combat-summary { display: grid; gap: 7px; flex: 1 1 220px; font-size: 13px; }
+.army-strength { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; }
+.selected-unit-icon { display: inline-flex; align-items: center; justify-content: center; color: #e9a948; }
+.selected-unit-icon.jade { color: #65a58c; }
+.selected-unit-icon .wood-piece { width: 30px; height: 32px; }
+.army-stat { display: inline-flex; align-items: center; gap: 6px; }
+.army-stat .asset-icon { width: 24px; height: 24px; }
+.army-stat b { font-size: 18px; }
 .army-controls label { display: flex; align-items: center; gap: 10px; }
 .army-controls select { min-height: 36px; min-width: 65px; padding: 4px; }
 .combat-summary { padding: 10px; background: #f6ded2; border-radius: 6px; }

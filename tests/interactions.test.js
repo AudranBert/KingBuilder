@@ -14,6 +14,7 @@ import {
   dragPreview,
   moveUnitTo,
   placementErrorText,
+  placementGuidance,
 } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
 
@@ -95,6 +96,8 @@ test("l’aperçu ouvrier et le dépôt partagent les mêmes contraintes", () =>
     building: { type: "sawmill", owner: 0 },
   };
   const drag = { kind: "worker", id: 0 };
+  assert.equal(placementGuidance(g, drag).get(key(2, 6)).error, null);
+  assert.equal(placementGuidance(g, drag).has(key(3, 6)), false);
   assert.equal(dragPreview(g, drag, { x: 2, y: 6 }).error, null);
   assignWorker(g, 0, 2, 6);
   const before = structuredClone(g);

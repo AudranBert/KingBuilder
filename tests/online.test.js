@@ -46,6 +46,21 @@ test('lobby : réglages réservés à l’hôte et lancement explicite à deux',
   assert.equal(rooms.lobby(host.code, host.token, { revision: 1, start: true }).started, true);
   assert.throws(() => rooms.lobby(host.code, host.token, { revision: 2, settings }), /déjà/);
 });
+
+test('missions : le choix de l’hôte est partagé et appliqué au lancement en ligne', () => {
+  const rooms = new Rooms(), noMissions = { ...settings, missionsEnabled: false };
+  const host = rooms.create(noMissions), guest = rooms.join(host.code);
+  assert.equal(guest.settings.missionsEnabled, false);
+  assert.deepEqual(guest.game.missions.market, []);
+  const updated = rooms.lobby(host.code, host.token, { revision: 0, settings: { ...settings, missionsEnabled: true } });
+  assert.equal(updated.game.missionsEnabled, true);
+  assert.ok(updated.game.missions.market.length > 0);
+  assert.equal(rooms.read(host.code, guest.token).settings.missionsEnabled, true);
+  assert.throws(() => rooms.lobby(host.code, guest.token, { revision: 1, settings: noMissions }), /hôte/);
+  const started = rooms.lobby(host.code, host.token, { revision: 1, settings: noMissions, start: true });
+  assert.equal(started.game.missionsEnabled, false);
+  assert.deepEqual(started.game.missions.market, []);
+});
 test('salon privé : authentification, tours, commandes atomiques et dédoublonnage', () => {
   const rooms = new Rooms(), host = rooms.create(settings), guest = rooms.join(host.code);
   assert.equal(host.player, 0); assert.equal(guest.player, 1);

@@ -59,6 +59,7 @@ export const GAME_DEFAULTS = Object.freeze({
   rounds: 25,
   openingTilesPerPlayer: 2,
   boardSize: 11,
+  missionsEnabled: true,
   resources: Object.freeze({ material: 3, food: 2, gold: 1 }),
 });
 export function gameSettings(settings = {}) {
@@ -68,6 +69,7 @@ export function gameSettings(settings = {}) {
     openingTilesPerPlayer:
       settings.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
     boardSize: settings.boardSize ?? GAME_DEFAULTS.boardSize,
+    missionsEnabled: settings.missionsEnabled === undefined ? GAME_DEFAULTS.missionsEnabled : settings.missionsEnabled,
     resources,
   };
   if (!Number.isInteger(result.rounds) || result.rounds < 20 || result.rounds > 40)
@@ -76,6 +78,7 @@ export function gameSettings(settings = {}) {
     throw Error(sourceMessage("messages.theNumberOfSetupTilesMustBe"));
   if (!Number.isInteger(result.boardSize) || result.boardSize < 7 || result.boardSize > 15)
     throw Error(sourceMessage("messages.theBoardSizeMustBeBetween7"));
+  if (typeof result.missionsEnabled !== 'boolean') throw Error(sourceMessage("settings.missionsInvalid"));
   for (const [id, amount] of Object.entries(resources))
     if (!Object.hasOwn(GAME_DEFAULTS.resources, id) || !Number.isInteger(amount) || amount < 0 || amount > 10)
       throw Error(sourceMessage("messages.startingResourcesMustBeBetween0And"));
@@ -156,6 +159,7 @@ export function migrateGame(g) {
   g.boardSize ??= RULES.size;
   g.turnLimit ??= RULES.rounds;
   g.openingTilesPerPlayer ??= GAME_DEFAULTS.openingTilesPerPlayer;
+  g.missionsEnabled ??= GAME_DEFAULTS.missionsEnabled;
   g.startingResources ??= { ...RULES.startResources };
   if (g.opening) {
     g.opening.perPlayer ??= g.openingTilesPerPlayer;
@@ -267,6 +271,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
           rounds: RULES.rounds,
           openingTilesPerPlayer: GAME_DEFAULTS.openingTilesPerPlayer,
           boardSize: RULES.size,
+          missionsEnabled: GAME_DEFAULTS.missionsEnabled,
           resources: { ...RULES.startResources },
         }
       : gameSettings(settings),
@@ -370,6 +375,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
     boardSize: size,
     turnLimit: options.rounds,
     openingTilesPerPlayer: options.openingTilesPerPlayer,
+    missionsEnabled: options.missionsEnabled,
     startingResources: { ...options.resources },
     players,
     board,
@@ -549,14 +555,19 @@ function hostileSite(g, x, y) {
   return Boolean((cell?.building && cell.building.owner !== g.active) ||
     (cell?.flag && cell.flag.owner !== g.active));
 }
+export function defenseAt(g, owner, x, y) {
+  const defenders = armyAt(g, owner, x, y).length;
+  const building = g.board[key(x, y)]?.building;
+  const garrison = building?.owner === owner ? BUILDINGS[building.type]?.garrison || 0 : 0;
+  const bonus = defenders + garrison > 0 ? 1 : 0;
+  return { defenders, garrison, bonus, defense: defenders + garrison + bonus };
+}
 export function combatPreview(g, x, y) {
   const unit = actor(g), cell = g.board[key(x,y)];
   const owner = g.players.findIndex((_, i) => i !== g.active && pawns(g,i).some(u => u.x === x && u.y === y));
   const defenderOwner = cell?.building && cell.building.owner !== g.active ? cell.building.owner : owner;
-  const defenders = defenderOwner >= 0 ? armyAt(g, defenderOwner, x, y).length : 0;
-  const garrison = cell?.building?.owner !== g.active ? BUILDINGS[cell?.building?.type]?.garrison || 0 : 0;
+  const { defenders, garrison, defense } = defenseAt(g, defenderOwner, x, y);
   const attack = unit.type === "soldier" ? selectedSoldiers(g).length : 0;
-  const defense = defenders + garrison + (defenders + garrison > 0 ? 1 : 0);
   return { attack, defense, defenders, garrison, attackerSurvivors: Math.max(0, attack-defense),
     defenderSurvivors: Math.min(defenders + garrison, Math.max(0, defense-attack)), defenderOwner };
 }

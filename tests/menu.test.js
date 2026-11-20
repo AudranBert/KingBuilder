@@ -4,24 +4,29 @@ import { readFileSync } from "node:fs";
 import { startGame } from "../src/app.js";
 import { RULES } from "../src/engine.js";
 import { LANGUAGE_KEY } from "../src/i18n.js";
+import { createArmyTestGame } from "../src/test-scenarios.js";
 
 // Run the application event handlers with an in-memory DOM.
-function mount(t) {
+function mount(t, initialGame = null) {
   const markup = readFileSync(
     new URL("../public/index.html", import.meta.url),
     "utf8",
   );
   function element() {
     const listeners = new Map();
+    const attributes = new Map();
     return {
       dataset: {},
+      children: [],
       style: { setProperty() {} },
       innerHTML: "",
       hidden: false,
       open: false,
       classList: { add() {}, remove() {}, toggle() {} },
-      append() {},
-      setAttribute() {},
+      append(child) { this.children.push(child); },
+      replaceChildren() { this.children = []; },
+      setAttribute(name, value) { attributes.set(name, value); },
+      getAttribute(name) { return attributes.get(name); },
       focus() {},
       addEventListener(type, fn) {
         listeners.set(type, fn);
@@ -93,7 +98,7 @@ function mount(t) {
         : delete globalThis[name],
     );
   }
-  startGame();
+  startGame({ initialGame });
   return {
     node: (selector) => nodes.get(selector),
     mode: (mode) => modes.find((b) => b.dataset.gameMode === mode),
@@ -104,6 +109,21 @@ function mount(t) {
     selectTile() {
       const card = { dataset: { tile: "0" }, hasAttribute: name => name === "data-tile", closest: selector => selector.startsWith("[data-building],[data-tile]") ? card : null };
       documentListeners.get("click")({ target: card });
+    },
+    selectWorker() {
+      const worker = { dataset: { workerDrag: '0' }, closest: selector => selector === '[data-worker-drag]' ? worker : null };
+      documentListeners.get('click')({ target: worker });
+    },
+    cells() { return nodes.get('#board').children.flatMap(row => row.children); },
+    king() { return this.cells().find(cell => cell.innerHTML.includes('king-piece')); },
+    cell(x, y) { return this.cells().find(cell => +cell.dataset.x === x && +cell.dataset.y === y); },
+    clickCell(x, y, unitSelect) {
+      const cell = this.cell(x, y);
+      nodes.get('#board').dispatch('click', { target: { closest: selector => selector === '[data-unit-select]' ? (unitSelect === undefined ? null : { dataset: { unitSelect } }) : cell } });
+    },
+    setMode(mode) {
+      const button = { dataset: { mode }, closest: selector => selector === '[data-mode]' ? button : null };
+      documentListeners.get('click')({ target: button });
     },
     prepare(count) {
       for (let i = 0; i < count; i++) {
@@ -222,6 +242,10 @@ test("les commandes tactiles pivotent la sélection et permettent de l’annuler
   app.node("#cancel-placement").click();
   assert.equal(app.node("#rotate-placement").disabled, true);
   assert.equal(app.node("#cancel-placement").disabled, true);
+  app.selectWorker();
+  assert.equal(app.node("#cancel-placement").disabled, false);
+  assert.equal(app.node("#rotate-placement").disabled, true);
+  assert.match(app.node("#placement-help").textContent, /affecter l’ouvrier/);
 });
 
 test("langue : français par défaut, bascule immédiate et choix mémorisé", (t) => {
@@ -254,4 +278,96 @@ test("langue : français par défaut, bascule immédiate et choix mémorisé", (
   assert.match(reloaded.node("#language-flag").src, /flag-fr\.svg$/);
   assert.equal(saved.get(LANGUAGE_KEY), "fr");
   assert.match(reloaded.node(".rules-content").innerHTML, /Le but/);
+});
+
+test('jeu : il faut choisir le roi avant de le déplacer ; inspection, annulation et nouveau tour désélectionnent', t => {
+  const app = mount(t);
+  app.mode('solo').click();
+  app.node('#setting-opening').value = 0;
+  app.node('#settings-start').click();
+  const x = +app.king().dataset.x, y = +app.king().dataset.y;
+  assert.doesNotMatch(app.king().className, /active-pawn/);
+  assert.doesNotMatch(app.king().getAttribute('aria-label'), /Unité sélectionnée/);
+  assert.ok(app.cells().every(cell => !cell.className.includes('reachable')));
+  app.clickCell(x + 1, y);
+  assert.equal(+app.king().dataset.x, x);
+  assert.doesNotMatch(app.node('#selection').innerHTML, /data-action="move"/);
+
+  app.setMode('inspect');
+  assert.doesNotMatch(app.king().innerHTML, /data-unit-drag/);
+  app.clickCell(x, y);
+  app.clickCell(x + 1, y);
+  assert.equal(+app.king().dataset.x, x);
+  app.setMode('move');
+  assert.doesNotMatch(app.king().className, /active-pawn/);
+  app.clickCell(x + 1, y);
+  assert.equal(+app.king().dataset.x, x);
+
+  app.clickCell(x, y);
+  assert.match(app.king().className, /active-pawn/);
+  assert.match(app.node('#selection').innerHTML, /selected-unit-icon[^>]*role="img" aria-label="Roi"/);
+  assert.match(app.node('#selection').innerHTML, /selected-unit-moves[^>]*Déplacements restants : 3/);
+  assert.doesNotMatch(app.node('#selection').innerHTML, /data-army-stat|data-army-size/);
+  assert.match(app.cell(x + 1, y).className, /reachable/);
+  app.clickCell(x + 1, y);
+  assert.equal(+app.king().dataset.x, x + 1);
+  assert.match(app.node('#selection').innerHTML, /Déplacements restants : 2/);
+  app.setMode('inspect');
+  app.setMode('move');
+  app.clickCell(x, y);
+  assert.equal(+app.king().dataset.x, x + 1);
+  app.clickCell(x + 1, y);
+  app.node('.game-layout').dispatch('contextmenu', { preventDefault() {} });
+  assert.doesNotMatch(app.king().className, /active-pawn/);
+  app.clickCell(x, y);
+  assert.equal(+app.king().dataset.x, x + 1);
+  app.clickCell(x + 1, y);
+  app.node('#end-turn').click();
+  assert.doesNotMatch(app.king().className, /active-pawn/);
+  app.clickCell(x, y);
+  assert.equal(+app.king().dataset.x, x + 1);
+});
+
+test('une armée sans déplacement est grisée et un clic hors du pion la désélectionne', t => {
+  const game = createArmyTestGame();
+  const player = game.players[0];
+  for (const unit of player.units) unit.moves = 0;
+  const app = mount(t, game);
+  const { x, y } = player.home;
+  assert.match(app.cell(x, y).innerHTML, /military-piece[^\"]*exhausted/);
+  app.clickCell(x, y, String(player.units[0].id));
+  assert.match(app.node('#selection').innerHTML, /^<span class="selected-unit-icon/);
+  assert.match(app.node('#selection').innerHTML, /selected-unit-moves[^>]*Déplacements restants : 0/);
+  assert.match(app.node('#selection').innerHTML, /icon-boots\.svg/);
+  assert.match(app.node('#selection').innerHTML, /selected-unit-icon/);
+  assert.match(app.node('#selection').innerHTML, /data-army-stat="attack"/);
+  app.clickCell(x, y);
+  assert.match(app.node('#selection').innerHTML, /selected-building/);
+  assert.doesNotMatch(app.node('#selection').innerHTML, /data-army-stat/);
+  assert.doesNotMatch(app.cell(x, y).className, /active-pawn/);
+  app.clickCell(x, y, String(player.units[0].id));
+  app.clickCell(x + 1, y);
+  assert.doesNotMatch(app.node('#selection').innerHTML, /data-army-stat/);
+  app.clickCell(x, y, String(player.units[0].id));
+  app.clickCell(x, y, '');
+  assert.match(app.cell(x + 1, y).className, /reachable/);
+});
+
+test('le réglage des missions retire réellement les objectifs et adapte les règles', t => {
+  const app = mount(t);
+  app.mode('solo').click();
+  assert.equal(app.node('#setting-missions').checked, true);
+  app.node('#setting-missions').checked = false;
+  app.node('#settings-start').click();
+  assert.equal(app.node('#missions').hidden, true);
+  assert.equal(app.node('#missions').innerHTML, '');
+  app.node('#rules-button').click();
+  assert.match(app.node('.rules-content').innerHTML, /missions sont désactivées/);
+  app.node('#rules-dialog .close').click();
+  app.node('#menu-button').click();
+  app.mode('solo').click();
+  app.node('#setting-missions').checked = true;
+  app.node('#settings-start').click();
+  assert.equal(app.node('#missions').hidden, false);
+  assert.match(app.node('#missions').innerHTML, /mission-card/);
 });

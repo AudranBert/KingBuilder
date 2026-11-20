@@ -91,7 +91,7 @@ body:has(#main-menu:not([hidden])) {
 @media (prefers-reduced-motion: reduce) {
   .mode-card { transition: none; }
 }
-#rules-dialog > .close, #catalogue-dialog > .close {
+dialog > .dialog-close {
   position: sticky;
   top: 0;
   float: right;
@@ -100,6 +100,9 @@ body:has(#main-menu:not([hidden])) {
   place-items: center;
   width: 44px;
   height: 44px;
+  min-height: 44px;
+  min-width: 44px;
+  margin: 0 0 8px 12px;
   padding: 0;
   border: 2px solid #668752;
   border-radius: 12px;
@@ -109,8 +112,41 @@ body:has(#main-menu:not([hidden])) {
   line-height: 1;
   box-shadow: 0 3px 0 #668752;
 }
-#rules-dialog > .close:hover, #catalogue-dialog > .close:hover { background: #f4e8bb; }
-#rules-dialog > .close:focus-visible, #catalogue-dialog > .close:focus-visible { outline: 3px solid #b3944e; outline-offset: 3px; }
+dialog > .dialog-close:hover { background: #f4e8bb; }
+dialog > .dialog-close:focus-visible { outline: 3px solid #b3944e; outline-offset: 3px; }
+dialog > .close-building-details { width: 44px; }
+dialog { overflow-y: auto; max-height: calc(100dvh - 24px); }
+dialog h2 { overflow-wrap: anywhere; }
+dialog > .eyebrow {
+  display: block;
+  max-width: calc(100% - 56px);
+  min-height: 44px;
+  padding-top: 8px;
+  overflow-wrap: anywhere;
+}
+dialog button { min-height: 44px; }
+dialog p { font-size: 14px; }
+dialog input:not([type="range"]), dialog select {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #c8b48c;
+  border-radius: 8px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+  text-transform: none;
+}
+dialog input::placeholder { color: #807861; opacity: 1; }
+dialog input:focus-visible, dialog select:focus-visible {
+  outline: 3px solid #b3944e;
+  outline-offset: 2px;
+}
+#nickname { max-width: none; }
+#online-code { text-transform: uppercase; }
+.dialog-actions { flex-wrap: wrap; }
+.dialog-actions button { min-height: 44px; }
 .rules-content p { line-height: 1.65; }
 .topbar nav #game-catalogue-button, .topbar nav #rules-button {
   display: inline-flex;

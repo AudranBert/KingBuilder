@@ -129,8 +129,9 @@
           <div id="selection" class="selection" aria-live="polite"></div>
           <div id="placement-help" class="placement-help" role="status"></div>
           <div class="mobile-placement-controls" aria-label="" data-i18n-aria-label="static.cardPlacement">
+            <span id="placement-rotation-label" aria-live="polite">0°</span>
             <button id="rotate-placement" disabled data-i18n="static.rotate"></button>
-            <button id="cancel-placement" disabled data-i18n="static.clearSelection"></button>
+            <button id="cancel-placement" disabled data-i18n-aria-label="static.clearSelection">×</button>
           </div>
           <div id="trade-info" class="trade-info"></div>
           <div id="harvest" class="harvest-panel" aria-live="polite"></div>
@@ -158,19 +159,25 @@
     </main>
     <div id="toast" role="status" aria-live="polite"></div>
     <dialog id="online-dialog" class="online-dialog" aria-labelledby="online-title">
+      <button id="online-close" class="close dialog-close" type="button" data-i18n-aria-label="static.close">×</button>
       <h2 id="online-title" data-i18n="static.playOnline"></h2>
       <p id="online-health" class="online-health" role="status" aria-live="polite"></p>
       <div id="nickname-row"><input id="nickname" maxlength="24" autocomplete="nickname" placeholder="" data-i18n-placeholder="static.yourNickname" aria-label="" data-i18n-aria-label="static.yourNickname" /></div>
       <button id="online-create" class="primary" type="button" data-i18n="static.createGame"></button>
       <div class="online-join"><label for="online-code" data-i18n="static.joinWithACode"></label><input id="online-code" maxlength="10" autocomplete="off" placeholder="" data-i18n-placeholder="static.10CharacterCode" /><button id="online-join" class="primary" type="button" data-i18n="static.join"></button></div>
-      <div class="dialog-actions"><button id="online-resume" class="secondary" type="button" data-i18n="static.resumeMyGame"></button><button id="online-close" class="secondary" type="button" data-i18n="static.close"></button></div>
+      <div class="dialog-actions"><button id="online-resume" class="secondary" type="button" disabled data-i18n="static.resumeMyGame" data-i18n-title="online.resumeExplanation"></button></div>
     </dialog>
     <dialog id="game-settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
+      <button id="settings-cancel" class="close dialog-close" type="button" data-i18n-aria-label="static.close">×</button>
       <span class="eyebrow" id="settings-mode" data-i18n="static.newGame"></span>
       <h2 id="settings-title" data-i18n="app.setUpYourKingdom"></h2>
       <div id="lobby-info" hidden><p id="lobby-players" role="status"></p><p><span data-i18n="static.code"></span><strong id="lobby-code"></strong></p><button id="lobby-copy-link" type="button" data-i18n="static.copyLink"></button> <button id="lobby-copy-code" type="button" data-i18n="static.copyCode"></button></div>
       <label id="setting-clock-row" class="setting-row" hidden for="setting-clock"><span><strong data-i18n="static.timeLimitPerTurn"></strong><small data-i18n="static.terrainSetupHasNoTimeLimit"></small></span><select id="setting-clock"><option value="0" data-i18n="clock.unlimited"></option><option value="30" data-i18n="clock.seconds30"></option><option value="60" data-i18n="clock.seconds60"></option><option value="90" data-i18n="clock.seconds90"></option><option value="120" data-i18n="clock.seconds120"></option><option value="150" data-i18n="clock.seconds150"></option><option value="180" data-i18n="clock.seconds180"></option></select></label>
       <div class="settings-list">
+        <label class="setting-row mission-setting" for="setting-missions">
+          <span><strong data-i18n="settings.missions"></strong></span>
+          <input id="setting-missions" type="checkbox" role="switch" checked />
+        </label>
         <label class="setting-row" for="setting-rounds">
           <span><strong data-i18n="static.numberOfTurns"></strong><small data-i18n="static.20To40TurnsPerPlayer"></small></span>
           <output id="setting-rounds-value" for="setting-rounds">25</output>
@@ -197,13 +204,12 @@
         </div>
       </fieldset>
       <div class="dialog-actions settings-actions">
-        <button id="settings-cancel" class="secondary" type="button" data-i18n="static.cancel"></button>
         <button id="settings-start" class="primary" type="button" data-i18n="app.startGame"></button>
         <button id="lobby-start" class="primary" type="button" hidden data-i18n="app.startGame"></button>
       </div>
     </dialog>
     <dialog id="catalogue-dialog" aria-labelledby="catalogue-title">
-      <button class="close" aria-label="" data-i18n-aria-label="static.closeCatalogue">×</button>
+      <button class="close dialog-close" aria-label="" data-i18n-aria-label="static.closeCatalogue">×</button>
       <span class="eyebrow" data-i18n="static.theKINGDOMSCONTENTS"></span>
       <h2 id="catalogue-title" data-i18n="static.catalogue"></h2>
       <nav class="catalogue-tabs" aria-label="" data-i18n-aria-label="static.catalogueContents">
@@ -213,21 +219,22 @@
       <div id="catalogue-content"></div>
     </dialog>
     <dialog id="building-details-dialog" aria-labelledby="building-details-title">
+      <button class="close dialog-close close-building-details" type="button" autofocus data-i18n-aria-label="static.closeDetails">×</button>
       <div id="building-details-content"></div>
-      <button class="primary close-building-details" autofocus data-i18n="static.closeDetails"></button>
     </dialog>
     <dialog id="rules-dialog" aria-labelledby="rules-title">
-      <button class="close" aria-label="" data-i18n-aria-label="static.close">×</button
+      <button class="close dialog-close" aria-label="" data-i18n-aria-label="static.close">×</button
       ><span class="eyebrow" data-i18n="static.theKINGDOMSRULEBOOK"></span>
       <h2 id="rules-title" data-i18n="static.duelRules"></h2>
       <div class="rules-content"></div>
     </dialog>
     <dialog id="result-dialog" aria-labelledby="winner">
+      <button class="close dialog-close close-results" type="button" data-i18n-aria-label="static.close">×</button>
       <h2 id="winner"></h2>
       <div id="results"></div>
-      <button class="primary close-results" data-i18n="static.viewBoard"></button>
     </dialog>
     <dialog id="prestige-dialog" aria-labelledby="prestige-title">
+      <button class="close dialog-close" type="button" data-close-dialog="prestige-dialog" data-i18n-aria-label="static.close">×</button>
       <h2 id="prestige-title" data-i18n="static.buyMissingResources"></h2>
       <p id="prestige-warning"></p>
       <div class="dialog-actions">
