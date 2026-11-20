@@ -13,6 +13,28 @@
   justify-items: center;
   gap: 16px;
 }
+.language-picker {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+.language-toggle {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 44px;
+  padding: 8px;
+  border: 1px solid #c9b48d;
+  border-radius: 8px;
+  background: #fcf7e9;
+  cursor: pointer;
+}
+.language-toggle img {
+  display: block;
+  width: 30px;
+  height: 20px;
+  border-radius: 2px;
+}
 .menu-crest {
   display: grid;
   place-items: center;
@@ -265,6 +287,37 @@ body:has(#main-menu[hidden]) .players:has(> :only-child) {
 .settings-actions {
   justify-content: flex-end;
 }
+#setting-missions {
+  grid-column: 2;
+  grid-row: 1;
+  appearance: none;
+  position: relative;
+  width: 50px;
+  min-width: 50px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  border: 1px solid #9e8b67;
+  border-radius: 16px;
+  background: #cbbb99;
+  cursor: pointer;
+}
+#setting-missions::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fffaf0;
+  box-shadow: 0 1px 3px #203d3533;
+  transition: transform .15s;
+}
+#setting-missions:checked { background: #668752; border-color: #4b6c3c; }
+#setting-missions:checked::before { transform: translateX(22px); }
+.mission-setting { cursor: pointer; }
+.mission-setting:has(input:disabled) { opacity: .6; cursor: default; }
 @media (max-width: 620px) {
   .main-menu {
     padding: 28px 18px;

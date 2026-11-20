@@ -1,32 +1,39 @@
+import { t, translateMessage, restoreLanguage, translateDocument } from "./i18n.js";
+restoreLanguage();
+translateDocument();
 const main = document.querySelector("main");
 const menu = document.querySelector("#main-menu");
 const loader = document.createElement("div");
 loader.className = "loading-status";
 loader.setAttribute("role", "status");
-loader.textContent = "Préparation du jeu…";
+loader.textContent = t("bootstrap.loadingGame");
 document.body.prepend(loader);
 document.querySelector("header").inert = true;
 main.inert = true;
 menu.inert = true;
 try {
   const { startGame } = await import("./app.js");
-  startGame();
+  const url = new URL(location.href);
+  if (['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) && url.searchParams.get('test') === 'army-2') {
+    const { createArmyTestGame } = await import('./test-scenarios.js');
+    startGame({ initialGame: createArmyTestGame() });
+  } else startGame();
 } catch (error) {
   menu.hidden = true;
   main.hidden = false;
   main.replaceChildren();
   const title = document.createElement("h1");
-  title.textContent = "Impossible de démarrer le jeu";
+  title.textContent = t("bootstrap.unableToStartTheGame");
   const message = document.createElement("p");
   message.setAttribute("role", "alert");
   message.className = "startup-error";
-  message.textContent = error.message;
+  message.textContent = translateMessage(error.message);
   const help = document.createElement("p");
   help.textContent =
-    "Vérifiez les fichiers de configuration puis rechargez la page. Le guide se trouve dans config/README.md.";
+    t("bootstrap.checkTheConfigurationFilesThenReloadThe");
   const retry = document.createElement("button");
   retry.className = "primary";
-  retry.textContent = "Recharger";
+  retry.textContent = t("bootstrap.reload");
   retry.addEventListener("click", () => location.reload());
   main.append(title, message, help, retry);
 } finally {

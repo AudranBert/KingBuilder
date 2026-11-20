@@ -1,3 +1,4 @@
+import { t, definitionText, translateMessage, kingdomName, getLanguage, setLanguage, restoreLanguage, translateDocument } from "./i18n.js";
 import { parseKey } from "./geometry.js";
 import { OnlineClient } from './online.js';
 import { monitorServerHealth } from './server-health.js';
@@ -32,8 +33,8 @@ import {
   totalScore,
   key,
 } from "./engine.js";
-import { createUIState } from "./ui/state.js";
-import { dragFromCard, dragPreview, moveUnitTo as localMoveUnitTo, placementGuidance } from "./ui/interactions.js";
+import { createUIState, hasSelectedUnit } from "./ui/state.js";
+import { dragFromCard, dragPreview, moveUnitTo as localMoveUnitTo, placementGuidance, placementErrorText } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
@@ -57,14 +58,17 @@ import {
   rulesView,
   catalogueView,
   harvestView,
+  harvestGains,
   tradeView,
 } from "./ui/views.js";
 
-export function startGame() {
+export function startGame({ initialGame = null } = {}) {
+  restoreLanguage();
+  translateDocument();
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
-  let game = createGame(),
+  let game = initialGame ?? createGame(),
     toastTimer;
   let undoState = null;
   let pendingBuild = null;
@@ -79,50 +83,55 @@ export function startGame() {
     if (announcedTurn === turn) return;
     announcedTurn = turn;
     if (online.session && game.active !== online.session.player) return;
-    toast(online.session ? 'À vous de jouer' : `Au tour du royaume ${game.active === 0 ? 'd’Ambre' : 'de Jade'}`);
+    toast(online.session ? t("app.yourTurn") : t("app.turnForTheKingdom", [game.active === 0 ? t("app.ofAmber") : t("app.ofJade")]));
   }
   let queuedCommand = null;
   const online = new OnlineClient(result => {
     const changed = result.code !== game.onlineCode || result.revision !== game.onlineRevision;
     if (changed) {
       const selected = game.selectedUnitId, army = game.armySelection;
+      const selection = ui.unitSelection;
+      const sameTurn = game.active === result.game.active && game.round === result.game.round && game.onlineCode === result.code;
       game = result.game;
-      if (game.active === result.player && selected !== null && game.players[game.active].units.some(u => u.id === selected)) {
+      if (sameTurn && game.active === result.player && selected !== null && game.players[game.active].units.some(u => u.id === selected)) {
         game.selectedUnitId = selected; game.armySelection = army;
       }
       game.onlineRevision = result.revision;
       game.onlineCode = result.code;
       undoState = null; pendingBuild = null;
       Object.assign(ui, createUIState());
+      if (sameTurn && selection) ui.unitSelection = selection;
     }
     render();
     if (changed && game.finished && !inMenu) showResults();
     if (!result.started) showLobby(result, changed);
     else if (inMenu) { $('#game-settings-dialog').close(); enterGame(); }
-  }, error => { $('#online-status').textContent = `Connexion interrompue : ${error.message} Nouvelle tentative…`; });
+  }, error => { $('#online-status').textContent = t("app.connectionInterruptedRetrying", [translateMessage(error.message)]); });
   function showLobby(session, syncSettings = true) {
     inMenu = true;
     $('#lobby-info').hidden = false;
-    $('#settings-title').textContent = session.joined ? 'Partie prête' : 'En attente du deuxième joueur';
+    $('#settings-title').textContent = session.joined ? t("app.gameReady") : t("app.waitingForTheSecondPlayer");
     $('#setting-clock-row').hidden = false;
     $('#setting-clock').disabled = session.player !== 0;
+    $('#setting-missions').disabled = session.player !== 0;
     if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-clock').value = session.settings.turnSeconds ?? 0;
-    $('#settings-mode').textContent = session.player === 0 ? 'Vous êtes l’hôte' : 'Invité';
+    if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-missions').checked = session.settings.missionsEnabled ?? GAME_DEFAULTS.missionsEnabled;
+    $('#settings-mode').textContent = session.player === 0 ? t("app.youAreTheHost") : t("app.guest");
     $('#lobby-code').textContent = session.code;
-    $('#lobby-players').textContent = `${session.game.players[0].name} (Ambre) · ${session.joined ? session.game.players[1].name + ' (Jade)' : 'En attente du deuxième joueur…'}`;
+    $('#lobby-players').textContent = t("app.amber", [kingdomName(session.game.players[0].name), session.joined ? kingdomName(session.game.players[1].name) + ' (Jade)' : t("app.waitingForTheSecondPlayer2")]);
     $('#settings-start').hidden = true;
     $('#lobby-start').hidden = session.player !== 0;
     $('#lobby-start').disabled = !session.joined || online.busy;
     for (const [name, [selector]] of Object.entries(settingInputs)) {
       $(selector).disabled = session.player !== 0;
-      if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $(selector).value = session.settings.resources[name] ?? session.settings[name];
+      if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $(selector).value = session.settings.resources[name] ?? session.settings[name] ?? GAME_DEFAULTS[name];
     }
     updateSettingLabels();
     if (!$('#game-settings-dialog').open) $('#game-settings-dialog').showModal();
   }
   const mutation = (type, fn) => (state, ...args) => {
     if (online.session) {
-      if (online.busy || !online.session.joined || state.active !== online.session.player) throw Error('Attendez votre tour.');
+      if (online.busy || !online.session.joined || state.active !== online.session.player) throw Error(t("app.waitForYourTurn"));
       queuedCommand = { type, args, unit: state.selectedUnitId, army: state.armySelection?.length ?? null };
       return;
     }
@@ -150,7 +159,7 @@ export function startGame() {
     const preview = new URL(globalThis.location.href).searchParams.get('previewHistory') === '1';
     if (preview) {
       $('#game-history').hidden = false;
-      html('#history-list', '<div class="history-row"><span>Alice <strong>24</strong></span><span class="history-versus">contre</span><span>Bob <strong>18</strong></span><span class="history-winner">♛ Alice</span></div><p class="history-preview-note">Aperçu · partie fictive</p>');
+      html('#history-list', `<div class="history-row"><span>${t("refreshHistory.alice")}<strong>24</strong></span><span class="history-versus">${t("refreshHistory.versus")}</span><span>${t("refreshHistory.bob")}<strong>18</strong></span><span class="history-winner">${t("refreshHistory.alice2")}</span></div><p class="history-preview-note">${t("refreshHistory.previewFictionalGame")}</p>`);
       return;
     }
     try {
@@ -159,8 +168,8 @@ export function startGame() {
       const result = await client.request('/history');
       $('#game-history').hidden = !result.enabled;
       html('#history-list', result.games.length ? result.games.map(item =>
-        `<div class="history-row"><span>${e(item.names[0])} <strong>${e(item.scores[0])}</strong></span><span class="history-versus">contre</span><span>${e(item.names[1])} <strong>${e(item.scores[1])}</strong></span><span class="history-winner">${item.winner === null ? 'Égalité' : `♛ ${e(item.names[item.winner])}`}</span></div>`
-      ).join('') : '<p>Aucune partie terminée pour le moment.</p>');
+        `<div class="history-row"><span>${e(item.names[0])} <strong>${e(item.scores[0])}</strong></span><span class="history-versus">${t("refreshHistory.versus")}</span><span>${e(item.names[1])} <strong>${e(item.scores[1])}</strong></span><span class="history-winner">${item.winner === null ? t("app.draw") : `♛ ${e(item.names[item.winner])}`}</span></div>`
+      ).join('') : `<p>${t("refreshHistory.noCompletedGamesYet")}</p>`);
     } catch { $('#game-history').hidden = true; }
   }
   function enterGame() {
@@ -173,26 +182,49 @@ export function startGame() {
     if (game.finished) showResults();
   }
   const board = createBoard($("#board"), $("#map-scroll"), handleCell, previewPlacement);
-  function placementHelp(message) {
+  function placementHelp(result) {
     const choice = ui.drag || ui.placement;
-    if (!choice || !["terrain", "building", "single-terrain"].includes(choice.kind)) {
+    const mobile = window.matchMedia("(pointer: coarse), (max-width: 850px)").matches;
+    $(".game-layout").classList.toggle("has-placement", Boolean(choice));
+    $('#placement-rotation-label').textContent = `${(choice?.kind === 'building' ? ui.buildingRotation : ui.rotation) * 90}°`;
+    $("#rotate-placement").disabled = game.finished || !["terrain", "building"].includes(choice?.kind);
+    $("#cancel-placement").disabled = !choice;
+    if (!choice) {
       $("#placement-help").textContent = game.opening
-        ? "Choisissez une tuile, puis posez-la sur des cases vides. R : pivoter."
-        : "";
+        ? t("app.chooseATerrainTile")
+        : !hasSelectedUnit(game, ui) ? t("placement.selectUnitFirst")
+        : mobile ? t("placement.touchGuide") : t("placement.chooseDestination");
       return;
     }
-    if (message) {
-      $("#placement-help").textContent = message;
+    if (result?.error) {
+      $("#placement-help").textContent = translateMessage(placementErrorText(result.error));
       return;
     }
-    const count = [...placementGuidance(game, choice).values()].filter(result => !result.error).length;
-    $("#placement-help").textContent = `${count} placement(s) possible(s) dans cette orientation. ${count ? "Choisissez une case verte ou glissez la carte." : "Essayez une rotation, une autre unité ou une autre carte."} R ou molette : pivoter · Échap : annuler.`;
+    if (result && ui.drag) {
+      $("#placement-help").textContent = t("app.releaseToPlace");
+      return;
+    }
+    if (["terrain", "building", "single-terrain"].includes(choice.kind)) {
+      const options = [...placementGuidance(game, choice).values()];
+      if (!options.some(option => !option.error)) {
+        const reasons = new Set(options.map(option => option.error));
+        $("#placement-help").textContent = reasons.size === 1
+          ? translateMessage(placementErrorText(options[0].error))
+          : t("app.cannotPlaceHereRotateOrChooseAnother");
+        return;
+      }
+    }
+    const action = mobile ? t("app.tap") : t("app.click");
+    const instruction = choice.kind === "worker" ? t("app.oneOfYourProductionBuildingsToAssign")
+      : choice.kind === "unit" ? t("app.aReachableSpaceToMoveTheUnit")
+      : t("app.aGreenSpaceToPlace", [choice.kind === "building" ? t("app.theBuilding") : choice.kind === "single-terrain" ? t("app.theTerrain") : t("app.theTerrainTile")]);
+    $("#placement-help").textContent = `${action} ${instruction}`;
   }
   function previewPlacement(pos) {
     if (ui.drag) return;
     const result = dragPreview(game, ui.placement, pos);
     board.preview(result);
-    placementHelp(result?.error || (result ? "Placement possible · Cliquez pour placer." : null));
+    placementHelp(result);
   }
   function html(selector, value) {
     const node = $(selector);
@@ -202,7 +234,7 @@ export function startGame() {
     }
   }
   function toast(message) {
-    $("#toast").textContent = message;
+    $("#toast").textContent = translateMessage(message);
     $("#toast").classList.add("visible");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(
@@ -233,7 +265,7 @@ export function startGame() {
           won
             .map(
               (c) =>
-                `${MISSIONS[c.id].name} : +${MISSIONS[c.id].reward.gold} or`,
+                t("app.gold", [definitionText("missions", MISSIONS[c.id]), MISSIONS[c.id].reward.gold]),
             )
             .join(" · "),
         );
@@ -249,37 +281,39 @@ export function startGame() {
     }
   }
   function render() {
+    if (ui.unitSelection && !hasSelectedUnit(game, ui)) ui.unitSelection = null;
     announceTurn();
     const session = online.session;
     $('#online-status').hidden = !session;
     if (session) {
       const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
-      $('#online-status').textContent = `Partie ${session.code} · Vous : ${game.players[session.player].name} · ${!session.joined ? 'En attente d’un adversaire' : online.busy ? 'Envoi du coup…' : game.active === session.player ? 'À vous de jouer' : 'Tour de votre adversaire'} · Invitation : ${invite.href}`;
-      if (session.deadline && !game.finished) $('#online-status').textContent += ` · Temps restant : ${Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))} s`;
-      $('#menu-button').textContent = game.finished ? 'Revenir au menu principal' : 'Abandonner et revenir au menu';
+      $('#online-status').textContent = t("app.gameYouInvitation", [session.code, kingdomName(game.players[session.player].name), !session.joined ? t("app.waitingForAnOpponent") : online.busy ? t("app.sendingMove") : game.active === session.player ? t("app.yourTurn") : t("app.opponentSTurn"), invite.href]);
+      if (session.deadline && !game.finished) $('#online-status').textContent += t("app.timeLeftS", [Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))]);
+      $('#menu-button').textContent = game.finished ? t("app.mainMenu") : t("app.leaveGame");
     } else {
-      $('#menu-button').textContent = 'Revenir au menu principal';
+      $('#menu-button').textContent = t("app.mainMenu");
     }
     const opening = game.opening;
     $(".game-layout").classList.toggle("opening", Boolean(opening));
     $("#opening-status").hidden = !opening;
     $("#opening-status").textContent = opening
-      ? `Préparation ${opening.step + 1}/${opening.totalPlacements} · ${game.players[game.active].name} · ${opening.tiles.length} tuiles au choix`
+      ? t("app.setupTilesToChooseFrom", [opening.step + 1, opening.totalPlacements, kingdomName(game.players[game.active].name), opening.tiles.length])
       : "";
     html("#players", playersView(game));
     html("#missions", missionsView(game));
+    $('#missions').hidden = game.missionsEnabled === false;
     $("#missions").style.setProperty("--mission-columns", RULES.missionMarketSize);
     $("#tile-market").style.setProperty("--terrain-columns", opening ? 3 : RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
         error = session ? session.rerollErrors[kind] : rerollError(game, kind);
       button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
-      button.disabled = Boolean(error);
+      button.disabled = Boolean(error) || ui.mode === 'inspect';
       button.title =
-        error || `Remplacer les offres pour ${GOLD.rerollCost} or`;
+        translateMessage(error) || t("app.replaceOffersForGold", [GOLD.rerollCost]);
     }
-    html("#barracks-list", barracksView(game));
-    html("#worker-list", workersView(game));
+    html("#barracks-list", barracksView(game, ui));
+    html("#worker-list", workersView(game, ui));
     html("#tile-market", terrainMarketView(game, ui));
     html("#single-terrain", singleTerrainView(game, ui));
     html("#building-market", buildingMarketView(game, ui));
@@ -289,10 +323,10 @@ export function startGame() {
     html("#trade-info", tradeView(game));
     $("#end-turn").disabled = Boolean(opening);
     $("#end-turn").innerHTML = opening
-      ? "Posez une tuile terrain"
+      ? t("app.placeATerrainTile")
       : game.finished
-      ? "Voir les résultats →"
-      : `<strong>Fin de tour →</strong><small>${harvestView(game).match(/Fin du tour : ([^<]+)/)?.[1] || "aucune récolte"}</small>`;
+      ? t("app.viewResults")
+      : `<strong>${t("render.endTurn")}</strong><small>${harvestGains(game)}</small>`;
     $("#round").innerHTML = opening
       ? `0 <small>/ ${game.turnLimit}</small>`
       : `${String(game.round).padStart(2, "0")} <small>/ ${game.turnLimit}</small>`;
@@ -318,12 +352,13 @@ export function startGame() {
     unitCellClick = null;
     act(() => {
       selectUnit(game, id);
+      ui.unitSelection = { id, owner: game.active, round: game.round };
       ui.selected = null;
       ui.drag = null;
       ui.placement = null;
     }, { undoable: false });
   }
-  function handleCell(x, y) {
+  function handleCell(x, y, clickedUnitId) {
     const previousUnitClick = unitCellClick;
     unitCellClick = null;
     if (ui.drag) return;
@@ -331,7 +366,8 @@ export function startGame() {
       const d = ui.placement;
       if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
       else act(() => {
-        if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
+        if (d.kind === "worker") assignWorker(game, d.id, x, y);
+        else if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
         else if (game.opening) placeOpeningTile(game, d.index, x, y, d.rotation);
         else explore(game, d.index, x, y, d.rotation);
         ui.placement = null;
@@ -339,7 +375,22 @@ export function startGame() {
       return;
     }
     const own = pawns(game, game.active).filter((p) => p.x === x && p.y === y);
-    if (ui.mode !== "inspect" && own.length && buildingAt(game, x, y) &&
+    if (clickedUnitId !== undefined && !game.finished && !game.opening && ui.mode !== 'inspect') {
+      chooseUnit(clickedUnitId === '' ? null : Number(clickedUnitId));
+      return;
+    }
+    if (hasSelectedUnit(game, ui)) {
+      const unit = actor(game);
+      if (unit.acted || unit.ended || unit.moves < 1) {
+        ui.unitSelection = null;
+        if (unit.x === x && unit.y === y) {
+          ui.selected = { x, y };
+          render();
+          return;
+        }
+      }
+    }
+    if (hasSelectedUnit(game, ui) && own.length && buildingAt(game, x, y) &&
         previousUnitClick?.game === game && previousUnitClick.owner === game.active &&
         previousUnitClick.x === x && previousUnitClick.y === y &&
         previousUnitClick.id === game.selectedUnitId &&
@@ -348,17 +399,17 @@ export function startGame() {
       render();
       return;
     }
-    if (own.length && !game.finished && ui.mode !== "inspect" && !(actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
-      chooseUnit((own.find((p) => p.id !== game.selectedUnitId) || own[0]).id);
+    if (own.length && !game.finished && !game.opening && ui.mode !== "inspect" && !(hasSelectedUnit(game, ui) && actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
+      chooseUnit((hasSelectedUnit(game, ui) ? own.find((p) => p.id !== game.selectedUnitId) || own[0] : own[0]).id);
       unitCellClick = { game, owner: game.active, x, y, id: game.selectedUnitId };
       return;
     }
     ui.selected = { x, y };
-    if (ui.mode === "move" && attackPaths(game).has(key(x,y))) {
+    if (hasSelectedUnit(game, ui) && attackPaths(game).has(key(x,y))) {
       render();
       return;
     }
-    if (ui.mode === "move" && movementPaths(game).has(key(x, y)))
+    if (hasSelectedUnit(game, ui) && movementPaths(game).has(key(x, y)))
       act(() => moveUnitTo(game, x, y));
     else render();
   }
@@ -390,9 +441,9 @@ export function startGame() {
     pendingBuild = attempt;
     const missing = costText(payment.missing);
     $("#prestige-warning").textContent =
-      `Il manque ${missing}. Acheter ces ressources à la banque pour ${payment.gold} or ? Les ressources disponibles seront aussi dépensées.`;
+      t("app.missingBuyTheseResourcesFromTheBank", [missing, payment.gold]);
     $("#prestige-dialog .confirm").textContent =
-      `Payer ${payment.gold} or`;
+      t("app.payGold", [payment.gold]);
     $("#prestige-dialog").showModal();
   }
   function completeBuild(attempt) {
@@ -407,7 +458,7 @@ export function startGame() {
           JSON.stringify(attempt.payment) !==
             JSON.stringify(buildingPayment(game, attempt.index))
         )
-          throw Error("Le placement ou son coût a changé. Réessayez.");
+          throw Error(t("app.thePlacementOrItsCostHasChanged"));
         build(game, attempt.index, attempt.x, attempt.y, attempt.rotation, {
           allowGold: attempt.payment.gold > 0,
           expectedGold: attempt.payment.gold,
@@ -415,7 +466,7 @@ export function startGame() {
         ui.placement = null;
         ui.selected = { x: attempt.x, y: attempt.y };
       },
-      { message: "Construction terminée." },
+      { message: t("app.constructionComplete") },
     );
   }
   $("#prestige-dialog .confirm").addEventListener("click", () => {
@@ -438,7 +489,7 @@ export function startGame() {
           ui.selected = null;
           ui.placement = null;
         },
-        { message: "Marché renouvelé." },
+        { message: t("app.marketRefreshed") },
       ),
     );
   function rotate(kind = ui.drag?.kind || ui.placement?.kind || "terrain", step = 1) {
@@ -452,7 +503,7 @@ export function startGame() {
   }
   $(".game-layout").addEventListener("wheel", (event) => {
     const hovered = event.target.closest?.("[data-tile],[data-building]");
-    const kind = ui.drag?.kind || ui.placement?.kind ||
+    const kind = ui.drag?.kind ||
       (hovered?.hasAttribute("data-building") ? "building" :
         hovered?.hasAttribute("data-tile") ? "terrain" : null);
     if (game.finished || !["terrain", "building"].includes(kind)) return;
@@ -464,23 +515,28 @@ export function startGame() {
       b = game.players.length > 1 ? totalScore(game, 1) : 0;
     $("#winner").textContent =
       game.victory === 'resignation'
-        ? `${game.players[game.winner].name} gagne par abandon !`
+        ? t("app.winsByResignation", [kingdomName(game.players[game.winner].name)])
         : game.victory === "conquest"
-        ? `${game.players[game.winner].name} conquiert le donjon et remporte la partie !`
+        ? t("app.conquersTheKeepAndWinsTheGame", [kingdomName(game.players[game.winner].name)])
         : game.mode === "solo"
-        ? `Votre royaume : ${a} points`
+        ? t("app.yourKingdomPoints", [a])
         : a === b
-          ? "Deux couronnes, une victoire partagée."
-          : `${game.players[a > b ? 0 : 1].name} l’emporte !`;
+          ? t("app.twoCrownsASharedVictory")
+          : t("app.wins", [kingdomName(game.players[a > b ? 0 : 1].name)]);
     html("#results", `<div class="result-grid">${resultsView(game)}</div>`);
     if (!$("#result-dialog").open) $("#result-dialog").showModal();
   }
 
   document.addEventListener("click", (event) => {
+    if (event.target.closest('[data-close-dialog]')) {
+      $(`#${event.target.closest('[data-close-dialog]').dataset.closeDialog}`).close();
+      return;
+    }
     if (!event.target.closest("#board")) unitCellClick = null;
     const card = event.target.closest("[data-building],[data-tile],[data-single-terrain]");
     const detail = event.target.closest("[data-building-details]");
     if (card && !game.finished && !(game.opening && card.hasAttribute("data-building"))) {
+      if (ui.mode === 'inspect') return;
       ui.placement = dragFromCard(card, ui);
       ui.selected = null;
       render();
@@ -493,28 +549,42 @@ export function startGame() {
       $("#building-details-dialog").showModal();
       return;
     }
-    const unit = event.target.closest("[data-unit]");
-    if (unit) {
-      chooseUnit(unit.dataset.unit === "" ? null : Number(unit.dataset.unit));
+    const worker = event.target.closest('[data-worker-drag]');
+    if (worker && !game.finished && ui.mode !== 'inspect') {
+      ui.placement = { kind: 'worker', id: Number(worker.dataset.workerDrag) };
+      ui.selected = null;
+      render();
+      return;
+    }
+    if (ui.placement?.kind === 'worker' && event.target.closest('[data-worker-reserve]')) {
+      act(() => {
+        assignWorker(game, ui.placement.id, null, null);
+        ui.placement = null;
+      });
       return;
     }
     const mode = event.target.closest("[data-mode]");
     if (mode) {
       ui.mode = mode.dataset.mode;
+      ui.unitSelection = null;
+      game.selectedUnitId = null;
+      game.armySelection = null;
       ui.placement = null;
       render();
       return;
     }
     const button = event.target.closest("[data-action]");
-    if (!button || button.disabled) return;
+    if (!button || button.disabled || ui.mode === 'inspect') return;
     const position = button.dataset.position
       ? parseKey(button.dataset.position)
       : null;
     switch (button.dataset.action) {
       case "attack":
+        if (!hasSelectedUnit(game, ui)) return;
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
       case "move":
+        if (!hasSelectedUnit(game, ui)) return;
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
       case "assign":
@@ -522,15 +592,25 @@ export function startGame() {
         break;
       case "train":
         act(() => trainUnit(game, ...position, button.dataset.type), {
-          message: "Unité recrutée. Elle sera active au prochain tour.",
+          message: t("app.unitRecruitedItWillBeActiveNext"),
         });
         break;
     }
   });
   $("#rotate").addEventListener("click", () => rotate("terrain"));
   $("#rotate-building").addEventListener("click", () => rotate("building"));
+  $("#rotate-placement").addEventListener("click", () => rotate());
+  $("#cancel-placement").addEventListener("click", () => {
+    drag.cancel();
+    ui.placement = null;
+    render();
+    board.preview(null);
+  });
   document.addEventListener("change", event => {
-    if (event.target.matches("[data-army-size]")) act(() => selectArmy(game,Number(event.target.value)), { undoable: false });
+    if (event.target.matches("[data-army-size]") && hasSelectedUnit(game, ui)) act(() => {
+      selectArmy(game,Number(event.target.value));
+      ui.unitSelection.id = game.selectedUnitId;
+    }, { undoable: false });
   });
   $("#undo-action").addEventListener("click", () => {
     if (!undoState) return;
@@ -542,7 +622,7 @@ export function startGame() {
     ui.drag = null;
     if ($("#result-dialog").open) $("#result-dialog").close();
     render();
-    toast("Dernière action annulée.");
+    toast(t("app.lastActionUndone"));
   });
   $("#end-turn").addEventListener("click", () => {
     if (game.opening) return;
@@ -557,17 +637,18 @@ export function startGame() {
     }, { undoable: false, clearUndo: true });
     if (game.finished) showResults();
   });
-  $("#rules-button").addEventListener("click", () => {
-    html(".rules-content", rulesView(game));
+  function openRules() {
+    html(".rules-content", rulesView(inMenu ? undefined : game));
     $("#rules-dialog").showModal();
-  });
+  }
+  $("#rules-button").addEventListener("click", openRules);
+  $('#menu-rules-button').addEventListener('click', openRules);
   $("#building-details-dialog .close-building-details").addEventListener("click", () =>
     $("#building-details-dialog").close(),
   );
   $("#rules-dialog .close").addEventListener("click", () =>
     $("#rules-dialog").close(),
   );
-  $(".close-rules").addEventListener("click", () => $("#rules-dialog").close());
   $("#menu-button").addEventListener("click", async () => {
     if (online.session) {
       try {
@@ -597,12 +678,14 @@ export function startGame() {
     renderCatalogue();
     $(`[data-catalogue-filter="${field}"]`).focus({ preventScroll: true });
   });
-  $("#catalogue-button").addEventListener("click", () => {
+  function openCatalogue() {
     renderCatalogue();
     selectCatalogueSection("buildings");
     $("#catalogue-dialog").showModal();
     $("#catalogue-dialog").scrollTop = 0;
-  });
+  }
+  $("#catalogue-button").addEventListener("click", openCatalogue);
+  $('#game-catalogue-button').addEventListener('click', openCatalogue);
   function selectCatalogueSection(section) {
     catalogueSection = section;
     for (const name of ["buildings", "tiles"]) {
@@ -617,16 +700,17 @@ export function startGame() {
     button.addEventListener("click", () => $("#catalogue-dialog").close());
   });
   function requestNewGame(mode) {
+    $('#setting-missions').disabled = false;
     $('#setting-clock-row').hidden = true;
     online.stop();
     $('#lobby-info').hidden = true;
     $('#lobby-start').hidden = true;
-    $('#settings-title').textContent = 'Préparer le royaume';
+    $('#settings-title').textContent = t("app.setUpYourKingdom");
     $('#settings-start').hidden = false;
-    $('#settings-start').textContent = 'Lancer la partie →';
+    $('#settings-start').textContent = t("app.startGame");
     for (const [, [selector]] of Object.entries(settingInputs)) $(selector).disabled = false;
     nextMode = mode;
-    $("#settings-mode").textContent = mode === "solo" ? "Partie solo" : mode === 'online' ? 'Partie en ligne' : "Partie locale";
+    $("#settings-mode").textContent = mode === "solo" ? t("app.soloGame") : mode === 'online' ? t("app.onlineGame") : t("app.localGame");
     $("#game-settings-dialog").showModal();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
@@ -649,8 +733,8 @@ export function startGame() {
         clearUndo: true,
         message:
           nextMode === "solo"
-            ? "Votre royaume s’éveille."
-            : "Deux nouveaux royaumes s’éveillent.",
+            ? t("app.yourKingdomAwakens")
+            : t("app.newKingdomsAwaken"),
       },
     );
     if (created) {
@@ -659,12 +743,13 @@ export function startGame() {
     }
   }
   const settingInputs = {
-    rounds: ["#setting-rounds", "#setting-rounds-value", "tours"],
-    openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value", "tuiles"],
-    boardSize: ["#setting-board", "#setting-board-value", "grille"],
-    material: ["#setting-material", "#setting-material-value", "bois"],
-    food: ["#setting-food", "#setting-food-value", "blé"],
-    gold: ["#setting-gold", "#setting-gold-value", "or"],
+    rounds: ["#setting-rounds", "#setting-rounds-value"],
+    openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value"],
+    preplacedTerrainCount: ["#setting-preplaced", "#setting-preplaced-value"],
+    boardSize: ["#setting-board", "#setting-board-value"],
+    material: ["#setting-material", "#setting-material-value"],
+    food: ["#setting-food", "#setting-food-value"],
+    gold: ["#setting-gold", "#setting-gold-value"],
   };
   function updateSettingLabels() {
     for (const [name, [inputSelector, outputSelector]] of Object.entries(settingInputs)) {
@@ -683,6 +768,8 @@ export function startGame() {
     input.addEventListener('change', scheduleLobbySave);
   }
   let lobbySaveTimer;
+  $('#setting-missions').checked = GAME_DEFAULTS.missionsEnabled;
+  $('#setting-missions').addEventListener('change', scheduleLobbySave);
   $('#setting-clock').addEventListener('change', scheduleLobbySave);
   function scheduleLobbySave() {
     clearTimeout(lobbySaveTimer);
@@ -690,7 +777,7 @@ export function startGame() {
     lobbySaveTimer = setTimeout(async () => {
       if (!online.session || online.session.started) return;
       if (online.busy) { scheduleLobbySave(); return; }
-      try { await online.lobby(collectSettings()); } catch (error) { toast(`Réglages non enregistrés : ${error.message}`); }
+      try { await online.lobby(collectSettings()); } catch (error) { toast(t("app.settingsNotSaved", [translateMessage(error.message)])); }
     }, 300);
   }
   updateSettingLabels();
@@ -704,7 +791,9 @@ export function startGame() {
       turnSeconds: Number($('#setting-clock').value || 0),
       rounds: Number($("#setting-rounds").value),
       openingTilesPerPlayer: Number($("#setting-opening").value),
+      preplacedTerrainCount: Number($("#setting-preplaced").value),
       boardSize: Number($("#setting-board").value),
+      missionsEnabled: $('#setting-missions').checked,
       resources: {
         material: Number($("#setting-material").value),
         food: Number($("#setting-food").value),
@@ -715,7 +804,7 @@ export function startGame() {
   }
   $("#settings-start").addEventListener("click", () => {
     collectSettings();
-    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast('Réglages enregistrés.')).catch(error => toast(error.message));
+    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast(t("app.settingsSaved"))).catch(error => toast(error.message));
     else beginNewGame();
   });
   $(".close-results").addEventListener("click", () =>
@@ -732,6 +821,7 @@ export function startGame() {
       drag.cancel();
       ui.selected = null;
       ui.placement = null;
+      ui.unitSelection = null;
       game.selectedUnitId = null;
       game.armySelection = null;
       render();
@@ -753,24 +843,29 @@ export function startGame() {
     ui.selected = null;
     ui.placement = null;
     ui.drag = null;
+    ui.unitSelection = null;
     game.selectedUnitId = null;
     game.armySelection = null;
     render();
   });
   const drag = installDrag({
     root: $(".game-layout"),
+    canStart: card => ui.mode !== 'inspect' && (!game.opening || card.hasAttribute('data-tile')),
     begin(card) {
       ui.drag = dragFromCard(card, ui);
       ui.placement = null;
       ui.selected = null;
-      if (ui.drag.kind === "unit" && ui.drag.id !== game.selectedUnitId) selectUnit(game, ui.drag.id);
+      if (ui.drag.kind === "unit") {
+        selectUnit(game, ui.drag.id);
+        ui.unitSelection = { id: ui.drag.id, owner: game.active, round: game.round };
+      }
       render();
     },
     preview(pos) {
       ui.drag.position = pos;
       const result = dragPreview(game, ui.drag, pos);
       board.preview(result);
-      placementHelp(result?.error || (result ? "Placement possible · Relâchez pour placer." : null));
+      placementHelp(result);
     },
     ghost() {
       const d = ui.drag;
@@ -810,18 +905,29 @@ export function startGame() {
     $('#online-dialog').close();
     online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toast(error.message));
   });
-  let stopHealthCheck;
+  let stopHealthCheck, resumeCheck = 0;
   function openOnlineDialog() {
     $('#online-dialog').showModal();
+    $('#online-resume').disabled = true;
     stopHealthCheck?.();
-    stopHealthCheck = monitorServerHealth(healthy => {
+    resumeCheck++;
+    stopHealthCheck = monitorServerHealth(async healthy => {
+      const check = ++resumeCheck;
       const status = $('#online-health');
-      status.textContent = healthy === true ? '✓ Serveur disponible' : healthy === null ? 'Vérification du serveur…' : 'Serveur en attente ou indisponible · nouvel essai toutes les 10 s';
+      status.textContent = healthy === true ? t("app.serverAvailable") : healthy === null ? t("app.checkingServer") : t("app.serverUnavailableRetryingIn10s");
       status.classList.toggle('healthy', healthy === true);
       $('#online-create').disabled = healthy !== true;
+      $('#online-join').disabled = healthy !== true;
+      $('#online-resume').disabled = true;
+      if (healthy === true) {
+        try {
+          const available = await online.canResume();
+          if (check === resumeCheck && $('#online-dialog').open) $('#online-resume').disabled = !available;
+        } catch { /* Keep the saved session after temporary network failures. */ }
+      }
     });
   }
-  $('#online-dialog').addEventListener('close', () => { stopHealthCheck?.(); });
+  $('#online-dialog').addEventListener('close', () => { resumeCheck++; stopHealthCheck?.(); });
   $('#online-menu').addEventListener('click', openOnlineDialog);
   $('#online-close').addEventListener('click', () => $('#online-dialog').close());
   $('#lobby-start').addEventListener('click', () => {
@@ -832,17 +938,35 @@ export function startGame() {
     try {
       const url = new URL(globalThis.location.href); url.hash = `join=${online.session.code}`;
       await navigator.clipboard.writeText(link ? url.href : online.session.code);
-      toast(link ? 'Lien copié.' : 'Code copié.');
-    } catch { toast('Copie impossible. Le code est affiché dans le salon.'); }
+      toast(link ? t("app.linkCopied") : t("app.codeCopied"));
+    } catch { toast(t("app.couldNotCopyTheCodeIsDisplayed")); }
   });
   $('#online-join').addEventListener('click', () => {
     const code = $('#online-code').value.trim().toUpperCase();
-    if (!/^[A-F0-9]{10}$/.test(code)) return toast('Saisissez un code de partie de 10 caractères.');
+    if (!/^[A-F0-9]{10}$/.test(code)) return toast(t("app.enterA10CharacterGameCode"));
     $('#online-dialog').close();
     online.connect(code, undefined, $('#nickname').value).catch(error => toast(error.message));
   });
   $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toast(error.message)); });
   if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); openOnlineDialog(); }
+  function updateLanguageFlag() {
+    $('#language-flag').src = new URL(`../assets/identity/flag-${getLanguage()}.svg`, import.meta.url).href;
+    $('#language-toggle').setAttribute('aria-label', t('language.switch'));
+  }
+  updateLanguageFlag();
+  $('#language-toggle').addEventListener('click', () => {
+    setLanguage(getLanguage() === 'fr' ? 'en' : 'fr');
+    clearTimeout(toastTimer);
+    $('#toast').textContent = '';
+    $('#toast').classList.remove('visible');
+    translateDocument();
+    updateLanguageFlag();
+    html('.rules-content', rulesView(game));
+    if ($('#catalogue-dialog').open) renderCatalogue();
+    render();
+    refreshHistory();
+  });
   render();
-  showMenu();
+  if (initialGame) enterGame();
+  else showMenu();
 }

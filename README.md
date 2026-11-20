@@ -2,7 +2,7 @@
 
 Le mode multijoueur privé temporaire dispose d’un serveur Node.js sans base de données. Installation locale, déploiement Render gratuit, configuration et administration : [guide multijoueur](docs/multiplayer.md).
 
-Jeu de placement de tuiles en duel, en français, jouable à deux sur le même écran. Le terrain est commun : explorez, développez votre économie et disputez les positions adverses.
+Jeu de placement de tuiles en duel, disponible en français et en anglais, jouable à deux sur le même écran. Le terrain est commun : explorez, développez votre économie et disputez les positions adverses.
 
 ## Jouer
 
@@ -14,7 +14,15 @@ npm start
 
 Ouvrir http://127.0.0.1:4173. Solo et Local multiplayer sont disponibles ; les modes bot et en ligne restent verrouillés. Avant chaque nouvelle partie, un menu permet de régler la durée, la préparation, les ressources initiales et la taille de la grille.
 
-Une partie reste active tant que la page reste ouverte. Choisir un mode depuis le menu lance une nouvelle partie.
+Une partie reste active tant que la page reste ouverte. Choisir un mode depuis le menu lance une nouvelle partie. Les réglages proposent aussi un interrupteur « Missions communes », activé par défaut : le désactiver retire les objectifs et leurs récompenses pour cette partie. En ligne, ce choix appartient à l’hôte.
+
+## Traductions
+
+Le drapeau du menu principal bascule entre le français et l’anglais à chaque clic. Le français est utilisé au premier lancement ; le choix est ensuite conservé dans le navigateur.
+
+Les textes sont regroupés dans `src/locales/fr.js` et `src/locales/en.js`, avec les mêmes clés dans les deux fichiers. Les vues utilisent `t(clé, paramètres)` ; les paramètres `{0}`, `{1}`, etc. peuvent être réordonnés selon la langue. Les traductions ne contiennent pas la mise en page HTML.
+
+Les noms et descriptions du catalogue utilisent des clés fondées sur les identifiants de configuration, par exemple `buildings.house.name`. Les textes statiques déclarent leur clé avec `data-i18n` et les attributs accessibles avec `data-i18n-aria-label`, `data-i18n-title` ou `data-i18n-placeholder`. Pour ajouter ou modifier un texte, mettre à jour les deux fichiers de langue ; les tests vérifient la parité et la couverture du catalogue.
 
 ## Règles du duel
 
@@ -112,8 +120,12 @@ Un roi pris retourne au donjon et ne peut pas agir pendant son prochain tour. L�
 ## Commandes
 
 - Cliquer une carte affiche ses placements ; cliquer une case verte la pose. Le glisser-déposer reste disponible.
+- Le mode **Jouer** ne sélectionne aucune unité automatiquement : cliquer d’abord le roi ou une unité, puis sa destination. Le mode **Inspecter** affiche les informations des cases sans déplacer les pièces. Un changement de mode, Échap, un clic droit ou un nouveau tour retire la sélection.
+- Pour une armée, l’épée indique la puissance du groupe sélectionné ; le bouclier indique la défense de sa case, avec tous les soldats présents, la garnison éventuelle et le bonus défensif. Le nombre de soldats reste affiché sur le pion du plateau.
 - Les quatre pictogrammes sous les tuiles de terrain permettent d’acheter une case précise pour 1 or.
-- R ou la molette fait pivoter la carte ; Échap annule la sélection.
+- Sur ordinateur, R ou la molette sur une carte fait pivoter la pièce ; Échap annule la sélection.
+- Sur téléphone, toucher une carte puis une case permet de la poser ; sa poignée ⠿ permet aussi de la glisser. La barre de placement reste accessible en bas de l’écran pour pivoter ou annuler. Glisser près du bord fait défiler la page ou le plateau.
+- Les ouvriers se glissent vers les producteurs, ou se sélectionnent par un toucher avant de choisir un bâtiment. Le plateau peut défiler sur les petits écrans pour conserver des cases utilisables.
 - Le clic droit efface la sélection. Le bouton ↶ annule une seule dernière action ; il se réactive après une nouvelle action et se vide au changement de tour.
 - Sélectionner une unité puis une case dorée la déplace. Sélectionner une cible rouge prépare un combat.
 - Pour une armée, le sélecteur **Effectif** choisit combien de pions partent ensemble.

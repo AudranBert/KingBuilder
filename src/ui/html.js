@@ -1,3 +1,4 @@
+import { t } from "../i18n.js";
 import {
   RESOURCE_ICONS,
   RESOURCES,
@@ -27,17 +28,17 @@ export function costHTML(cost) {
       .filter(([, amount]) => amount > 0)
       .map(
         ([id, n]) =>
-          `<span title="${e(RESOURCES[id] || id)}" aria-label="${n} ${e(RESOURCES[id] || id)}">${n} ${iconHTML(RESOURCE_ICONS[id])}</span>`,
+          `<span title="${e(t(`resources.${id}.name`) || id)}" aria-label="${n} ${e(t(`resources.${id}.name`) || id)}">${n} ${iconHTML(RESOURCE_ICONS[id])}</span>`,
       )
-      .join(" ") || "Gratuit"
+      .join(" ") || t("html.free")
   );
 }
 export function costText(cost) {
   return (
     Object.entries(cost)
       .filter(([, n]) => n > 0)
-      .map(([id, n]) => `${n} ${RESOURCES[id] || id}`)
-      .join(" + ") || "Gratuit"
+      .map(([id, n]) => `${n} ${t(`resources.${id}.name`) || id}`)
+      .join(" + ") || t("html.free")
   );
 }
 export const coordinates = (x, y) => `${x + 1}, ${y + 1}`;

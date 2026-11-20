@@ -15,7 +15,9 @@ npm start
 npm run start:online
 ```
 
-Ouvrir http://127.0.0.1:4173 dans deux navigateurs ou deux onglets. Créer une partie en ligne dans le premier, saisir son code dans le second. Chaque onglet garde son jeton dans `sessionStorage` : après rechargement, utiliser « Reprendre ma partie en ligne ». Le lien préremplit le code ; cliquer Rejoindre confirme l’entrée. Les jetons ne sont jamais inclus dans les invitations.
+Ouvrir http://127.0.0.1:4173 dans deux navigateurs ou deux onglets. Créer une partie en ligne dans le premier, saisir son code dans le second. Chaque onglet garde son accès dans `sessionStorage` ; le dernier accès est aussi conservé dans `localStorage` pour récupérer une fermeture accidentelle. « Reprendre ma partie » est activé seulement après vérification d’une partie inachevée sur le serveur. Une partie terminée, abandonnée ou expirée est retirée des reprises ; une coupure réseau temporaire conserve l’accès. Le lien préremplit le code ; cliquer Rejoindre confirme l’entrée. Les jetons ne sont jamais inclus dans les invitations.
+
+Pendant une partie en ligne, « Abandonner la partie » est un abandon définitif, et non une mise en pause. Une reprise reste possible après une interruption tant que le salon existe sur le serveur ; le chronomètre éventuel continue de s’appliquer.
 
 ## Render gratuit
 

@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "./i18n.js";
 import { CONFIG } from "./configuration.js";
 export const GOLD = CONFIG.rules.gold;
 export const MISSIONS = CONFIG.missions;
@@ -59,6 +60,10 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
       p.progress.recruited = Math.max(0, p.workers - CONFIG.rules.startingWorkers);
     }
   }
+  if (g.missionsEnabled === false) {
+    g.missions = { market: [], deck: [], claimed: [], tiered: 1, baselines: {} };
+    return;
+  }
   if (!g.missions) {
     const deck = [...missionOrder];
     const market = [];
@@ -86,6 +91,7 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
 }
 export function settleMissions(g, owner = g.active) {
   const won = [];
+  if (g.missionsEnabled === false) return won;
   // Each offer needs fresh progress after its reveal, for each player.
   for (let i = 0; i < g.missions.market.length; ) {
     const id = g.missions.market[i],
@@ -149,19 +155,19 @@ export function costPayment(g, cost) {
   };
 }
 export function rerollError(g, kind) {
-  if (g.finished) return "La partie est terminée.";
-  if (g.opening) return "Terminez d’abord la préparation du terrain.";
-  if (!["terrain", "building"].includes(kind)) return "Marché inconnu.";
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+  if (!["terrain", "building"].includes(kind)) return sourceMessage("messages.unknownMarket");
   if (g.rerollsUsed >= GOLD.rerollLimitPerTurn)
-    return "Relance déjà utilisée ce tour.";
+    return sourceMessage("messages.rerollAlreadyUsedThisTurn");
   if (g.players[g.active].resources.gold < GOLD.rerollCost)
-    return "Or insuffisant.";
+    return sourceMessage("messages.notEnoughGold");
   const market = kind === "terrain" ? g.tileMarket : g.buildingMarket,
     deck = kind === "terrain" ? g.tileDeck : g.buildingDeck;
   if (!market.length || deck.length < market.length)
-    return "La pioche ne contient plus assez de nouvelles offres.";
+    return sourceMessage("messages.theDeckDoesNotHaveEnoughNew");
   if (kind === "building" && (g.buildingReplacements ?? CONFIG.rules.markets.advancedFromReplacement) + 1 < CONFIG.rules.markets.advancedFromReplacement &&
       deck.filter((id) => CONFIG.buildings[id].tier <= CONFIG.rules.markets.initialMaxTier).length < market.length)
-    return `La pioche ne contient plus assez d’offres de tier ${CONFIG.rules.markets.initialMaxTier} ou inférieur.`;
+    return sourceMessage("messages.theDeckDoesNotHaveEnoughOffers", [CONFIG.rules.markets.initialMaxTier]);
   return null;
 }

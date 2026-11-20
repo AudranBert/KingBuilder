@@ -13,8 +13,18 @@ import {
   dragFromCard,
   dragPreview,
   moveUnitTo,
+  placementErrorText,
+  placementGuidance,
 } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
+
+test("le bandeau garde seulement la cause du blocage et préfixe les erreurs", () => {
+  assert.equal(placementErrorText("Moulin : terrain incompatible, il faut plaine ou champs à la place de montagne. Entrée sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine."),
+    "Impossible : il faut plaine ou champs ici.");
+  assert.equal(placementErrorText("Le motif sort du plateau."), "Impossible : la tuile dépasse du plateau.");
+  assert.equal(placementErrorText("Ressources insuffisantes : il manque 2 bois (or insuffisant)."),
+    "Impossible : ressources insuffisantes : il manque 2 bois (or insuffisant).");
+});
 
 test("glisser le roi suit un chemin de trois cases et épuise ses déplacements", () => {
   const g = createGame();
@@ -86,6 +96,8 @@ test("l’aperçu ouvrier et le dépôt partagent les mêmes contraintes", () =>
     building: { type: "sawmill", owner: 0 },
   };
   const drag = { kind: "worker", id: 0 };
+  assert.equal(placementGuidance(g, drag).get(key(2, 6)).error, null);
+  assert.equal(placementGuidance(g, drag).has(key(3, 6)), false);
   assert.equal(dragPreview(g, drag, { x: 2, y: 6 }).error, null);
   assignWorker(g, 0, 2, 6);
   const before = structuredClone(g);

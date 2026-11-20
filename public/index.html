@@ -6,54 +6,63 @@
     <meta name="theme-color" content="#203d35" />
     <meta
       name="description"
-      content="Deux rois, une terre inconnue. Explorez, construisez et faites prospérer votre royaume dans un jeu de stratégie à deux."
+      content="" data-i18n-content="static.aBoardGameOfExplorationBuildingAnd"
     />
-    <title>KingBuilder — Le duel des royaumes</title>
+    <title>Kingbuilder</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Kingbuilder" />
+    <meta property="og:description" content="" data-i18n-content="static.aBoardGameOfExplorationBuildingAnd" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Kingbuilder" />
+    <meta name="twitter:description" content="" data-i18n-content="static.aBoardGameOfExplorationBuildingAnd" />
     <link rel="icon" type="image/svg+xml" href="assets/identity/kingbuilder.svg" />
     <link rel="stylesheet" href="src/styles/style.css" />
     <link rel="stylesheet" href="src/styles/ui.css" />
     <link rel="stylesheet" href="src/styles/tabletop.css" />
     <link rel="stylesheet" href="src/styles/menu.css" />
     <link rel="stylesheet" href="src/styles/identity.css" />
+    <link rel="stylesheet" href="src/styles/mobile.css" />
   </head>
   <body>
     <section id="main-menu" class="main-menu" aria-labelledby="menu-title">
+      <div class="language-picker"><button id="language-toggle" class="language-toggle" type="button" data-i18n-aria-label="language.switch"><img id="language-flag" src="assets/identity/flag-fr.svg" alt="" aria-hidden="true" /></button></div>
       <div class="menu-intro">
         <span class="menu-crest" aria-hidden="true"><img src="assets/identity/kingbuilder.svg" alt="" /></span>
         <h1 id="menu-title">King<span>Builder</span></h1>
         <div class="terrain-ribbon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       </div>
-      <div class="mode-grid" aria-label="Modes de jeu">
+      <div class="mode-grid" aria-label="" data-i18n-aria-label="static.gameModes">
         <button class="mode-card" data-game-mode="solo">
           <span class="mode-icon" aria-hidden="true"><img src="assets/identity/solo.svg" alt="" /></span
           ><span
-            ><strong>Solo</strong
+            ><strong data-i18n="static.solo"></strong
             ><small
-              >Sans adversaire</small
+               data-i18n="static.noOpponent"></small
             ></span
           ><span aria-hidden="true">→</span>
         </button>
         <button class="mode-card" disabled>
           <span class="mode-icon" aria-hidden="true"><img src="assets/identity/bot.svg" alt="" /></span
           ><span
-            ><strong>Versus bot</strong
-            ><small>Affrontez l’ordinateur</small
-            ><span class="mode-lock">Bientôt disponible</span></span
+            ><strong data-i18n="static.versusBot"></strong
+            ><small data-i18n="static.playAgainstTheComputer"></small
+            ><span class="mode-lock" data-i18n="static.comingSoon"></span></span
           >
         </button>
         <button class="mode-card" data-game-mode="local">
           <span class="mode-icon" aria-hidden="true"><img src="assets/identity/local.svg" alt="" /></span
           ><span
-            ><strong>À deux, en local</strong
+            ><strong data-i18n="static.twoPlayersLocal"></strong
             ><small
-              >Deux joueurs sur le même écran</small
+               data-i18n="static.twoPlayersOnTheSameScreen"></small
             ></span
           ><span aria-hidden="true">→</span>
         </button>
-        <button class="mode-card" id="online-menu"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/online.svg" alt="" /></span><span><strong>Jouer en ligne</strong><small>Créez une partie ou rejoignez un ami.</small></span><span aria-hidden="true">→</span></button>
+        <button class="mode-card" id="online-menu"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/online.svg" alt="" /></span><span><strong data-i18n="static.playOnline"></strong><small data-i18n="static.createAGameOrJoinAFriend"></small></span><span aria-hidden="true">→</span></button>
       </div>
-      <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/catalogue.svg" alt="" /></span><span><strong>Catalogue</strong><small>Les tuiles et bâtiments de votre prochain royaume.</small></span><span aria-hidden="true">→</span></button>
-      <section id="game-history" class="game-history" aria-labelledby="history-title" hidden><h2 id="history-title">Dernières parties</h2><div id="history-list"></div></section>
+      <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/catalogue.svg" alt="" /></span><span><strong data-i18n="static.catalogue"></strong><small data-i18n="static.theTilesAndBuildingsOfYourNext"></small></span><span aria-hidden="true">→</span></button>
+      <button id="menu-rules-button" class="mode-card catalogue-entry" aria-haspopup="dialog" aria-controls="rules-dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/rules.svg" alt="" /></span><span><strong data-i18n="static.rules"></strong></span><span aria-hidden="true">→</span></button>
+      <section id="game-history" class="game-history" aria-labelledby="history-title" hidden><h2 id="history-title" data-i18n="static.recentGames"></h2><div id="history-list"></div></section>
     </section>
     <header class="topbar" hidden>
       <a class="brand" href="./"
@@ -61,35 +70,34 @@
         ><span>King<span class="brand-light">Builder</span></span></a
       >
       <nav>
-        <button id="rules-button">Les règles <span>↗</span></button
-        ><button id="menu-button" class="quiet">
-          Revenir au menu principal
-        </button>
+        <button id="game-catalogue-button" aria-haspopup="dialog" aria-controls="catalogue-dialog"><span data-i18n="static.catalogue"></span><span aria-hidden="true">↗</span></button>
+        <button id="rules-button"><span data-i18n="static.rules2"></span><span>↗</span></button
+        ><button id="menu-button" class="quiet" data-i18n="app.mainMenu"></button>
       </nav>
     </header>
     <main aria-busy="true" hidden>
       <p id="online-status" role="status" hidden style="overflow-wrap:anywhere"></p>
-      <section id="players" class="players" aria-label="Royaumes"></section>
+      <section id="players" class="players" aria-label="" data-i18n-aria-label="static.kingdoms"></section>
       <div class="game-layout">
         <div class="land-column">
           <section class="market-panel">
             <div class="section-title">
-              <h2 aria-label="Terrains" title="Terrains"><img class="market-heading-icon" src="assets/textures/icon-terrain.svg" alt="" /></h2>
+              <h2 aria-label="" data-i18n-aria-label="static.terrain" title="" data-i18n-title="static.terrain"><img class="market-heading-icon" src="assets/textures/icon-terrain.svg" alt="" /></h2>
               <button
                 id="reroll-terrain"
                 class="reroll"
-                aria-label="Relancer les terrains"
+                aria-label="" data-i18n-aria-label="static.rerollTerrain"
               ></button>
             </div>
             <div id="tile-market" class="tile-market"></div>
             <div id="single-terrain"></div>
             <div class="tile-controls">
-              <button id="rotate">↻ Pivoter</button
+              <button id="rotate" data-i18n="static.rotate"></button
               ><span id="rotation-label">0°</span>
             </div>
           </section>
-          <section class="workers-panel" aria-label="Ouvriers disponibles">
-            <strong>Ouvriers disponibles</strong>
+          <section class="workers-panel" aria-label="" data-i18n-aria-label="static.availableWorkers">
+            <strong data-i18n="static.availableWorkers"></strong>
             <div id="worker-list" data-worker-reserve></div>
           </section>
         </div>
@@ -97,17 +105,14 @@
           <div
             id="missions"
             class="missions"
-            aria-label="Missions communes"
+            aria-label="" data-i18n-aria-label="static.sharedMissions"
           ></div>
           <div class="board-toolbar">
-            <div class="board-modes" aria-label="Interaction avec le plateau">
-              <button data-mode="move" class="selected" aria-pressed="true">
-                Déplacer</button
-              ><button data-mode="inspect" aria-pressed="false">
-                Inspecter
-              </button><button id="undo-action" class="secondary" aria-label="Annuler la dernière action" title="Annuler la dernière action" disabled>↶ Annuler</button>
+            <div class="board-modes" aria-label="" data-i18n-aria-label="static.boardInteraction">
+              <button data-mode="move" class="selected" aria-pressed="true" data-i18n="static.move"></button
+              ><button data-mode="inspect" aria-pressed="false" data-i18n="static.inspect"></button><button id="undo-action" class="secondary" aria-label="" data-i18n-aria-label="static.undoTheLastAction" title="" data-i18n-title="static.undoTheLastAction" disabled data-i18n="static.undo"></button>
             </div>
-            <div class="round" aria-label="Tour de jeu" title="Tour de jeu">
+            <div class="round" aria-label="" data-i18n-aria-label="static.gameTurn" title="" data-i18n-title="static.gameTurn">
               <img src="assets/textures/icon-hourglass.svg" alt="" />
               <strong id="round">01 / 25</strong>
             </div>
@@ -118,28 +123,33 @@
               id="board"
               class="board"
               role="grid"
-              aria-label="Plateau de jeu"
+              aria-label="" data-i18n-aria-label="static.gameBoard"
             ></div>
           </div>
           <div id="selection" class="selection" aria-live="polite"></div>
           <div id="placement-help" class="placement-help" role="status"></div>
+          <div class="mobile-placement-controls" aria-label="" data-i18n-aria-label="static.cardPlacement">
+            <span id="placement-rotation-label" aria-live="polite">0°</span>
+            <button id="rotate-placement" disabled data-i18n="static.rotate"></button>
+            <button id="cancel-placement" disabled data-i18n-aria-label="static.clearSelection">×</button>
+          </div>
           <div id="trade-info" class="trade-info"></div>
           <div id="harvest" class="harvest-panel" aria-live="polite"></div>
         </section>
-        <button id="end-turn" class="primary">Fin de tour →</button>
+        <button id="end-turn" class="primary" data-i18n="static.endTurn"></button>
         <div class="building-column">
           <section class="market-panel">
             <div class="section-title">
-              <h2 aria-label="Bâtiments" title="Bâtiments"><img class="market-heading-icon" src="assets/textures/buildings-house.svg" alt="" /></h2>
+              <h2 aria-label="" data-i18n-aria-label="views.buildings" title="" data-i18n-title="views.buildings"><img class="market-heading-icon" src="assets/textures/buildings-house.svg" alt="" /></h2>
               <button
                 id="reroll-building"
                 class="reroll"
-                aria-label="Relancer les bâtiments"
+                aria-label="" data-i18n-aria-label="static.rerollBuildings"
               ></button>
             </div>
             <div id="building-market" class="building-market"></div>
             <div class="tile-controls">
-              <button id="rotate-building">↻ Pivoter</button
+              <button id="rotate-building" data-i18n="static.rotate"></button
               ><span id="building-rotation-label">0°</span>
             </div>
           </section>
@@ -149,83 +159,92 @@
     </main>
     <div id="toast" role="status" aria-live="polite"></div>
     <dialog id="online-dialog" class="online-dialog" aria-labelledby="online-title">
-      <h2 id="online-title">Jouer en ligne</h2>
+      <button id="online-close" class="close dialog-close" type="button" data-i18n-aria-label="static.close">×</button>
+      <h2 id="online-title" data-i18n="static.playOnline"></h2>
       <p id="online-health" class="online-health" role="status" aria-live="polite"></p>
-      <div id="nickname-row"><input id="nickname" maxlength="24" autocomplete="nickname" placeholder="Votre pseudo" aria-label="Votre pseudo" /></div>
-      <button id="online-create" class="primary" type="button">Créer une partie</button>
-      <div class="online-join"><label for="online-code">Rejoindre avec un code</label><input id="online-code" maxlength="10" autocomplete="off" placeholder="Code de 10 caractères" /><button id="online-join" class="primary" type="button">Rejoindre</button></div>
-      <div class="dialog-actions"><button id="online-resume" class="secondary" type="button">Reprendre ma partie</button><button id="online-close" class="secondary" type="button">Fermer</button></div>
+      <div id="nickname-row"><input id="nickname" maxlength="24" autocomplete="nickname" placeholder="" data-i18n-placeholder="static.yourNickname" aria-label="" data-i18n-aria-label="static.yourNickname" /></div>
+      <button id="online-create" class="primary" type="button" data-i18n="static.createGame"></button>
+      <div class="online-join"><label for="online-code" data-i18n="static.joinWithACode"></label><input id="online-code" maxlength="10" autocomplete="off" placeholder="" data-i18n-placeholder="static.10CharacterCode" /><button id="online-join" class="primary" type="button" data-i18n="static.join"></button></div>
+      <div class="dialog-actions"><button id="online-resume" class="secondary" type="button" disabled data-i18n="static.resumeMyGame" data-i18n-title="online.resumeExplanation"></button></div>
     </dialog>
     <dialog id="game-settings-dialog" class="settings-dialog" aria-labelledby="settings-title">
-      <span class="eyebrow" id="settings-mode">Nouvelle partie</span>
-      <h2 id="settings-title">Préparer le royaume</h2>
-      <div id="lobby-info" hidden><p id="lobby-players" role="status"></p><p>Code : <strong id="lobby-code"></strong></p><button id="lobby-copy-link" type="button">Copier le lien</button> <button id="lobby-copy-code" type="button">Copier le code</button></div>
-      <label id="setting-clock-row" class="setting-row" hidden for="setting-clock"><span><strong>Temps maximum par tour</strong><small>La préparation du terrain reste sans limite.</small></span><select id="setting-clock"><option value="0">Sans limite</option><option value="30">30 secondes</option><option value="60">1 minute</option><option value="90">1 min 30</option><option value="120">2 minutes</option><option value="150">2 min 30</option><option value="180">3 minutes</option></select></label>
+      <button id="settings-cancel" class="close dialog-close" type="button" data-i18n-aria-label="static.close">×</button>
+      <span class="eyebrow" id="settings-mode" data-i18n="static.newGame"></span>
+      <h2 id="settings-title" data-i18n="app.setUpYourKingdom"></h2>
+      <div id="lobby-info" hidden><p id="lobby-players" role="status"></p><p><span data-i18n="static.code"></span><strong id="lobby-code"></strong></p><button id="lobby-copy-link" type="button" data-i18n="static.copyLink"></button> <button id="lobby-copy-code" type="button" data-i18n="static.copyCode"></button></div>
+      <label id="setting-clock-row" class="setting-row" hidden for="setting-clock"><span><strong data-i18n="static.timeLimitPerTurn"></strong><small data-i18n="static.terrainSetupHasNoTimeLimit"></small></span><select id="setting-clock"><option value="0" data-i18n="clock.unlimited"></option><option value="30" data-i18n="clock.seconds30"></option><option value="60" data-i18n="clock.seconds60"></option><option value="90" data-i18n="clock.seconds90"></option><option value="120" data-i18n="clock.seconds120"></option><option value="150" data-i18n="clock.seconds150"></option><option value="180" data-i18n="clock.seconds180"></option></select></label>
       <div class="settings-list">
+        <label class="setting-row mission-setting" for="setting-missions">
+          <span><strong data-i18n="settings.missions"></strong></span>
+          <input id="setting-missions" type="checkbox" role="switch" checked />
+        </label>
         <label class="setting-row" for="setting-rounds">
-          <span><strong>Nombre de tours</strong><small>De 20 à 40 tours par joueur</small></span>
+          <span><strong data-i18n="static.numberOfTurns"></strong><small data-i18n="static.20To40TurnsPerPlayer"></small></span>
           <output id="setting-rounds-value" for="setting-rounds">25</output>
           <input id="setting-rounds" type="range" min="20" max="40" step="1" value="25" />
         </label>
         <label class="setting-row" for="setting-opening">
-          <span><strong>Tuiles de préparation</strong><small>À placer par chaque joueur avant le tour 1</small></span>
+          <span><strong data-i18n="static.setupTiles"></strong><small data-i18n="static.placedByEachPlayerBeforeTurn1"></small></span>
           <output id="setting-opening-value" for="setting-opening">2</output>
           <input id="setting-opening" type="range" min="0" max="4" step="1" value="2" />
         </label>
+        <label class="setting-row" for="setting-preplaced">
+          <span><strong data-i18n="settings.preplacedTerrain"></strong><small data-i18n="settings.preplacedTerrainHelp"></small></span>
+          <output id="setting-preplaced-value" for="setting-preplaced">0</output>
+          <input id="setting-preplaced" type="range" min="0" max="100" step="1" value="0" />
+        </label>
         <label class="setting-row" for="setting-board">
-          <span><strong>Taille de la grille</strong><small>De 7 × 7 à 15 × 15 cases</small></span>
+          <span><strong data-i18n="static.boardSize"></strong><small data-i18n="static.77To1515Spaces"></small></span>
           <output id="setting-board-value" for="setting-board">11 × 11</output>
           <input id="setting-board" type="range" min="7" max="15" step="1" value="11" />
         </label>
       </div>
       <fieldset class="resource-settings">
-        <legend>Ressources de départ</legend>
-        <p>Le deuxième joueur reçoit toujours 1 or supplémentaire.</p>
+        <legend data-i18n="static.startingResources"></legend>
+        <p data-i18n="static.theSecondPlayerAlwaysReceives1Extra"></p>
         <div class="resource-sliders">
-          <label for="setting-material"><img src="assets/textures/resources-wood.svg" alt="" /><span>Bois</span><output id="setting-material-value" for="setting-material">3</output><input id="setting-material" type="range" min="0" max="10" step="1" value="3" /></label>
-          <label for="setting-food"><img src="assets/textures/resources-wheat.svg" alt="" /><span>Blé</span><output id="setting-food-value" for="setting-food">2</output><input id="setting-food" type="range" min="0" max="10" step="1" value="2" /></label>
-          <label for="setting-gold"><img src="assets/textures/resources-gold.svg" alt="" /><span>Or</span><output id="setting-gold-value" for="setting-gold">1</output><input id="setting-gold" type="range" min="0" max="10" step="1" value="1" /></label>
+          <label for="setting-material"><img src="assets/textures/resources-wood.svg" alt="" /><span data-i18n="resources.material.name"></span><output id="setting-material-value" for="setting-material">3</output><input id="setting-material" type="range" min="0" max="10" step="1" value="3" /></label>
+          <label for="setting-food"><img src="assets/textures/resources-wheat.svg" alt="" /><span data-i18n="resources.food.name"></span><output id="setting-food-value" for="setting-food">2</output><input id="setting-food" type="range" min="0" max="10" step="1" value="2" /></label>
+          <label for="setting-gold"><img src="assets/textures/resources-gold.svg" alt="" /><span data-i18n="resources.gold.name"></span><output id="setting-gold-value" for="setting-gold">1</output><input id="setting-gold" type="range" min="0" max="10" step="1" value="1" /></label>
         </div>
       </fieldset>
       <div class="dialog-actions settings-actions">
-        <button id="settings-cancel" class="secondary" type="button">Annuler</button>
-        <button id="settings-start" class="primary" type="button">Lancer la partie →</button>
-        <button id="lobby-start" class="primary" type="button" hidden>Lancer la partie →</button>
+        <button id="settings-start" class="primary" type="button" data-i18n="app.startGame"></button>
+        <button id="lobby-start" class="primary" type="button" hidden data-i18n="app.startGame"></button>
       </div>
     </dialog>
     <dialog id="catalogue-dialog" aria-labelledby="catalogue-title">
-      <button class="close" aria-label="Fermer le catalogue">×</button>
-      <span class="eyebrow">LE CONTENU DU ROYAUME</span>
-      <h2 id="catalogue-title">Catalogue</h2>
-      <nav class="catalogue-tabs" aria-label="Contenu du catalogue">
-        <button data-catalogue-section="buildings" aria-pressed="true" aria-controls="catalogue-buildings">Bâtiments</button>
-        <button data-catalogue-section="tiles" aria-pressed="false" aria-controls="catalogue-tiles">Tuiles</button>
+      <button class="close dialog-close" aria-label="" data-i18n-aria-label="static.closeCatalogue">×</button>
+      <span class="eyebrow" data-i18n="static.theKINGDOMSCONTENTS"></span>
+      <h2 id="catalogue-title" data-i18n="static.catalogue"></h2>
+      <nav class="catalogue-tabs" aria-label="" data-i18n-aria-label="static.catalogueContents">
+        <button data-catalogue-section="buildings" aria-pressed="true" aria-controls="catalogue-buildings" data-i18n="views.buildings"></button>
+        <button data-catalogue-section="tiles" aria-pressed="false" aria-controls="catalogue-tiles" data-i18n="static.tiles"></button>
       </nav>
       <div id="catalogue-content"></div>
-      <button class="primary close-catalogue">Revenir au menu</button>
     </dialog>
     <dialog id="building-details-dialog" aria-labelledby="building-details-title">
+      <button class="close dialog-close close-building-details" type="button" autofocus data-i18n-aria-label="static.closeDetails">×</button>
       <div id="building-details-content"></div>
-      <button class="primary close-building-details" autofocus>Fermer les détails</button>
     </dialog>
     <dialog id="rules-dialog" aria-labelledby="rules-title">
-      <button class="close" aria-label="Fermer">×</button
-      ><span class="eyebrow">LE LIVRE DU ROYAUME</span>
-      <h2 id="rules-title">Les règles du duel</h2>
+      <button class="close dialog-close" aria-label="" data-i18n-aria-label="static.close">×</button
+      ><span class="eyebrow" data-i18n="static.theKINGDOMSRULEBOOK"></span>
+      <h2 id="rules-title" data-i18n="static.duelRules"></h2>
       <div class="rules-content"></div>
-      <button class="primary close-rules">Fermer</button>
     </dialog>
     <dialog id="result-dialog" aria-labelledby="winner">
+      <button class="close dialog-close close-results" type="button" data-i18n-aria-label="static.close">×</button>
       <h2 id="winner"></h2>
       <div id="results"></div>
-      <button class="primary close-results">Voir le plateau →</button>
     </dialog>
     <dialog id="prestige-dialog" aria-labelledby="prestige-title">
-      <h2 id="prestige-title">Acheter les ressources manquantes ?</h2>
+      <button class="close dialog-close" type="button" data-close-dialog="prestige-dialog" data-i18n-aria-label="static.close">×</button>
+      <h2 id="prestige-title" data-i18n="static.buyMissingResources"></h2>
       <p id="prestige-warning"></p>
       <div class="dialog-actions">
-        <button class="cancel secondary">Annuler</button
-        ><button class="confirm primary">Confirmer</button>
+        <button class="cancel secondary" data-i18n="static.cancel"></button
+        ><button class="confirm primary" data-i18n="static.confirm"></button>
       </div>
     </dialog>
     <script type="module" src="src/bootstrap.js"></script>

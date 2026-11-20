@@ -51,6 +51,11 @@ export function validateGame(game, { legacy = false } = {}) {
     "dimensions du plateau incorrectes.");
   requireValid(Number.isSafeInteger(turnLimit) && turnLimit >= 20 && turnLimit <= 40,
     "limite de tours incorrecte.");
+  requireValid(game.missionsEnabled === undefined || typeof game.missionsEnabled === 'boolean',
+    "activation des missions incorrecte.");
+  requireValid(game.preplacedTerrainCount === undefined ||
+    nonnegative(game.preplacedTerrainCount) && game.preplacedTerrainCount <= boardSize ** 2,
+    "nombre de cases de terrain préplacées incorrect.");
   requireValid(
     Array.isArray(game.players) &&
       (game.mode === "solo"
@@ -238,6 +243,7 @@ export function validateGame(game, { legacy = false } = {}) {
       ...missions.deck,
       ...missions.claimed.map((c) => c.id),
     ];
+    requireValid(game.missionsEnabled !== false || ids.length === 0, "missions présentes malgré leur désactivation.");
     requireValid(
       ids.every((id) => Object.hasOwn(CONFIG.missions, id)) &&
         new Set(ids).size === ids.length,

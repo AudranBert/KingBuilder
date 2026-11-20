@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "../src/i18n.js";
 import { randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { createGame, startOpening, rerollError, GAME_DEFAULTS, endTurn } from '../src/engine.js';
 import { applyCommand } from '../src/commands.js';
@@ -27,7 +28,7 @@ export class Rooms {
   create(settings, nickname = '') {
     this.validateNickname(nickname);
     this.prune();
-    if (this.rooms.size >= this.maxRooms) throw new RoomError(503, 'Serveur complet. Réessayez plus tard.');
+    if (this.rooms.size >= this.maxRooms) throw new RoomError(503, sourceMessage("messages.serverFullTryAgainLater"));
     let code;
     do { code = randomBytes(5).toString('hex').toUpperCase(); } while (this.rooms.has(code));
     const game = createGame(() => randomInt(0x100000000) / 0x100000000, 'local', settings ?? null);
@@ -36,21 +37,21 @@ export class Rooms {
     this.rooms.set(code, room);
     room.started = false;
     room.nicknames = [nickname.trim(), ''];
-    game.players.forEach((p, i) => { p.name = room.nicknames[i] || (i === 0 ? 'Ambre' : 'Jade'); });
+    game.players.forEach((p, i) => { p.name = room.nicknames[i] || (i === 0 ? sourceMessage("messages.amber") : 'Jade'); });
     room.settings = structuredClone(settings ?? GAME_DEFAULTS);
     return { ...this.view(room, 0), token: room.tokens[0] };
   }
   get(code) {
     this.prune();
     const room = this.rooms.get(code.toUpperCase());
-    if (!room) throw new RoomError(404, 'Partie introuvable ou expirée.');
+    if (!room) throw new RoomError(404, sourceMessage("messages.gameNotFoundOrExpired"));
     this.advanceClock(room);
     return room;
   }
   join(code, nickname = '') {
     this.validateNickname(nickname);
     const room = this.get(code);
-    if (room.joined) throw new RoomError(409, 'Cette partie est complète.');
+    if (room.joined) throw new RoomError(409, sourceMessage("messages.thisGameIsFull"));
     room.nicknames ??= ['', ''];
     room.nicknames[1] = nickname.trim();
     room.game.players[1].name = nickname.trim() || 'Jade';
@@ -58,9 +59,9 @@ export class Rooms {
     return { ...this.view(room, 1), token: room.tokens[1] };
   }
   authenticate(room, token) {
-    if (typeof token !== 'string') throw new RoomError(401, 'Accès refusé.');
+    if (typeof token !== 'string') throw new RoomError(401, sourceMessage("messages.accessDenied"));
     const player = room.tokens.findIndex(t => t && t.length === token.length && timingSafeEqual(Buffer.from(t), Buffer.from(token)));
-    if (player < 0) throw new RoomError(401, 'Accès refusé.');
+    if (player < 0) throw new RoomError(401, sourceMessage("messages.accessDenied"));
     return player;
   }
   view(room, player) {
@@ -76,13 +77,13 @@ export class Rooms {
   }
   command(code, token, request) {
     const room = this.get(code), player = this.authenticate(room, token);
-    if (!request || typeof request.id !== 'string' || request.id.length > 100) throw new RoomError(400, 'Identifiant de commande invalide.');
+    if (!request || typeof request.id !== 'string' || request.id.length > 100) throw new RoomError(400, sourceMessage("messages.invalidCommandID"));
     const receipt = `${player}:${request.id}`;
     if (room.receipts.has(receipt)) return this.view(room, player);
-    if (!room.joined) throw new RoomError(409, 'En attente du deuxième joueur.');
-    if (room.started === false) throw new RoomError(409, 'La partie n’a pas encore été lancée.');
-    if (request.revision !== room.revision) throw new RoomError(409, 'La partie a changé. Réessayez.');
-    if (room.game.active !== player) throw new RoomError(403, 'Ce n’est pas votre tour.');
+    if (!room.joined) throw new RoomError(409, sourceMessage("messages.waitingForTheSecondPlayer"));
+    if (room.started === false) throw new RoomError(409, sourceMessage("messages.theGameHasNotStartedYet"));
+    if (request.revision !== room.revision) throw new RoomError(409, sourceMessage("messages.theGameHasChangedTryAgain"));
+    if (room.game.active !== player) throw new RoomError(403, sourceMessage("messages.itIsNotYourTurn"));
     const previousTurn = `${room.game.round}:${room.game.active}:${Boolean(room.game.opening)}`;
     room.game = applyCommand(room.game, request.command);
     if (previousTurn !== `${room.game.round}:${room.game.active}:${Boolean(room.game.opening)}`) this.setDeadline(room);
@@ -92,16 +93,16 @@ export class Rooms {
   }
   lobby(code, token, request) {
     const room = this.get(code), player = this.authenticate(room, token);
-    if (player !== 0) throw new RoomError(403, 'Seul l’hôte peut modifier ou lancer la partie.');
-    if (room.started) throw new RoomError(409, 'La partie est déjà lancée.');
-    if (request.revision !== room.revision) throw new RoomError(409, 'Le salon a changé. Réessayez.');
-    if (request.start && !room.joined) throw new RoomError(409, 'Attendez le deuxième joueur.');
+    if (player !== 0) throw new RoomError(403, sourceMessage("messages.onlyTheHostCanChangeSettingsOr"));
+    if (room.started) throw new RoomError(409, sourceMessage("messages.theGameHasAlreadyStarted"));
+    if (request.revision !== room.revision) throw new RoomError(409, sourceMessage("messages.theLobbyHasChangedTryAgain"));
+    if (request.start && !room.joined) throw new RoomError(409, sourceMessage("messages.waitForTheSecondPlayer"));
     const settings = request.settings ?? room.settings;
     const seconds = settings.turnSeconds ?? 0;
-    if (!Number.isInteger(seconds) || (seconds !== 0 && (seconds < 30 || seconds > 180))) throw new RoomError(400, 'Temps par tour invalide.');
+    if (!Number.isInteger(seconds) || (seconds !== 0 && (seconds < 30 || seconds > 180))) throw new RoomError(400, sourceMessage("messages.invalidTurnTimeLimit"));
     const game = createGame(() => randomInt(0x100000000) / 0x100000000, 'local', settings);
     startOpening(game);
-    game.players.forEach((p, i) => { p.name = room.nicknames?.[i] || (i === 0 ? 'Ambre' : 'Jade'); });
+    game.players.forEach((p, i) => { p.name = room.nicknames?.[i] || (i === 0 ? sourceMessage("messages.amber") : 'Jade'); });
     room.game = game; room.settings = structuredClone(settings);
     room.started = request.start === true; room.revision++; room.updatedAt = Date.now();
     this.setDeadline(room);
@@ -109,7 +110,7 @@ export class Rooms {
   }
   resign(code, token) {
     const room = this.get(code), player = this.authenticate(room, token);
-    if (!room.started) throw new RoomError(409, 'La partie n’a pas commencé.');
+    if (!room.started) throw new RoomError(409, sourceMessage("messages.theGameHasNotStarted"));
     if (!room.game.finished) {
       room.game.finished = true; room.game.winner = 1 - player; room.game.victory = 'resignation';
       room.deadline = null; room.revision++; room.updatedAt = Date.now();
@@ -118,15 +119,15 @@ export class Rooms {
   }
   profile(code, token, request) {
     const room = this.get(code), player = this.authenticate(room, token);
-    if (room.started) throw new RoomError(409, 'La partie est déjà lancée.');
+    if (room.started) throw new RoomError(409, sourceMessage("messages.theGameHasAlreadyStarted"));
     this.validateNickname(request.nickname);
     room.nicknames ??= ['', ''];
     room.nicknames[player] = request.nickname.trim();
-    room.game.players[player].name = room.nicknames[player] || (player === 0 ? 'Ambre' : 'Jade');
+    room.game.players[player].name = room.nicknames[player] || (player === 0 ? sourceMessage("messages.amber") : 'Jade');
     room.revision++; room.updatedAt = Date.now();
     return this.view(room, player);
   }
   validateNickname(nickname) {
-    if (typeof nickname !== 'string' || nickname.trim().length > 24 || /[\u0000-\u001f\u007f]/.test(nickname)) throw new RoomError(400, 'Pseudo invalide (24 caractères maximum).');
+    if (typeof nickname !== 'string' || nickname.trim().length > 24 || /[\u0000-\u001f\u007f]/.test(nickname)) throw new RoomError(400, sourceMessage("messages.invalidNickname24CharactersMaximum"));
   }
 }

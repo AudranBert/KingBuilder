@@ -1,3 +1,28 @@
+import { message as sourceMessage } from "./i18n.js";
+const SESSION_KEY = 'kingbuilder-online';
+function stores() {
+  return ['sessionStorage', 'localStorage'].flatMap(name => {
+    try { return globalThis[name] ? [globalThis[name]] : []; } catch { return []; }
+  });
+}
+export function clearSavedSession(expected = null) {
+  for (const storage of stores()) try {
+    if (expected) {
+      const saved = JSON.parse(storage.getItem(SESSION_KEY) || 'null');
+      if (saved?.code !== expected.code || saved?.token !== expected.token) continue;
+    }
+    storage.removeItem(SESSION_KEY);
+  } catch { /* Storage may be disabled. */ }
+}
+export function savedSession() {
+  for (const storage of stores()) {
+    try {
+      const saved = JSON.parse(storage.getItem(SESSION_KEY) || 'null');
+      if (saved && /^[A-F0-9]{10}$/.test(saved.code) && typeof saved.token === 'string' && saved.token && typeof saved.url === 'string') return saved;
+    } catch { /* Ignore corrupt or inaccessible storage. */ }
+  }
+  return null;
+}
 export class OnlineClient {
   constructor(onState, onError) {
     this.onState = onState; this.onError = onError; this.session = null; this.timer = null; this.busy = false;
@@ -5,7 +30,7 @@ export class OnlineClient {
   }
   async configure() {
     const response = await fetch(new URL('../online-config.json', import.meta.url), { cache: 'no-store' });
-    if (!response.ok) throw Error('Configuration multijoueur introuvable.');
+    if (!response.ok) throw Error(sourceMessage("messages.multiplayerConfigurationNotFound"));
     const { apiUrl } = await response.json();
     this.url = new URL(apiUrl).href.replace(/\/$/, '');
   }
@@ -18,14 +43,21 @@ export class OnlineClient {
         ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       });
       const result = await response.json();
-      if (!response.ok) throw Error(result.error || 'Serveur indisponible.');
+      if (!response.ok) {
+        const error = Error(result.error || sourceMessage("messages.serverUnavailable"));
+        error.status = response.status;
+        throw error;
+      }
       return result;
     } finally { clearTimeout(timer); }
   }
   accept(result) {
     if (this.session?.code === result.code && result.revision < this.session.revision) return;
     this.session = { ...this.session, ...result };
-    try { sessionStorage.setItem('kingbuilder-online', JSON.stringify({ code: this.session.code, token: this.session.token, url: this.url })); } catch { /* Private browsing may disable storage. */ }
+    if (result.game.finished) clearSavedSession(this.session);
+    else for (const storage of stores()) {
+      try { storage.setItem(SESSION_KEY, JSON.stringify({ code: this.session.code, token: this.session.token, url: this.url })); } catch { /* Private browsing may disable storage. */ }
+    }
     this.onState(result);
   }
   async connect(code, settings, nickname = '') {
@@ -35,12 +67,33 @@ export class OnlineClient {
   }
   async resume() {
     this.stop();
-    const saved = JSON.parse(sessionStorage.getItem('kingbuilder-online') || 'null');
-    if (!saved) throw Error('Aucune partie à reprendre dans cet onglet.');
+    const saved = savedSession();
+    if (!saved) throw Error(sourceMessage("messages.noGameToResumeInThisTab"));
     await this.configure();
-    if (saved.url !== this.url) throw Error('L’adresse du serveur a changé.');
+    if (saved.url !== this.url) throw Error(sourceMessage("messages.theServerAddressHasChanged"));
+    const result = await this.readSaved(saved);
+    if (result.game.finished) {
+      clearSavedSession(saved);
+      throw Error(sourceMessage("messages.noGameToResumeInThisTab"));
+    }
     this.session = saved;
-    this.accept(await this.request(`/rooms/${saved.code}`)); this.poll();
+    this.accept(result); this.poll();
+  }
+  async readSaved(saved) {
+    try { return await this.request(`/rooms/${saved.code}`, undefined, saved.token); }
+    catch (error) {
+      if ([401, 403, 404, 410].includes(error.status)) clearSavedSession(saved);
+      throw error;
+    }
+  }
+  async canResume() {
+    const saved = savedSession();
+    if (!saved) return false;
+    await this.configure();
+    if (saved.url !== this.url) { clearSavedSession(saved); return false; }
+    const result = await this.readSaved(saved);
+    if (result.game.finished) { clearSavedSession(saved); return false; }
+    return true;
   }
   poll() {
     clearTimeout(this.timer);
@@ -75,7 +128,6 @@ export class OnlineClient {
   async resign() {
     this.accept(await this.request(`/rooms/${this.session.code}/resign`, {}));
     this.stop();
-    sessionStorage.removeItem('kingbuilder-online');
   }
   async profile(nickname) {
     this.busy = true;

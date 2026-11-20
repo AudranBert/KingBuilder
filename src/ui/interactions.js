@@ -1,3 +1,4 @@
+import { message as sourceMessage } from "../i18n.js";
 import {
   actor,
   RULES,
@@ -14,9 +15,38 @@ import {
   buyTerrainError,
   openingError,
   workerAssignmentError,
+  BUILDINGS,
 } from "../engine.js";
+
+export function placementErrorText(error) {
+  const terrain = error.match(/terrain incompatible, il faut (.*?) à la place de /);
+  if (terrain) return sourceMessage("messages.cannotPlaceRequiresHere", [terrain[1]]);
+  const adjacency = Object.values(BUILDINGS).find(b =>
+    b.adjacency?.length && error === `${b.name} : ${b.pattern}`);
+  if (adjacency?.adjacency.every(rule => rule.terrain === "field" && rule.owned && rule.range === "edge"))
+    return sourceMessage("messages.cannotPlaceTheEntranceMustTouchOne");
+  const short = {
+    [sourceMessage("messages.thePatternMustFitOnEmptySpaces")]: sourceMessage("messages.theTileMustFitOnEmptySpaces"),
+    [sourceMessage("messages.yourBuildingExplorationActionIsAlreadyComplete")]: sourceMessage("messages.thisUnitHasAlreadyActed"),
+    [sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction")]: sourceMessage("messages.thisUnitHasAlreadyActed"),
+    [sourceMessage("messages.allSpacesInThePatternMustBe")]: sourceMessage("messages.exploreAllSpacesInThePattern"),
+    [sourceMessage("messages.thePatternOverlapsABuildingSpaceOr")]: sourceMessage("messages.aBuildingOrFieldOccupiesThePattern"),
+    [sourceMessage("messages.thePatternExtendsBeyondTheBoard")]: sourceMessage("messages.theTileExtendsBeyondTheBoard"),
+    [sourceMessage("messages.chooseYourOwnProductionBuilding")]: sourceMessage("messages.chooseOneOfYourProductionBuildings"),
+  };
+  const message = short[error] || error.replace(/^(Impossible|Erreur)\s*:\s*/i, "");
+  return sourceMessage("messages.cannotPlace", [message.charAt(0).toLowerCase() + message.slice(1)]);
+}
 export function placementGuidance(g, placement) {
   const results = new Map();
+  if (placement?.kind === 'worker') {
+    for (const [position, cell] of Object.entries(g.board)) {
+      if (cell.building?.owner !== g.active || !BUILDINGS[cell.building.type].produces) continue;
+      const [x, y] = position.split(',').map(Number);
+      results.set(position, dragPreview(g, placement, { x, y }));
+    }
+    return results;
+  }
   if (!placement || !["terrain", "building", "single-terrain"].includes(placement.kind)) return results;
   for (let y = 0; y < (g.boardSize ?? RULES.size); y++)
     for (let x = 0; x < (g.boardSize ?? RULES.size); x++)
@@ -54,7 +84,7 @@ export function dragPreview(g, drag, pos) {
     const path = movementPaths(g).get(key(x, y));
     return {
       cells: path || [pos],
-      error: path ? null : "Cette case est inaccessible.",
+      error: path ? null : sourceMessage("messages.thisSpaceIsUnreachable"),
     };
   }
   if (drag.kind === "worker")
@@ -83,7 +113,7 @@ export function moveUnitTo(g, x, y) {
   if (unit.x === x && unit.y === y) return;
   const combat = attackPaths(g).get(key(x,y));
   const path = combat || movementPaths(g).get(key(x, y));
-  if (!path) throw Error("Cette case est inaccessible pour cette unité.");
+  if (!path) throw Error(sourceMessage("messages.thisSpaceIsUnreachableForThisUnit"));
   for (const step of path) move(g, step.x, step.y);
   if (combat) attack(g,x,y);
 }

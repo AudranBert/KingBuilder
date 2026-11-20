@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   createGame, RULES, BUILDINGS, UNIT_DEFINITIONS, key, actor, selectUnit, selectArmy,
   selectedSoldiers, armyAt, attack, attackError, combatPreview, attackPaths,
+  defenseAt,
   move, exploreError, buildError, build, patternAt, trainUnit, trainError,
   endTurn, assignWorker, harvestPreview, score, totalScore, destroyBuilding,
 } from "../src/engine.js";
@@ -11,6 +12,7 @@ import { moveUnitTo } from "../src/ui/interactions.js";
 import { validateGame } from "../src/validation.js";
 import { territoryBorders } from "../src/ui/board.js";
 import { armyControlsView, rulesView, tradeView } from "../src/ui/views.js";
+import { createUIState, hasSelectedUnit } from "../src/ui/state.js";
 
 function game() {
   const g = createGame(() => .42);
@@ -192,9 +194,42 @@ test("piles : séparation, fusion automatique et conservation du budget de chaqu
   assert.equal(selectedSoldiers(g).length,3);assert.equal(actor(g).moves,2);
   move(g,4,2);assert.equal(actor(g).moves,1);
   assert.equal(g.players[0].units.find(u=>u.id===fresh.id).moves,2);
-  assert.match(armyControlsView(g),/3 · 3 disponible/);
+  assert.match(armyControlsView(g), /Attaque : 3/);
+  assert.match(armyControlsView(g), /Défense : 4/);
   selectArmy(g,1);assert.equal(actor(g).id,fresh.id);move(g,5,2);
   assert.equal(armyAt(g,0,4,2).length,2);assert.equal(armyAt(g,0,5,2).length,1);
+});
+
+test('les puissances de la description utilisent les mêmes défenses que les combats', () => {
+  const g = game();
+  assert.equal(defenseAt(g, 0, 2, 2).defense, 0);
+  g.board[key(2, 2)].building = { type: 'outpost', owner: 0 };
+  assert.equal(defenseAt(g, 0, 2, 2).defense, 2);
+  const selected = soldiers(g, 0, 2, 2, 2);
+  soldiers(g, 0, 2, 2, 2, { ended: true });
+  selectUnit(g, selected[0].id);
+  selectArmy(g, 1);
+  const html = armyControlsView(g);
+  assert.match(html, /Attaque : 1/);
+  assert.match(html, /Défense : 6/);
+  assert.match(html, /icon-sword\.svg/);
+  assert.match(html, /icon-shield\.svg/);
+  assert.doesNotMatch(html, /disponible/);
+  const enemy = soldiers(g, 1, 8, 3, 2);
+  g.active = 1;
+  selectUnit(g, enemy[0].id);
+  assert.equal(combatPreview(g, 2, 2).defense, 6);
+});
+
+test('la disparition d’une armée sélectionnée ne sélectionne pas le roi à sa place', () => {
+  const g = game(), selected = soldiers(g, 0, 1, 2, 2)[0], ui = createUIState();
+  g.board[key(3, 2)].building = { type: 'outpost', owner: 1 };
+  selectUnit(g, selected.id);
+  ui.unitSelection = { id: selected.id, owner: g.active, round: g.round };
+  assert.equal(hasSelectedUnit(g, ui), true);
+  attack(g, 3, 2);
+  assert.equal(g.players[0].units.length, 0);
+  assert.equal(hasSelectedUnit(g, ui), false);
 });
 
 test("les recrues grisées ne repartent pas en fusionnant et les soldats ne bâtissent pas",()=>{

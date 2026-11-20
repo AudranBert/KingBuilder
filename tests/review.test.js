@@ -100,7 +100,8 @@ test("chaque aperçu de tuile affiche ses terrains et les textes sont échappés
   assert.doesNotMatch(playersView(g), /<img src=x>/);
   assert.match(playersView(g), /&lt;img src=x&gt;/);
   assert.match(playersView(g), /&lt;img/);
-  assert.match(rulesView(), /13 × 13/);
+  assert.match(rulesView(), /11 × 11/);
+  assert.match(rulesView({ boardSize: 15 }), /15 × 15/);
 });
 test("l’exploration est proposée sans déplacer l’unité ni révéler de cases", () => {
   const g = createGame(),
