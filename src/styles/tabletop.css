@@ -684,8 +684,6 @@ main {
 .building-offer .offer-details, .selected-building .offer-details { width: 25px; height: 25px; min-height: 0; padding: 0; border-radius: 50%; font: 700 14px Georgia, serif; line-height: 1; background: #fff9e9; color: #76532b; }
 .building-offer .offer-details { position: absolute; top: 7px; right: 7px; z-index: 2; }
 .building-offer .offer-details:hover, .selected-building .offer-details:hover { background: #f4dfad; }
-.cell.placement-available { outline: 3px solid #237e46; outline-offset: -3px; box-shadow: inset 0 0 0 5px #8ee5ab80; }
-.cell.placement-blocked { cursor: help; }
 .inactive-producer { position: absolute; right: 2px; top: 2px; background: #842b20; color: white; border-radius: 50%; width: 15px; height: 15px; font-size: 12px; line-height: 15px; z-index: 3; }
 .placement-help:empty { display: none; }
 .placement-help { padding: 10px 14px; background: #e3efdc; color: #21432b; font-size: 13px; line-height: 1.5; }

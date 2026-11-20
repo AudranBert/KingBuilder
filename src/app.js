@@ -35,7 +35,7 @@ import {
   key,
 } from "./engine.js";
 import { createUIState, hasSelectedUnit } from "./ui/state.js";
-import { dragFromCard, dragPreview, moveUnitTo as localMoveUnitTo, placementGuidance, placementErrorText } from "./ui/interactions.js";
+import { dragFromCard, dragPreview, placementOrigin, moveUnitTo as localMoveUnitTo, placementGuidance, placementErrorText } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
@@ -375,6 +375,7 @@ export function startGame({ initialGame = null } = {}) {
     if (ui.drag) return;
     if (ui.placement) {
       const d = ui.placement;
+      ({ x, y } = placementOrigin(game, d, { x, y }));
       if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
       else act(() => {
         if (d.kind === "worker") assignWorker(game, d.id, x, y);
@@ -916,6 +917,7 @@ export function startGame({ initialGame = null } = {}) {
     },
     drop(pos) {
       const d = ui.drag;
+      if (!pos.workerReserve) pos = placementOrigin(game, d, pos);
       ui.drag = null;
       if (pos.workerReserve) {
         if (d.kind === "worker")

@@ -1,4 +1,5 @@
 import { message as sourceMessage } from "../i18n.js";
+import { rotatePoint } from "../geometry.js";
 import {
   actor,
   RULES,
@@ -9,6 +10,7 @@ import {
   attackPaths,
   combatPreview,
   patternAt,
+  buildingPattern,
   transformed,
   buildError,
   exploreError,
@@ -74,7 +76,7 @@ export function dragFromCard(card, ui) {
 }
 export function dragPreview(g, drag, pos) {
   if (!drag || !pos) return null;
-  const { x, y } = pos;
+  const { x, y } = placementOrigin(g, drag, pos);
   if (drag.kind === "unit") {
     const combat = attackPaths(g).get(key(x,y));
     if (combat) {
@@ -107,6 +109,22 @@ export function dragPreview(g, drag, pos) {
     error: g.opening ? openingError(g, drag.index, x, y, drag.rotation)
       : exploreError(g, drag.index, x, y, drag.rotation),
   };
+}
+// Keep the same occupied central cell under the pointer through every orientation.
+// Only UI coordinates change: engine commands and saved building anchors stay intact.
+export function placementOrigin(g, placement, pos) {
+  const cells = placement?.kind === "building"
+    ? buildingPattern(g.buildingMarket[placement.index])
+    : placement?.kind === "terrain"
+      ? transformed((g.opening ? g.opening.tiles : g.tileMarket)[placement.index])
+      : [];
+  if (!cells.length) return pos;
+  const sumX = cells.reduce((sum, c) => sum + c.x, 0);
+  const sumY = cells.reduce((sum, c) => sum + c.y, 0);
+  const distance = c => (c.x * cells.length - sumX) ** 2 + (c.y * cells.length - sumY) ** 2;
+  const center = cells.reduce((best, c) => distance(c) < distance(best) ? c : best);
+  const offset = rotatePoint(center.x, center.y, placement.rotation);
+  return { x: pos.x - offset.x, y: pos.y - offset.y };
 }
 export function moveUnitTo(g, x, y) {
   const unit = actor(g);

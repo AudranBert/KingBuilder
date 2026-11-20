@@ -182,7 +182,6 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         if (!guidance.size && ui.mode === "move" && targets.has(position)) button.classList.add("combat-target");
         button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[cell.terrain].texture}`, import.meta.url).href}")` : "";
         button.style.backgroundColor = cell ? TERRAINS[cell.terrain].color : "";
-        if (guidance.has(position)) button.classList.add(guidance.get(position).error ? "placement-blocked" : "placement-available");
         button.style.color = cell ? TERRAINS[cell.terrain].foreground : "";
         button.tabIndex = position === focusPosition ? 0 : -1;
         button.setAttribute("aria-selected", String(selected));
