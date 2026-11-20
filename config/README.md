@@ -10,7 +10,7 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 | `resources.json` | Matériaux (`material`), nourriture (`food`), or (`gold`) |
 | `units.json` | Roi, ouvrier, soldat et émissaire |
 | `buildings.json` | Coûts, motifs, production, garnisons et points |
-| `terrain-tiles.json` | Dix-sept formes et soixante tuiles prédéfinies, de deux à six cases |
+| `terrain-tiles.json` | Treize formes et quarante-huit tuiles prédéfinies, de deux à cinq cases |
 | `terrains.json` | Terrains, traversabilité et apparence |
 | `missions.json` | Missions communes, contribution et récompenses en or |
 

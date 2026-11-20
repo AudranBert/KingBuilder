@@ -10,7 +10,7 @@ const originals=await Promise.all(names.map(n=>readFile(new URL(`../config/${n}.
 const configs=()=>structuredClone(originals);
 test("configuration sans mutation : trois ressources, quatre unités et nouveaux bâtiments",()=>{
  const input=configs(),before=structuredClone(input),c=compileConfiguration(...input);
- assert.deepEqual(input,before);assert.equal(Object.keys(c.shapes).length,17);assert.equal(Object.keys(c.resources).length,3);
+ assert.deepEqual(input,before);assert.equal(Object.keys(c.shapes).length,13);assert.equal(Object.keys(c.resources).length,3);
  assert.equal(Object.keys(c.units).length,4);assert.equal(c.units.soldier.moves,3);assert.equal(c.units.emissary.moves,3);assert.equal(c.units.king.moves,3);assert.equal(c.units.worker.moves,0);assert.equal(c.units.worker.recruitment,"house");
  assert.equal(c.buildings.chancellery.onBuildUnit,"emissary");assert.equal(c.buildings.castle.garrison,1);assert.equal(c.rules.turnLimit,25);
 });

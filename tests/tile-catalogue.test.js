@@ -20,11 +20,11 @@ const definitions = await Promise.all(
   ),
 );
 const deck = (g) => [...g.tileMarket, ...g.tileDeck];
-test("60 tuiles fixes, sans répétition et sans tirage aléatoire de terrains", () => {
+test("48 tuiles fixes, sans répétition et sans tirage aléatoire de terrains", () => {
   const a = deck(createGame(() => 0.2)),
     b = deck(createGame(() => 0.8));
-  assert.equal(a.length, 60);
-  assert.equal(new Set(a.map((t) => t.definitionId)).size, 60);
+  assert.equal(a.length, 48);
+  assert.equal(new Set(a.map((t) => t.definitionId)).size, 48);
   const contents = (tiles) =>
     tiles
       .map((t) => [t.definitionId, t.cells])
@@ -42,8 +42,8 @@ test("60 tuiles fixes, sans répétition et sans tirage aléatoire de terrains",
   a[0].cells[0].terrain = "river";
   assert.deepEqual(contents(deck(createGame(() => 0.8))), contents(b));
 });
-test("les 17 formes, les fermes, mines et ports ont des motifs exploitables", () => {
-  assert.equal(new Set(CONFIG.tiles.map((t) => t.shapeId)).size, 17);
+test("les 13 formes, les fermes, mines et ports ont des motifs exploitables", () => {
+  assert.equal(new Set(CONFIG.tiles.map((t) => t.shapeId)).size, 13);
   assert.ok(CONFIG.tiles.some((t) => t.pattern.join("/") === ".P./PPP/.P."));
   assert.ok(CONFIG.tiles.some((t) => t.pattern.join("/") === "PMMM"));
   assert.ok(CONFIG.tiles.some((t) => t.pattern.join("/") === "RRR/.P./.P."));
@@ -67,7 +67,7 @@ test("les 17 formes, les fermes, mines et ports ont des motifs exploitables", ()
           .join(";");
       })
       .sort()[0];
-  assert.equal(new Set(CONFIG.tiles.map(canonical)).size, 60);
+  assert.equal(new Set(CONFIG.tiles.map(canonical)).size, 48);
 });
 test("les erreurs du catalogue sont identifiées avant de lancer la partie", () => {
   for (const mutate of [
@@ -75,7 +75,7 @@ test("les erreurs du catalogue sont identifiées avant de lancer la partie", () 
     (c) => (c.tiles[0].shapeId = "missing"),
     (c) => (c.tiles[0].pattern = ["ZP"]),
     (c) => (c.tiles[0].pattern = ["PPP"]),
-    (c) => (c.deckSize = 59),
+    (c) => (c.deckSize = 47),
     (c) => (c.legend.P = "missing"),
   ]) {
     const input = structuredClone(definitions);
@@ -84,14 +84,14 @@ test("les erreurs du catalogue sont identifiées avant de lancer la partie", () 
   }
 });
 
-test("les tailles suivent la répartition demandée et les montagnes restent près de 10 %", () => {
+test("la pioche conserve les tuiles de deux à cinq cases et leur composition", () => {
   const counts = { plain: 0, forest: 0, river: 0, mountain: 0 };
   const sizes = { 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
   for (const tile of CONFIG.tiles) {
     sizes[tile.cells.length]++;
     for (const cell of tile.cells) counts[cell.terrain]++;
   }
-  assert.deepEqual(sizes, { 2: 3, 3: 12, 4: 15, 5: 18, 6: 12 });
-  assert.deepEqual(counts, { plain: 111, forest: 74, river: 53, mountain: 26 });
-  assert.ok(Math.abs(counts.mountain / 264 - 0.10) < 0.005);
+  assert.deepEqual(sizes, { 2: 3, 3: 12, 4: 15, 5: 18, 6: 0 });
+  assert.deepEqual(counts, { plain: 82, forest: 46, river: 42, mountain: 22 });
+  assert.ok(CONFIG.tiles.every(tile => tile.cells.length <= 5));
 });

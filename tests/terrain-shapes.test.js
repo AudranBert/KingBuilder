@@ -8,20 +8,19 @@ import {
   explore,
   score,
 } from "../src/engine.js";
-import { CONFIG } from "../src/configuration.js";
 const coordinates = (cells) => cells.map((c) => key(c.x, c.y)).sort();
 function getTile(g, id) {
   return [...g.tileMarket, ...g.tileDeck].find((t) => t.id === id);
 }
-test("la pioche de 60 tuiles comprend dix-sept formes, dont quatre de six cases", () => {
+test("la pioche de 48 tuiles comprend treize formes de cinq cases au maximum", () => {
   const g = createGame();
   const tiles = [...g.tileMarket, ...g.tileDeck];
-  assert.equal(tiles.length, 60);
+  assert.equal(tiles.length, 48);
   assert.equal(
     new Set(tiles.map((t) => JSON.stringify(coordinates(t.cells)))).size,
-    17,
+    13,
   );
-  assert.ok(tiles.every((t) => t.cells.length <= 6));
+  assert.ok(tiles.every((t) => t.cells.length <= 5));
   assert.deepEqual(
     coordinates(getTile(g, 5).cells),
     ["1,0", "0,1", "1,1", "2,1", "1,2"].sort(),
@@ -62,21 +61,6 @@ test("croix et U pivotent sans remplir leurs vides et restent posables", () => {
       const hit = cells[1];
       g.board[key(hit.x, hit.y)] = { terrain: "plain" };
       assert.equal(placement(g, 0, 7, 7, r), null);
-    }
-});
-test("les douze tuiles de six cases pivotent et explorent exactement six cases", () => {
-  for (const definition of CONFIG.tiles.filter(tile => tile.cells.length === 6))
-    for (let rotation = 0; rotation < 4; rotation++) {
-      const g = createGame();
-      g.tileMarket[0] = [...g.tileMarket, ...g.tileDeck].find(tile => tile.definitionId === definition.id);
-      g.players[0].x = 6;
-      g.players[0].y = 7;
-      const cells = placement(g, 0, 7, 7, rotation);
-      assert.equal(cells?.length, 6, definition.id);
-      const before = Object.keys(g.board).length;
-      explore(g, 0, 7, 7, rotation);
-      assert.equal(Object.keys(g.board).length, before + 6);
-      assert.equal(g.players[0].revealed, 6);
     }
 });
 test("révéler la croix ou le U révèle cinq cases sans points directs et laisse les vides inexplorés", () => {
