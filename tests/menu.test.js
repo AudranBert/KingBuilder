@@ -205,6 +205,10 @@ test("menu : les curseurs configurent la nouvelle partie avant son lancement", (
   app.node("#setting-rounds").value = 20;
   app.node("#setting-opening").value = 4;
   app.node("#setting-board").value = 7;
+  assert.equal(app.node("#setting-preplaced").value, 0);
+  app.node("#setting-preplaced").value = 10;
+  app.node("#setting-preplaced").dispatch("input");
+  assert.equal(app.node("#setting-preplaced-value").textContent, "10");
   app.node("#setting-material").value = 6;
   app.node("#setting-food").value = 4;
   app.node("#setting-gold").value = 2;

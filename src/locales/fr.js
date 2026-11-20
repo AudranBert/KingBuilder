@@ -704,6 +704,10 @@ export default {
   "army.attackExplanation": "Puissance des soldats sélectionnés pour l’attaque.",
   "army.defenseExplanation": "Défense de la case : {0} soldats, garnison {1}, bonus défensif {2}.",
   "settings.missions": "Missions",
+  "settings.preplacedTerrain": "Cases de terrain préplacées",
+  "settings.preplacedTerrainHelp": "Cases neutres supplémentaires, réparties aléatoirement avant la préparation.",
+  "settings.preplacedTerrainInvalid": "Le nombre de cases de terrain préplacées doit être un entier positif ou nul, inférieur ou égal au nombre de cases de la grille.",
+  "settings.preplacedTerrainSpace": "La grille ne dispose que de {0} cases libres pour les terrains préplacés.",
   "settings.missionsInvalid": "L’activation des missions doit être un booléen.",
   "rulesView.setupWithoutMissions": "Sur le plateau {0} × {1}, chacun place {2} tuile(s) de préparation sur des cases libres, en alternance. À deux, Jade commence.",
   "rulesView.productionWithoutMissions": "Une maison fournit un ouvrier. Affectez-le gratuitement à un producteur : un ouvrier par bâtiment, récolte en fin de tour. Les missions sont désactivées pour cette partie. Les ressources manquantes peuvent être achetées en or lors d’une construction ou d’un recrutement ; le tarif figure dans la banque."

@@ -58,6 +58,7 @@ export const RULES = {
 export const GAME_DEFAULTS = Object.freeze({
   rounds: 25,
   openingTilesPerPlayer: 2,
+  preplacedTerrainCount: 0,
   boardSize: 11,
   missionsEnabled: true,
   resources: Object.freeze({ material: 3, food: 2, gold: 1 }),
@@ -69,6 +70,7 @@ export function gameSettings(settings = {}) {
     openingTilesPerPlayer:
       settings.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
     boardSize: settings.boardSize ?? GAME_DEFAULTS.boardSize,
+    preplacedTerrainCount: settings.preplacedTerrainCount ?? GAME_DEFAULTS.preplacedTerrainCount,
     missionsEnabled: settings.missionsEnabled === undefined ? GAME_DEFAULTS.missionsEnabled : settings.missionsEnabled,
     resources,
   };
@@ -79,6 +81,8 @@ export function gameSettings(settings = {}) {
   if (!Number.isInteger(result.boardSize) || result.boardSize < 7 || result.boardSize > 15)
     throw Error(sourceMessage("messages.theBoardSizeMustBeBetween7"));
   if (typeof result.missionsEnabled !== 'boolean') throw Error(sourceMessage("settings.missionsInvalid"));
+  if (!Number.isInteger(result.preplacedTerrainCount) || result.preplacedTerrainCount < 0 || result.preplacedTerrainCount > result.boardSize ** 2)
+    throw Error(sourceMessage("settings.preplacedTerrainInvalid"));
   for (const [id, amount] of Object.entries(resources))
     if (!Object.hasOwn(GAME_DEFAULTS.resources, id) || !Number.isInteger(amount) || amount < 0 || amount > 10)
       throw Error(sourceMessage("messages.startingResourcesMustBeBetween0And"));
@@ -159,6 +163,7 @@ export function migrateGame(g) {
   g.boardSize ??= RULES.size;
   g.turnLimit ??= RULES.rounds;
   g.openingTilesPerPlayer ??= GAME_DEFAULTS.openingTilesPerPlayer;
+  g.preplacedTerrainCount ??= GAME_DEFAULTS.preplacedTerrainCount;
   g.missionsEnabled ??= GAME_DEFAULTS.missionsEnabled;
   g.startingResources ??= { ...RULES.startResources };
   if (g.opening) {
@@ -270,6 +275,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
       ? {
           rounds: RULES.rounds,
           openingTilesPerPlayer: GAME_DEFAULTS.openingTilesPerPlayer,
+          preplacedTerrainCount: GAME_DEFAULTS.preplacedTerrainCount,
           boardSize: RULES.size,
           missionsEnabled: GAME_DEFAULTS.missionsEnabled,
           resources: { ...RULES.startResources },
@@ -369,12 +375,28 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
       y = Math.round((flag.y / (RULES.size - 1)) * (size - 1));
     board[key(x, y)] = { terrain: "plain", flag: { owner: null } };
   }
+  if (options.preplacedTerrainCount > 0) {
+    const available = [];
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        if (!board[key(x, y)]) available.push(key(x, y));
+      }
+    }
+    if (options.preplacedTerrainCount > available.length)
+      throw Error(sourceMessage("settings.preplacedTerrainSpace", [available.length]));
+    // Use terrains from the exploration tiles, without consuming the deck.
+    const terrains = CONFIG.tiles.flatMap(tile => tile.cells.map(cell => cell.terrain));
+    for (const position of shuffle(available, rng).slice(0, options.preplacedTerrainCount)) {
+      board[position] = { terrain: terrains[Math.floor(rng() * terrains.length)] };
+    }
+  }
   const game = {
     version: 5,
     mode,
     boardSize: size,
     turnLimit: options.rounds,
     openingTilesPerPlayer: options.openingTilesPerPlayer,
+    preplacedTerrainCount: options.preplacedTerrainCount,
     missionsEnabled: options.missionsEnabled,
     startingResources: { ...options.resources },
     players,

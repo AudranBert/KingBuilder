@@ -704,6 +704,10 @@ export default {
   "army.attackExplanation": "Attack strength of the selected soldiers.",
   "army.defenseExplanation": "Defense of this space: {0} soldiers, garrison {1}, defensive bonus {2}.",
   "settings.missions": "Missions",
+  "settings.preplacedTerrain": "Preplaced terrain spaces",
+  "settings.preplacedTerrainHelp": "Additional neutral spaces, randomly placed before setup.",
+  "settings.preplacedTerrainInvalid": "The number of preplaced terrain spaces must be a nonnegative integer no greater than the number of board spaces.",
+  "settings.preplacedTerrainSpace": "The board only has {0} free spaces for preplaced terrain.",
   "settings.missionsInvalid": "The missions setting must be a boolean.",
   "rulesView.setupWithoutMissions": "On the board {0} × {1}, each player places {2} setup tile(s) on empty spaces, taking turns. With two players, Jade goes first.",
   "rulesView.productionWithoutMissions": "A house provides one worker. Assign it to a producer for free: one worker per building, with a harvest at the end of your turn. Missions are disabled for this game. Missing resources can be bought with gold when building or recruiting; prices are shown in the bank."

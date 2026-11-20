@@ -53,6 +53,9 @@ export function validateGame(game, { legacy = false } = {}) {
     "limite de tours incorrecte.");
   requireValid(game.missionsEnabled === undefined || typeof game.missionsEnabled === 'boolean',
     "activation des missions incorrecte.");
+  requireValid(game.preplacedTerrainCount === undefined ||
+    nonnegative(game.preplacedTerrainCount) && game.preplacedTerrainCount <= boardSize ** 2,
+    "nombre de cases de terrain préplacées incorrect.");
   requireValid(
     Array.isArray(game.players) &&
       (game.mode === "solo"

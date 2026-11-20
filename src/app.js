@@ -124,7 +124,7 @@ export function startGame({ initialGame = null } = {}) {
     $('#lobby-start').disabled = !session.joined || online.busy;
     for (const [name, [selector]] of Object.entries(settingInputs)) {
       $(selector).disabled = session.player !== 0;
-      if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $(selector).value = session.settings.resources[name] ?? session.settings[name];
+      if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $(selector).value = session.settings.resources[name] ?? session.settings[name] ?? GAME_DEFAULTS[name];
     }
     updateSettingLabels();
     if (!$('#game-settings-dialog').open) $('#game-settings-dialog').showModal();
@@ -745,6 +745,7 @@ export function startGame({ initialGame = null } = {}) {
   const settingInputs = {
     rounds: ["#setting-rounds", "#setting-rounds-value"],
     openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value"],
+    preplacedTerrainCount: ["#setting-preplaced", "#setting-preplaced-value"],
     boardSize: ["#setting-board", "#setting-board-value"],
     material: ["#setting-material", "#setting-material-value"],
     food: ["#setting-food", "#setting-food-value"],
@@ -790,6 +791,7 @@ export function startGame({ initialGame = null } = {}) {
       turnSeconds: Number($('#setting-clock').value || 0),
       rounds: Number($("#setting-rounds").value),
       openingTilesPerPlayer: Number($("#setting-opening").value),
+      preplacedTerrainCount: Number($("#setting-preplaced").value),
       boardSize: Number($("#setting-board").value),
       missionsEnabled: $('#setting-missions').checked,
       resources: {

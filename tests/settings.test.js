@@ -17,6 +17,7 @@ test("les réglages de partie utilisent les nouvelles valeurs par défaut", () =
   assert.equal(g.boardSize, 11);
   assert.equal(g.turnLimit, 25);
   assert.equal(g.openingTilesPerPlayer, 2);
+  assert.equal(g.preplacedTerrainCount, 0);
   assert.equal(g.missionsEnabled, true);
   assert.deepEqual(g.players[0].resources, { material: 3, food: 2, gold: 1 });
   assert.deepEqual(g.players[1].resources, { material: 3, food: 2, gold: 2 });
@@ -56,11 +57,51 @@ test("les réglages hors limites sont refusés", () => {
     { openingTilesPerPlayer: 5 },
     { boardSize: 6 },
     { boardSize: 16 },
+    { preplacedTerrainCount: -1 },
+    { preplacedTerrainCount: 1.5 },
+    { preplacedTerrainCount: "3" },
+    { preplacedTerrainCount: 122 },
     { resources: { gold: 11 } },
     { missionsEnabled: 'false' },
     { missionsEnabled: 0 },
     { missionsEnabled: null },
   ]) assert.throws(() => gameSettings(settings));
+});
+
+test("les terrains préplacés ajoutent exactement des cases neutres sans écraser le plateau initial", () => {
+  for (const mode of ["solo", "local"]) {
+    for (const boardSize of [7, 11, 15]) {
+      const base = createGame(() => 0.5, mode, { boardSize });
+      const g = createGame(() => 0.5, mode, { boardSize, preplacedTerrainCount: 20 });
+      assert.equal(g.preplacedTerrainCount, 20);
+      assert.equal(Object.keys(g.board).length, Object.keys(base.board).length + 20);
+      for (const [position, cell] of Object.entries(base.board))
+        assert.deepEqual(g.board[position], cell);
+      for (const [position, cell] of Object.entries(g.board)) {
+        if (!base.board[position]) assert.deepEqual(Object.keys(cell), ["terrain"]);
+      }
+      assert.deepEqual(g.tileDeck, base.tileDeck);
+      assert.deepEqual(g.tileMarket, base.tileMarket);
+      assert.ok(g.players.every(player => player.revealed === 0));
+      assert.doesNotThrow(() => validateGame(g));
+      assert.equal(migrateGame(structuredClone(g)).preplacedTerrainCount, 20);
+    }
+  }
+});
+
+test("le préplacement utilise le hasard et refuse un plateau trop rempli", () => {
+  const makeRng = (seed) => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
+  const settings = { preplacedTerrainCount: 15, boardSize: 7 };
+  const first = createGame(makeRng(1), "local", settings);
+  assert.deepEqual(first, createGame(makeRng(1), "local", settings));
+  assert.notDeepEqual(first.board, createGame(makeRng(2), "local", settings).board);
+  assert.ok(new Set(Object.values(first.board).map(cell => cell.terrain)).size > 1);
+  assert.throws(() => createGame(() => 0.5, "local", { boardSize: 7, preplacedTerrainCount: 49 }), /cases libres/);
+  const old = createGame(() => 0.5);
+  delete old.preplacedTerrainCount;
+  const board = structuredClone(old.board);
+  assert.equal(migrateGame(old).preplacedTerrainCount, 0);
+  assert.deepEqual(old.board, board);
 });
 
 test('missions désactivées : aucun objectif ni récompense, choix conservé à la reprise', () => {
