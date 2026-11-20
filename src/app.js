@@ -1,5 +1,6 @@
 import { t, definitionText, translateMessage, kingdomName, getLanguage, setLanguage, restoreLanguage, translateDocument } from "./i18n.js";
 import { parseKey } from "./geometry.js";
+import { MAPS } from "./maps.js";
 import { OnlineClient } from './online.js';
 import { monitorServerHealth } from './server-health.js';
 import { installDrag } from "./ui/drag.js";
@@ -114,6 +115,9 @@ export function startGame({ initialGame = null } = {}) {
     $('#setting-clock-row').hidden = false;
     $('#setting-clock').disabled = session.player !== 0;
     $('#setting-missions').disabled = session.player !== 0;
+    $('#setting-map').disabled = session.player !== 0;
+    if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-map').value = session.settings.mapId ?? GAME_DEFAULTS.mapId;
+    updateMapDescription();
     if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-clock').value = session.settings.turnSeconds ?? 0;
     if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-missions').checked = session.settings.missionsEnabled ?? GAME_DEFAULTS.missionsEnabled;
     $('#settings-mode').textContent = session.player === 0 ? t("app.youAreTheHost") : t("app.guest");
@@ -174,6 +178,7 @@ export function startGame({ initialGame = null } = {}) {
   }
   function enterGame() {
     inMenu = false;
+    html('.rules-content', rulesView(game));
     $("#main-menu").hidden = true;
     $("header").hidden = false;
     $("main").hidden = false;
@@ -658,7 +663,7 @@ export function startGame({ initialGame = null } = {}) {
     }
     showMenu();
   });
-  const catalogueFilters = { tier: "all", tileSize: "all", terrain: "all", tileSort: "size" };
+  const catalogueFilters = { tier: "all", tileSize: "all", terrain: "all", tileSort: "size", mapSize: GAME_DEFAULTS.boardSize };
   let catalogueSection = "buildings";
   function renderCatalogue() {
     html("#catalogue-content", catalogueView(catalogueFilters));
@@ -688,7 +693,7 @@ export function startGame({ initialGame = null } = {}) {
   $('#game-catalogue-button').addEventListener('click', openCatalogue);
   function selectCatalogueSection(section) {
     catalogueSection = section;
-    for (const name of ["buildings", "tiles"]) {
+    for (const name of ["buildings", "tiles", "maps"]) {
       $(`#catalogue-${name}`).hidden = name !== section;
       $(`[data-catalogue-section="${name}"]`).setAttribute("aria-pressed", String(name === section));
     }
@@ -700,6 +705,7 @@ export function startGame({ initialGame = null } = {}) {
     button.addEventListener("click", () => $("#catalogue-dialog").close());
   });
   function requestNewGame(mode) {
+    $('#setting-map').disabled = false;
     $('#setting-missions').disabled = false;
     $('#setting-clock-row').hidden = true;
     online.stop();
@@ -745,7 +751,6 @@ export function startGame({ initialGame = null } = {}) {
   const settingInputs = {
     rounds: ["#setting-rounds", "#setting-rounds-value"],
     openingTilesPerPlayer: ["#setting-opening", "#setting-opening-value"],
-    preplacedTerrainCount: ["#setting-preplaced", "#setting-preplaced-value"],
     boardSize: ["#setting-board", "#setting-board-value"],
     material: ["#setting-material", "#setting-material-value"],
     food: ["#setting-food", "#setting-food-value"],
@@ -768,6 +773,18 @@ export function startGame({ initialGame = null } = {}) {
     input.addEventListener('change', scheduleLobbySave);
   }
   let lobbySaveTimer;
+  function updateMapDescription() {
+    const map = MAPS.find(map => map.id === $('#setting-map').value);
+    $('#setting-map-description').textContent = map ? map.description[getLanguage()] : t('maps.randomHelp');
+  }
+  function renderMapOptions() {
+    const current = $('#setting-map').value || GAME_DEFAULTS.mapId;
+    html('#setting-map', `<option value="random">${e(t('maps.random'))}</option>${MAPS.map(map => `<option value="${e(map.id)}">${e(map.name[getLanguage()])}</option>`).join('')}`);
+    $('#setting-map').value = current;
+    updateMapDescription();
+  }
+  renderMapOptions();
+  $('#setting-map').addEventListener('change', () => { updateMapDescription(); scheduleLobbySave(); });
   $('#setting-missions').checked = GAME_DEFAULTS.missionsEnabled;
   $('#setting-missions').addEventListener('change', scheduleLobbySave);
   $('#setting-clock').addEventListener('change', scheduleLobbySave);
@@ -790,8 +807,8 @@ export function startGame({ initialGame = null } = {}) {
     nextSettings = {
       turnSeconds: Number($('#setting-clock').value || 0),
       rounds: Number($("#setting-rounds").value),
-      openingTilesPerPlayer: Number($("#setting-opening").value),
-      preplacedTerrainCount: Number($("#setting-preplaced").value),
+      mapId: $('#setting-map').value,
+      openingTilesPerPlayer: Number($('#setting-opening').value),
       boardSize: Number($("#setting-board").value),
       missionsEnabled: $('#setting-missions').checked,
       resources: {
@@ -960,6 +977,7 @@ export function startGame({ initialGame = null } = {}) {
     $('#toast').textContent = '';
     $('#toast').classList.remove('visible');
     translateDocument();
+    renderMapOptions();
     updateLanguageFlag();
     html('.rules-content', rulesView(game));
     if ($('#catalogue-dialog').open) renderCatalogue();

@@ -1,4 +1,5 @@
 import { message as sourceMessage } from "./i18n.js";
+import { MAPS, chooseMap, mapCells } from "./maps.js";
 import {
   GOLD,
   MISSIONS,
@@ -56,9 +57,9 @@ export const RULES = {
   points: CONFIG.rules.scoring,
 };
 export const GAME_DEFAULTS = Object.freeze({
+  mapId: "base",
   rounds: 25,
-  openingTilesPerPlayer: 2,
-  preplacedTerrainCount: 0,
+  openingTilesPerPlayer: 0,
   boardSize: 11,
   missionsEnabled: true,
   resources: Object.freeze({ material: 3, food: 2, gold: 1 }),
@@ -66,23 +67,24 @@ export const GAME_DEFAULTS = Object.freeze({
 export function gameSettings(settings = {}) {
   const resources = { ...GAME_DEFAULTS.resources, ...(settings.resources || {}) };
   const result = {
+    // Explicit old setup settings remain supported for older clients and scenarios.
+    mapId: Object.hasOwn(settings, "mapId") ? settings.mapId : (Object.hasOwn(settings, "openingTilesPerPlayer")) ? null : GAME_DEFAULTS.mapId,
     rounds: settings.rounds ?? GAME_DEFAULTS.rounds,
     openingTilesPerPlayer:
       settings.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
     boardSize: settings.boardSize ?? GAME_DEFAULTS.boardSize,
-    preplacedTerrainCount: settings.preplacedTerrainCount ?? GAME_DEFAULTS.preplacedTerrainCount,
     missionsEnabled: settings.missionsEnabled === undefined ? GAME_DEFAULTS.missionsEnabled : settings.missionsEnabled,
     resources,
   };
+  if (result.mapId !== null && result.mapId !== "random" && !MAPS.some(map => map.id === result.mapId))
+    throw Error("Carte inconnue.");
   if (!Number.isInteger(result.rounds) || result.rounds < 20 || result.rounds > 40)
     throw Error(sourceMessage("messages.theNumberOfTurnsMustBeBetween"));
-  if (!Number.isInteger(result.openingTilesPerPlayer) || result.openingTilesPerPlayer < 0 || result.openingTilesPerPlayer > 4)
+  if (!Number.isInteger(result.openingTilesPerPlayer) || result.openingTilesPerPlayer < 0 || result.openingTilesPerPlayer > 2)
     throw Error(sourceMessage("messages.theNumberOfSetupTilesMustBe"));
-  if (!Number.isInteger(result.boardSize) || result.boardSize < 7 || result.boardSize > 15)
+  if (!Number.isInteger(result.boardSize) || result.boardSize < 9 || result.boardSize > 13 || result.boardSize % 2 === 0)
     throw Error(sourceMessage("messages.theBoardSizeMustBeBetween7"));
   if (typeof result.missionsEnabled !== 'boolean') throw Error(sourceMessage("settings.missionsInvalid"));
-  if (!Number.isInteger(result.preplacedTerrainCount) || result.preplacedTerrainCount < 0 || result.preplacedTerrainCount > result.boardSize ** 2)
-    throw Error(sourceMessage("settings.preplacedTerrainInvalid"));
   for (const [id, amount] of Object.entries(resources))
     if (!Object.hasOwn(GAME_DEFAULTS.resources, id) || !Number.isInteger(amount) || amount < 0 || amount > 10)
       throw Error(sourceMessage("messages.startingResourcesMustBeBetween0And"));
@@ -163,7 +165,7 @@ export function migrateGame(g) {
   g.boardSize ??= RULES.size;
   g.turnLimit ??= RULES.rounds;
   g.openingTilesPerPlayer ??= GAME_DEFAULTS.openingTilesPerPlayer;
-  g.preplacedTerrainCount ??= GAME_DEFAULTS.preplacedTerrainCount;
+  delete g.preplacedTerrainCount;
   g.missionsEnabled ??= GAME_DEFAULTS.missionsEnabled;
   g.startingResources ??= { ...RULES.startResources };
   if (g.opening) {
@@ -275,7 +277,6 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
       ? {
           rounds: RULES.rounds,
           openingTilesPerPlayer: GAME_DEFAULTS.openingTilesPerPlayer,
-          preplacedTerrainCount: GAME_DEFAULTS.preplacedTerrainCount,
           boardSize: RULES.size,
           missionsEnabled: GAME_DEFAULTS.missionsEnabled,
           resources: { ...RULES.startResources },
@@ -370,33 +371,26 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
       }
     }
   }
-  for (const flag of RULES.flags) {
+  const selectedMap = options.mapId ? chooseMap(options.mapId, rng) : null;
+  if (selectedMap) {
+    for (const [position, cell] of mapCells(selectedMap, size)) {
+      // Home buildings and their access cells are reserved before map placement.
+      if (board[position]) throw Error(`Carte ${selectedMap.id} : la carte empiète sur un départ en ${position}.`);
+      board[position] = cell;
+    }
+  }
+  for (const flag of selectedMap ? [] : RULES.flags) {
     const x = Math.round((flag.x / (RULES.size - 1)) * (size - 1)),
       y = Math.round((flag.y / (RULES.size - 1)) * (size - 1));
     board[key(x, y)] = { terrain: "plain", flag: { owner: null } };
   }
-  if (options.preplacedTerrainCount > 0) {
-    const available = [];
-    for (let y = 0; y < size; y++) {
-      for (let x = 0; x < size; x++) {
-        if (!board[key(x, y)]) available.push(key(x, y));
-      }
-    }
-    if (options.preplacedTerrainCount > available.length)
-      throw Error(sourceMessage("settings.preplacedTerrainSpace", [available.length]));
-    // Use terrains from the exploration tiles, without consuming the deck.
-    const terrains = CONFIG.tiles.flatMap(tile => tile.cells.map(cell => cell.terrain));
-    for (const position of shuffle(available, rng).slice(0, options.preplacedTerrainCount)) {
-      board[position] = { terrain: terrains[Math.floor(rng() * terrains.length)] };
-    }
-  }
   const game = {
     version: 5,
     mode,
+    mapId: selectedMap?.id ?? null,
     boardSize: size,
     turnLimit: options.rounds,
     openingTilesPerPlayer: options.openingTilesPerPlayer,
-    preplacedTerrainCount: options.preplacedTerrainCount,
     missionsEnabled: options.missionsEnabled,
     startingResources: { ...options.resources },
     players,

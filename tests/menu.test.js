@@ -140,16 +140,17 @@ function mount(t, initialGame = null) {
   };
 }
 
-test("annulation : une seule pose peut être reprise, puis le bouton se désactive", (t) => {
+test("annulation : un déplacement peut être repris, puis le bouton se désactive", (t) => {
   const app = mount(t);
   app.start("solo");
-  app.prepare(1);
+  const x = +app.king().dataset.x, y = +app.king().dataset.y;
+  app.clickCell(x, y);
+  app.clickCell(x + 1, y);
+  assert.equal(+app.king().dataset.x, x + 1);
   assert.equal(app.node("#undo-action").disabled, false);
   app.node("#undo-action").click();
-  assert.match(app.node("#opening-status").textContent, /Préparation 1\/2/);
+  assert.equal(+app.king().dataset.x, x);
   assert.equal(app.node("#undo-action").disabled, true);
-  app.node("#undo-action").click();
-  assert.match(app.node("#opening-status").textContent, /Préparation 1\/2/);
 });
 
 test("clic droit : la sélection de tuile est effacée", (t) => {
@@ -160,7 +161,7 @@ test("clic droit : la sélection de tuile est effacée", (t) => {
   let prevented = false;
   app.node(".game-layout").dispatch("contextmenu", { preventDefault() { prevented = true; } });
   assert.equal(prevented, true);
-  assert.match(app.node("#placement-help").textContent, /Choisissez une tuile/);
+  assert.match(app.node("#placement-help").textContent, /Sélectionnez le roi/);
 });
 
 test("menu : lancement solo, retour et résultat après 25 tours", (t) => {
@@ -175,7 +176,6 @@ test("menu : lancement solo, retour et résultat après 25 tours", (t) => {
   assert.equal(app.node("#main-menu").hidden, false);
   app.start("solo");
   assert.equal(app.node("#main-menu").hidden, true);
-  app.prepare(2);
   for (let i = 0; i < RULES.rounds; i++) app.node("#end-turn").click();
   assert.equal(app.node("#result-dialog").open, true);
   assert.match(app.node("#winner").textContent, /Votre royaume : \d+ points/);
@@ -186,7 +186,7 @@ test("menu : choisir un mode relance toujours une partie neuve", (t) => {
   app.start("local");
   assert.equal(app.node("main").hidden, false);
   app.node("#end-turn").click();
-  assert.equal(app.node("#opening-status").textContent.includes("1/4"), true);
+  assert.equal(app.node("#opening-status").hidden, true);
   app.node("#menu-button").click();
   app.start("solo");
   assert.equal(app.node("#main-menu").hidden, true);
@@ -194,7 +194,7 @@ test("menu : choisir un mode relance toujours une partie neuve", (t) => {
   app.node("#menu-button").click();
   app.start("local");
   assert.equal(app.node("main").hidden, false);
-  assert.equal(app.node("#opening-status").textContent.includes("1/4"), true);
+  assert.equal(app.node("#opening-status").hidden, true);
 });
 
 test("menu : les curseurs configurent la nouvelle partie avant son lancement", (t) => {
@@ -203,19 +203,17 @@ test("menu : les curseurs configurent la nouvelle partie avant son lancement", (
   assert.equal(app.node("#game-settings-dialog").open, true);
   assert.equal(app.node("main").hidden, true);
   app.node("#setting-rounds").value = 20;
-  app.node("#setting-opening").value = 4;
-  app.node("#setting-board").value = 7;
-  assert.equal(app.node("#setting-preplaced").value, 0);
-  app.node("#setting-preplaced").value = 10;
-  app.node("#setting-preplaced").dispatch("input");
-  assert.equal(app.node("#setting-preplaced-value").textContent, "10");
+  assert.equal(app.node("#setting-map").value, "base");
+  app.node("#setting-map").value = "valley";
+  app.node("#setting-board").value = 9;
   app.node("#setting-material").value = 6;
   app.node("#setting-food").value = 4;
   app.node("#setting-gold").value = 2;
   app.node("#settings-start").click();
   assert.equal(app.node("#game-settings-dialog").open, false);
   assert.match(app.node("#round").innerHTML, /20/);
-  assert.match(app.node("#opening-status").textContent, /Préparation 1\/8/);
+  assert.equal(app.node("#opening-status").hidden, true);
+  assert.match(app.node(".rules-content").innerHTML, /disposés par la carte/);
 });
 
 test("la molette pivote la carte survolée et garde le défilement ailleurs", (t) => {
@@ -269,9 +267,9 @@ test("langue : français par défaut, bascule immédiate et choix mémorisé", (
   assert.match(app.node(".rules-content").innerHTML, /The goal/);
   assert.match(app.node("#players").innerHTML, /Kingdom of Amber/);
   app.start("solo");
-  assert.match(app.node("#opening-status").textContent, /Setup 1\/2/);
+  assert.equal(app.node("#opening-status").hidden, true);
+  assert.match(app.node("#setting-map").innerHTML, /Random map/);
   assert.match(app.node("#tile-market").innerHTML, /spaces/);
-  app.prepare(2);
   assert.match(app.node("#end-turn").innerHTML, /End turn/);
   for (let i = 0; i < RULES.rounds; i++) app.node("#end-turn").click();
   assert.match(app.node("#winner").textContent, /Your kingdom : \d+ points|Your kingdom: \d+ points/);
@@ -287,7 +285,6 @@ test("langue : français par défaut, bascule immédiate et choix mémorisé", (
 test('jeu : il faut choisir le roi avant de le déplacer ; inspection, annulation et nouveau tour désélectionnent', t => {
   const app = mount(t);
   app.mode('solo').click();
-  app.node('#setting-opening').value = 0;
   app.node('#settings-start').click();
   const x = +app.king().dataset.x, y = +app.king().dataset.y;
   assert.doesNotMatch(app.king().className, /active-pawn/);

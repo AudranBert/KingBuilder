@@ -1,0 +1,37 @@
+{
+  "id": "clearings",
+  "name": {
+    "fr": "Les clairières",
+    "en": "The clearings"
+  },
+  "description": {
+    "fr": "5 drapeaux et des forêts pour produire du bois.",
+    "en": "5 flags and forests for wood production."
+  },
+  "legend": {
+    "P": "plain",
+    "F": "forest",
+    "M": "mountain",
+    "R": "river",
+    "!": "plain"
+  },
+  "zones": [
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        -2,
+        -2
+      ],
+      "rows": [
+        "!FF.!",
+        "F....",
+        "F.!.F",
+        "....F",
+        "!.FF!"
+      ]
+    }
+  ]
+}

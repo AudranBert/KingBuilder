@@ -6,7 +6,7 @@ import {
 } from "../src/engine.js";
 
 test("préparation commune : cinq offres, ordre J2 J1 J2 J1 et tour 1 intact", () => {
-  const g = createGame(() => 0.42);
+  const g = createGame(() => 0.42, "local", { mapId: null, boardSize: 13, openingTilesPerPlayer: 2 });
   const originalTiles = new Set([...g.tileMarket, ...g.tileDeck].map(t => t.id));
   startOpening(g);
   assert.equal(g.opening.tiles.length, 5);
@@ -42,7 +42,7 @@ test("préparation commune : cinq offres, ordre J2 J1 J2 J1 et tour 1 intact", (
 });
 
 test("préparation : pose invalide atomique et solo à deux poses", () => {
-  const g = createGame(() => 0.42, "solo");
+  const g = createGame(() => 0.42, "solo", { mapId: null, boardSize: 13, openingTilesPerPlayer: 2 });
   startOpening(g);
   const before = structuredClone(g);
   assert.match(openingError(g, 0, 0, 6), /chevauchement/);

@@ -1,0 +1,39 @@
+{
+  "id": "valley",
+  "name": {
+    "fr": "La vallée",
+    "en": "The valley"
+  },
+  "description": {
+    "fr": "5 drapeaux et des montagnes qui créent des zones stratégiques.",
+    "en": "5 flags and mountains creating strategic areas."
+  },
+  "legend": {
+    "P": "plain",
+    "F": "forest",
+    "M": "mountain",
+    "R": "river",
+    "!": "plain"
+  },
+  "zones": [
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        -3,
+        -3
+      ],
+      "rows": [
+        "..M.MM.",
+        ".!M..!.",
+        "....M..",
+        "...!...",
+        "..M....",
+        ".!..M!.",
+        ".MM.M.."
+      ]
+    }
+  ]
+}

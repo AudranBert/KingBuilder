@@ -16,8 +16,7 @@ test("les réglages de partie utilisent les nouvelles valeurs par défaut", () =
   const g = createGame(() => 0.5, "local", {});
   assert.equal(g.boardSize, 11);
   assert.equal(g.turnLimit, 25);
-  assert.equal(g.openingTilesPerPlayer, 2);
-  assert.equal(g.preplacedTerrainCount, 0);
+  assert.equal(g.openingTilesPerPlayer, 0);
   assert.equal(g.missionsEnabled, true);
   assert.deepEqual(g.players[0].resources, { material: 3, food: 2, gold: 1 });
   assert.deepEqual(g.players[1].resources, { material: 3, food: 2, gold: 2 });
@@ -27,13 +26,13 @@ test("taille, durée, préparation et ressources personnalisées pilotent la par
   const settings = {
     rounds: 20,
     openingTilesPerPlayer: 0,
-    boardSize: 7,
+    boardSize: 9,
     resources: { material: 6, food: 4, gold: 2 },
   };
   const g = createGame(() => 0.5, "local", settings);
   assert.equal(Object.values(g.board).filter((cell) => cell.flag).length, 5);
   assert.ok(Object.keys(g.board).every((position) =>
-    position.split(",").every((coordinate) => Number(coordinate) < 7)));
+    position.split(",").every((coordinate) => Number(coordinate) < 9)));
   assert.equal(g.players[1].resources.gold, 3);
   startOpening(g);
   assert.equal(g.opening, null);
@@ -41,26 +40,31 @@ test("taille, durée, préparation et ressources personnalisées pilotent la par
   assert.equal(g.finished, true);
 });
 
-test("quatre tuiles par joueur créent huit poses de préparation", () => {
+test("deux tuiles par joueur créent quatre poses de préparation sur une carte", () => {
   const g = createGame(() => 0.5, "local", {
-    openingTilesPerPlayer: 4,
+    openingTilesPerPlayer: 2,
+    mapId: "base",
   });
   startOpening(g);
-  assert.equal(g.opening.totalPlacements, 8);
-  assert.equal(g.opening.tiles.length, 9);
+  assert.equal(g.opening.totalPlacements, 4);
+  assert.equal(g.opening.tiles.length, 5);
 });
 
 test("les réglages hors limites sont refusés", () => {
   for (const settings of [
     { rounds: 19 },
     { rounds: 41 },
-    { openingTilesPerPlayer: 5 },
+    { openingTilesPerPlayer: 3 },
+    { openingTilesPerPlayer: -1 },
+    { openingTilesPerPlayer: 1.5 },
     { boardSize: 6 },
+    { boardSize: 7 },
+    { boardSize: 15 },
+    { boardSize: 8 },
+    { boardSize: 10 },
+    { boardSize: 12 },
+    { boardSize: 14 },
     { boardSize: 16 },
-    { preplacedTerrainCount: -1 },
-    { preplacedTerrainCount: 1.5 },
-    { preplacedTerrainCount: "3" },
-    { preplacedTerrainCount: 122 },
     { resources: { gold: 11 } },
     { missionsEnabled: 'false' },
     { missionsEnabled: 0 },
@@ -68,40 +72,19 @@ test("les réglages hors limites sont refusés", () => {
   ]) assert.throws(() => gameSettings(settings));
 });
 
-test("les terrains préplacés ajoutent exactement des cases neutres sans écraser le plateau initial", () => {
-  for (const mode of ["solo", "local"]) {
-    for (const boardSize of [7, 11, 15]) {
-      const base = createGame(() => 0.5, mode, { boardSize });
-      const g = createGame(() => 0.5, mode, { boardSize, preplacedTerrainCount: 20 });
-      assert.equal(g.preplacedTerrainCount, 20);
-      assert.equal(Object.keys(g.board).length, Object.keys(base.board).length + 20);
-      for (const [position, cell] of Object.entries(base.board))
-        assert.deepEqual(g.board[position], cell);
-      for (const [position, cell] of Object.entries(g.board)) {
-        if (!base.board[position]) assert.deepEqual(Object.keys(cell), ["terrain"]);
-      }
-      assert.deepEqual(g.tileDeck, base.tileDeck);
-      assert.deepEqual(g.tileMarket, base.tileMarket);
-      assert.ok(g.players.every(player => player.revealed === 0));
-      assert.doesNotThrow(() => validateGame(g));
-      assert.equal(migrateGame(structuredClone(g)).preplacedTerrainCount, 20);
-    }
+test("l’ancien réglage de préplacement ne génère plus de cases", () => {
+  for (const boardSize of [9, 11, 13]) {
+    const settings = { boardSize, mapId: 'base' };
+    const base = createGame(() => .5, 'local', settings);
+    const game = createGame(() => .5, 'local', { ...settings, preplacedTerrainCount: 20 });
+    assert.deepEqual(game.board, base.board);
+    assert.equal(Object.hasOwn(game, 'preplacedTerrainCount'), false);
+    game.preplacedTerrainCount = 20;
+    const board = structuredClone(game.board);
+    migrateGame(game);
+    assert.equal(Object.hasOwn(game, 'preplacedTerrainCount'), false);
+    assert.deepEqual(game.board, board);
   }
-});
-
-test("le préplacement utilise le hasard et refuse un plateau trop rempli", () => {
-  const makeRng = (seed) => () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32);
-  const settings = { preplacedTerrainCount: 15, boardSize: 7 };
-  const first = createGame(makeRng(1), "local", settings);
-  assert.deepEqual(first, createGame(makeRng(1), "local", settings));
-  assert.notDeepEqual(first.board, createGame(makeRng(2), "local", settings).board);
-  assert.ok(new Set(Object.values(first.board).map(cell => cell.terrain)).size > 1);
-  assert.throws(() => createGame(() => 0.5, "local", { boardSize: 7, preplacedTerrainCount: 49 }), /cases libres/);
-  const old = createGame(() => 0.5);
-  delete old.preplacedTerrainCount;
-  const board = structuredClone(old.board);
-  assert.equal(migrateGame(old).preplacedTerrainCount, 0);
-  assert.deepEqual(old.board, board);
 });
 
 test('missions désactivées : aucun objectif ni récompense, choix conservé à la reprise', () => {

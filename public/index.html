@@ -183,20 +183,19 @@
           <output id="setting-rounds-value" for="setting-rounds">25</output>
           <input id="setting-rounds" type="range" min="20" max="40" step="1" value="25" />
         </label>
+        <label class="setting-row map-setting" for="setting-map">
+          <span><strong data-i18n="maps.choose"></strong><small id="setting-map-description" data-i18n="maps.randomHelp"></small></span>
+          <select id="setting-map"></select>
+        </label>
         <label class="setting-row" for="setting-opening">
           <span><strong data-i18n="static.setupTiles"></strong><small data-i18n="static.placedByEachPlayerBeforeTurn1"></small></span>
-          <output id="setting-opening-value" for="setting-opening">2</output>
-          <input id="setting-opening" type="range" min="0" max="4" step="1" value="2" />
-        </label>
-        <label class="setting-row" for="setting-preplaced">
-          <span><strong data-i18n="settings.preplacedTerrain"></strong><small data-i18n="settings.preplacedTerrainHelp"></small></span>
-          <output id="setting-preplaced-value" for="setting-preplaced">0</output>
-          <input id="setting-preplaced" type="range" min="0" max="100" step="1" value="0" />
+          <output id="setting-opening-value" for="setting-opening">0</output>
+          <input id="setting-opening" type="range" min="0" max="2" step="1" value="0" />
         </label>
         <label class="setting-row" for="setting-board">
           <span><strong data-i18n="static.boardSize"></strong><small data-i18n="static.77To1515Spaces"></small></span>
           <output id="setting-board-value" for="setting-board">11 × 11</output>
-          <input id="setting-board" type="range" min="7" max="15" step="1" value="11" />
+          <input id="setting-board" type="range" min="9" max="13" step="2" value="11" />
         </label>
       </div>
       <fieldset class="resource-settings">
@@ -220,6 +219,7 @@
       <nav class="catalogue-tabs" aria-label="" data-i18n-aria-label="static.catalogueContents">
         <button data-catalogue-section="buildings" aria-pressed="true" aria-controls="catalogue-buildings" data-i18n="views.buildings"></button>
         <button data-catalogue-section="tiles" aria-pressed="false" aria-controls="catalogue-tiles" data-i18n="static.tiles"></button>
+        <button data-catalogue-section="maps" aria-pressed="false" aria-controls="catalogue-maps" data-i18n="maps.catalogue"></button>
       </nav>
       <div id="catalogue-content"></div>
     </dialog>

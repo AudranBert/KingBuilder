@@ -126,7 +126,8 @@
   gap: 10px;
   margin-bottom: 18px;
 }
-.catalogue-tabs [aria-pressed="true"] {
+.catalogue-tabs [aria-pressed="true"],
+.catalogue-tabs button[aria-pressed="true"]:hover {
   background: var(--ink);
   color: var(--bg);
 }
@@ -374,3 +375,6 @@ body:has(#main-menu[hidden]) .players:has(> :only-child) {
 @media (max-width: 520px) { .history-row { gap: 6px; padding: 10px 8px; font-size: 12px; } .history-row strong { margin-left: 3px; } }
 .online-health { font-size: 13px; line-height: 1.5; color: #796342; margin: 8px 0 16px; }
 .online-health.healthy { color: #247344; font-weight: 600; }
+.map-setting select { max-width: 100%; padding: 8px 10px; font: inherit; border: 1px solid var(--line); border-radius: 6px; }
+.map-preview { display: block; width: 100%; max-width: 320px; height: auto; margin: 12px auto; }
+.map-preview-legend { color: var(--muted); font-size: 13px; }

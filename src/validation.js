@@ -47,15 +47,12 @@ export function validateGame(game, { legacy = false } = {}) {
   );
   const boardSize = game.boardSize ?? RULES.size,
     turnLimit = game.turnLimit ?? RULES.rounds;
-  requireValid(Number.isSafeInteger(boardSize) && boardSize >= 7 && boardSize <= 15,
+  requireValid(Number.isSafeInteger(boardSize) && boardSize >= 9 && boardSize <= 13 && boardSize % 2 === 1,
     "dimensions du plateau incorrectes.");
   requireValid(Number.isSafeInteger(turnLimit) && turnLimit >= 20 && turnLimit <= 40,
     "limite de tours incorrecte.");
   requireValid(game.missionsEnabled === undefined || typeof game.missionsEnabled === 'boolean',
     "activation des missions incorrecte.");
-  requireValid(game.preplacedTerrainCount === undefined ||
-    nonnegative(game.preplacedTerrainCount) && game.preplacedTerrainCount <= boardSize ** 2,
-    "nombre de cases de terrain préplacées incorrect.");
   requireValid(
     Array.isArray(game.players) &&
       (game.mode === "solo"

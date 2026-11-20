@@ -2,9 +2,11 @@ import { t, definitionText, translateMessage, kingdomName, getLanguage } from ".
 import { iconHTML } from "./html.js";
 import { piece } from "./pieces.js";
 import { CONFIG } from "../configuration.js";
+import { MAPS } from "../maps.js";
 import { hasSelectedUnit } from "./state.js";
 import {
   RULES,
+  createGame,
   GAME_DEFAULTS,
   GOLD,
   MISSIONS,
@@ -46,7 +48,26 @@ function dragHandleHTML() {
   return `<span class="card-drag-handle" data-card-drag aria-hidden="true" title="${e(t("placement.dragHandle"))}">⠿</span>`;
 }
 
-export function catalogueView({ tier = "all", tileSize = "all", terrain = "all", tileSort = "size" } = {}) {
+function mapsCatalogueView(size) {
+  const boardSize = Number(size);
+  return `<section id="catalogue-maps" aria-label="${t("maps.catalogue")}" hidden>
+    <div class="catalogue-filters"><label>${t("maps.previewSize")}<select data-catalogue-filter="mapSize">${[9, 11, 13].map(n => `<option value="${n}" ${n === boardSize ? 'selected' : ''}>${n} × ${n}</option>`).join('')}</select></label></div>
+    <p class="map-preview-legend">${t("maps.previewLegend")}</p>
+    <div class="catalogue-grid">${MAPS.map(map => {
+      const game = createGame(() => .5, 'local', { mapId: map.id, boardSize });
+      const name = map.name[getLanguage()];
+      const flags = Object.values(game.board).filter(cell => cell.flag).length;
+      const cells = Array.from({ length: boardSize ** 2 }, (_, i) => {
+        const x = i % boardSize, y = Math.floor(i / boardSize), cell = game.board[key(x, y)];
+        const symbol = cell?.flag ? '⚑' : cell?.building ? '♜' : '';
+        const color = cell?.building ? cell.building.owner === 0 ? '#a85b00' : '#156958' : '#483819';
+        return `<rect x="${x * 20}" y="${y * 20}" width="19" height="19" rx="2" fill="${cell ? TERRAINS[cell.terrain].color : '#f1eadb'}"/>${symbol ? `<text x="${x * 20 + 9.5}" y="${y * 20 + 10}" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="bold" fill="${color}" stroke="#fff8e8" stroke-width=".65" paint-order="stroke">${symbol}</text>` : ''}`;
+      }).join('');
+      return `<article class="catalogue-card" data-catalogue-map="${e(map.id)}"><h3>${e(name)}</h3><svg class="map-preview" viewBox="0 0 ${boardSize * 20} ${boardSize * 20}" role="img" aria-label="${e(t("maps.previewLabel", [name, boardSize, flags]))}">${cells}</svg><p>${e(map.description[getLanguage()])}</p></article>`;
+    }).join('')}</div></section>`;
+}
+
+export function catalogueView({ tier = "all", tileSize = "all", terrain = "all", tileSort = "size", mapSize = GAME_DEFAULTS.boardSize } = {}) {
   const families = new Map();
   for (const b of Object.values(BUILDINGS)) {
     const id = b.family || b.id;
@@ -72,7 +93,7 @@ export function catalogueView({ tier = "all", tileSize = "all", terrain = "all",
     const b = variants[0];
     const quantity = variants.reduce((sum, v) => sum + (v.constructible === false ? 0 : v.weight), 0);
     return `<article class="catalogue-card" data-catalogue-family="${e(b.family || b.id)}"><h3>${buildingStars(b)} ${e([...new Set(variants.map(v => definitionText("buildings", v)))].join(" / "))}</h3><p>${b.constructible === false ? t("views.startingBuildingOutsideTheDeck") : t("views.copiesCost", [quantity, costHTML(b.cost)])}</p><p>${e(buildingDescription(b))} · ${t("common.points", [b.points || 0])}</p><div class="catalogue-patterns">${variants.map(v => `<figure data-catalogue-building="${e(v.id)}"><div class="catalogue-diagram">${buildingDiagram(v.id, 0, true)}</div><figcaption>${e(definitionText("buildings", v, "pattern"))}</figcaption></figure>`).join("")}</div></article>`;
-  }).join("")}</div>${visibleFamilies.length ? "" : `<p class="empty-state">${t("catalogueView.noBuildingsInThisTierYet")}</p>`}</section><section id="catalogue-tiles" aria-label="${t("catalogueView.terrainTiles")}" hidden>${tileFilters}<p role="status">${t("catalogueView.tilesCopiesInTheDeck", [tiles.length, CONFIG.tiles.length, CONFIG.tileDeckSize])}</p><div class="catalogue-grid">${tiles.map(tile => `<article class="catalogue-card" data-catalogue-tile="${e(tile.id)}"><h3>${e(definitionText("tiles", tile))}</h3><div class="catalogue-diagram">${terrainDiagram(tile, 0, 160)}</div><p>${t("catalogueView.spaces", [tile.cells.length, e(definitionText("shapes", CONFIG.shapes[tile.shapeId]))])}</p><p>${t("catalogueView.terrainTypeS", [e(terrainSignature(tile)), terrainCount(tile)])}</p><p>${e(definitionText("tiles", tile, "intent") || "")}</p></article>`).join("")}</div>${tiles.length ? "" : `<p class="empty-state">${t("catalogueView.noTilesMatchTheseFilters")}</p>`}</section>`;
+  }).join("")}</div>${visibleFamilies.length ? "" : `<p class="empty-state">${t("catalogueView.noBuildingsInThisTierYet")}</p>`}</section><section id="catalogue-tiles" aria-label="${t("catalogueView.terrainTiles")}" hidden>${tileFilters}<p role="status">${t("catalogueView.tilesCopiesInTheDeck", [tiles.length, CONFIG.tiles.length, CONFIG.tileDeckSize])}</p><div class="catalogue-grid">${tiles.map(tile => `<article class="catalogue-card" data-catalogue-tile="${e(tile.id)}"><h3>${e(definitionText("tiles", tile))}</h3><div class="catalogue-diagram">${terrainDiagram(tile, 0, 160)}</div><p>${t("catalogueView.spaces", [tile.cells.length, e(definitionText("shapes", CONFIG.shapes[tile.shapeId]))])}</p><p>${t("catalogueView.terrainTypeS", [e(terrainSignature(tile)), terrainCount(tile)])}</p><p>${e(definitionText("tiles", tile, "intent") || "")}</p></article>`).join("")}</div>${tiles.length ? "" : `<p class="empty-state">${t("catalogueView.noTilesMatchTheseFilters")}</p>`}</section>${mapsCatalogueView(mapSize)}`;
 }
 
 export function playersView(g) {
@@ -285,7 +306,7 @@ export function rulesView(g) {
   return `<h3>${t("rulesView.1TheGoal")}</h3>
   <p>${t("rulesView.conquerTheEnemyKeepWithASurviving", [rounds, RULES.points.flag, RULES.points.goldPerPoint])}</p>
   <h3>${t("rulesView.2SetUpTheBoard")}</h3>
-  <p>${t(g?.missionsEnabled === false ? "rulesView.setupWithoutMissions" : "rulesView.onTheBoardEachPlayerPlacesSetup", [size, size, openingCount])}</p>
+  <p>${g?.mapId ? t(openingCount ? "maps.setupWithDraft" : "maps.setup", [size, openingCount]) : t(g?.missionsEnabled === false ? "rulesView.setupWithoutMissions" : "rulesView.onTheBoardEachPlayerPlacesSetup", [size, size, openingCount])}</p>
   <h3>${t("rulesView.3TakeYourTurn")}</h3>
   <p>${t("rulesView.eachUnitHasMovesAlongSharedEdges", [UNIT_DEFINITIONS.king.moves])}</p>
   <h3>${t("rulesView.4ExploreAndBuild")}</h3>

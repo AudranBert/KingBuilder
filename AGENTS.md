@@ -1,5 +1,12 @@
 # Règles du projet
 
+## Conception des cartes
+
+- Donner à chaque carte une idée de gameplay précise et lisible (passages, ponts, production…).
+- Préplacer peu de cases : viser une dizaine de cases au maximum, drapeaux compris et hors départs des royaumes. Laisser l’essentiel du plateau à explorer.
+- Cette cible guide les nouvelles cartes ; préserver les cartes modifiées par l’utilisateur et signaler un dépassement avant de les remanier.
+- Ne pas remplir une carte de terrains génériques pour la décorer. Chaque case préplacée doit servir son idée de gameplay.
+
 ## Livraison d’un site testable
 
 - Après chaque modification du site, fournir un site web fonctionnel que l’utilisateur peut tester immédiatement.

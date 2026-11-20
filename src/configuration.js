@@ -14,6 +14,14 @@ async function readJson(name) {
     throw Error(`Impossible de lire ${name}.json : ${error.message}`);
   }
 }
+const mapFiles = await readJson("maps/index");
+if (!Array.isArray(mapFiles) || !mapFiles.length ||
+    mapFiles.some(name => typeof name !== 'string' || !/^[a-z0-9_-]+$/.test(name)) ||
+    new Set(mapFiles).size !== mapFiles.length)
+  throw Error("Index des cartes invalide.");
+export const MAPS = await Promise.all(mapFiles.map(name => readJson(`maps/${name}`)));
+if (MAPS.some(map => !map || typeof map.id !== 'string') || new Set(MAPS.map(map => map.id)).size !== MAPS.length)
+  throw Error("Identifiants des cartes invalides ou en double.");
 const [tiles, buildings, resources, units, gameRules, terrains, missions] =
   await Promise.all(
     [
