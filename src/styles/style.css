@@ -1028,3 +1028,8 @@ dialog p {
 .military-piece sup {
   font-size: 9px;
 }
+
+.tile-controls button[aria-pressed="true"], #mirror-placement[aria-pressed="true"] {
+  background: var(--green-soft, #dce8cd);
+  box-shadow: inset 0 0 0 1px var(--green, #557345);
+}

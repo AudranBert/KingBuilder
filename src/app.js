@@ -191,8 +191,10 @@ export function startGame({ initialGame = null } = {}) {
     const choice = ui.drag || ui.placement;
     const mobile = window.matchMedia("(pointer: coarse), (max-width: 850px)").matches;
     $(".game-layout").classList.toggle("has-placement", Boolean(choice));
-    $('#placement-rotation-label').textContent = `${(choice?.kind === 'building' ? ui.buildingRotation : ui.rotation) * 90}°`;
+    $('#placement-rotation-label').textContent = `${(choice?.kind === 'building' ? ui.buildingRotation : ui.rotation) % 4 * 90}°`;
     $("#rotate-placement").disabled = game.finished || !["terrain", "building"].includes(choice?.kind);
+    $("#mirror-placement").disabled = $("#rotate-placement").disabled;
+    $("#mirror-placement").setAttribute("aria-pressed", String((choice?.kind === "building" ? ui.buildingRotation : ui.rotation) >= 4));
     $("#cancel-placement").disabled = !choice;
     if (!choice) {
       $("#placement-help").textContent = game.opening
@@ -335,12 +337,16 @@ export function startGame({ initialGame = null } = {}) {
     $("#round").innerHTML = opening
       ? `0 <small>/ ${game.turnLimit}</small>`
       : `${String(game.round).padStart(2, "0")} <small>/ ${game.turnLimit}</small>`;
-    $("#rotation-label").textContent = `${ui.rotation * 90}°`;
-    $("#building-rotation-label").textContent = `${ui.buildingRotation * 90}°`;
+    $("#rotation-label").textContent = `${ui.rotation % 4 * 90}°`;
+    $("#building-rotation-label").textContent = `${ui.buildingRotation % 4 * 90}°`;
     $("#rotate").disabled = game.finished || !game.tileMarket.length;
 
     $("#rotate-building").disabled =
       game.finished || Boolean(opening) || !game.buildingMarket.length;
+    for (const [id, rotation] of [["", ui.rotation], ["-building", ui.buildingRotation]]) {
+      $("#mirror" + id).disabled = $("#rotate" + id).disabled;
+      $("#mirror" + id).setAttribute("aria-pressed", String(rotation >= 4));
+    }
     $("#undo-action").disabled = Boolean(session) || !undoState;
     if (session && (online.busy || !session.joined || game.active !== session.player)) $('#end-turn').disabled = true;
     for (const button of document.querySelectorAll("[data-mode]")) {
@@ -497,10 +503,19 @@ export function startGame({ initialGame = null } = {}) {
         { message: t("app.marketRefreshed") },
       ),
     );
+  function mirror(kind = ui.drag?.kind || ui.placement?.kind || "terrain") {
+    if (game.finished || !["terrain", "building"].includes(kind)) return;
+    const field = kind === "building" ? "buildingRotation" : "rotation";
+    ui[field] ^= 4;
+    if (ui.drag?.kind === kind) ui.drag.rotation = ui[field];
+    if (ui.placement?.kind === kind) ui.placement.rotation = ui[field];
+    render();
+    drag.refresh();
+  }
   function rotate(kind = ui.drag?.kind || ui.placement?.kind || "terrain", step = 1) {
     if (game.finished || !["terrain", "building"].includes(kind)) return;
     const field = kind === "building" ? "buildingRotation" : "rotation";
-    ui[field] = (ui[field] + step + 4) % 4;
+    ui[field] = (ui[field] & 4) + ((ui[field] + step + 4) % 4);
     if (ui.drag?.kind === kind) ui.drag.rotation = ui[field];
     if (ui.placement?.kind === kind) ui.placement.rotation = ui[field];
     render();
@@ -604,6 +619,9 @@ export function startGame({ initialGame = null } = {}) {
   });
   $("#rotate").addEventListener("click", () => rotate("terrain"));
   $("#rotate-building").addEventListener("click", () => rotate("building"));
+  $("#mirror").addEventListener("click", () => mirror("terrain"));
+  $("#mirror-building").addEventListener("click", () => mirror("building"));
+  $("#mirror-placement").addEventListener("click", () => mirror());
   $("#rotate-placement").addEventListener("click", () => rotate());
   $("#cancel-placement").addEventListener("click", () => {
     drag.cancel();
@@ -845,12 +863,13 @@ export function startGame({ initialGame = null } = {}) {
       event.preventDefault();
     }
     if (
-      event.key.toLowerCase() === "r" &&
+      ["r", "s"].includes(event.key.toLowerCase()) &&
       !event.ctrlKey &&
       !event.metaKey &&
       !event.altKey
     ) {
-      rotate();
+      if (event.key.toLowerCase() === "s") mirror();
+      else rotate();
       event.preventDefault();
     }
   });

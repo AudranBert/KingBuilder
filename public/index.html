@@ -93,7 +93,7 @@
             <div id="single-terrain"></div>
             <div class="tile-controls">
               <button id="rotate" data-i18n="static.rotate"></button
-              ><span id="rotation-label">0°</span>
+              ><button id="mirror" aria-pressed="false" title="Symétrie (S)" data-i18n="static.mirror"></button><span id="rotation-label">0°</span>
             </div>
           </section>
           <section class="workers-panel" aria-label="" data-i18n-aria-label="static.availableWorkers">
@@ -131,6 +131,7 @@
           <div class="mobile-placement-controls" aria-label="" data-i18n-aria-label="static.cardPlacement">
             <span id="placement-rotation-label" aria-live="polite">0°</span>
             <button id="rotate-placement" disabled data-i18n="static.rotate"></button>
+            <button id="mirror-placement" disabled aria-pressed="false" data-i18n="static.mirror"></button>
             <button id="cancel-placement" disabled data-i18n-aria-label="static.clearSelection">×</button>
           </div>
           <div id="trade-info" class="trade-info"></div>
@@ -150,7 +151,7 @@
             <div id="building-market" class="building-market"></div>
             <div class="tile-controls">
               <button id="rotate-building" data-i18n="static.rotate"></button
-              ><span id="building-rotation-label">0°</span>
+              ><button id="mirror-building" aria-pressed="false" title="Symétrie (S)" data-i18n="static.mirror"></button><span id="building-rotation-label">0°</span>
             </div>
           </section>
           <div id="barracks-list"></div>
