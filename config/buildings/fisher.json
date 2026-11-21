@@ -1,0 +1,65 @@
+[
+  {
+    "id": "fisher",
+    "name": "Pêcheur",
+    "icon": "assets/textures/buildings-fisher.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "river",
+    "produces": "food",
+    "description": "+2 blé par tour avec un ouvrier.",
+    "pattern": "Trois eaux en ligne ; entrée au centre.",
+    "weight": 2,
+    "layout": [
+      "rBr"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "fisher_bank",
+    "name": "Pêcheur",
+    "icon": "assets/textures/buildings-fisher.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 blé par tour avec un ouvrier.",
+    "pattern": "Une plaine d’entrée suivie de deux eaux en ligne.",
+    "weight": 2,
+    "layout": [
+      "Brr"
+    ],
+    "production": 2,
+    "family": "fisher",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "fisher_corner",
+    "name": "Pêcheur",
+    "icon": "assets/textures/buildings-fisher.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 blé par tour avec un ouvrier.",
+    "pattern": "Une plaine d’entrée et deux eaux en coude.",
+    "weight": 2,
+    "layout": [
+      "rr",
+      ".B"
+    ],
+    "production": 2,
+    "family": "fisher",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "clearing",
+    "name": "Défrichement",
+    "icon": "assets/textures/buildings-clearing.svg",
+    "cost": {},
+    "terrain": "forest",
+    "description": "+2 matériaux ; forêt → plaine.",
+    "pattern": "Une forêt libre. Action sans bâtiment permanent.",
+    "weight": 8,
+    "layout": [
+      "B"
+    ],
+    "transformTo": "plain",
+    "onBuildGain": {
+      "material": 2
+    },
+    "tier": 0,
+    "points": 0
+  }
+]

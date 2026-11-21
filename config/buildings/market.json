@@ -1,0 +1,39 @@
+[
+  {
+    "id": "market",
+    "name": "Marché",
+    "tier": 2,
+    "description": "Réduit de 1 or le prix d’achat de chaque ressource (minimum 1). Sans ouvrier.",
+    "icon": "assets/textures/buildings-market.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "pattern": "Deux plaines : marché et place.",
+    "layout": [
+      "Bp"
+    ],
+    "weight": 1,
+    "points": 0,
+    "tradeDiscount": 1
+  },
+  {
+    "id": "market_water",
+    "name": "Marché",
+    "tier": 2,
+    "description": "Réduit de 1 or le prix d’achat de chaque ressource (minimum 1). Sans ouvrier.",
+    "icon": "assets/textures/buildings-market.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour le marché et une eau pour le quai.",
+    "layout": [
+      "Br"
+    ],
+    "weight": 1,
+    "points": 0,
+    "tradeDiscount": 1,
+    "family": "market"
+  }
+]

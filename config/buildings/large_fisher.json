@@ -1,0 +1,52 @@
+[
+  {
+    "id": "large_fisher",
+    "name": "Grande cabane de pêcheur",
+    "icon": "assets/textures/buildings-fisher.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": [
+      "plain",
+      "river"
+    ],
+    "produces": "food",
+    "description": "+3 blé par tour avec un ouvrier.",
+    "pattern": "Cinq cases : entrée sur plaine ou eau et quatre eaux en bloc.",
+    "weight": 1,
+    "layout": [
+      "Brr",
+      ".rr"
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "fisher"
+  },
+  {
+    "id": "large_fisher_line",
+    "name": "Grande cabane de pêcheur",
+    "icon": "assets/textures/buildings-fisher.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": [
+      "plain",
+      "river"
+    ],
+    "produces": "food",
+    "description": "+3 blé par tour avec un ouvrier.",
+    "pattern": "Cinq cases en ligne : entrée sur plaine ou eau, trois eaux puis une plaine.",
+    "weight": 1,
+    "layout": [
+      "Brrrp"
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "fisher",
+    "family": "large_fisher"
+  }
+]

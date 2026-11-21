@@ -1,0 +1,49 @@
+[
+  {
+    "id": "large_sawmill",
+    "name": "Grand camp bûcheron",
+    "icon": "assets/textures/buildings-sawmill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+3 bois par tour avec un ouvrier.",
+    "pattern": "Cinq forêts en bloc prolongé ; entrée dans un angle.",
+    "weight": 1,
+    "layout": [
+      "Bf",
+      "ff",
+      "f."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "sawmill"
+  },
+  {
+    "id": "large_sawmill_t",
+    "name": "Grand camp bûcheron",
+    "icon": "assets/textures/buildings-sawmill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+3 bois par tour avec un ouvrier.",
+    "pattern": "Cinq forêts en T.",
+    "weight": 1,
+    "layout": [
+      "fBf",
+      ".f.",
+      ".f."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "sawmill",
+    "family": "large_sawmill"
+  }
+]

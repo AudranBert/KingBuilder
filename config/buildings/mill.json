@@ -1,0 +1,83 @@
+[
+  {
+    "id": "mill",
+    "name": "Moulin",
+    "icon": "assets/textures/buildings-mill.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": [
+      "plain",
+      "field"
+    ],
+    "description": "+1 blé aux fermes à portée de 2. Sans ouvrier, non cumulable.",
+    "pattern": "Une entrée sur plaine ou champ, à côté d’un champ existant.",
+    "weight": 1,
+    "layout": [
+      "Bw"
+    ],
+    "boost": {
+      "target": "farm",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "tier": 2,
+    "points": 1
+  },
+  {
+    "id": "mill_line",
+    "name": "Moulin",
+    "icon": "assets/textures/buildings-mill.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": [
+      "plain",
+      "field"
+    ],
+    "description": "+1 blé aux fermes à portée de 2. Sans ouvrier, non cumulable.",
+    "pattern": "Une entrée sur plaine ou champ, à côté d’un bâtiment existant hors pont et tunnel.",
+    "weight": 2,
+    "layout": [
+      "Bc"
+    ],
+    "boost": {
+      "target": "farm",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "family": "mill",
+    "tier": 2,
+    "points": 1
+  },
+  {
+    "id": "mill_l",
+    "name": "Moulin",
+    "icon": "assets/textures/buildings-mill.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": [
+      "plain",
+      "field"
+    ],
+    "description": "+1 blé aux fermes à portée de 2. Sans ouvrier, non cumulable.",
+    "pattern": "Une entrée sur plaine ou champ et deux plaines de cour en coude.",
+    "weight": 2,
+    "layout": [
+      "Bp",
+      ".p"
+    ],
+    "boost": {
+      "target": "farm",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "family": "mill",
+    "tier": 2,
+    "points": 1
+  }
+]

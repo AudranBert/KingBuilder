@@ -1,0 +1,68 @@
+[
+  {
+    "id": "farm",
+    "name": "Ferme",
+    "icon": "assets/textures/buildings-farm.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 blé par tour avec un ouvrier.",
+    "pattern": "Trois plaines en ligne ; entrée à une extrémité.",
+    "weight": 2,
+    "layout": [
+      "Bpp"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 1,
+    "traversable": true,
+    "createsFields": true
+  },
+  {
+    "id": "farm_z",
+    "name": "Ferme",
+    "icon": "assets/textures/buildings-farm.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 blé par tour avec un ouvrier.",
+    "pattern": "Trois plaines en coude ; entrée à une extrémité.",
+    "weight": 2,
+    "layout": [
+      "Bp",
+      ".p"
+    ],
+    "production": 2,
+    "family": "farm",
+    "tier": 1,
+    "points": 1,
+    "traversable": true,
+    "createsFields": true
+  },
+  {
+    "id": "farm_t",
+    "name": "Ferme",
+    "icon": "assets/textures/buildings-farm.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 blé par tour avec un ouvrier.",
+    "pattern": "Trois plaines en ligne ; entrée au centre.",
+    "weight": 2,
+    "layout": [
+      "pBp"
+    ],
+    "production": 2,
+    "family": "farm",
+    "tier": 1,
+    "points": 1,
+    "traversable": true,
+    "createsFields": true
+  }
+]

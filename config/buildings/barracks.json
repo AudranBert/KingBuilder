@@ -1,0 +1,47 @@
+[
+  {
+    "id": "barracks",
+    "name": "Caserne",
+    "icon": "assets/textures/buildings-barracks.svg",
+    "weight": 3,
+    "cost": {
+      "food": 1,
+      "material": 2
+    },
+    "terrain": "plain",
+    "layout": [
+      "Bc"
+    ],
+    "description": "Recrute 1 soldat pour 1 blé, une fois par tour. Sans ouvrier.",
+    "pattern": "Une plaine d’entrée à côté d’un bâtiment existant hors pont et tunnel.",
+    "trains": [
+      "soldier"
+    ],
+    "trainingLimit": 1,
+    "tier": 2,
+    "points": 1
+  },
+  {
+    "id": "barracks_forest",
+    "name": "Caserne",
+    "icon": "assets/textures/buildings-barracks.svg",
+    "weight": 3,
+    "cost": {
+      "food": 1,
+      "material": 2
+    },
+    "terrain": "forest",
+    "layout": [
+      "Bp"
+    ],
+    "description": "Recrute 1 soldat pour 1 blé, une fois par tour. Sans ouvrier.",
+    "pattern": "Une forêt pour la caserne et une plaine pour la cour.",
+    "trains": [
+      "soldier"
+    ],
+    "trainingLimit": 1,
+    "tier": 2,
+    "points": 1,
+    "family": "barracks"
+  }
+]

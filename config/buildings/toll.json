@@ -1,0 +1,55 @@
+[
+  {
+    "id": "toll",
+    "name": "Péage",
+    "tier": 3,
+    "description": "+1 or par bâtiment tier 1 à portée de 2, avec un ouvrier. Sur un pont ou entre deux montagnes.",
+    "icon": "assets/textures/buildings-toll.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": [
+      "plain",
+      "river"
+    ],
+    "pattern": "Entrée sur plaine ou eau, à deux cases en ligne d’un bâtiment existant, hors pont et tunnel.",
+    "layout": [
+      "B",
+      ".",
+      "c"
+    ],
+    "weight": 1,
+    "points": 0,
+    "produces": "gold",
+    "production": 1,
+    "toll": true,
+    "traversable": true
+  },
+  {
+    "id": "toll_forest",
+    "name": "Péage",
+    "tier": 3,
+    "description": "+1 or par bâtiment tier 1 à portée de 2, avec un ouvrier. Sur un pont ou entre deux montagnes.",
+    "icon": "assets/textures/buildings-toll.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": [
+      "plain",
+      "river"
+    ],
+    "pattern": "Entrée sur plaine ou eau, encadrée par deux cases opposées de tout terrain sauf plaine.",
+    "layout": [
+      "!p",
+      "B",
+      "!p"
+    ],
+    "weight": 1,
+    "points": 0,
+    "produces": "gold",
+    "production": 1,
+    "toll": true,
+    "traversable": true,
+    "family": "toll"
+  }
+]

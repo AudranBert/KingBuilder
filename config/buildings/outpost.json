@@ -1,0 +1,27 @@
+[
+  {
+    "id": "outpost",
+    "name": "Tour",
+    "icon": "assets/textures/buildings-outpost.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": [
+      "plain",
+      "forest",
+      "mountain",
+      "river",
+      "field"
+    ],
+    "description": "Garnison 1.",
+    "pattern": "Une case révélée libre.",
+    "layout": [
+      "B"
+    ],
+    "tier": 2,
+    "weight": 6,
+    "points": 1,
+    "garrison": 1,
+    "traversable": true
+  }
+]

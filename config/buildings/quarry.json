@@ -1,0 +1,65 @@
+[
+  {
+    "id": "quarry",
+    "name": "Carrière",
+    "icon": "assets/textures/buildings-quarry.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "material",
+    "description": "+2 bois par tour avec un ouvrier.",
+    "pattern": "Une plaine d’entrée entre deux montagnes en ligne.",
+    "weight": 2,
+    "layout": [
+      "mBm"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "quarry_mountain",
+    "name": "Carrière",
+    "icon": "assets/textures/buildings-quarry.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "material",
+    "description": "+2 bois par tour avec un ouvrier.",
+    "pattern": "Une plaine d’entrée suivie de deux montagnes en ligne.",
+    "weight": 2,
+    "layout": [
+      "Bmm"
+    ],
+    "production": 2,
+    "family": "quarry",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "quarry_ridge",
+    "name": "Carrière",
+    "icon": "assets/textures/buildings-quarry.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "mountain",
+    "produces": "material",
+    "description": "+2 bois par tour avec un ouvrier.",
+    "pattern": "Trois montagnes en coude ; entrée à une extrémité.",
+    "weight": 2,
+    "layout": [
+      "Bm",
+      ".m"
+    ],
+    "production": 2,
+    "family": "quarry",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  }
+]

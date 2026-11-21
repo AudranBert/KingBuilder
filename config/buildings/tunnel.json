@@ -1,0 +1,20 @@
+[
+  {
+    "id": "tunnel",
+    "name": "Tunnel",
+    "icon": "assets/textures/buildings-tunnel.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "mountain",
+    "description": "Passage.",
+    "pattern": "Une case de montagne.",
+    "weight": 6,
+    "layout": [
+      "B"
+    ],
+    "traversable": true,
+    "tier": 0,
+    "points": 1
+  }
+]

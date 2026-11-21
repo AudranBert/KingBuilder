@@ -1,0 +1,41 @@
+[
+  {
+    "id": "monument",
+    "name": "Monument",
+    "icon": "assets/textures/buildings-monument.svg",
+    "cost": {
+      "material": 3,
+      "gold": 2
+    },
+    "terrain": "plain",
+    "description": "+4 score.",
+    "pattern": "Quatre cases en carré : trois plaines et une montagne.",
+    "layout": [
+      "Bp",
+      "pm"
+    ],
+    "tier": 2,
+    "weight": 3,
+    "points": 4
+  },
+  {
+    "id": "monument_l",
+    "name": "Monument",
+    "icon": "assets/textures/buildings-monument.svg",
+    "cost": {
+      "material": 3,
+      "gold": 2
+    },
+    "terrain": "plain",
+    "description": "+4 score.",
+    "pattern": "Quatre cases en carré : trois plaines et une eau.",
+    "layout": [
+      "Bp",
+      "pr"
+    ],
+    "tier": 2,
+    "weight": 2,
+    "points": 4,
+    "family": "monument"
+  }
+]

@@ -9,7 +9,8 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 | `game-rules.json` | Dimensions, durée, départ, drapeaux, marchés, portée, or et commerce |
 | `resources.json` | Matériaux (`material`), nourriture (`food`), or (`gold`) |
 | `units.json` | Ouvrier mobile et soldat |
-| `buildings.json` | Coûts, motifs, production, garnisons et points |
+| `buildings/index.json` | Liste des fichiers de bâtiments et paramètres de pioche |
+| `buildings/<famille>.json` | Bâtiment de base et toutes ses variantes : coûts, motifs, production, garnisons et points |
 | `terrain-tiles.json` | Treize formes et quarante-huit tuiles prédéfinies, de deux à cinq cases |
 | `terrains.json` | Terrains, traversabilité et apparence |
 | `missions.json` | Missions communes, contribution et récompenses en or |
@@ -53,6 +54,10 @@ L’action Produire gagne immédiatement 1 nourriture sur une plaine libre, 1 ma
 Les comportements militaires et les retours des bâtisseurs sont attachés à ces rôles. Ajouter une entrée à `units.json` ne suffit pas à créer une nouvelle règle de combat.
 
 ## Bâtiments
+
+Chaque fichier de `buildings/` contient un tableau avec le bâtiment de base et toutes ses variantes. Par exemple, `buildings/farm.json` regroupe `farm`, `farm_z` et `farm_t`. Les variantes gardent leur champ `family` et leur identifiant propre. Les bâtiments sans variante ont un tableau d'une seule entrée.
+
+`buildings/index.json` contient `deckSize`, `startingBuilding`, `maxFamilyCopies` et `files` : la liste des noms de fichiers sans extension, dans leur ordre de chargement. Pour ajouter une famille, créer son fichier puis ajouter son nom à `files`. Pour ajouter une variante, la placer dans le fichier de sa famille. Le nom du fichier doit correspondre à l'identifiant du bâtiment de base.
 
 Champs communs : `id`, `name`, `icon`, `cost`, `terrain`, `description`, `pattern`, `layout`, `legend`, `tier`, `weight` et `points`. Garder `description` courte ; l’interface affiche des pictogrammes pour les effets connus.
 

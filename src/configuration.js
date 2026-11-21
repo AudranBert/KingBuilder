@@ -22,11 +22,24 @@ if (!Array.isArray(mapFiles) || !mapFiles.length ||
 export const MAPS = await Promise.all(mapFiles.map(name => readJson(`maps/${name}`)));
 if (MAPS.some(map => !map || typeof map.id !== 'string') || new Set(MAPS.map(map => map.id)).size !== MAPS.length)
   throw Error("Identifiants des cartes invalides ou en double.");
-const [tiles, buildings, resources, units, gameRules, terrains, missions] =
+const { files: buildingFiles, ...buildingSettings } = await readJson("buildings/index");
+if (!Array.isArray(buildingFiles) || !buildingFiles.length ||
+    buildingFiles.some(name => typeof name !== 'string' || !/^[a-z0-9_-]+$/.test(name)) ||
+    new Set(buildingFiles).size !== buildingFiles.length)
+  throw Error("Index des bâtiments invalide.");
+const buildingGroups = await Promise.all(buildingFiles.map(async name => {
+  const entries = await readJson(`buildings/${name}`);
+  if (!Array.isArray(entries) || !entries.length ||
+      !entries.some(b => b?.id === name && !b.family) ||
+      entries.some(b => !b || (b.family || b.id) !== name))
+    throw Error(`Famille de bâtiments invalide dans buildings/${name}.json.`);
+  return entries;
+}));
+export const BUILDING_CONFIGURATION = { ...buildingSettings, buildings: buildingGroups.flat() };
+const [tiles, resources, units, gameRules, terrains, missions] =
   await Promise.all(
     [
       "terrain-tiles",
-      "buildings",
       "resources",
       "units",
       "game-rules",
@@ -36,7 +49,7 @@ const [tiles, buildings, resources, units, gameRules, terrains, missions] =
   );
 export const CONFIG = compileConfiguration(
   tiles,
-  buildings,
+  BUILDING_CONFIGURATION,
   resources,
   units,
   gameRules,

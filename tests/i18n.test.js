@@ -5,6 +5,7 @@ import english from "../src/locales/en.js";
 import french from "../src/locales/fr.js";
 import { t, translateMessage, getLanguage, setLanguage, restoreLanguage, translateDocument, kingdomName } from "../src/i18n.js";
 import { createGame, BUILDINGS } from "../src/engine.js";
+import { BUILDING_CONFIGURATION } from "../src/configuration.js";
 import { catalogueView, buildingDetailsView, playersView, rulesView, trainingView } from "../src/ui/views.js";
 import { e } from "../src/ui/html.js";
 import { placementErrorText } from "../src/ui/interactions.js";
@@ -20,7 +21,8 @@ test("les traductions couvrent chaque texte du catalogue et des configurations",
       } else visit(entry);
     }
   }
-  for (const file of ["buildings", "terrain-tiles", "terrains", "units", "resources", "missions", "game-rules"])
+  visit(BUILDING_CONFIGURATION);
+  for (const file of ["terrain-tiles", "terrains", "units", "resources", "missions", "game-rules"])
     visit(JSON.parse(readFileSync(new URL(`../config/${file}.json`, import.meta.url))));
 });
 

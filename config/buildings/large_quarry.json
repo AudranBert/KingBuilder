@@ -1,0 +1,47 @@
+[
+  {
+    "id": "large_quarry",
+    "name": "Grande carrière",
+    "icon": "assets/textures/buildings-quarry.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "produces": "material",
+    "description": "+3 bois par tour avec un ouvrier.",
+    "pattern": "Cinq cases en bloc : une entrée sur plaine, deux montagnes et deux forêts.",
+    "weight": 1,
+    "layout": [
+      "Bmm",
+      ".ff"
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "quarry"
+  },
+  {
+    "id": "large_quarry_line",
+    "name": "Grande carrière",
+    "icon": "assets/textures/buildings-quarry.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "produces": "material",
+    "description": "+3 bois par tour avec un ouvrier.",
+    "pattern": "Cinq cases en bloc : une entrée sur plaine, deux montagnes et deux forêts du côté de l’entrée.",
+    "weight": 1,
+    "layout": [
+      "Bmm",
+      "ff"
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "quarry",
+    "family": "large_quarry"
+  }
+]

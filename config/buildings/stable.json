@@ -1,0 +1,40 @@
+[
+  {
+    "id": "stable",
+    "name": "Écurie",
+    "tier": 3,
+    "description": "+1 PM aux unités du royaume. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-stable.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Trois plaines en ligne : écurie et enclos.",
+    "layout": [
+      "Bpp"
+    ],
+    "weight": 1,
+    "points": 0,
+    "movementBonus": 1
+  },
+  {
+    "id": "stable_forest",
+    "name": "Écurie",
+    "tier": 3,
+    "description": "+1 PM aux unités du royaume. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-stable.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Trois cases en coude : deux plaines et une eau.",
+    "layout": [
+      "Br",
+      "p."
+    ],
+    "weight": 1,
+    "points": 0,
+    "movementBonus": 1,
+    "family": "stable"
+  }
+]

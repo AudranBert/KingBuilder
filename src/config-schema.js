@@ -202,12 +202,12 @@ export function compileConfiguration(
       field.endsWith("StartingAmount") || field === "startingAmount" ? 0 : 1,
     );
   object(tileConfig, "terrain-tiles.json");
-  object(buildingConfig, "buildings.json");
+  object(buildingConfig, "buildings");
   object(resourceConfig, "resources.json");
   object(unitConfig, "units.json");
   if (Object.hasOwn(buildingConfig, "units"))
     fail(
-      "buildings.json.units",
+      "buildings.units",
       "les unités doivent être définies uniquement dans units.json.",
     );
   tileConfig = structuredClone(tileConfig);
@@ -296,9 +296,9 @@ export function compileConfiguration(
     }));
     if (tile.intent !== undefined) label(tile.intent, `${path}.intent`);
   }
-  const buildings = index(buildingConfig.buildings, "buildings.json.buildings");
+  const buildings = index(buildingConfig.buildings, "buildings/*.json");
   for (const b of Object.values(buildings)) {
-    const path = `buildings.json.${b.id}`;
+    const path = `buildings.${b.id}`;
     for (const field of ["points", "garrison", "grantsWorker", "tradeDiscount", "buildingDiscount", "movementBonus", "combatBonus", "trainingBoost", "monumentMultiplier"])
       if (b[field] !== undefined) integer(b[field], `${path}.${field}`);
     for (const field of ["waterMovement", "remoteTerrain", "portBonus", "toll", "greatBridge", "createsFields"])
@@ -388,33 +388,33 @@ export function compileConfiguration(
   }
   const buildingPool = weighted(
     Object.fromEntries(Object.entries(buildings).filter(([, b]) => b.constructible !== false)),
-    "buildings.json",
+    "buildings",
     buildingConfig.deckSize,
   );
-  if (!buildingPool.length) fail("buildings.json", "la pioche doit contenir un bâtiment constructible.");
+  if (!buildingPool.length) fail("buildings", "la pioche doit contenir un bâtiment constructible.");
   if (new Set(buildingPool.filter(id => buildings[id].tier === gameConfig.markets.initialMaxTier)
     .map(id => buildings[id].family || id)).size < gameConfig.markets.buildingSize)
-    fail("buildings.json", "pas assez de familles différentes du niveau initial.");
+    fail("buildings", "pas assez de familles différentes du niveau initial.");
   if (tileConfig.deckSize < gameConfig.markets.terrainSize)
     fail("game-rules.json.markets.terrainSize", "le marché dépasse la pioche.");
   for (const b of Object.values(buildings)) {
     if (b.family !== undefined && (!buildings[b.family] || buildings[b.family].family))
-      fail(`buildings.json.${b.id}.family`, "référencez un bâtiment de base connu.");
+      fail(`buildings.${b.id}.family`, "référencez un bâtiment de base connu.");
   }
   if (buildingConfig.maxFamilyCopies !== undefined) {
-    integer(buildingConfig.maxFamilyCopies, "buildings.json.maxFamilyCopies", 1);
+    integer(buildingConfig.maxFamilyCopies, "buildings/index.json.maxFamilyCopies", 1);
     const counts = {};
     for (let i = 0; i < buildingConfig.deckSize; i++) {
       const id = buildingPool[i % buildingPool.length];
       const family = buildings[id].family || id;
       counts[family] = (counts[family] || 0) + 1;
       if (counts[family] > buildingConfig.maxFamilyCopies)
-        fail(`buildings.json.${family}`, "la famille dépasse maxFamilyCopies, variantes comprises.");
+        fail(`buildings.${family}`, "la famille dépasse maxFamilyCopies, variantes comprises.");
     }
   }
   if (!buildings[buildingConfig.startingBuilding]?.garrison)
     fail(
-      "buildings.json.startingBuilding",
+      "buildings/index.json.startingBuilding",
       "choisissez un bâtiment doté d’une garnison.",
     );
   const start = buildings[buildingConfig.startingBuilding];
@@ -423,7 +423,7 @@ export function compileConfiguration(
     !start.traversable
   )
     fail(
-      "buildings.json.startingBuilding",
+      "buildings/index.json.startingBuilding",
       "le terrain d’entrée doit être praticable par le roi.",
     );
   object(missionConfig, "missions.json");

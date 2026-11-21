@@ -1,0 +1,40 @@
+[
+  {
+    "id": "explorer_guild",
+    "name": "Guilde des explorateurs",
+    "tier": 3,
+    "description": "Permet d’acheter une case de terrain n’importe où pour 1 or. Sans ouvrier.",
+    "icon": "assets/textures/buildings-explorer-guild.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour la guilde et deux montagnes en ligne.",
+    "layout": [
+      "Bmm"
+    ],
+    "weight": 1,
+    "points": 0,
+    "remoteTerrain": true
+  },
+  {
+    "id": "explorer_guild_forest",
+    "name": "Guilde des explorateurs",
+    "tier": 3,
+    "description": "Permet d’acheter une case de terrain n’importe où pour 1 or. Sans ouvrier.",
+    "icon": "assets/textures/buildings-explorer-guild.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour la guilde et deux forêts en coude.",
+    "layout": [
+      "Bf",
+      ".f"
+    ],
+    "weight": 1,
+    "points": 0,
+    "remoteTerrain": true,
+    "family": "explorer_guild"
+  }
+]

@@ -1,0 +1,40 @@
+[
+  {
+    "id": "barrack_block",
+    "name": "Barraquement",
+    "tier": 3,
+    "description": "Les casernes à portée de 2 peuvent recruter 2 soldats par tour, pour 1 blé chacun. Sans ouvrier.",
+    "icon": "assets/textures/buildings-barrack-block.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Trois plaines en ligne : barraquement et cour.",
+    "layout": [
+      "Bpp"
+    ],
+    "weight": 1,
+    "points": 0,
+    "trainingBoost": 1
+  },
+  {
+    "id": "barrack_block_forest",
+    "name": "Barraquement",
+    "tier": 3,
+    "description": "Les casernes à portée de 2 peuvent recruter 2 soldats par tour, pour 1 blé chacun. Sans ouvrier.",
+    "icon": "assets/textures/buildings-barrack-block.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine et deux forêts en coude.",
+    "layout": [
+      "Bf",
+      ".f"
+    ],
+    "weight": 1,
+    "points": 0,
+    "trainingBoost": 1,
+    "family": "barrack_block"
+  }
+]

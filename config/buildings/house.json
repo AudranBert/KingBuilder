@@ -1,0 +1,61 @@
+[
+  {
+    "id": "house",
+    "name": "Maison",
+    "icon": "assets/textures/buildings-house.svg",
+    "cost": {
+      "food": 3,
+      "material": 3
+    },
+    "terrain": "plain",
+    "description": "+1 ouvrier, actif au prochain tour.",
+    "pattern": "Une plaine à côté d’un bâtiment existant, hors pont et tunnel.",
+    "weight": 3,
+    "layout": [
+      "Bc"
+    ],
+    "tier": 2,
+    "points": 1,
+    "grantsWorker": 1
+  },
+  {
+    "id": "house_water",
+    "name": "Maison",
+    "icon": "assets/textures/buildings-house.svg",
+    "cost": {
+      "food": 3,
+      "material": 3
+    },
+    "terrain": "plain",
+    "description": "+1 ouvrier, actif au prochain tour.",
+    "pattern": "Une plaine à côté d’une eau.",
+    "weight": 2,
+    "layout": [
+      "Br"
+    ],
+    "tier": 2,
+    "points": 1,
+    "grantsWorker": 1,
+    "family": "house"
+  },
+  {
+    "id": "house_forest",
+    "name": "Maison",
+    "icon": "assets/textures/buildings-house.svg",
+    "cost": {
+      "food": 3,
+      "material": 3
+    },
+    "terrain": "plain",
+    "description": "+1 ouvrier, actif au prochain tour.",
+    "pattern": "Une plaine à côté d’une forêt.",
+    "weight": 2,
+    "layout": [
+      "Bf"
+    ],
+    "tier": 2,
+    "points": 1,
+    "grantsWorker": 1,
+    "family": "house"
+  }
+]

@@ -1,0 +1,71 @@
+[
+  {
+    "id": "port",
+    "name": "Port",
+    "icon": "assets/textures/buildings-port.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 or avec un ouvrier ; +2 si marché ou pêcheur à portée de 2, ou autre port relié par eau continue.",
+    "pattern": "Une plaine avec 3 cases de rivière alignées sur un côté.",
+    "weight": 2,
+    "layout": [
+      ".r",
+      "Br",
+      ".r"
+    ],
+    "production": 1,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "portBonus": true
+  },
+  {
+    "id": "port_square",
+    "name": "Port",
+    "icon": "assets/textures/buildings-port.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 or avec un ouvrier ; +2 si marché ou pêcheur à portée de 2, ou autre port relié par eau continue.",
+    "pattern": "Une plaine d’entrée à côté d’un carré de 2 × 2 cases de rivière.",
+    "weight": 2,
+    "layout": [
+      "Brr",
+      ".rr"
+    ],
+    "production": 1,
+    "family": "port",
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "portBonus": true
+  },
+  {
+    "id": "port_l",
+    "name": "Port",
+    "icon": "assets/textures/buildings-port.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 or avec un ouvrier ; +2 si marché ou pêcheur à portée de 2, ou autre port relié par eau continue.",
+    "pattern": "Une entrée sur plaine et trois cases de rivière en coude.",
+    "weight": 1,
+    "layout": [
+      "Brr",
+      "..r"
+    ],
+    "production": 1,
+    "family": "port",
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "portBonus": true
+  }
+]

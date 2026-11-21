@@ -1,0 +1,65 @@
+[
+  {
+    "id": "sawmill",
+    "name": "Camp bûcheron",
+    "icon": "assets/textures/buildings-sawmill.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+2 bois par tour avec un ouvrier.",
+    "pattern": "Trois forêts en ligne ; entrée à une extrémité.",
+    "weight": 2,
+    "layout": [
+      "Bff"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "sawmill_cross",
+    "name": "Camp bûcheron",
+    "icon": "assets/textures/buildings-sawmill.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+2 bois par tour avec un ouvrier.",
+    "pattern": "Trois forêts en ligne ; entrée au centre.",
+    "weight": 2,
+    "layout": [
+      "fBf"
+    ],
+    "production": 2,
+    "family": "sawmill",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "sawmill_l",
+    "name": "Camp bûcheron",
+    "icon": "assets/textures/buildings-sawmill.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+2 bois par tour avec un ouvrier.",
+    "pattern": "Trois forêts en coude ; entrée à une extrémité.",
+    "weight": 2,
+    "layout": [
+      "Bf",
+      ".f"
+    ],
+    "production": 2,
+    "family": "sawmill",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  }
+]

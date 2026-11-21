@@ -1,0 +1,46 @@
+[
+  {
+    "id": "dry_dock",
+    "name": "Cale sèche",
+    "tier": 3,
+    "description": "Les unités du royaume peuvent se déplacer sur l’eau. Sans ouvrier.",
+    "icon": "assets/textures/buildings-dry-dock.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine de chantier et deux eaux en ligne.",
+    "layout": [
+      "Brr"
+    ],
+    "weight": 1,
+    "points": 0,
+    "waterMovement": true,
+    "adjacentOn": [
+      "river"
+    ]
+  },
+  {
+    "id": "dry_dock_forest",
+    "name": "Cale sèche",
+    "tier": 3,
+    "description": "Les unités du royaume peuvent se déplacer sur l’eau. Sans ouvrier.",
+    "icon": "assets/textures/buildings-dry-dock.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "forest",
+    "pattern": "Une forêt de chantier et deux eaux en coude.",
+    "layout": [
+      "Br",
+      ".r"
+    ],
+    "weight": 1,
+    "points": 0,
+    "waterMovement": true,
+    "adjacentOn": [
+      "river"
+    ],
+    "family": "dry_dock"
+  }
+]

@@ -1,0 +1,43 @@
+[
+  {
+    "id": "great_bridge",
+    "name": "Grand pont",
+    "tier": 3,
+    "description": "+6 score. Deux eaux reliant deux rives obligatoires sur plaine ou forêt.",
+    "icon": "assets/textures/buildings-bridge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "river",
+    "pattern": "Deux eaux en ligne entre deux rives obligatoires sur plaine ou forêt.",
+    "layout": [
+      "lBrl"
+    ],
+    "weight": 1,
+    "points": 6,
+    "traversable": true,
+    "greatBridge": true
+  },
+  {
+    "id": "great_bridge_bend",
+    "name": "Grand pont",
+    "tier": 3,
+    "description": "+6 score. Deux eaux reliant deux rives obligatoires sur plaine ou forêt.",
+    "icon": "assets/textures/buildings-bridge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "river",
+    "pattern": "Deux eaux reliées et deux rives décalées obligatoires sur plaine ou forêt.",
+    "layout": [
+      "l.",
+      "Br",
+      ".l"
+    ],
+    "weight": 1,
+    "points": 6,
+    "traversable": true,
+    "greatBridge": true,
+    "family": "great_bridge"
+  }
+]

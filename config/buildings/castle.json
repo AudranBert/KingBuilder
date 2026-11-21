@@ -1,0 +1,18 @@
+[
+  {
+    "id": "castle",
+    "name": "Donjon",
+    "icon": "assets/textures/buildings-castle.svg",
+    "cost": {},
+    "terrain": "plain",
+    "description": "Garnison 1 ; donjon conquis = défaite.",
+    "pattern": "Une case de plaine.",
+    "constructible": false,
+    "layout": [
+      "B"
+    ],
+    "tier": 2,
+    "points": 0,
+    "garrison": 1
+  }
+]

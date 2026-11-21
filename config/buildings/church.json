@@ -1,0 +1,40 @@
+[
+  {
+    "id": "church",
+    "name": "Église",
+    "tier": 3,
+    "description": "Double le score des monuments à portée de 2. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-church.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine à deux cases en ligne d’un bâtiment existant, hors pont et tunnel.",
+    "layout": [
+      "B.c"
+    ],
+    "weight": 1,
+    "points": 0,
+    "monumentMultiplier": 2
+  },
+  {
+    "id": "church_mountain",
+    "name": "Église",
+    "tier": 3,
+    "description": "Double le score des monuments à portée de 2. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-church.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Deux plaines et une montagne en coude.",
+    "layout": [
+      "Bm",
+      ".p"
+    ],
+    "weight": 1,
+    "points": 0,
+    "monumentMultiplier": 2,
+    "family": "church"
+  }
+]

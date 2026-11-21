@@ -1,0 +1,50 @@
+[
+  {
+    "id": "large_farm",
+    "name": "Grande ferme",
+    "icon": "assets/textures/buildings-farm.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+3 blé par tour avec un ouvrier.",
+    "pattern": "Cinq plaines en croix ; entrée au centre.",
+    "weight": 1,
+    "layout": [
+      ".p.",
+      "pBp",
+      ".p."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "farm",
+    "createsFields": true
+  },
+  {
+    "id": "large_farm_line",
+    "name": "Grande ferme",
+    "icon": "assets/textures/buildings-farm.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+3 blé par tour avec un ouvrier.",
+    "pattern": "Cinq plaines en L ; entrée à l’angle.",
+    "weight": 1,
+    "layout": [
+      "Bppp",
+      "p..."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "farm",
+    "family": "large_farm",
+    "createsFields": true
+  }
+]

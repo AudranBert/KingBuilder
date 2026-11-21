@@ -1,0 +1,49 @@
+[
+  {
+    "id": "wood_mill",
+    "name": "Scierie",
+    "tier": 2,
+    "description": "+1 bois aux camps bûcherons à portée de 2. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-wood-mill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour la scierie et une forêt pour le bois.",
+    "layout": [
+      "Bf"
+    ],
+    "weight": 1,
+    "points": 0,
+    "boost": {
+      "target": "sawmill",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    }
+  },
+  {
+    "id": "wood_mill_forest",
+    "name": "Scierie",
+    "tier": 2,
+    "description": "+1 bois aux camps bûcherons à portée de 2. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-wood-mill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "forest",
+    "pattern": "Deux forêts : scierie et réserve de bois.",
+    "layout": [
+      "Bf"
+    ],
+    "weight": 1,
+    "points": 0,
+    "boost": {
+      "target": "sawmill",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "family": "wood_mill"
+  }
+]

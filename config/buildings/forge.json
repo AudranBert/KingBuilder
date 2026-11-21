@@ -1,0 +1,40 @@
+[
+  {
+    "id": "forge",
+    "name": "Forge",
+    "tier": 3,
+    "description": "+1 en combat aux armées du royaume. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-forge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour la forge et deux montagnes en ligne.",
+    "layout": [
+      "Bmm"
+    ],
+    "weight": 1,
+    "points": 0,
+    "combatBonus": 1
+  },
+  {
+    "id": "forge_forest",
+    "name": "Forge",
+    "tier": 3,
+    "description": "+1 en combat aux armées du royaume. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-forge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour la forge et deux forêts en coude.",
+    "layout": [
+      "Bf",
+      ".f"
+    ],
+    "weight": 1,
+    "points": 0,
+    "combatBonus": 1,
+    "family": "forge"
+  }
+]

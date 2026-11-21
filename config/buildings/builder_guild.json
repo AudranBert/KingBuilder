@@ -1,0 +1,40 @@
+[
+  {
+    "id": "builder_guild",
+    "name": "Guilde des bâtisseurs",
+    "tier": 3,
+    "description": "Réduit de 1 bois le coût des bâtiments. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-builder-guild.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour la guilde et deux forêts en ligne.",
+    "layout": [
+      "Bff"
+    ],
+    "weight": 1,
+    "points": 0,
+    "buildingDiscount": 1
+  },
+  {
+    "id": "builder_guild_mountain",
+    "name": "Guilde des bâtisseurs",
+    "tier": 3,
+    "description": "Réduit de 1 bois le coût des bâtiments. Sans ouvrier, non cumulable.",
+    "icon": "assets/textures/buildings-builder-guild.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Une plaine pour la guilde et deux montagnes en coude.",
+    "layout": [
+      "Bm",
+      ".m"
+    ],
+    "weight": 1,
+    "points": 0,
+    "buildingDiscount": 1,
+    "family": "builder_guild"
+  }
+]

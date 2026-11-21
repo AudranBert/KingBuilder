@@ -1,0 +1,66 @@
+[
+  {
+    "id": "mine",
+    "name": "Mine",
+    "icon": "assets/textures/buildings-mine.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 or par tour avec un ouvrier.",
+    "pattern": "Une plaine d’entrée suivie de trois montagnes en ligne.",
+    "weight": 2,
+    "layout": [
+      "Bmmm"
+    ],
+    "production": 1,
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "mine_square",
+    "name": "Mine",
+    "icon": "assets/textures/buildings-mine.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 or par tour avec un ouvrier.",
+    "pattern": "Un carré de quatre cases : une plaine d’entrée et trois montagnes.",
+    "weight": 2,
+    "layout": [
+      "Bm",
+      "mm"
+    ],
+    "production": 1,
+    "family": "mine",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  },
+  {
+    "id": "mine_l",
+    "name": "Mine",
+    "icon": "assets/textures/buildings-mine.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 or par tour avec un ouvrier.",
+    "pattern": "Quatre cases en coude : une plaine d’entrée et trois montagnes.",
+    "weight": 2,
+    "layout": [
+      "Bmm",
+      "..m"
+    ],
+    "production": 1,
+    "family": "mine",
+    "tier": 1,
+    "points": 1,
+    "traversable": true
+  }
+]
