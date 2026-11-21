@@ -11,6 +11,8 @@ import {
   movementPaths,
   attackPaths,
   buildingAt,
+  terrainAt,
+  bridgeAt,
   productionAmount,
 } from "../engine.js";
 import { key, inside } from "../geometry.js";
@@ -166,22 +168,23 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
           y = +button.dataset.y,
           cell = g.board[position],
           b = cell?.building,
+          displayTerrain = terrainAt(g,x,y),
+          bridge = bridgeAt(g,x,y),
           occupants = pawnIndex.get(position) || [];
         const near = !guidance.size && ui.mode === "move" && paths.has(position);
         const selected = ui.selected?.x === x && ui.selected?.y === y;
-        button.className = `cell ${cell ? `terrain-${cell.terrain}` : "unknown"} ${b || cell?.overlay ? "built-tile" : ""} ${cell?.overlay?.role === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "worker") ? "king" : ""}`;
+        button.className = `cell ${cell ? `terrain-${displayTerrain}` : "unknown"} ${b ? "built-tile" : ""} ${displayTerrain === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "worker") ? "king" : ""}`;
         if (!guidance.size && ui.mode === "move" && targets.has(position)) button.classList.add("combat-target");
-        button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[cell.terrain].texture}`, import.meta.url).href}")` : "";
-        button.style.backgroundColor = cell ? TERRAINS[cell.terrain].color : "";
-        button.style.color = cell ? TERRAINS[cell.terrain].foreground : "";
+        button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[displayTerrain].texture}`, import.meta.url).href}")` : "";
+        button.style.backgroundColor = cell ? TERRAINS[displayTerrain].color : "";
+        button.style.color = cell ? TERRAINS[displayTerrain].foreground : "";
         button.tabIndex = position === focusPosition ? 0 : -1;
         button.setAttribute("aria-selected", String(selected));
         const parts = [
-          `${coordinates(x, y)} : ${cell ? definitionText("terrains", TERRAINS[cell.terrain]) : t("board.unexplored")}`,
+          `${coordinates(x, y)} : ${cell ? definitionText("terrains", TERRAINS[displayTerrain]) : t("board.unexplored")}`,
         ];
         if (cell?.flag) parts.push(t("board.flag", [cell.flag.owner === null ? t("board.neutral") : kingdomName(g.players[cell.flag.owner].name)]));
         if (b) parts.push(definitionText("buildings", BUILDINGS[b.type]), kingdomName(g.players[b.owner].name));
-        if (cell?.overlay?.role === "field") parts.push(t("board.field"));
         for (const pawn of occupants)
           parts.push(
             `${definitionText("units", UNIT_DEFINITIONS[pawn.type]) + " " + (pawn.id + 1)} · ${kingdomName(g.players[pawn.owner].name)}${exhausted(pawn) ? t("board.actionsComplete") : ""}`,
@@ -192,12 +195,12 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         button.title = parts.join(" · ");
         let html = b
           ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${b.owner === 1 ? "jade" : ""}" aria-hidden="true"></i>`
-          : cell?.overlay?.role === "bridge"
+          : bridge
             ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS.great_bridge.icon)}</span>`
-          : cell?.overlay?.role === "field"
+          : displayTerrain === "field"
             ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS.field.icon)}</span>`
             : cell
-              ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[cell.terrain].icon)}</span>`
+              ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[displayTerrain].icon)}</span>`
               : "";
         if (cell?.flag) html += `<span class="control-flag ${cell.flag.owner === 0 ? "amber" : cell.flag.owner === 1 ? "jade" : "neutral"}" aria-hidden="true">⚑</span>`;
         if (b && BUILDINGS[b.type].garrison) html += `<span class="garrison-badge" title="${t("createBoard.fixedGarrison1Defense1")}">♜</span>`;

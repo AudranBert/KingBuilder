@@ -58,7 +58,11 @@ Champs communs : `id`, `name`, `icon`, `cost`, `terrain`, `description`, `patter
 
 Répartition actuelle de `tier` : 0 pour défrichement, pont et tunnel, 1 pour les fermes, scieries, carrières, mines et pêcheurs, 2 pour les ports et tous les autres bâtiments, y compris les moulins et tours. Le donjon reste hors pioche.
 
-`layout` dessine l’empreinte : `B` est la case réelle du bâtiment, les points sont des vides, les autres symboles renvoient à `legend`. L’empreinte doit être reliée par les bords et contenir exactement un `B`. Chaque symbole annexe indique ses terrains et son rôle. La rotation s’applique autour de `B`.
+`layout` utilise le même alphabet pour tous les bâtiments : `B` (ou `b`) = bâtiment à poser, `c` = bâtiment voisin existant hors pont et tunnel, `p` = plaine, `f` = forêt, `m` = montagne, `r` = rivière, `w` = champ de blé, `l` = rive sur plaine ou forêt, `.` = case ignorée. Aucun objet `legend` ni `role` n’est nécessaire. Le pattern doit contenir exactement un `B` ; ses conditions peuvent être séparées par des points. La rotation s’applique autour de `B`.
+
+`!` devant une lettre de terrain signifie « tout sauf ce terrain » : `!p` exclut la plaine. Chaque expression compte pour une seule case. Exemple vertical : `"layout": ["!p", "B", "!p"]` ; exemple horizontal : `["!pB!p"]`. Un seul `B` est autorisé.
+
+Les autres cases ne sont ni réservées ni attribuées au bâtiment. Plusieurs patterns peuvent partager ces cases, même si elles portent déjà un autre bâtiment. La production de terrain et les déplacements restent possibles selon le terrain. Les champs autour des fermes sont un affichage et une condition de placement dérivés des fermes présentes ; ils ne réservent pas les plaines. Le passage du grand pont reste franchissable sans réserver sa seconde case d’eau. Les anciennes réservations `overlay` sont supprimées au chargement.
 
 ```json
 {
@@ -66,11 +70,10 @@ Répartition actuelle de `tier` : 0 pour défrichement, pont et tunnel, 1 pour l
   "name": "Atelier",
   "icon": "assets/textures/buildings-sawmill.svg",
   "cost": {"material": 2},
-  "terrain": ["plain"],
+  "terrain": "plain",
   "description": "+1 matériau / tour.",
   "pattern": "Deux plaines adjacentes.",
-  "layout": ["Bc"],
-  "legend": {"c": {"terrain": ["plain"], "role": "courtyard"}},
+  "layout": ["Bp"],
   "produces": "material",
   "production": 1,
   "tier": 1,
@@ -89,7 +92,7 @@ Effets :
 - `garrison` : garnison fixe (1 dans les règles actuelles).
 - `traversable` : rend la case praticable, notamment pont, tunnel et tour.
 - `boost` : producteur ciblé, bonus additif, voisinage `edge` ou `touching`, propriété requise.
-- `adjacency` : conditions de voisinage d’un bâtiment ou rôle annexe.
+- `c` dans le layout : bâtiment voisin requis.
 - `transformTo` + `onBuildGain` : action de transformation d’une case, sans bâtiment permanent.
 - `constructible: false` : bâtiment initial hors pioche (donjon).
 - `family` : variante d’un bâtiment de base, notamment pour les missions et bonus.

@@ -15,9 +15,9 @@ test("configuration sans mutation : trois ressources, deux unités et nouveaux b
  assert.equal(c.buildings.chancellery,undefined);assert.equal(c.buildings.castle.garrison,1);assert.equal(c.rules.turnLimit,25);
 });
 test("pioche : chaque exemplaire et chaque variante sont conservés, quantités par famille et variantes conservées",()=>{
- const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,110);
+ const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,118);
  for(const id of c.buildingPool){const family=c.buildings[id].family||id;counts[family]=(counts[family]||0)+1;}
- assert.deepEqual(counts,{house:7,farm:6,sawmill:6,quarry:6,mine:6,bridge:6,tunnel:6,port:5,clearing:8,mill:5,barracks:6,outpost:6,monument:5,fisher:6,small_monument:2,market:2,wood_mill:2,stable:2,forge:2,barrack_block:2,dry_dock:2,large_monument:2,church:2,toll:2,explorer_guild:2,builder_guild:2,great_bridge:2});
+ assert.deepEqual(counts,{house:7,farm:6,sawmill:6,quarry:6,mine:6,bridge:6,tunnel:6,port:5,clearing:8,mill:5,barracks:6,outpost:6,monument:5,fisher:6,small_monument:2,market:2,wood_mill:2,stable:2,forge:2,barrack_block:2,dry_dock:2,large_monument:2,church:2,toll:2,explorer_guild:2,builder_guild:2,great_bridge:2,large_farm:2,large_sawmill:2,large_quarry:2,large_fisher:2});
  assert.equal(c.buildingPool.length,c.buildingDeckSize);assert.equal(counts.castle,undefined);
  for(const family of ["farm","sawmill","quarry","mine","port","mill","fisher"]){
  const variants=Object.values(c.buildings).filter(b=>(b.family||b.id)===family);assert.equal(variants.length,3);
@@ -29,8 +29,22 @@ test("motifs vides, disjoints, symboles inconnus et entrées multiples refusés"
 });
 test("les grandes formes restent configurables",()=>{
  const c=configs();c[0].shapes.push({id:"future6",name:"Six",weight:1,pattern:["xxxxxx"]});
- c[1].buildings[0].layout=["Bfffff"];c[1].buildings[0].legend={f:{terrain:["plain"],role:"field"}};
+ c[1].buildings[0].layout=["Bppppp"];
  const result=compileConfiguration(...c);assert.equal(result.shapes.future6.cells.length,6);assert.equal(result.buildings.house.cells.length,6);
+});
+test('alphabet commun des bâtiments : B, c et terrains fixes sans légende',()=>{
+ for(const b of originals[1].buildings){assert.equal(b.legend,undefined);assert.equal(b.bridgeBanks,undefined);}
+ const c=configs();c[1].buildings[0].layout=['Bpfmrwl'];
+ const house=compileConfiguration(...c).buildings.house;
+ assert.deepEqual(house.cells.map(c=>c.symbol),['B','p','f','m','r','w','l']);
+ assert.deepEqual(house.cells.slice(1).map(c=>c.terrain),[['plain'],['forest'],['mountain'],['river'],['field'],['plain','forest']]);
+ assert.ok(house.cells.every(c=>c.role===undefined));
+});
+test('bc est accepté pour une maison à côté d’un bâtiment',()=>{
+ const c=configs();c[1].buildings[0].layout=['bc'];
+ const house=compileConfiguration(...c).buildings.house;
+ assert.deepEqual(house.layout,['Bc']);assert.deepEqual(house.cells.map(c=>c.symbol),['B','c']);
+ assert.deepEqual(c[1].buildings[0].layout,['bc']);
 });
 test("références de ressources, terrains, unités et bonus invalides refusées",()=>{
  for(const change of [c=>c[1].buildings[0].cost={missing:1},c=>c[1].buildings[0].terrain=["missing"],
@@ -41,7 +55,7 @@ test("références de ressources, terrains, unités et bonus invalides refusées
 test("identifiants en double et poids dépassant la pioche ou la famille refusés",()=>{
  const a=configs();a[0].shapes.push(a[0].shapes[0]);assert.throws(()=>compileConfiguration(...a),/double/);
  const b=configs();b[1].buildings[0].weight=b[1].deckSize+1;assert.throws(()=>compileConfiguration(...b),/poids/);
- const c=configs();c[1].buildings[0].weight=13;c[1].buildings.find(b=>b.id==="clearing").weight=1;assert.throws(()=>compileConfiguration(...c),/maxFamilyCopies/);
+ const c=configs();c[1].buildings[0].weight=13;c[1].buildings.find(b=>b.id==="clearing").weight=1;c[1].deckSize=c[1].buildings.reduce((n,b)=>n+(b.constructible===false?0:b.weight),0);assert.throws(()=>compileConfiguration(...c),/maxFamilyCopies/);
 });
 test("ouvrier obligatoire et mobile, coûts négatifs refusés",()=>{
  for(const change of [c=>c[3].units=c[3].units.filter(u=>u.id!=="worker"),
@@ -69,7 +83,7 @@ test("configuration réelle : coûts, score et quota des casernes suivent les fi
  input[1].buildings.find(b=>b.id==="barracks").trainingLimit=2;
  for(let i=0;i<names.length;i++)await writeFile(path.join(root,"config",names[i]+".json"),JSON.stringify(input[i]));
  const engine=await import(pathToFileURL(path.join(root,"src/engine.js")));
- const g=engine.createGame();g.board["1,6"]={terrain:"plain"};g.buildingMarket[0]="house";engine.build(g,0,1,6);
+ const g=engine.createGame();g.board["1,6"]={terrain:"plain"};g.buildingMarket[0]="house";engine.build(g,0,1,6,2);
  assert.equal(g.players[0].resources.material,1);assert.equal(g.players[0].resources.food,0);assert.equal(engine.score(g,0).buildings,3);
  g.board["6,6"].flag.owner=0;assert.equal(engine.score(g,0).flags,7);
  for(let i=0;i<4;i++)engine.endTurn(g);assert.equal(g.finished,true);

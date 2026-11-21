@@ -15,7 +15,7 @@ export function missionProgress(g, id, owner = g.active) {
     return m.building
       ? Object.entries(p.progress.built).reduce(
           (total, [type, count]) => total +
-            ((CONFIG.buildings[type]?.family || type) === m.building ? count : 0), 0)
+            ((CONFIG.buildings[type]?.productionFamily || CONFIG.buildings[type]?.family || type) === m.building ? count : 0), 0)
       : Object.values(p.progress.built).reduce((a, b) => a + b, 0);
   if (m.metric === "recruited") return p.progress.recruited;
   if (m.metric === "resources")

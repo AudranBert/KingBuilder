@@ -1,4 +1,4 @@
-import { t } from "../i18n.js";
+import { t, definitionText } from "../i18n.js";
 import {
   RESOURCE_ICONS,
   RESOURCES,
@@ -53,18 +53,27 @@ export function diagram(cells, { building = null, large = false, maxSize = 64 } 
     height = (maxY - minY + 1) * step;
   const content = cells
     .map((cell) => {
-      const terrainId = cell.transformTo || (Array.isArray(cell.terrain)
+      const terrainId = cell.excludedTerrain || (building?.createsFields && cell.symbol === 'p' ? 'field' : cell.transformTo) || (Array.isArray(cell.terrain)
           ? cell.terrain[0]
           : cell.terrain),
         terrain = TERRAINS[terrainId],
-        field = cell.role === "field",
+        field = terrainId === 'field',
         icon =
-          cell.role === "building" || (cell.role === "bridge" && building?.greatBridge)
+          cell.symbol === 'c'
+            ? 'assets/textures/pattern-building.svg'
+          : cell.symbol === '!p'
+            ? 'assets/textures/terrains-not-plain.svg'
+          : cell.symbol === 'B' || (cell.symbol === 'r' && building?.greatBridge)
             ? building?.icon
             : field
               ? TERRAINS.field.icon
               : terrain.icon;
-      return `<i class="diagram-cell terrain-${e(terrainId)} ${field ? "field" : ""}" style="left:${(cell.x - minX) * step}px;top:${(cell.y - minY) * step}px;width:${step * 0.9}px;height:${step * 0.9}px;font-size:${Math.min(building ? (large ? 26 : 18) : 13, step * 0.7)}px;background:${terrain.color} url(${e(new URL(`../../${terrain.texture}`, import.meta.url).href)}) center/cover;color:${terrain.foreground}">${iconHTML(icon)}</i>`;
+      const conditionLabel = cell.excludedTerrain
+        ? t('html.excludedTerrain',[definitionText('terrains',TERRAINS[cell.excludedTerrain])])
+        : t(cell.symbol === 'c' ? 'html.existingBuilding' : 'html.neighbourTerrain');
+      const conditionTitle = cell.symbol !== 'B' && building ? ` title="${e(conditionLabel)}"` : '';
+      const background = cell.symbol === 'c' ? '#e9dfc7' : `${terrain.color} url(${e(new URL(`../../${terrain.texture}`, import.meta.url).href)}) center/cover`;
+      return `<i class="diagram-cell terrain-${e(terrainId)} ${field ? "field" : ""} ${cell.symbol === '!p' ? 'terrain-choice' : cell.excludedTerrain ? 'excluded-terrain' : ''}"${conditionTitle} style="left:${(cell.x - minX) * step}px;top:${(cell.y - minY) * step}px;width:${step * 0.9}px;height:${step * 0.9}px;font-size:${Math.min(building ? (large ? 26 : 18) : 13, step * 0.7)}px;background:${background};color:${terrain.foreground}">${iconHTML(icon)}</i>`;
     })
     .join("");
   return `<span class="tile-diagram" aria-hidden="true" style="width:${width}px;height:${Math.max(building ? 15 : 46, height)}px">${content}</span>`;

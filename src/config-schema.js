@@ -1,4 +1,9 @@
 const forbidden = ["__proto__", "prototype", "constructor"];
+// One fixed alphabet for every building pattern; c means an existing building.
+const buildingTerrains = {
+  p: ['plain'], f: ['forest'], m: ['mountain'], r: ['river'],
+  w: ['field'], l: ['plain','forest'],
+};
 const fail = (path, message) => {
   throw new Error(`Configuration invalide : ${path} — ${message}`);
 };
@@ -53,7 +58,7 @@ function connected(cells) {
   }
   return visited.size === cells.length;
 }
-function diagram(rows, symbols, path) {
+function diagram(rows, symbols, path, negation = false) {
   if (
     !Array.isArray(rows) ||
     !rows.length ||
@@ -62,7 +67,7 @@ function diagram(rows, symbols, path) {
     fail(path, "liste de lignes non vides attendue.");
   const cells = [];
   rows.forEach((row, y) =>
-    [...row].forEach((symbol, x) => {
+    (negation ? row.match(/!.|./gu) : [...row]).forEach((symbol, x) => {
       if (symbol === ".") return;
       if (!symbols.includes(symbol)) fail(path, `symbole inconnu : ${symbol}.`);
       cells.push({ x, y, symbol });
@@ -70,7 +75,7 @@ function diagram(rows, symbols, path) {
   );
   if (!cells.length)
     fail(path, "une tuile doit contenir au moins une case occupée.");
-  if (!connected(cells))
+  if (!negation && !connected(cells))
     fail(path, "toutes les cases doivent être reliées par un bord.");
   return cells;
 }
@@ -296,13 +301,14 @@ export function compileConfiguration(
     const path = `buildings.json.${b.id}`;
     for (const field of ["points", "garrison", "grantsWorker", "tradeDiscount", "buildingDiscount", "movementBonus", "combatBonus", "trainingBoost", "monumentMultiplier"])
       if (b[field] !== undefined) integer(b[field], `${path}.${field}`);
-    for (const field of ["waterMovement", "remoteTerrain", "portBonus", "toll", "greatBridge"])
+    for (const field of ["waterMovement", "remoteTerrain", "portBonus", "toll", "greatBridge", "createsFields"])
       if (b[field] !== undefined && typeof b[field] !== 'boolean') fail(path, `${field} doit être un booléen.`);
     if (b.unique !== undefined && typeof b.unique !== "boolean") fail(path, "unique doit être un booléen.");
     if (b.onBuildUnit !== undefined && !units[b.onBuildUnit]) fail(path, "unité initiale inconnue.");
     label(b.icon, `${path}.icon`);
     label(b.description, `${path}.description`);
     label(b.pattern, `${path}.pattern`);
+    if (typeof b.terrain === 'string') b.terrain = [b.terrain];
     terrainList(b.terrain, `${path}.terrain`);
     costs(b.cost, resources, `${path}.cost`);
     b.tier ??= 1;
@@ -311,24 +317,16 @@ export function compileConfiguration(
       fail(path, "constructible doit être un booléen.");
     if (b.onBuildGain !== undefined)
       costs(b.onBuildGain, resources, `${path}.onBuildGain`);
-    object(b.legend, `${path}.legend`);
-    for (const [symbol, part] of Object.entries(b.legend)) {
-      if ([...symbol].length !== 1 || [".", "B"].includes(symbol))
-        fail(
-          path,
-          "chaque symbole de légende doit être un caractère différent de B et du point.",
-        );
-      object(part, path);
-      terrainList(part.terrain, `${path}.legend.${symbol}.terrain`);
-      identifier(part.role, `${path}.legend.${symbol}.role`);
-      if (part.transformTo !== undefined && !terrainIds.includes(part.transformTo)) fail(path, "terrain transformTo inconnu.");
-      if (part.role === "building")
-        fail(path, "le rôle building est réservé à B.");
-    }
+    if (b.legend !== undefined || b.adjacency !== undefined)
+      fail(path, "utilisez les symboles fixes du layout, sans legend ni adjacency.");
+    if (Array.isArray(b.layout))
+      b.layout = b.layout.map(row => typeof row === 'string' ? row.replaceAll('b','B') : row);
     const cells = diagram(
         b.layout,
-        ["B", ...Object.keys(b.legend)],
+        ['B','c',...Object.keys(buildingTerrains),
+          ...Object.keys(buildingTerrains).filter(s => buildingTerrains[s].length === 1).map(s => `!${s}`)],
         `${path}.layout`,
+        true,
       ),
       anchors = cells.filter((c) => c.symbol === "B");
     if (anchors.length !== 1)
@@ -337,14 +335,20 @@ export function compileConfiguration(
     b.cells = cells.map((c) => ({
       x: c.x - origin.x,
       y: c.y - origin.y,
-      ...(c.symbol === "B"
-        ? { terrain: b.terrain, role: "building" }
-        : b.legend[c.symbol]),
+      symbol: c.symbol,
+      terrain: c.symbol === 'B' ? b.terrain
+        : c.symbol === 'c' ? terrainIds
+        : c.symbol.startsWith('!') ? terrainIds.filter(id => id !== buildingTerrains[c.symbol.slice(1)][0])
+        : buildingTerrains[c.symbol],
+      ...(c.symbol.startsWith('!') ? {excludedTerrain:buildingTerrains[c.symbol.slice(1)][0]} : {}),
     }));
     if (b.produces !== undefined) {
       if (!Object.hasOwn(resources, b.produces))
         fail(path, `ressource produite inconnue : ${b.produces}.`);
       integer(b.production, `${path}.production`, 1);
+      if (b.productionFamily !== undefined &&
+          (!buildings[b.productionFamily]?.produces || buildings[b.productionFamily].produces !== b.produces))
+        fail(path, "productionFamily doit viser un producteur de la même ressource.");
     } else if (b.production !== undefined)
       fail(path, "production exige une ressource produces.");
     if (b.trains !== undefined) {
@@ -372,22 +376,6 @@ export function compileConfiguration(
         path,
         "transformTo exige un terrain connu et une action d’une case, sans production, logement ni bonus.",
       );
-    if (b.adjacency !== undefined) {
-      if (!Array.isArray(b.adjacency))
-        fail(path, "adjacency doit être une liste.");
-      for (const rule of b.adjacency) {
-        object(rule, path);
-        range(rule.range, path);
-        if (typeof rule.owned !== "boolean")
-          fail(path, "owned doit être un booléen.");
-        if (Boolean(rule.building) === Boolean(rule.role))
-          fail(path, "une condition doit viser soit building, soit role.");
-        if (rule.building && !Object.hasOwn(buildings, rule.building))
-          fail(path, `bâtiment voisin inconnu : ${rule.building}.`);
-        if (rule.role) identifier(rule.role, path);
-        if (rule.terrain !== undefined && !terrainIds.includes(rule.terrain)) fail(path, "terrain voisin inconnu.");
-      }
-    }
     if (b.boost) {
       object(b.boost, path);
       if (!buildings[b.boost.target]?.produces)

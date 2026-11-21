@@ -31,6 +31,7 @@ test("bâtiment : deux ressources, une production partagée par tour et aucun se
 });
 test("maison : coût 3 et 3, recrue sur place active seulement au tour suivant",()=>{
  const g=setup(),p=g.players[0];p.resources={food:3,material:3,gold:0};g.buildingMarket[0]="house";
+ g.board['2,5']={terrain:'plain',building:{type:'house',owner:0}};
  build(g,0,1,5);const recruit=p.units[2];assert.deepEqual(p.resources,{food:0,material:0,gold:0});
  assert.equal(p.workers,3);assert.deepEqual([recruit.x,recruit.y],[1,5]);assert.ok(recruit.ended);assert.equal(actor(g).moves,3);
  selectUnit(g,recruit.id);assert.throws(()=>produce(g));assert.throws(()=>move(g,0,5));endTurn(g);
@@ -40,8 +41,8 @@ test("construction puis déplacement autorisé ; produire reste une action disti
  const g=setup();g.board["1,5"]={terrain:"forest"};g.buildingMarket[0]="clearing";
  build(g,0,1,5);assert.equal(actor(g).moves,3);move(g,1,5);assert.equal(actor(g).moves,2);assert.throws(()=>produce(g));
 });
-test("un bâtiment passif, une annexe, un drapeau ou un bâtiment adverse ne produit pas",()=>{
- for(const cell of [{terrain:"plain",building:{type:"house",owner:0}},{terrain:"forest",building:{type:"sawmill",owner:1}},{terrain:"plain",flag:{owner:0}},{terrain:"plain",overlay:{anchor:"0,5",role:"courtyard",owner:0}},{terrain:"mountain"}]){
+test("un bâtiment passif, un drapeau ou un bâtiment adverse ne produit pas",()=>{
+ for(const cell of [{terrain:"plain",building:{type:"house",owner:0}},{terrain:"forest",building:{type:"sawmill",owner:1}},{terrain:"plain",flag:{owner:0}},{terrain:"mountain"}]){
  const g=setup();g.board["1,5"]=cell;Object.assign(g.players[0].units[0],{x:1,y:5});const before=structuredClone(g);assert.throws(()=>produce(g));assert.deepEqual(g,before);}
 });
 test("moulin : bonus de un non cumulable et propriétaire respecté",()=>{
@@ -51,7 +52,7 @@ test("moulin : bonus de un non cumulable et propriétaire respecté",()=>{
  assert.equal(productionAmount(g,3,3),3);g.board["3,3"].building.owner=1;assert.equal(productionAmount(g,3,3),2);
 });
 test("tous les producteurs sont accessibles, y compris bateau et carrière sur montagne",()=>{
- assert.ok(Object.values(BUILDINGS).filter(b=>b.produces).every(b=>b.production>=2&&b.traversable));
+ assert.ok(Object.values(BUILDINGS).filter(b=>b.produces).every(b=>b.production>=1&&b.traversable));
  const g=setup();g.board["1,5"]={terrain:"river",building:{type:"fisher",owner:0}};move(g,1,5);assert.equal(productionPreview(g).amount,2);produce(g);
 });
 test("commande produire autoritaire, refus atomique et anciennes affectations bloquées",()=>{
@@ -86,12 +87,12 @@ test("fin de tour : une recrue inactive ne produit pas, ni un soldat",()=>{
  p.units.push({id:p.nextUnitId++,type:"soldier",x:1,y:5,moves:3,acted:false,ended:false});const before={...p.resources};
  endTurn(g);assert.deepEqual(p.resources,before);
 });
-test("fin de tour : pas de production sur bâtiment passif, adverse, annexe ou terrain invalide",()=>{
- for(const cell of [{terrain:"plain",building:{type:"house",owner:0}},{terrain:"forest",building:{type:"sawmill",owner:1}},{terrain:"plain",flag:{owner:0}},{terrain:"field",overlay:{anchor:"0,5",role:"field",owner:0}},{terrain:"mountain"}]){
+test("fin de tour : pas de production sur bâtiment passif, adverse ou terrain invalide",()=>{
+ for(const cell of [{terrain:"plain",building:{type:"house",owner:0}},{terrain:"forest",building:{type:"sawmill",owner:1}},{terrain:"plain",flag:{owner:0}},{terrain:"mountain"}]){
   const g=setup(),p=g.players[0];g.board["1,5"]=cell;Object.assign(p.units[0],{x:1,y:5});const before={...p.resources};endTurn(g);assert.deepEqual(p.resources,before);
  }
 });
 test("dernière fin de tour : production via commande avant score, sans toucher à l’état source",()=>{
  const g=setup(),p=g.players[0];g.round=25;g.board["1,5"]={terrain:"plain",building:{type:"mine",owner:0}};Object.assign(p.units[0],{x:1,y:5});p.resources.gold=0;
- const before=structuredClone(g),next=applyCommand(g,{type:"endTurn",unit:1,args:[]});assert.deepEqual(g,before);assert.equal(next.players[0].resources.gold,2);assert.equal(next.finished,true);assert.equal(totalScore(next,0),2);assert.equal(harvestPreview(next).amounts.gold,0);
+ const before=structuredClone(g),next=applyCommand(g,{type:"endTurn",unit:1,args:[]});assert.deepEqual(g,before);assert.equal(next.players[0].resources.gold,1);assert.equal(next.finished,true);assert.equal(totalScore(next,0),1);assert.equal(harvestPreview(next).amounts.gold,0);
 });

@@ -5,10 +5,10 @@ import {buildingPayment, tradePrice} from '../src/objectives.js';
 function setup(){const g=createGame(()=>0.5,'solo');g.board={};g.players[0].resources={food:20,material:20,gold:20};g.players[0].units.forEach(u=>Object.assign(u,{x:4,y:4,acted:false,ended:false}));return g;}
 function put(g,x,y,type){g.board[`${x},${y}`]={terrain:'plain',building:{type,owner:0}};}
 test('bonus sans ouvrier : portée de 12 cases et absence de cumul',()=>{
- const g=setup();put(g,4,4,'farm');put(g,6,4,'mill');put(g,4,6,'mill');assert.equal(productionAmount(g,4,4),2);
- delete g.board['6,4'];delete g.board['4,6'];put(g,6,5,'mill');assert.equal(productionAmount(g,4,4),1);
- put(g,5,5,'mill');assert.equal(productionAmount(g,4,4),2);
- put(g,2,2,'sawmill');put(g,2,4,'wood_mill');assert.equal(productionAmount(g,2,2),2);
+ const g=setup();put(g,4,4,'farm');put(g,6,4,'mill');put(g,4,6,'mill');assert.equal(productionAmount(g,4,4),3);
+ delete g.board['6,4'];delete g.board['4,6'];put(g,6,5,'mill');assert.equal(productionAmount(g,4,4),2);
+ put(g,5,5,'mill');assert.equal(productionAmount(g,4,4),3);
+ put(g,2,2,'sawmill');put(g,2,4,'wood_mill');assert.equal(productionAmount(g,2,2),3);
 });
 test('monuments doublés une seule fois et caserne renforcée sans ouvrier',()=>{
  const g=setup();put(g,4,4,'small_monument');put(g,6,4,'church');put(g,4,6,'church');assert.equal(score(g,0).buildings,4);
@@ -29,6 +29,8 @@ test('cale sèche et écurie activent les déplacements sans ouvrier',()=>{
 });
 test('grand pont et péage imposent leur géographie',()=>{
  const g=setup();g.selectedUnitId=g.players[0].units[0].id;g.buildingMarket=['great_bridge'];g.board['4,4']={terrain:'river'};g.board['5,4']={terrain:'river'};assert.ok(buildError(g,0,4,4));g.board['3,4']={terrain:'plain'};g.board['6,4']={terrain:'plain'};assert.equal(buildError(g,0,4,4),null);
+ g.board['4,5']={terrain:'plain'};
+ g.board['4,6']={terrain:'plain'};
  g.buildingMarket=['toll'];assert.ok(buildError(g,0,4,4));g.board['4,4'].building={type:'bridge',owner:0};assert.equal(buildError(g,0,4,4),null);build(g,0,4,4);assert.equal(g.board['4,4'].building.type,'toll');
  assert.equal(BUILDINGS.large_monument.points,7);
 });
