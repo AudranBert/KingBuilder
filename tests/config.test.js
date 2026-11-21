@@ -15,9 +15,9 @@ test("configuration sans mutation : trois ressources, deux unités et nouveaux b
  assert.equal(c.buildings.chancellery,undefined);assert.equal(c.buildings.castle.garrison,1);assert.equal(c.rules.turnLimit,25);
 });
 test("pioche : chaque exemplaire et chaque variante sont conservés, quantités par famille et variantes conservées",()=>{
- const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,84);
+ const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,110);
  for(const id of c.buildingPool){const family=c.buildings[id].family||id;counts[family]=(counts[family]||0)+1;}
- assert.deepEqual(counts,{house:7,farm:6,sawmill:6,quarry:6,mine:6,bridge:6,tunnel:6,port:5,clearing:8,mill:5,barracks:6,outpost:6,monument:5,fisher:6});
+ assert.deepEqual(counts,{house:7,farm:6,sawmill:6,quarry:6,mine:6,bridge:6,tunnel:6,port:5,clearing:8,mill:5,barracks:6,outpost:6,monument:5,fisher:6,small_monument:2,market:2,wood_mill:2,stable:2,forge:2,barrack_block:2,dry_dock:2,large_monument:2,church:2,toll:2,explorer_guild:2,builder_guild:2,great_bridge:2});
  assert.equal(c.buildingPool.length,c.buildingDeckSize);assert.equal(counts.castle,undefined);
  for(const family of ["farm","sawmill","quarry","mine","port","mill","fisher"]){
  const variants=Object.values(c.buildings).filter(b=>(b.family||b.id)===family);assert.equal(variants.length,3);

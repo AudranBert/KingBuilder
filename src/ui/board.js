@@ -192,6 +192,8 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         button.title = parts.join(" · ");
         let html = b
           ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${b.owner === 1 ? "jade" : ""}" aria-hidden="true"></i>`
+          : cell?.overlay?.role === "bridge"
+            ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS.great_bridge.icon)}</span>`
           : cell?.overlay?.role === "field"
             ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS.field.icon)}</span>`
             : cell

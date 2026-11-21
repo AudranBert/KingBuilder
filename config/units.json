@@ -5,7 +5,7 @@
       "name": "Soldat",
       "icon": "assets/textures/units-soldier.svg",
       "cost": {
-        "food": 2
+        "food": 1
       },
       "moves": 3,
       "recruitment": "building"

@@ -59,7 +59,7 @@ export function diagram(cells, { building = null, large = false, maxSize = 64 } 
         terrain = TERRAINS[terrainId],
         field = cell.role === "field",
         icon =
-          cell.role === "building"
+          cell.role === "building" || (cell.role === "bridge" && building?.greatBridge)
             ? building?.icon
             : field
               ? TERRAINS.field.icon

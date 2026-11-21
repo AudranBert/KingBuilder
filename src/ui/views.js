@@ -6,6 +6,7 @@ import { MAPS } from "../maps.js";
 import { hasSelectedUnit } from "./state.js";
 import {
   RULES,
+  kingdomBonus,
   createGame,
   GAME_DEFAULTS,
   GOLD,
@@ -166,7 +167,7 @@ export function terrainMarketView(g, ui) {
 export function singleTerrainView(g, ui) {
   if (g.opening) return "";
   const unit = actor(g);
-  const cost = RULES.trade.singleTerrainCost;
+  const cost = kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost;
   const disabled = g.finished || ui.mode === 'inspect' || unit.type === "soldier" || unit.acted || unit.ended || g.players[g.active].resources.gold < cost;
   return `<div class="single-terrain-label" title="${t("singleTerrainView.buyATerrainSpaceForGold", [cost])}">${t("singleTerrainView.1Space", [cost, iconHTML(RESOURCE_DEFINITIONS.gold.icon)])}</div><div class="single-terrain-market" aria-label="${t("singleTerrainView.buyATerrainSpaceForGold", [cost])}">${["plain", "forest", "mountain", "river"].map(id => {
     const selected = (ui.drag || ui.placement)?.kind === "single-terrain" && (ui.drag || ui.placement).terrain === id;
@@ -194,9 +195,10 @@ function buildingEffectHTML(b) {
   const label = buildingDescription(b);
   let effect;
   if (b.grantsWorker) effect = `+${b.grantsWorker} ${iconHTML(UNIT_DEFINITIONS.worker.icon)}`;
+  else if (b.toll || b.portBonus) effect = e(label);
   else if (b.produces) effect = `+${b.production} ${iconHTML(RESOURCE_DEFINITIONS[b.produces].icon)} / ${e(t("production.action"))}`;
   else if (b.boost) effect = `+${b.boost.bonus || 1} ${iconHTML(RESOURCE_DEFINITIONS[BUILDINGS[b.boost.target].produces].icon)}`;
-  else if (b.trains) effect = `+1 ${iconHTML(UNIT_DEFINITIONS[b.trains[0]].icon)} · +${b.trainingLimit} / ${iconHTML("assets/textures/icon-hourglass.svg")}`;
+  else if (b.trains) effect = `${iconHTML(UNIT_DEFINITIONS[b.trains[0]].icon)} · +${b.trainingLimit} / ${iconHTML("assets/textures/icon-hourglass.svg")}`;
   else if (b.onBuildUnit) effect = `+1 ${iconHTML(UNIT_DEFINITIONS[b.onBuildUnit].icon)} · max. 1`;
   else if (b.garrison) effect = `${iconHTML("assets/textures/icon-shield.svg")} ${b.garrison + 1}`;
   else if (b.transformTo) effect = `${iconHTML(TERRAINS.forest.icon)} → ${iconHTML(TERRAINS[b.transformTo].icon)} · +${b.onBuildGain.material} ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}`;

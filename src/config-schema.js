@@ -101,7 +101,7 @@ function weighted(items, path, deckSize) {
   return pool;
 }
 function range(v, path) {
-  if (!["edge", "touching"].includes(v))
+  if (!["edge", "touching", "radius2"].includes(v))
     fail(path, "utilisez edge (bords) ou touching (bords et coins).");
 }
 export function compileConfiguration(
@@ -294,8 +294,10 @@ export function compileConfiguration(
   const buildings = index(buildingConfig.buildings, "buildings.json.buildings");
   for (const b of Object.values(buildings)) {
     const path = `buildings.json.${b.id}`;
-    for (const field of ["points", "garrison", "grantsWorker"])
+    for (const field of ["points", "garrison", "grantsWorker", "tradeDiscount", "buildingDiscount", "movementBonus", "combatBonus", "trainingBoost", "monumentMultiplier"])
       if (b[field] !== undefined) integer(b[field], `${path}.${field}`);
+    for (const field of ["waterMovement", "remoteTerrain", "portBonus", "toll", "greatBridge"])
+      if (b[field] !== undefined && typeof b[field] !== 'boolean') fail(path, `${field} doit être un booléen.`);
     if (b.unique !== undefined && typeof b.unique !== "boolean") fail(path, "unique doit être un booléen.");
     if (b.onBuildUnit !== undefined && !units[b.onBuildUnit]) fail(path, "unité initiale inconnue.");
     label(b.icon, `${path}.icon`);

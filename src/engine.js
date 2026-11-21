@@ -118,7 +118,7 @@ export function patternAt(type, x, y, rotation = 0) {
 function withinRange(x, y, tx, ty, range) {
   const dx = Math.abs(tx - x),
     dy = Math.abs(ty - y);
-  return range === "edge" ? dx + dy === 1 : Math.max(dx, dy) === 1;
+  return range === "radius2" ? dx + dy > 0 && dx + dy <= 2 : range === "edge" ? dx + dy === 1 : Math.max(dx, dy) === 1;
 }
 function meetsAdjacency(g, rule, x, y, owner) {
   return Object.entries(g.board).some(([k, c]) => {
@@ -134,6 +134,30 @@ function meetsAdjacency(g, rule, x, y, owner) {
     );
   });
 }
+export function kingdomBonus(g, owner, field) {
+  return Math.max(0,...Object.values(g.board).filter(c=>c.building?.owner===owner).map(c=>Number(BUILDINGS[c.building.type]?.[field] || 0)));
+}
+function nearbyBuildings(g,owner,x,y){return Object.entries(g.board).flatMap(([k,c])=>{const [tx,ty]=parseKey(k);return c.building?.owner===owner && withinRange(x,y,tx,ty,'radius2') ? [{x:tx,y:ty,building:c.building}] : [];});}
+function connectedPort(g,owner,x,y){
+  const pending = [{x,y}], seen = new Set([key(x,y)]);
+  while (pending.length) {
+    const current = pending.pop();
+    for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const tx = current.x+dx, ty = current.y+dy, position = key(tx,ty), cell = g.board[position];
+      if (!cell || seen.has(position)) continue;
+      const otherPort = cell.building?.owner === owner &&
+        (BUILDINGS[cell.building.type].family || cell.building.type) === 'port';
+      if (otherPort && (current.x !== x || current.y !== y || cell.terrain === 'river')) return true;
+      if (cell.terrain === 'river') {
+        seen.add(position);
+        pending.push({x:tx,y:ty});
+      }
+    }
+  }
+  return false;
+}
+function unitWalkable(g,cell){return walkable(cell)||(cell?.terrain==='river' && kingdomBonus(g,g.active,'waterMovement'));}
+export function trainingCapacity(g,x,y){const b=g.board[key(x,y)]?.building;return (BUILDINGS[b?.type]?.trainingLimit||0)+(b && nearbyBuildings(g,b.owner,x,y).some(v=>BUILDINGS[v.building.type].trainingBoost)?1:0);}
 export function productionAmount(g, x, y) {
   const b = g.board[key(x, y)]?.building,
     definition = BUILDINGS[b?.type];
@@ -148,16 +172,13 @@ export function productionAmount(g, x, y) {
     )
       continue;
     const [tx, ty] = parseKey(k);
-    const reachesFarm = bonus.target === "farm"
-      ? Object.entries(g.board).some(([fieldPosition, field]) => {
-          if (field.overlay?.role !== "field" || field.overlay.anchor !== key(x, y)) return false;
-          const [fx, fy] = parseKey(fieldPosition);
-          return withinRange(tx, ty, fx, fy, "edge");
-        })
-      : withinRange(x, y, tx, ty, bonus.range);
+    const reachesFarm = withinRange(x, y, tx, ty, bonus.range);
     if (reachesFarm)
       bonusAmount = Math.max(bonusAmount, bonus.bonus || 1);
   }
+  if (definition.toll) return nearbyBuildings(g, b.owner, x, y).filter(v => BUILDINGS[v.building.type].tier === 1 && BUILDINGS[v.building.type].produces).length;
+  if (definition.portBonus && nearbyBuildings(g,b.owner,x,y).some(v => ['market','fisher'].includes(BUILDINGS[v.building.type].family || v.building.type))) bonusAmount += 2;
+  else if (definition.portBonus && connectedPort(g,b.owner,x,y)) bonusAmount += 2;
   return definition.production + bonusAmount;
 }
 export function migrateGame(g) {
@@ -444,7 +465,7 @@ export function placeOpeningTile(g, index, x, y, rotation = 0) {
 }
 export function score(g, i) {
   return {
-    buildings: Object.values(g.board).reduce((n, c) => n + (c.building?.owner === i ? BUILDINGS[c.building.type].points ?? RULES.points.building : 0), 0),
+    buildings: Object.entries(g.board).reduce((n,[k,c])=>{if(c.building?.owner!==i)return n;const b=BUILDINGS[c.building.type], [x,y]=parseKey(k);const multiplier=['monument','small_monument','large_monument'].includes(b.family||b.id) && nearbyBuildings(g,i,x,y).some(v=>BUILDINGS[v.building.type].monumentMultiplier)?2:1;return n+(b.points??RULES.points.building)*multiplier;},0),
     flags: Object.values(g.board).filter(c => c.flag?.owner === i).length * RULES.points.flag,
     ...(g.finished ? { gold: Math.floor(g.players[i].resources.gold / RULES.points.goldPerPoint) } : {}),
   };
@@ -455,7 +476,7 @@ export function walkable(cell) {
   return (
     cell &&
     (TERRAINS[cell.terrain]?.walkable ||
-      BUILDINGS[cell.building?.type]?.traversable)
+      BUILDINGS[cell.building?.type]?.traversable || cell.overlay?.role === "bridge")
   );
 }
 function available(g) {
@@ -529,7 +550,7 @@ export function defenseAt(g, owner, x, y) {
   const defenders = armyAt(g, owner, x, y).length;
   const building = g.board[key(x, y)]?.building;
   const garrison = building?.owner === owner ? BUILDINGS[building.type]?.garrison || 0 : 0;
-  const bonus = defenders + garrison > 0 ? 1 : 0;
+  const bonus = defenders + garrison > 0 ? 1 + kingdomBonus(g,owner,"combatBonus") : 0;
   return { defenders, garrison, bonus, defense: defenders + garrison + bonus };
 }
 export function combatPreview(g, x, y) {
@@ -537,8 +558,8 @@ export function combatPreview(g, x, y) {
   const owner = g.players.findIndex((_, i) => i !== g.active && pawns(g,i).some(u => u.x === x && u.y === y));
   const defenderOwner = cell?.building && cell.building.owner !== g.active ? cell.building.owner : owner;
   const { defenders, garrison, defense } = defenseAt(g, defenderOwner, x, y);
-  const attack = unit.type === "soldier" ? selectedSoldiers(g).length : 0;
-  return { attack, defense, defenders, garrison, attackerSurvivors: Math.max(0, attack-defense),
+  const attack = unit.type === "soldier" ? selectedSoldiers(g).length + kingdomBonus(g,g.active,"combatBonus") : 0;
+  return { attack, defense, defenders, garrison, attackerSurvivors: Math.min(selectedSoldiers(g).length, Math.max(0, attack-defense)),
     defenderSurvivors: Math.min(defenders + garrison, Math.max(0, defense-attack)), defenderOwner };
 }
 export function attackError(g, x, y) {
@@ -549,7 +570,7 @@ export function attackError(g, x, y) {
   if (unit.acted || unit.ended) return sourceMessage("messages.thisArmyHasAlreadyCompletedItsAction");
   if (!inside(g,x,y) || distance(unit,{x,y}) !== 1) return sourceMessage("messages.theTargetMustBeAdjacentNotDiagonal");
   const cell = g.board[key(x,y)];
-  if (!cell || !walkable(cell)) return sourceMessage("messages.thisTargetIsUnreachable");
+  if (!cell || !unitWalkable(g,cell)) return sourceMessage("messages.thisTargetIsUnreachable");
   if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return sourceMessage("messages.thereIsNoEnemyTargetOrNeutral");
   return null;
 }
@@ -619,7 +640,7 @@ export function attackPaths(g) {
     const [x,y] = parseKey(position);
     for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
       const tx=x+dx,ty=y+dy,k=key(tx,ty);
-      if (!inside(g,tx,ty) || !walkable(g.board[k]) || (!hostileSite(g,tx,ty) && !enemyAt(g,tx,ty))) continue;
+      if (!inside(g,tx,ty) || !unitWalkable(g,g.board[k]) || (!hostileSite(g,tx,ty) && !enemyAt(g,tx,ty))) continue;
       if (!paths.has(k)) paths.set(k,path);
     }
   }
@@ -635,7 +656,7 @@ export function moveError(g, x, y) {
     return sourceMessage("messages.chooseAnAdjacentSpaceNotDiagonal");
   if (enemyAt(g, x, y)) return sourceMessage("messages.anEnemyPieceOccupiesThisSpaceUse");
   if (hostileSite(g, x, y)) return sourceMessage("messages.thisPositionMustBeOccupiedUsingA");
-  if (g.board[key(x, y)] && !walkable(g.board[key(x, y)]))
+  if (g.board[key(x, y)] && !unitWalkable(g,g.board[key(x, y)]))
     return sourceMessage("messages.thisTerrainIsImpassable");
   return null;
 }
@@ -733,22 +754,22 @@ export function buyTerrainError(g, terrain, x, y) {
   if (unit.type === "soldier") return sourceMessage("messages.soldiersCannotExplore");
   if (unit.acted || unit.ended) return sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction");
   if (!inside(g, x, y) || g.board[key(x, y)]) return sourceMessage("messages.chooseAnUnexploredSpace");
-  if (distance(unit, { x, y }) !== RULES.placement.explorationContactDistance)
+  if (!kingdomBonus(g,g.active,"remoteTerrain") && distance(unit, { x, y }) !== RULES.placement.explorationContactDistance)
     return sourceMessage("messages.theSpaceMustBeAdjacentToThe");
-  if (g.players[g.active].resources.gold < RULES.trade.singleTerrainCost)
-    return sourceMessage("messages.requiresGold", [RULES.trade.singleTerrainCost]);
+  if (g.players[g.active].resources.gold < (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost))
+    return sourceMessage("messages.requiresGold", [(kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost)]);
   return null;
 }
 export function buyTerrain(g, terrain, x, y) {
   const error = buyTerrainError(g, terrain, x, y);
   if (error) throw Error(error);
   const p = g.players[g.active];
-  p.resources.gold -= RULES.trade.singleTerrainCost;
+  p.resources.gold -= (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost);
   g.board[key(x, y)] = { terrain };
   p.revealed++;
   p.progress.terrain[terrain] = (p.progress.terrain[terrain] || 0) + 1;
   updateActor(g, { acted: true });
-  note(g, sourceMessage("messages.buysASpaceOfForGold", [p.name, TERRAINS[terrain].name.toLowerCase(), RULES.trade.singleTerrainCost]));
+  note(g, sourceMessage("messages.buysASpaceOfForGold", [p.name, TERRAINS[terrain].name.toLowerCase(), (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost)]));
   awardMissions(g);
 }
 export function buildError(
@@ -773,12 +794,26 @@ export function buildError(
   if (b.constructible === false) return sourceMessage("messages.thisBuildingIsOnlyAvailableAtThe");
   if (!isRotation(rotation)) return sourceMessage("messages.invalidBuildingOrientation");
   const cells = patternAt(type, x, y, rotation);
+  if (b.greatBridge) {
+    const dx = cells[1].x - x, dy = cells[1].y - y;
+    if (g.board[key(x-dx,y-dy)]?.terrain !== 'plain' ||
+        g.board[key(x+2*dx,y+2*dy)]?.terrain !== 'plain')
+      return 'Le grand pont doit relier deux plaines.';
+  }
+  if (b.toll) {
+    const existing = g.board[key(x,y)]?.building;
+    const bridge = existing?.owner === g.active && existing.type === 'bridge';
+    const mountains = [[1,0],[0,1]].some(([dx,dy]) =>
+      g.board[key(x-dx,y-dy)]?.terrain === 'mountain' &&
+      g.board[key(x+dx,y+dy)]?.terrain === 'mountain');
+    if (!bridge && !mountains) return 'Le péage doit être sur un pont ou entre deux montagnes.';
+  }
   for (const c of cells) {
     if (!inside(g, c.x, c.y)) return sourceMessage("messages.thePatternExtendsBeyondTheBoard");
     const target = g.board[key(c.x, c.y)];
     if (!target) return sourceMessage("messages.allSpacesInThePatternMustBe");
     if (target.flag && type !== "outpost") return sourceMessage("messages.onlyATowerCanBeBuiltOn");
-    if (target.building || (target.overlay && (c.transformTo || b.transformTo)))
+    if ((target.building && !(b.toll && c.role === "building" && target.building.owner===g.active && ["bridge","great_bridge"].includes(target.building.type))) || (target.overlay && (c.transformTo || b.transformTo)))
       return sourceMessage("messages.thePatternOverlapsABuildingSpaceOr");
     if (!c.terrain.includes(target.terrain))
       return sourceMessage("messages.incompatibleTerrainRequiresInsteadOf", [b.name, c.terrain.map(id => TERRAINS[id].name.toLowerCase()).join(sourceMessage("messages.or")), TERRAINS[target.terrain].name.toLowerCase(), b.pattern]);
@@ -790,8 +825,7 @@ export function buildError(
   if (b.adjacency?.some((rule) => !meetsAdjacency(g, rule, x, y, g.active)))
     return `${b.name} : ${b.pattern}`;
   if (
-    !canAfford(p.resources, b.cost) &&
-    !(allowGold && buildingPayment(g, index)?.affordable)
+    !buildingPayment(g,index)?.affordable || (buildingPayment(g,index)?.gold > 0 && !allowGold)
   ) {
     const missing = Object.entries(b.cost).flatMap(([id, n]) => {
       const held = Number.isFinite(p.resources[id]) ? p.resources[id] : 0;
@@ -870,7 +904,7 @@ export function trainError(g, x, y, type) {
     unit = UNIT_DEFINITIONS[type];
   if (!b || b.owner !== g.active || !unit || ["king", "worker"].includes(type) || !def.trains?.includes(type))
     return sourceMessage("messages.chooseOneOfYourBarracksAndAn");
-  if (b.trainingRound === g.round && (b.trainedCount || 0) >= def.trainingLimit)
+  if (b.trainingRound === g.round && (b.trainedCount || 0) >= trainingCapacity(g,x,y))
     return sourceMessage("messages.theseBarracksHaveAlreadyRecruitedThisTurn");
   if (enemyAt(g, x, y)) return sourceMessage("messages.anEnemyPieceOccupiesTheBarracks");
   if (!costPayment(g, unit.cost)?.affordable)
@@ -987,7 +1021,7 @@ export function endTurn(g) {
   g.active = (g.active + 1) % g.players.length;
   g.selectedUnitId = null;
   g.armySelection = null;
-  g.moves = UNIT_DEFINITIONS.worker.moves;
+  g.moves = UNIT_DEFINITIONS.worker.moves + kingdomBonus(g,g.active,"movementBonus");
   g.acted = false;
   g.kingEnded = false;
   g.recruited = false;
@@ -1003,7 +1037,7 @@ export function endTurn(g) {
       u.skipTurns--; u.moves = 0; u.acted = true; u.ended = true;
       return;
     }
-    u.moves = UNIT_DEFINITIONS[u.type].moves;
+    u.moves = UNIT_DEFINITIONS[u.type].moves + kingdomBonus(g,g.active,"movementBonus");
     u.acted = false;
     u.ended = false;
   });
@@ -1031,7 +1065,7 @@ export function movementPaths(g) {
       if (
         seen.has(k) ||
         !inside(g, x, y) ||
-        !walkable(g.board[k]) ||
+        !unitWalkable(g,g.board[k]) ||
         enemyAt(g, x, y) || hostileSite(g, x, y)
       )
         continue;
