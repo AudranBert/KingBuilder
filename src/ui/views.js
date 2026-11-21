@@ -102,7 +102,7 @@ export function playersView(g) {
   return g.players
     .map(
       (p, i) =>
-        `<article class="player ${i === 1 ? "jade" : ""} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(kingdomName(p.name))}${g.active === i && !g.finished ? t("views.yourTurn") : ""}"><div class="crest" aria-hidden="true">${piece("worker")}</div><div class="player-name"><h2>${e(kingdomName(p.name))}</h2></div><div class="resources">${Object.entries(
+        `<article class="player ${i === 1 ? "jade" : ""} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(kingdomName(p.name))}${g.active === i && !g.finished ? t("views.yourTurn") : ""}"><div class="crest" aria-hidden="true">${piece("worker", i)}</div><div class="player-name"><h2>${e(kingdomName(p.name))}</h2></div><div class="resources">${Object.entries(
           RESOURCE_DEFINITIONS,
         )
           .map(
@@ -142,7 +142,7 @@ export function barracksView(g, ui = {}) {
 
 export function workersView(g, ui = {}) {
   return g.players[g.active].units.filter(u => u.type === "worker").map(w =>
-    `<button class="free-worker worker-status ${g.active === 1 ? "jade" : ""} ${g.selectedUnitId === w.id && hasSelectedUnit(g,ui) ? "selected" : ""}" data-worker-select="${w.id}" ${g.finished || g.opening || ui.mode === "inspect" ? "disabled" : ""} title="${e(t('worker.status',[w.id+1,w.moves,t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')]))}">${piece("worker")}<span>${w.id+1}</span><small>${w.moves} ↟ · ${t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')}</small></button>`
+    `<button class="free-worker worker-status ${g.active === 1 ? "jade" : ""} ${g.selectedUnitId === w.id && hasSelectedUnit(g,ui) ? "selected" : ""}" data-worker-select="${w.id}" ${g.finished || g.opening || ui.mode === "inspect" ? "disabled" : ""} title="${e(t('worker.status',[w.id+1,w.moves,t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')]))}">${piece("worker", g.active)}<span>${w.id+1}</span><small>${w.moves} ↟ · ${t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')}</small></button>`
   ).join("");
 }
 export function harvestView() { return `<span>${t("production.explicit")}</span>`; }
@@ -220,7 +220,7 @@ export function selectionView(g, ui) {
   const selectedUnit = unitSelected ? actor(g) : null;
   const movesLeft = selectedUnit && !selectedUnit.ended && !(selectedUnit.type === "soldier" && selectedUnit.acted) ? Math.max(0, selectedUnit.moves) : 0;
   const armyControls = selectedUnit
-    ? `<span class="selected-unit-icon ${g.active === 1 ? 'jade' : ''}" role="img" aria-label="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}" title="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}">${piece(selectedUnit.type)}</span><span class="selected-unit-moves" title="${t('selectionView.movesRemaining', [movesLeft])}" aria-label="${t('selectionView.movesRemaining', [movesLeft])}"><b>${movesLeft}</b>${iconHTML('assets/textures/icon-boots.svg')}</span>${armyControlsView(g)}`
+    ? `<span class="selected-unit-icon ${g.active === 1 ? 'jade' : ''}" role="img" aria-label="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}" title="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}">${piece(selectedUnit.type, selectedUnit.owner)}</span><span class="selected-unit-moves" title="${t('selectionView.movesRemaining', [movesLeft])}" aria-label="${t('selectionView.movesRemaining', [movesLeft])}"><b>${movesLeft}</b>${iconHTML('assets/textures/icon-boots.svg')}</span>${armyControlsView(g)}`
     : '';
   let productionControls = "";
   if (selectedUnit?.type === "worker" && !g.finished && ui.mode !== "inspect") {

@@ -152,16 +152,18 @@ body {
   stroke: #244b3c;
 }
 .player.jade .crest .wood-piece {
-  filter: hue-rotate(105deg) saturate(1.15) drop-shadow(0 2px 1px #214a3b);
+  filter: drop-shadow(0 2px 1px #214a3b);
 }
 .player:not(.jade) .crest .wood-piece {
   filter: drop-shadow(0 2px 0 #6d461f) drop-shadow(1px 3px 1px #33281160);
 }
-.king-piece.jade .wood-piece,
+.king-piece.jade .wood-piece {
+  filter: hue-rotate(105deg) saturate(1.15) drop-shadow(0 2px 1px #214a3b);
+}
 .worker-piece.jade .wood-piece,
 .military-piece.jade .wood-piece,
 .free-worker.jade .wood-piece {
-  filter: hue-rotate(105deg) saturate(1.15) drop-shadow(0 2px 1px #214a3b);
+  filter: drop-shadow(0 2px 1px #214a3b);
 }
 .worker-piece .wood-piece {
   width: 15px;

@@ -916,7 +916,7 @@ export function startGame({ initialGame = null } = {}) {
         return buildingDiagram(game.buildingMarket[d.index], d.rotation);
       if (d.kind === "single-terrain")
         return terrainDiagram({ cells: [{ x: 0, y: 0, terrain: d.terrain }] });
-      return piece(d.kind === "worker" ? "worker" : actor(game).type);
+      return piece(d.kind === "worker" ? "worker" : actor(game).type, game.active);
     },
     drop(pos) {
       const d = ui.drag;

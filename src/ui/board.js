@@ -217,7 +217,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
                 u.moves > 0,
             ) || units.find((u) => !(u.type === "soldier" && u.acted) && !u.ended && u.moves > 0);
           if (units.length)
-            html += `<span class="military-piece ${kind === "worker" ? "mobile-worker-piece" : ""} ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind)}${kind === "soldier" ? `<sup>${units.length}</sup>` : `<sup>${units.length > 1 ? units.length : units[0].id + 1}</sup>`}</span>`;
+            html += `<span class="military-piece ${kind === "worker" ? "mobile-worker-piece" : ""} ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind, owner)}${kind === "soldier" ? `<sup>${units.length}</sup>` : `<sup>${units.length > 1 ? units.length : units[0].id + 1}</sup>`}</span>`;
           }
         }
         const borders = territoryBorders(g, x, y);
