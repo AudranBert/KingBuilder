@@ -20,8 +20,8 @@ function setup(type, rotation = 0) {
   const g = createGame();
   g.missions.market = [];
   g.players[0].resources = { material: 20, food: 20, gold: 20 };
-  g.players[0].x = 7;
-  g.players[0].y = 7;
+  g.players[0].units[0].x = 7;
+  g.players[0].units[0].y = 7;
   g.buildingMarket[0] = type;
   for (const c of patternAt(type, 7, 7, rotation))
     g.board[key(c.x, c.y)] = { terrain: c.terrain[0] };
@@ -31,16 +31,16 @@ test("construction : case de l’unité ou voisine par un bord pour tous les bâ
   for (const type of Object.keys(BUILDINGS).filter((id) => (BUILDINGS[id].family || id) !== "mill" && id !== "outpost" && BUILDINGS[id].constructible !== false)) {
     for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
       const g = setup(type);
-      g.players[0].x = 7 + dx;
-      g.players[0].y = 7 + dy;
+      g.players[0].units[0].x = 7 + dx;
+      g.players[0].units[0].y = 7 + dy;
       assert.equal(buildError(g, 0, 7, 7), null, `${type}: ${dx},${dy}`);
       build(g, 0, 7, 7);
-      assert.equal(g.acted, true);
+      assert.equal(g.players[g.active].units[0].acted, true);
     }
     for (const [dx, dy] of [[1, 1], [-1, -1], [2, 0], [0, -2]]) {
       const g = setup(type);
-      g.players[0].x = 7 + dx;
-      g.players[0].y = 7 + dy;
+      g.players[0].units[0].x = 7 + dx;
+      g.players[0].units[0].y = 7 + dy;
       assert.match(buildError(g, 0, 7, 7), /case\(s\) maximum/, type);
       const before = structuredClone(g);
       assert.throws(() => build(g, 0, 7, 7));
@@ -48,7 +48,7 @@ test("construction : case de l’unité ou voisine par un bord pour tous les bâ
     }
   }
   const g = farmAndMill();
-  g.players[0].x = 9;
+  g.players[0].units[0].x = 9;
   assert.equal(buildError(g, 0, 8, 8), null);
   build(g, 0, 8, 8);
 });
@@ -94,10 +94,10 @@ test("mine : plaine d’accès et trois montagnes, dans chacune des quatre orien
       3,
     );
     assert.equal(g.board[key(7, 7)].building.rotation, r);
-    assign(g, 7, 7);
+
     const gold = g.players[0].resources.gold;
     endTurn(g);
-    assert.equal(g.players[0].resources.gold, gold + 1);
+    assert.equal(g.players[0].resources.gold, gold);
   }
 });
 test("variantes carrées : quatre terrains réservés, rotation et production", () => {
@@ -110,10 +110,10 @@ test("variantes carrées : quatre terrains réservés, rotation et production", 
       assert.equal(new Set(parts.map(c => c.y)).size, 2);
       build(g, 0, 7, 7, r);
       for (const c of parts) assert.equal(g.board[key(c.x, c.y)].overlay.role, role);
-      assign(g, 7, 7);
+
       const before = g.players[0].resources[resource];
       endTurn(g);
-      assert.equal(g.players[0].resources[resource], before + 1);
+      assert.equal(g.players[0].resources[resource], before);
     }
   }
 });
@@ -131,14 +131,14 @@ test("ferme en Z et scierie en T : rotations, réservation et production", () =>
         assert.equal(g.board[key(c.x, c.y)].overlay.role, role);
         assert.equal(buildingAt(g, c.x, c.y).building.type, type);
       }
-      assign(g, 7, 7);
+
       const before = g.players[0].resources[resource];
       endTurn(g);
-      assert.equal(g.players[0].resources[resource], before + 1);
+      assert.equal(g.players[0].resources[resource], before);
     }
   }
 });
-test("pêcheurs : trois motifs, terrain du bâtiment, rotations et récolte avec ouvrier", () => {
+test("pêcheurs : trois motifs, terrain du bâtiment, rotations et production potentielle et absence de récolte automatique", () => {
   for (const [type, terrain, waterCount] of [["fisher", "river", 2], ["fisher_bank", "plain", 2], ["fisher_corner", "plain", 2]]) {
     for (let r = 0; r < 4; r++) {
       const g = setup(type, r);
@@ -156,13 +156,13 @@ test("pêcheurs : trois motifs, terrain du bâtiment, rotations et récolte avec
       const material = g.players[0].resources.material;
       build(g, 0, 7, 7, r);
       assert.equal(g.players[0].resources.material, material - 1);
-      assert.equal(productionAmount(g, 7, 7), 0);
-      assign(g, 7, 7);
-      assert.equal(productionAmount(g, 7, 7), 1);
+      assert.equal(productionAmount(g, 7, 7), 2);
+
+      assert.equal(productionAmount(g, 7, 7), 2);
       for (const c of parts) assert.equal(buildingAt(g, c.x, c.y).building.type, type);
       const food = g.players[0].resources.food;
       endTurn(g);
-      assert.equal(g.players[0].resources.food, food + 1);
+      assert.equal(g.players[0].resources.food, food);
     }
   }
 });
@@ -170,17 +170,17 @@ test("pêcheurs : trois motifs, terrain du bâtiment, rotations et récolte avec
 test("le moulin reconnaît et bonifie la ferme en Z", () => {
   const g = setup("farm_z");
   build(g, 0, 7, 7);
-  assign(g, 7, 7);
+
   endTurn(g);
   endTurn(g);
-  g.players[0].x = 8;
-  g.players[0].y = 7;
+  g.players[0].units[0].x = 8;
+  g.players[0].units[0].y = 7;
   g.board[key(8, 7)] = { terrain: "plain" };
   g.board[key(9, 7)] = { terrain: "plain" };
   g.buildingMarket[0] = "mill";
   assert.equal(buildError(g, 0, 8, 7), null);
   build(g, 0, 8, 7);
-  assert.equal(productionAmount(g, 7, 7), 2);
+  assert.equal(productionAmount(g, 7, 7), 3);
 });
 test("nouvelles variantes : les quatre orientations réservent tout le motif", () => {
   for (const type of ["farm_t", "sawmill_l", "quarry_ridge", "mine_l", "port_l"]) {
@@ -189,8 +189,8 @@ test("nouvelles variantes : les quatre orientations réservent tout le motif", (
       const parts = patternAt(type, 7, 7, r);
       build(g, 0, 7, 7, r);
       for (const c of parts) assert.equal(buildingAt(g, c.x, c.y).building.type, type);
-      assign(g, 7, 7);
-      assert.equal(productionAmount(g, 7, 7), 1);
+
+      assert.equal(productionAmount(g, 7, 7), 2);
     }
   }
 });
@@ -205,9 +205,8 @@ test("les trois moulins gardent les mêmes contraintes et le même bonus", () =>
       const fx = 7 + dx + dy, fy = 7 + dy + dx;
       g.board[key(fx, fy)] = { terrain: "plain", building: {type: "farm_z", owner: 0} };
       g.board[key(7 + dx, 7 + dy)] = { terrain: "field", overlay: {anchor: key(fx, fy), role: "field", owner: 0} };
-      g.players[0].workerAssignments[0].building = key(fx, fy);
       build(g, 0, 7, 7, r);
-      assert.equal(productionAmount(g, fx, fy), 2);
+      assert.equal(productionAmount(g, fx, fy), 3);
     }
   }
 });
@@ -256,47 +255,46 @@ test("défricher gratuitement donne deux bois, consomme son action et remplace l
   assert.equal(g.board[key(7, 7)].building, undefined);
   assert.equal(g.players[0].resources.material, material + 2);
   assert.equal(g.players[0].resources.food, 0);
-  assert.equal(g.acted, true);
+  assert.equal(g.players[g.active].units[0].acted, true);
   assert.equal(g.buildingMarket[0], next);
   assert.equal(score(g, 0).buildings, points);
   endTurn(g);
   endTurn(g);
   g.buildingMarket[0] = "house";
-  g.players[0].resources.food = 2;
+  g.players[0].resources.food = 3;
   build(g, 0, 7, 7);
 });
 function farmAndMill() {
   const g = setup("farm");
   build(g, 0, 7, 7);
-  assign(g, 7, 7);
+
   endTurn(g);
   endTurn(g);
-  g.players[0].x = 8;
-  g.players[0].y = 8;
+  g.players[0].units[0].x = 8;
+  g.players[0].units[0].y = 8;
   g.board[key(8, 8)] = { terrain: "plain" };
   g.board[key(9, 8)] = { terrain: "plain" };
   g.buildingMarket[0] = "mill";
   return g;
 }
-test("moulin : touche un champ et la ferme en diagonale ; double la récolte réelle", () => {
+test("moulin : touche un champ et la ferme en diagonale ; ajoute un à la production sans récolte automatique", () => {
   const g = farmAndMill();
   assert.equal(buildError(g, 0, 8, 8), null);
   build(g, 0, 8, 8);
-  assert.equal(productionAmount(g, 7, 7), 2);
+  assert.equal(productionAmount(g, 7, 7), 3);
   const before = g.players[0].resources.food;
   endTurn(g);
-  assert.equal(g.players[0].resources.food, before + 2);
+  assert.equal(g.players[0].resources.food, before);
 });
-test("moulin : aucun cumul et aucune production sans ouvrier", () => {
+test("moulin : aucun cumul et production potentielle indépendante de l’occupation", () => {
   const g = farmAndMill();
   build(g, 0, 8, 8);
   g.board[key(6, 6)] = {
     terrain: "plain",
     building: { type: "mill", owner: 0 },
   };
-  assert.equal(productionAmount(g, 7, 7), 2);
-  g.players[0].workerAssignments[0].building = null;
-  assert.equal(productionAmount(g, 7, 7), 0);
+  assert.equal(productionAmount(g, 7, 7), 3);
+  assert.equal(productionAmount(g, 7, 7), 3);
 });
 test("moulin : refus sans champ ou avec ferme ennemie ; ne bonifie pas l’adversaire", () => {
   const g = setup("mill");
@@ -305,16 +303,15 @@ test("moulin : refus sans champ ou avec ferme ennemie ; ne bonifie pas l’adver
   h.board[key(7, 7)].building.owner = 1;
   assert.throws(() => build(h, 0, 8, 8));
   h.board[key(8, 8)].building = { type: "mill", owner: 0 };
-  h.players[1].workerAssignments[0].building = key(7, 7);
-  assert.equal(productionAmount(h, 7, 7), 1);
+  assert.equal(productionAmount(h, 7, 7), 2);
 });
 test("tuiles aux bords, roi adverse et ressources insuffisantes sont bloqués", () => {
   const g = setup("farm");
   assert.match(buildError(g, 0, 0, 0), /plateau|explorées/);
-  g.players[1].x = 8;
-  g.players[1].y = 7;
+  g.players[1].units[0].x = 8;
+  g.players[1].units[0].y = 7;
   assert.match(buildError(g, 0, 7, 7), /adverse/);
-  g.players[1].x = 11;
+  g.players[1].units[0].x = 11;
   g.players[0].resources.material = 0;
   assert.match(buildError(g, 0, 7, 7), /insuffisantes/);
 });
@@ -327,9 +324,9 @@ test("tous les bâtiments sont dans la pioche et les anciennes parties restent j
   g.version = 1;
   const old = structuredClone(g.board);
   assert.throws(() => migrateGame(g), /anciennes règles/);
-  g.version = 5;
+  g.version = 6;
   migrateGame(g);
-  assert.equal(g.version, 5);
+  assert.equal(g.version, 6);
   assert.deepEqual(g.board, old);
   const n = g.buildingDeck.length;
   migrateGame(g);

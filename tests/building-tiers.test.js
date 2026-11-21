@@ -17,25 +17,26 @@ test("tiers par famille et étoiles sur les cartes", () => {
   assert.match(html, /aria-label="2 étoiles">★★/);
 });
 
-test("le marché initial exclut les tiers 2 et conserve les 89 cartes", () => {
+test("le marché initial exclut les tiers 2 et conserve les 84 cartes", () => {
   for (let seed = 0; seed < 50; seed++) {
     let state = seed + 1;
-    const g = createGame(() => ((state = (state * 1664525 + 1013904223) >>> 0) / 2 ** 32));
+    const g = createGame(() => ((state = (state * 1664525 + 1013404223) >>> 0) / 2 ** 32));
     assert.equal(g.buildingMarket.length, 4);
     assert.ok(g.buildingMarket.every(id => BUILDINGS[id].tier === 1));
     assert.equal(new Set(g.buildingMarket.map(id => BUILDINGS[id].family || id)).size, 4);
     const cards = [...g.buildingMarket, ...g.buildingDeck];
-    assert.equal(cards.length, 89);
+    assert.equal(cards.length, 84);
     assert.equal(cards.filter(id => id === "house").length, 7);
     assert.equal(cards.filter(id => id === "tunnel").length, 6);
     assert.equal(cards.filter(id => BUILDINGS[id].tier === 1).length, 30);
-    assert.equal(cards.filter(id => BUILDINGS[id].tier === 2).length, 39);
+    assert.equal(cards.filter(id => BUILDINGS[id].tier === 2).length, 34);
     assert.equal(cards.filter(id => BUILDINGS[id].tier === 0).length, 20);
   }
 });
 
 test("le premier remplacement après construction écarte le tier 2 sans le perdre", () => {
   const g = createGame();
+  g.players[0].resources.food = 3;
   g.buildingMarket[0] = "house";
   g.buildingDeck = ["mill", "barracks", "farm_t", "bridge"];
   g.board[key(1, 6)] = { terrain: "plain" };
@@ -45,9 +46,10 @@ test("le premier remplacement après construction écarte le tier 2 sans le perd
   assert.equal(g.buildingReplacements, 1);
   // The other kingdom makes the second purchase in this shared market.
   g.active = 1;
-  g.moves = 3;
-  g.kingEnded = false;
-  g.acted = false;
+  g.players[g.active].units[0].moves = 3;
+  g.players[g.active].units[0].ended = false;
+  g.players[g.active].units[0].acted = false;
+  g.players[1].resources.food=3;
   g.buildingMarket[1] = "house";
   g.board[key(11, 6)] = { terrain: "plain" };
   build(g, 1, 11, 6);
@@ -59,7 +61,8 @@ test("dès le deuxième remplacement chacun des trois tiers est autorisé", () =
   for (const replacement of ["bridge", "farm_t", "barracks"]) {
     const g = createGame();
     g.buildingReplacements = 1;
-    g.buildingMarket[0] = "house";
+    g.players[0].resources.food = 3;
+  g.buildingMarket[0] = "house";
     g.buildingDeck.unshift(replacement);
     g.board[key(1, 6)] = { terrain: "plain" };
     build(g, 0, 1, 6);

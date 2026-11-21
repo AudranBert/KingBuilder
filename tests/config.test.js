@@ -8,16 +8,16 @@ import {compileConfiguration} from "../src/config-schema.js";
 const names=["terrain-tiles","buildings","resources","units","game-rules","terrains","missions"];
 const originals=await Promise.all(names.map(n=>readFile(new URL(`../config/${n}.json`,import.meta.url),"utf8").then(JSON.parse)));
 const configs=()=>structuredClone(originals);
-test("configuration sans mutation : trois ressources, quatre unités et nouveaux bâtiments",()=>{
+test("configuration sans mutation : trois ressources, deux unités et nouveaux bâtiments",()=>{
  const input=configs(),before=structuredClone(input),c=compileConfiguration(...input);
  assert.deepEqual(input,before);assert.equal(Object.keys(c.shapes).length,13);assert.equal(Object.keys(c.resources).length,3);
- assert.equal(Object.keys(c.units).length,4);assert.equal(c.units.soldier.moves,3);assert.equal(c.units.emissary.moves,3);assert.equal(c.units.king.moves,3);assert.equal(c.units.worker.moves,0);assert.equal(c.units.worker.recruitment,"house");
- assert.equal(c.buildings.chancellery.onBuildUnit,"emissary");assert.equal(c.buildings.castle.garrison,1);assert.equal(c.rules.turnLimit,25);
+ assert.equal(Object.keys(c.units).length,2);assert.equal(c.units.soldier.moves,3);assert.equal(c.units.emissary,undefined);assert.equal(c.units.king,undefined);assert.equal(c.units.worker.moves,3);assert.equal(c.units.worker.recruitment,"house");
+ assert.equal(c.buildings.chancellery,undefined);assert.equal(c.buildings.castle.garrison,1);assert.equal(c.rules.turnLimit,25);
 });
 test("pioche : chaque exemplaire et chaque variante sont conservés, quantités par famille et variantes conservées",()=>{
- const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,89);
+ const c=compileConfiguration(...configs()),counts={};assert.equal(c.buildingDeckSize,84);
  for(const id of c.buildingPool){const family=c.buildings[id].family||id;counts[family]=(counts[family]||0)+1;}
- assert.deepEqual(counts,{house:7,farm:6,sawmill:6,quarry:6,mine:6,bridge:6,tunnel:6,port:5,clearing:8,mill:5,barracks:6,outpost:6,chancellery:5,monument:5,fisher:6});
+ assert.deepEqual(counts,{house:7,farm:6,sawmill:6,quarry:6,mine:6,bridge:6,tunnel:6,port:5,clearing:8,mill:5,barracks:6,outpost:6,monument:5,fisher:6});
  assert.equal(c.buildingPool.length,c.buildingDeckSize);assert.equal(counts.castle,undefined);
  for(const family of ["farm","sawmill","quarry","mine","port","mill","fisher"]){
  const variants=Object.values(c.buildings).filter(b=>(b.family||b.id)===family);assert.equal(variants.length,3);
@@ -35,7 +35,7 @@ test("les grandes formes restent configurables",()=>{
 test("références de ressources, terrains, unités et bonus invalides refusées",()=>{
  for(const change of [c=>c[1].buildings[0].cost={missing:1},c=>c[1].buildings[0].terrain=["missing"],
  c=>c[1].buildings.find(b=>b.id==="barracks").trains=["worker"],c=>c[1].buildings.find(b=>b.id==="barracks").trains=["missing"],
- c=>c[1].buildings.find(b=>b.id==="mill").boost.target="house",c=>c[1].buildings.find(b=>b.id==="chancellery").onBuildUnit="missing"]){
+ c=>c[1].buildings.find(b=>b.id==="mill").boost.target="house",c=>c[1].buildings.find(b=>b.id==="barracks").onBuildUnit="missing"]){
  const input=configs();change(input);assert.throws(()=>compileConfiguration(...input),/Configuration invalide/);}
 });
 test("identifiants en double et poids dépassant la pioche ou la famille refusés",()=>{
@@ -43,9 +43,9 @@ test("identifiants en double et poids dépassant la pioche ou la famille refusé
  const b=configs();b[1].buildings[0].weight=b[1].deckSize+1;assert.throws(()=>compileConfiguration(...b),/poids/);
  const c=configs();c[1].buildings[0].weight=13;c[1].buildings.find(b=>b.id==="clearing").weight=1;assert.throws(()=>compileConfiguration(...c),/maxFamilyCopies/);
 });
-test("roi et ouvrier obligatoires, ouvriers sans déplacement, coûts négatifs refusés",()=>{
- for(const change of [c=>c[3].units=c[3].units.filter(u=>u.id!=="king"),c=>c[3].units=c[3].units.filter(u=>u.id!=="worker"),
- c=>c[3].units.find(u=>u.id==="worker").moves=1,c=>c[3].units[0].cost={food:-1},c=>c[3].units[0].moves=-1,
+test("ouvrier obligatoire et mobile, coûts négatifs refusés",()=>{
+ for(const change of [c=>c[3].units=c[3].units.filter(u=>u.id!=="worker"),
+ c=>c[3].units.find(u=>u.id==="worker").moves=0,c=>c[3].units[0].cost={food:-1},c=>c[3].units[0].moves=-1,
  c=>c[3].units[0].recruitment="direct"]){const input=configs();change(input);assert.throws(()=>compileConfiguration(...input),/units.json/);}
 });
 test("les cinq drapeaux, le commerce et les valeurs de score sont validés",()=>{

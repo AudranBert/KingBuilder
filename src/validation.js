@@ -42,7 +42,7 @@ function validateTiles(tiles) {
 }
 export function validateGame(game, { legacy = false } = {}) {
   requireValid(
-    record(game) && game.version === 5,
+    record(game) && game.version === 6,
     "version inconnue.",
   );
   const boardSize = game.boardSize ?? RULES.size,
@@ -72,7 +72,7 @@ export function validateGame(game, { legacy = false } = {}) {
   );
   requireValid(
     nonnegative(game.moves) &&
-      game.moves <= UNIT_DEFINITIONS.king.moves &&
+      game.moves <= UNIT_DEFINITIONS.worker.moves &&
       ["acted", "recruited", "finished"].every(
         (k) => typeof game[k] === "boolean",
       ),
@@ -109,7 +109,7 @@ export function validateGame(game, { legacy = false } = {}) {
         b.rotation === undefined || isRotation(b.rotation),
         "orientation incorrecte.",
       );
-      for (const field of ["trainingRound", "trainedCount"])
+      for (const field of ["trainingRound", "trainedCount", "productionRound"])
         requireValid(
           b[field] === undefined || nonnegative(b[field]),
           "quota de caserne incorrect.",
@@ -146,10 +146,10 @@ export function validateGame(game, { legacy = false } = {}) {
         nonnegative(player.revealed),
       "ressources ou population incorrectes.",
     );
-    if (!legacy || game.version === 5) {
+    if (!legacy || game.version === 6) {
       requireValid(
         Array.isArray(player.workerAssignments) &&
-          player.workerAssignments.length === player.workers,
+          player.workerAssignments.length === 0 && player.units.filter(u => u.type === "worker").length === player.workers,
         "population d’ouvriers incohérente.",
       );
       const ids = new Set();
@@ -169,7 +169,7 @@ export function validateGame(game, { legacy = false } = {}) {
       for (const unit of player.units) {
         requireValid(
           UNIT_DEFINITIONS[unit.type] &&
-          !["king", "worker"].includes(unit.type) &&
+          !["king", "emissary"].includes(unit.type) &&
             nonnegative(unit.id) &&
             !ids.has(unit.id) &&
             inside(unit.x, unit.y, boardSize) &&

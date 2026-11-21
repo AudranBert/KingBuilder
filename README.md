@@ -36,14 +36,14 @@ Les noms et descriptions du catalogue utilisent des clés fondées sur les ident
 ### Plateau et placement
 
 - Plateau de 11 × 11 par défaut, réglable de 7 × 7 à 15 × 15. Les cinq objectifs s’adaptent à la taille choisie.
-- Les rois commencent au milieu des bords opposés, chacun sur son donjon. Les trois cases directement voisines par un bord sont des plaines déjà révélées et sans propriétaire ; les diagonales restent inexplorées.
+- Les deux ouvriers de chaque joueur commencent au milieu des bords opposés, chacun sur son donjon. Les trois cases directement voisines par un bord sont des plaines déjà révélées et sans propriétaire ; les diagonales restent inexplorées.
 - Avant le tour 1, chaque joueur place de 0 à 4 grandes tuiles terrain (2 par défaut), en commençant par J2 en local. Les offres sont communes et ne se renouvellent pas pendant cette préparation. Ces poses ne consomment ni tour ni action et ne remplissent pas les missions.
 - Cinq drapeaux neutres sont préplacés et déjà révélés : un au centre, quatre autour du centre.
 - Les joueurs révèlent des tuiles de terrain depuis un marché commun de quatre offres. Les terrains restent utilisables par les deux joueurs.
 - Les empreintes des bâtiments et leurs terrains requis forment le puzzle. Tous les éléments du motif doivent être révélés et respecter les terrains. Les annexes compatibles peuvent se chevaucher ; seules les cases occupées par un bâtiment lui-même bloquent une autre construction. L’entrée doit être à une case maximum du bâtisseur, sans diagonale.
 - Le marché initial propose quatre familles différentes de bâtiments à une étoile. La maison appartient au niveau deux étoiles et arrive après le déblocage des bâtiments avancés.
 - Niveaux : 0 étoile pour défrichement, pont et tunnel ; 1 étoile pour les fermes, scieries, carrières, mines et pêcheurs ; 2 étoiles pour les ports et tous les autres bâtiments.
-- Les montagnes et les rivières sont infranchissables, sauf sur un tunnel, un pont ou une tour. Les joueurs doivent préserver leurs accès.
+- Les montagnes et les rivières sont infranchissables, sauf sur une case rendue praticable par un bâtiment (tunnel, pont, tour ou producteur). Les joueurs doivent préserver leurs accès.
 - Seuls les bâtiments, leurs annexes et les drapeaux contrôlés portent des contours de propriété. Les terrains explorés n’appartiennent à personne.
 
 ### Ressources et commerce
@@ -54,29 +54,29 @@ Les noms et descriptions du catalogue utilisent des clés fondées sur les ident
 | Matériaux | Scieries et carrières | Construction |
 | Or | Mines, ports et missions | Banque, bâtiments avancés et relances |
 
-Un producteur nécessite un ouvrier ; la récolte a lieu en fin de tour du propriétaire. Un moulin se construit sur une plaine ou un champ, à côté d’un champ allié ; il double la nourriture de cette ferme, sans cumul.
+Un ouvrier sur son bâtiment producteur peut utiliser son action Produire : il gagne immédiatement 2 ressources. Chaque bâtiment produit une seule fois par tour, quel que soit le nombre d’ouvriers. Un moulin voisin d’un champ allié ajoute +1 à la ferme, sans cumul. La fin de tour ne donne aucune production automatique.
 
 À la construction ou au recrutement, les ressources manquantes peuvent être achetées à la banque. Chaque ressource coûte **2 ors + 1 par bâtiment adverse capable de la produire**, même sans ouvrier. Le paiement utilise d’abord les stocks disponibles. L’or lui-même ne s’achète pas. L’achat ne permet pas de stocker des ressources supplémentaires.
 
 La construction affiche un complément d’achat à confirmer. Le bouton de recrutement montre son coût réel, achat à la banque compris.
 
-Pour 1 or, le roi ou l’émissaire peut révéler une case voisine du terrain de son choix (plaine, forêt, montagne ou rivière). Cet achat consomme son action d’exploration et ne retire aucune tuile de la pioche.
+Pour 1 or, un ouvrier peut révéler une case voisine du terrain de son choix (plaine, forêt, montagne ou rivière). Cet achat consomme son action d’exploration et ne retire aucune tuile de la pioche.
 
 L’or remplace le prestige : les missions donnent de l’or ; renouveler les quatre offres d’un marché coûte 1 or, une fois par joueur et par tour. Les missions continuent à exiger une contribution après leur apparition, et montent de difficulté après leur attribution.
 
-Départ par défaut : un ouvrier disponible, 3 matériaux, 2 nourritures et 1 or. Chaque ressource peut être réglée de 0 à 10 avant la partie. Le second joueur reçoit toujours 1 or supplémentaire.
+Départ par défaut : deux ouvriers mobiles au donjon, 3 matériaux, 2 nourritures et 1 or. Chaque ressource peut être réglée de 0 à 10 avant la partie. Le second joueur reçoit toujours 1 or supplémentaire.
 
 ### Ouvriers et maisons
 
-Une maison coûte 2 nourritures et 2 matériaux. Elle ajoute immédiatement un ouvrier à la réserve, utilisable pour la récolte du même tour. Les ouvriers s’affectent et se réaffectent gratuitement à distance, avec un seul ouvrier par producteur. Il n’existe plus de capacité de population ni de recrutement séparé d’ouvriers.
+Une maison coûte 3 nourritures et 3 matériaux. Elle ajoute un ouvrier sur sa case, grisé jusqu’au prochain tour du propriétaire. Il n’existe pas de recrutement séparé d’ouvriers.
 
-### Unités de développement
+### Développement et production
 
-Le roi dispose de 3 déplacements orthogonaux puis d’une action : explorer ou construire. Une action met fin à son activation.
+Chaque ouvrier dispose de 3 déplacements orthogonaux et d’une action : explorer, construire ou produire. Il peut se déplacer avant et après son action, sans dépasser ses 3 déplacements. Les ouvriers ne combattent pas.
 
-Une Chancellerie coûte 4 matériaux et 3 ors et fournit un émissaire du roi. Limite : une Chancellerie et un émissaire par joueur. Il dispose lui aussi de 3 déplacements puis d’une action de développement indépendante. Il ne combat pas et ne capture pas les drapeaux par déplacement.
+Produire sur une plaine libre donne 1 nourriture ; sur une forêt libre, 1 matériau. Sur son bâtiment producteur, seul le rendement indiqué du bâtiment s’applique. Les bâtiments passifs, les annexes et les drapeaux ne permettent pas la production de terrain libre.
 
-L’émissaire apparaît sur sa Chancellerie, grisé jusqu’au prochain tour.
+Le roi, l’émissaire et la Chancellerie ont été supprimés. Les états de partie des anciennes règles ne sont plus compatibles ; commencer une nouvelle partie.
 
 ### Casernes et armées
 
@@ -111,16 +111,16 @@ La tour et le donjon possèdent une garnison fixe de 1 soldat. Une armée allié
 
 ### Destruction et retour des bâtisseurs
 
-Occuper la case réelle d’un bâtiment adverse le détruit. Les terrains annexes ne sont pas des cibles militaires. Toute l’empreinte est libérée ; les terrains restent révélés et les champs reviennent à leur terrain sous-jacent. Les ouvriers affectés retournent à la réserve.
+Occuper la case réelle d’un bâtiment adverse le détruit. Les terrains annexes ne sont pas des cibles militaires. Toute l’empreinte est libérée ; les terrains restent révélés et les champs reviennent à leur terrain sous-jacent. Les ouvriers restent sur le plateau ; une occupation ennemie les renvoie au donjon.
 
 Détruire une maison ne supprime pas son ouvrier. Détruire une caserne ne supprime pas ses soldats déjà recrutés.
 
-Un roi pris retourne au donjon et ne peut pas agir pendant son prochain tour. L’émissaire retourne à sa Chancellerie, ou au donjon si elle a été détruite, avec la même indisponibilité. Occuper le donjon termine immédiatement la partie.
+Un ouvrier capturé retourne au donjon, grisé jusqu’à son prochain tour. Occuper le donjon termine immédiatement la partie.
 
 ## Commandes
 
 - Cliquer une carte affiche ses placements ; cliquer une case verte la pose. Le glisser-déposer reste disponible.
-- Le mode **Jouer** ne sélectionne aucune unité automatiquement : cliquer d’abord le roi ou une unité, puis sa destination. Le mode **Inspecter** affiche les informations des cases sans déplacer les pièces. Un changement de mode, Échap, un clic droit ou un nouveau tour retire la sélection.
+- Le mode **Jouer** ne sélectionne aucune unité automatiquement : cliquer d’abord un ouvrier ou un soldat, puis sa destination. Le mode **Inspecter** affiche les informations des cases sans déplacer les pièces. Un changement de mode, Échap, un clic droit ou un nouveau tour retire la sélection.
 - Pour une armée, l’épée indique la puissance du groupe sélectionné ; le bouclier indique la défense de sa case, avec tous les soldats présents, la garnison éventuelle et le bonus défensif. Le nombre de soldats reste affiché sur le pion du plateau.
 - Les quatre pictogrammes sous les tuiles de terrain permettent d’acheter une case précise pour 1 or.
 - Sur ordinateur, R ou la molette sur une carte fait pivoter la pièce ; Échap annule la sélection.
@@ -129,7 +129,7 @@ Un roi pris retourne au donjon et ne peut pas agir pendant son prochain tour. L�
 - Le clic droit efface la sélection. Le bouton ↶ annule une seule dernière action ; il se réactive après une nouvelle action et se vide au changement de tour.
 - Sélectionner une unité puis une case dorée la déplace. Sélectionner une cible rouge prépare un combat.
 - Pour une armée, le sélecteur **Effectif** choisit combien de pions partent ensemble.
-- Glisser un ouvrier de la réserve vers un producteur l’affecte ; le ramener à la réserve le libère.
+- Le panneau Ouvriers permet de sélectionner chaque ouvrier et affiche ses déplacements restants et son action. Le bouton Produire indique le gain sur sa case.
 - Les fiches ⓘ et les règles contiennent les explications ; les cartes privilégient les pictogrammes.
 
 ## Développement et configuration

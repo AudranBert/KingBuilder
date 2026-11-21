@@ -26,7 +26,7 @@ import {
   pawns,
   explore as localExplore,
   build as localBuild,
-  assign as localAssign,
+  produce as localProduce,
   endTurn as localEndTurn,
   selectUnit,
   assignWorker as localAssignWorker,
@@ -143,7 +143,7 @@ export function startGame({ initialGame = null } = {}) {
   };
   const buyTerrain = mutation('buyTerrain', localBuyTerrain), placeOpeningTile = mutation('placeOpeningTile', localPlaceOpeningTile),
     rerollMarket = mutation('rerollMarket', localRerollMarket), explore = mutation('explore', localExplore),
-    build = mutation('build', localBuild), assign = mutation('assign', localAssign), endTurn = mutation('endTurn', localEndTurn),
+    build = mutation('build', localBuild), produce = mutation('produce', localProduce), endTurn = mutation('endTurn', localEndTurn),
     assignWorker = mutation('assignWorker', localAssignWorker), trainUnit = mutation('trainUnit', localTrainUnit),
     moveUnitTo = mutation('moveUnitTo', localMoveUnitTo);
   function showMenu() {
@@ -393,7 +393,7 @@ export function startGame({ initialGame = null } = {}) {
     }
     if (hasSelectedUnit(game, ui)) {
       const unit = actor(game);
-      if (unit.acted || unit.ended || unit.moves < 1) {
+      if (unit.ended || (unit.type === "soldier" && (unit.acted || unit.moves < 1 && !attackPaths(game).has(key(x,y))))) {
         ui.unitSelection = null;
         if (unit.x === x && unit.y === y) {
           ui.selected = { x, y };
@@ -411,7 +411,7 @@ export function startGame({ initialGame = null } = {}) {
       render();
       return;
     }
-    if (own.length && !game.finished && !game.opening && ui.mode !== "inspect" && !(hasSelectedUnit(game, ui) && actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
+    if (own.length && !game.finished && !game.opening && ui.mode !== "inspect" && !(hasSelectedUnit(game, ui) && movementPaths(game).has(key(x,y)))) {
       chooseUnit((hasSelectedUnit(game, ui) ? own.find((p) => p.id !== game.selectedUnitId) || own[0] : own[0]).id);
       unitCellClick = { game, owner: game.active, x, y, id: game.selectedUnitId };
       return;
@@ -570,6 +570,8 @@ export function startGame({ initialGame = null } = {}) {
       $("#building-details-dialog").showModal();
       return;
     }
+    const workerSelect = event.target.closest('[data-worker-select]');
+    if (workerSelect && !workerSelect.disabled) { chooseUnit(Number(workerSelect.dataset.workerSelect)); return; }
     const worker = event.target.closest('[data-worker-drag]');
     if (worker && !game.finished && ui.mode !== 'inspect') {
       ui.placement = { kind: 'worker', id: Number(worker.dataset.workerDrag) };
@@ -608,8 +610,9 @@ export function startGame({ initialGame = null } = {}) {
         if (!hasSelectedUnit(game, ui)) return;
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
-      case "assign":
-        act(() => assign(game, ...position));
+      case "produce":
+        if (!hasSelectedUnit(game, ui)) return;
+        act(() => produce(game));
         break;
       case "train":
         act(() => trainUnit(game, ...position, button.dataset.type), {

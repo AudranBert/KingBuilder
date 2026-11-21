@@ -8,7 +8,7 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 | --- | --- |
 | `game-rules.json` | Dimensions, durée, départ, drapeaux, marchés, portée, or et commerce |
 | `resources.json` | Matériaux (`material`), nourriture (`food`), or (`gold`) |
-| `units.json` | Roi, ouvrier, soldat et émissaire |
+| `units.json` | Ouvrier mobile et soldat |
 | `buildings.json` | Coûts, motifs, production, garnisons et points |
 | `terrain-tiles.json` | Treize formes et quarante-huit tuiles prédéfinies, de deux à cinq cases |
 | `terrains.json` | Terrains, traversabilité et apparence |
@@ -19,7 +19,7 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 - `boardSize` : 13 par défaut, pour un centre exact et des objectifs symétriques.
 - `turnLimit` : 25 tours par joueur.
 - `players` : deux royaumes et leurs positions initiales relatives entre 0 et 1.
-- `startingWorkers` : ouvriers initiaux disponibles.
+- `startingWorkers` : deux ouvriers mobiles au donjon au départ.
 - `flags` : cinq coordonnées entières absolues `{ "x": 6, "y": 6 }`, à l’intérieur du plateau et sans doublon. Ces cases sont révélées sur plaine.
 - `scoring.flag` : points de chaque drapeau contrôlé (4).
 - `scoring.building` : valeur de repli des bâtiments sans champ `points` (1).
@@ -43,10 +43,12 @@ Chaque entrée contient `id`, `name`, `icon`, `startingAmount` et `points` (0 po
 
 ## Unités
 
-- `king` : `recruitment: "initial"`, coût vide et 3 déplacements.
-- `worker` : `recruitment: "house"`, coût vide, 0 déplacement ; affectation directe.
+- `worker` : `recruitment: "house"`, coût vide et 3 déplacements ; une action parmi explorer, construire ou produire. Les déplacements peuvent précéder et suivre l’action.
 - `soldier` : `recruitment: "building"`, coût de 2 nourritures et 3 déplacements ; armées et combat.
-- `emissary` : `recruitment: "building"`, coût vide car inclus dans la Chancellerie, 3 déplacements ; construction et exploration.
+
+Les maisons coûtent 3 nourritures et 3 matériaux. Leur ouvrier apparaît sur la maison, actif au tour suivant. Un ouvrier capturé revient au donjon et est actif à son prochain tour.
+
+L’action Produire gagne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre ou la production du bâtiment occupé et possédé. Un bâtiment producteur peut être activé une seule fois par tour ; aucune production automatique n’est accordée à la fin du tour. Les producteurs standards donnent 2 ressources. Les moulins ajoutent +1, sans cumul.
 
 Les comportements militaires et les retours des bâtisseurs sont attachés à ces rôles. Ajouter une entrée à `units.json` ne suffit pas à créer une nouvelle règle de combat.
 
@@ -79,14 +81,14 @@ Répartition actuelle de `tier` : 0 pour défrichement, pont et tunnel, 1 pour l
 
 Effets :
 
-- `produces` + `production` : ressource et quantité avec un ouvrier.
-- `grantsWorker` : ouvriers ajoutés immédiatement à la construction.
+- `produces` + `production` : ressource et quantité par action Produire.
+- `grantsWorker` : ouvriers ajoutés sur le bâtiment, actifs au prochain tour.
 - `onBuildUnit` : unité offerte sur la case du bâtiment, grisée jusqu’au prochain tour.
 - `trains` + `trainingLimit` : recrutements payants et quota par tour du propriétaire.
-- `unique` : limite à un bâtiment et son émissaire par joueur.
+- `unique` : limite à un bâtiment par joueur.
 - `garrison` : garnison fixe (1 dans les règles actuelles).
 - `traversable` : rend la case praticable, notamment pont, tunnel et tour.
-- `boost` : producteur ciblé, multiplicateur, voisinage `edge` ou `touching`, propriété requise.
+- `boost` : producteur ciblé, bonus additif, voisinage `edge` ou `touching`, propriété requise.
 - `adjacency` : conditions de voisinage d’un bâtiment ou rôle annexe.
 - `transformTo` + `onBuildGain` : action de transformation d’une case, sans bâtiment permanent.
 - `constructible: false` : bâtiment initial hors pioche (donjon).
@@ -94,9 +96,9 @@ Effets :
 
 La tour accepte tous les terrains révélés sans bâtiment, y compris un drapeau ou une annexe compatible. Sur un drapeau, sa garnison en prend le contrôle. Sa case devient praticable.
 
-`deckSize` correspond à la pioche, actuellement 89. `weight` indique les exemplaires ; `maxFamilyCopies` limite une famille à 12 cartes, variantes comprises. Le donjon reste hors pioche.
+`deckSize` correspond à la pioche, actuellement 84. `weight` indique les exemplaires ; `maxFamilyCopies` limite une famille à 12 cartes, variantes comprises. Le donjon reste hors pioche.
 
-Quantités par famille, variantes comprises : défrichement 8 ; autres niveaux 0 (pont et tunnel) 6 chacun ; niveaux 1 6 chacun ; niveaux 2 5 chacun, sauf maison 7, caserne 6 et tour 6. Le donjon initial reste hors pioche. Les 5 ports se répartissent en 2 de base, 2 carrés et 1 en L ; les 6 pêcheurs en 2 par motif. Les pêcheurs coûtent 1 matériau et produisent 1 nourriture par tour avec un ouvrier. Motifs : `rrr` (bateau sur une extrémité en rivière), `prr` et `rr / xp` (cabane sur la plaine) ; `r` = rivière, `p` = plaine portant le bâtiment, `x` = case ignorée.
+Quantités par famille, variantes comprises : défrichement 8 ; autres niveaux 0 (pont et tunnel) 6 chacun ; niveaux 1 6 chacun ; niveaux 2 5 chacun, sauf maison 7, caserne 6 et tour 6. Le donjon initial reste hors pioche. Les 5 ports se répartissent en 2 de base, 2 carrés et 1 en L ; les 6 pêcheurs en 2 par motif. Les pêcheurs coûtent 1 matériau et produisent 2 nourritures par action Produire. Motifs : `rrr` (bateau sur une extrémité en rivière), `prr` et `rr / xp` (cabane sur la plaine) ; `r` = rivière, `p` = plaine portant le bâtiment, `x` = case ignorée.
 
 ## Missions
 

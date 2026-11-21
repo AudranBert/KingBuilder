@@ -12,29 +12,13 @@ test("les stocks ne donnent plus de points", () => {
   assert.deepEqual(score(g,0), {buildings:0, flags:0});
 });
 
-test("prévision et récolte concordent avec moulin, affectation et réaffectation", () => {
-  const g = createGame();
-  g.missions.market = [];
-  g.board[key(3, 3)] = {terrain: "plain", building: {type: "farm", owner: 0}};
-  g.board[key(4, 4)] = {terrain: "plain", building: {type: "mill", owner: 0}};
-  g.board[key(4, 3)] = {terrain: "field", overlay: {anchor: key(3, 3), role: "field", owner: 0}};
-  g.board[key(6, 6)] = {terrain: "forest", building: {type: "sawmill", owner: 0}};
-  g.board[key(7, 7)] = {terrain: "plain", building: {type: "farm", owner: 1}};
-  assert.deepEqual(harvestPreview(g).inactive, ["3,3", "6,6"]);
-  assert.match(harvestView(g), /Affecter un ouvrier libre/);
-  assignWorker(g, 0, 3, 3);
-  assert.equal(harvestPreview(g).amounts.food, 2);
-  assert.match(harvestView(g), /\+2 nourriture/);
-  assignWorker(g, 0, 6, 6);
-  assert.equal(harvestPreview(g).amounts.food, 0);
-  assert.equal(harvestPreview(g).amounts.material, 1);
-  const before = {...g.players[0].resources}, forecast = harvestPreview(g);
-  endTurn(g);
-  for (const id of Object.keys(before)) assert.equal(g.players[0].resources[id] - before[id], forecast.amounts[id]);
+test("la fin de tour ne produit plus et l’interface indique l’action explicite", () => {
+ const g=createGame(),before={...g.players[0].resources};assert.match(harvestView(g),/action/);endTurn(g);assert.deepEqual(g.players[0].resources,before);
 });
 
 test("les guides de placement respectent rotations, action, coût et terrains sans mutation", () => {
   const g = createGame();
+  g.players[0].resources.food=3;
   g.buildingMarket = ["house"];
   g.board[key(1, 6)] = {terrain: "plain"};
   const choice = {kind: "building", index: 0, rotation: 0};
@@ -43,13 +27,13 @@ test("les guides de placement respectent rotations, action, coût et terrains sa
   assert.deepEqual(g, before);
   g.players[0].resources.material = 0;
   g.players[0].resources.gold = 0;
-  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /2 matériaux/);
+  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /3 matériaux/);
   g.players[0].resources.material = 2;
   g.board[key(1, 6)].terrain = "river";
   assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /terrain incompatible/);
-  g.acted = true;
+  g.players[g.active].units[0].acted = true;
   assert.ok([...placementGuidance(g, choice).values()].every(result => result.error));
-  g.acted = false;
+  g.players[g.active].units[0].acted = false;
   for (const rotation of [0, 1, 2, 3]) {
     const terrain = {kind: "terrain", index: 0, rotation};
     for (const [position, result] of placementGuidance(g, terrain)) {
@@ -76,6 +60,7 @@ test("deux fermes déjà construites exigent une troisième et les contributions
   endTurn(g);
   assert.deepEqual(settleMissions(g), []);
   endTurn(g);
+  g.players[0].resources.food=3;
   g.buildingMarket[0] = "house";
   g.board[key(1, 6)] = {terrain: "plain"};
   build(g, 0, 1, 6);

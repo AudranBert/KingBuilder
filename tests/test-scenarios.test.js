@@ -13,5 +13,5 @@ test('le scénario local démarre avec deux soldats disponibles sur le donjon', 
   selectUnit(game, army[0].id);
   assert.equal(selectedSoldiers(game).length, 2);
   assert.equal(defenseAt(game, 0, player.home.x, player.home.y).defense, 4);
-  assert.equal(createGame().players[0].units.length, 0);
+  assert.equal(createGame().players[0].units.filter(u=>u.type==='soldier').length, 0);
 });

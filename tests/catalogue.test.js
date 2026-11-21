@@ -11,7 +11,7 @@ test("le catalogue contient chaque famille une fois, tous les motifs et toutes l
   assert.deepEqual(families.sort(), [...new Set(Object.values(CONFIG.buildings).map(b => b.family || b.id))].sort());
   assert.deepEqual(buildings.sort(), Object.keys(CONFIG.buildings).sort());
   assert.deepEqual(tiles.sort(), CONFIG.tiles.map(t => t.id).sort());
-  assert.match(html, /89 cartes dans la pioche/);
+  assert.match(html, /84 cartes dans la pioche/);
   assert.match(html, /Bâtiment de départ · hors pioche/);
   assert.match(html, /id="catalogue-tiles"[^>]* hidden/);
 });

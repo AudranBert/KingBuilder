@@ -41,29 +41,29 @@ test("coordonnées fractionnaires, angles et ancres invalides sont refusés sans
   assert.equal(placement(g, 0, 1, 6, 0, 99), null);
   assert.deepEqual(transformed(g.tileMarket[0], -1), []);
   g.board[key(1, 6)] = { terrain: "plain" };
-  g.players[0].x = 1;
+  g.players[0].units[0].x = 1;
   g.buildingMarket[0] = "house";
   const snapshot = structuredClone(g);
   assert.throws(() => build(g, 0, 1, 6, 10));
   assert.deepEqual(g, snapshot);
-  assert.equal(before.players[0].x, 0);
+  assert.equal(before.players[0].units[0].x, 0);
 });
 test("la disponibilité affichée respecte les obstacles et les actions de l’unité", () => {
   const g = createGame();
   g.board[key(1, 6)] = { terrain: "mountain" };
   assert.match(moveError(g, 1, 6), /infranchissable/);
   g.board[key(1, 6)] = { terrain: "plain" };
-  g.players[1].x = 1;
+  g.players[1].units[0].x = 1;
   assert.match(moveError(g, 1, 6), /adverse/);
-  g.players[1].x = 11;
-  g.acted = true;
+  g.players[1].units[0].x = 11;
+  g.players[g.active].units[0].acted = true;
   assert.match(exploreError(g, 0, 0, 8), /terminé/);
 });
 test("une ressource absente ou non finie ne permet pas de construire à crédit", () => {
   for (const amount of [undefined, NaN]) {
     const g = createGame();
     g.board[key(1, 6)] = { terrain: "forest" };
-    g.players[0].x = 1;
+    g.players[0].units[0].x = 1;
     g.players[0].resources.material = amount;
     g.buildingMarket[0] = "sawmill";
     const snapshot = structuredClone(g);
@@ -124,7 +124,7 @@ test("l’exploration est proposée sans déplacer l’unité ni révéler de ca
 test("un état de partie malformé est rejeté", () => {
   for (const change of [
     (g) => (g.players[0].resources.material = -1),
-    (g) => (g.players[0].workerAssignments = []),
+    (g) => (g.players[0].workers = 99),
     (g) =>
       (g.board[key(1, 6)] = {
         terrain: "plain",
@@ -137,16 +137,16 @@ test("un état de partie malformé est rejeté", () => {
     assert.throws(() => validateGame(g), /État de partie invalide/);
   }
 });
-test("une affectation sans producteur et une sélection d’unité périmée sont réparées", () => {
+test("la migration conserve les ouvriers et répare une sélection périmée", () => {
   const g = createGame();
   g.board[key(2, 6)] = {
     terrain: "forest",
     building: { type: "sawmill", owner: 0 },
   };
-  assignWorker(g, 0, 2, 6);
+  Object.assign(g.players[0].units[0],{x:2,y:6});
   g.board[key(2, 6)].building.type = "house";
   g.selectedUnitId = 42;
   migrateGame(g);
-  assert.equal(g.players[0].workerAssignments[0].building, null);
+  assert.equal(g.players[0].units[0].x, 2);
   assert.equal(g.selectedUnitId, null);
 });

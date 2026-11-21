@@ -1,5 +1,5 @@
 {
-  "deckSize": 89,
+  "deckSize": 84,
   "startingBuilding": "castle",
   "buildings": [
     {
@@ -7,14 +7,14 @@
       "name": "Maison",
       "icon": "assets/textures/buildings-house.svg",
       "cost": {
-        "food": 2,
-        "material": 2
+        "food": 3,
+        "material": 3
       },
       "terrain": [
         "plain",
         "forest"
       ],
-      "description": "+1 ouvrier.",
+      "description": "+1 ouvrier, actif au prochain tour.",
       "pattern": "Une case de plaine ou de forêt.",
       "weight": 7,
       "layout": [
@@ -36,7 +36,7 @@
         "plain"
       ],
       "produces": "food",
-      "description": "+1 nourriture / tour.",
+      "description": "+2 nourriture par action Produire.",
       "pattern": "Une plaine centrale + 4 plaines orthogonales, transformées en champs.",
       "weight": 2,
       "layout": [
@@ -53,9 +53,10 @@
           "transformTo": "field"
         }
       },
-      "production": 1,
+      "production": 2,
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "sawmill",
@@ -68,7 +69,7 @@
         "forest"
       ],
       "produces": "material",
-      "description": "+1 matériau / tour.",
+      "description": "+2 matériaux par action Produire.",
       "pattern": "Deux forêts adjacentes : scierie et réserve de bois.",
       "weight": 2,
       "layout": [
@@ -82,9 +83,10 @@
           "role": "timber"
         }
       },
-      "production": 1,
+      "production": 2,
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "quarry",
@@ -97,7 +99,7 @@
         "plain"
       ],
       "produces": "material",
-      "description": "+1 matériau / tour.",
+      "description": "+2 matériaux par action Produire.",
       "pattern": "Deux plaines adjacentes : carrière et zone d’extraction.",
       "weight": 2,
       "layout": [
@@ -111,9 +113,10 @@
           "role": "quarry"
         }
       },
-      "production": 1,
+      "production": 2,
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "mine",
@@ -126,7 +129,7 @@
         "plain"
       ],
       "produces": "gold",
-      "description": "+1 or / tour.",
+      "description": "+2 or par action Produire.",
       "pattern": "Une plaine d’entrée suivie de 3 montagnes en ligne.",
       "weight": 2,
       "layout": [
@@ -140,9 +143,10 @@
           "role": "mine"
         }
       },
-      "production": 1,
+      "production": 2,
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "bridge",
@@ -197,7 +201,7 @@
         "plain"
       ],
       "produces": "gold",
-      "description": "+1 or / tour.",
+      "description": "+2 or par action Produire.",
       "pattern": "Une plaine avec 3 cases de rivière alignées sur un côté.",
       "weight": 2,
       "layout": [
@@ -213,9 +217,10 @@
           "role": "water"
         }
       },
-      "production": 1,
+      "production": 2,
       "tier": 2,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "clearing",
@@ -250,7 +255,7 @@
         "plain",
         "field"
       ],
-      "description": "Nourriture des fermes voisines ×2.",
+      "description": "Production des fermes voisines : +1 par action (non cumulable).",
       "pattern": "Entrée sur plaine ou champ, voisine d’un de vos champs ; une plaine pour la cour.",
       "weight": 1,
       "layout": [
@@ -274,9 +279,9 @@
       ],
       "boost": {
         "target": "farm",
-        "multiplier": 2,
         "range": "touching",
-        "owned": true
+        "owned": true,
+        "bonus": 1
       },
       "tier": 2,
       "points": 1
@@ -325,7 +330,7 @@
         "mountain"
       ],
       "produces": "material",
-      "description": "+1 matériau / tour.",
+      "description": "+2 matériaux par action Produire.",
       "pattern": "Deux montagnes adjacentes : carrière et zone d’extraction.",
       "weight": 2,
       "layout": [
@@ -339,10 +344,11 @@
           "role": "quarry"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "quarry",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "mine_square",
@@ -355,7 +361,7 @@
         "plain"
       ],
       "produces": "gold",
-      "description": "+1 or / tour.",
+      "description": "+2 or par action Produire.",
       "pattern": "Une plaine d’entrée à côté d’un carré de 2 × 2 montagnes.",
       "weight": 2,
       "layout": [
@@ -370,10 +376,11 @@
           "role": "mine"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "mine",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "port_square",
@@ -386,7 +393,7 @@
         "plain"
       ],
       "produces": "gold",
-      "description": "+1 or / tour.",
+      "description": "+2 or par action Produire.",
       "pattern": "Une plaine d’entrée à côté d’un carré de 2 × 2 cases de rivière.",
       "weight": 2,
       "layout": [
@@ -401,10 +408,11 @@
           "role": "water"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "port",
       "tier": 2,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "castle",
@@ -436,7 +444,7 @@
         "plain"
       ],
       "produces": "food",
-      "description": "+1 nourriture / tour.",
+      "description": "+2 nourriture par action Produire.",
       "pattern": "Cinq plaines en Z : une entrée et quatre champs.",
       "weight": 2,
       "layout": [
@@ -453,10 +461,11 @@
           "transformTo": "field"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "farm",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "sawmill_cross",
@@ -469,7 +478,7 @@
         "forest"
       ],
       "produces": "material",
-      "description": "+1 matériau / tour.",
+      "description": "+2 matériaux par action Produire.",
       "pattern": "Quatre forêts en T : une entrée et trois cases forestières réservées.",
       "weight": 2,
       "layout": [
@@ -484,10 +493,11 @@
           "role": "timber"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "sawmill",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "farm_t",
@@ -500,7 +510,7 @@
         "plain"
       ],
       "produces": "food",
-      "description": "+1 nourriture / tour.",
+      "description": "+2 nourriture par action Produire.",
       "pattern": "Cinq plaines en T : une entrée et quatre champs.",
       "weight": 2,
       "layout": [
@@ -517,10 +527,11 @@
           "transformTo": "field"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "farm",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "sawmill_l",
@@ -533,7 +544,7 @@
         "forest"
       ],
       "produces": "material",
-      "description": "+1 matériau / tour.",
+      "description": "+2 matériaux par action Produire.",
       "pattern": "Quatre forêts en L : une entrée et trois cases forestières réservées.",
       "weight": 2,
       "layout": [
@@ -549,10 +560,11 @@
           "role": "timber"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "sawmill",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "quarry_ridge",
@@ -565,7 +577,7 @@
         "plain"
       ],
       "produces": "material",
-      "description": "+1 matériau / tour.",
+      "description": "+2 matériaux par action Produire.",
       "pattern": "Une entrée sur plaine et deux montagnes en coude.",
       "weight": 2,
       "layout": [
@@ -580,10 +592,11 @@
           "role": "quarry"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "quarry",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "mine_l",
@@ -596,7 +609,7 @@
         "plain"
       ],
       "produces": "gold",
-      "description": "+1 or / tour.",
+      "description": "+2 or par action Produire.",
       "pattern": "Une entrée sur plaine et trois montagnes en coude.",
       "weight": 2,
       "layout": [
@@ -611,10 +624,11 @@
           "role": "mine"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "mine",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "port_l",
@@ -627,7 +641,7 @@
         "plain"
       ],
       "produces": "gold",
-      "description": "+1 or / tour.",
+      "description": "+2 or par action Produire.",
       "pattern": "Une entrée sur plaine et trois cases de rivière en coude.",
       "weight": 1,
       "layout": [
@@ -642,10 +656,11 @@
           "role": "water"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "port",
       "tier": 2,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "mill_line",
@@ -658,7 +673,7 @@
         "plain",
         "field"
       ],
-      "description": "Nourriture des fermes voisines ×2.",
+      "description": "Production des fermes voisines : +1 par action (non cumulable).",
       "pattern": "Entrée sur plaine ou champ, voisine d’un champ allié ; cour sur plaine.",
       "weight": 2,
       "layout": [
@@ -682,9 +697,9 @@
       ],
       "boost": {
         "target": "farm",
-        "multiplier": 2,
         "range": "touching",
-        "owned": true
+        "owned": true,
+        "bonus": 1
       },
       "family": "mill",
       "tier": 2,
@@ -701,7 +716,7 @@
         "plain",
         "field"
       ],
-      "description": "Nourriture des fermes voisines ×2.",
+      "description": "Production des fermes voisines : +1 par action (non cumulable).",
       "pattern": "Entrée sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine.",
       "weight": 2,
       "layout": [
@@ -726,9 +741,9 @@
       ],
       "boost": {
         "target": "farm",
-        "multiplier": 2,
         "range": "touching",
-        "owned": true
+        "owned": true,
+        "bonus": 1
       },
       "family": "mill",
       "tier": 2,
@@ -759,29 +774,6 @@
       "points": 1,
       "garrison": 1,
       "traversable": true
-    },
-    {
-      "id": "chancellery",
-      "name": "Chancellerie",
-      "icon": "assets/textures/buildings-chancellery.svg",
-      "cost": {
-        "material": 4,
-        "gold": 3
-      },
-      "terrain": [
-        "plain"
-      ],
-      "description": "+1 émissaire ; unique.",
-      "pattern": "Une case de plaine.",
-      "layout": [
-        "B"
-      ],
-      "legend": {},
-      "tier": 2,
-      "weight": 5,
-      "points": 1,
-      "onBuildUnit": "emissary",
-      "unique": true
     },
     {
       "id": "monument",
@@ -823,7 +815,7 @@
         "river"
       ],
       "produces": "food",
-      "description": "+1 nourriture / tour.",
+      "description": "+2 nourriture par action Produire.",
       "pattern": "Trois cases de rivière en ligne ; le bateau occupe une extrémité.",
       "weight": 2,
       "layout": [
@@ -837,9 +829,10 @@
           "role": "water"
         }
       },
-      "production": 1,
+      "production": 2,
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "fisher_bank",
@@ -852,7 +845,7 @@
         "plain"
       ],
       "produces": "food",
-      "description": "+1 nourriture / tour.",
+      "description": "+2 nourriture par action Produire.",
       "pattern": "Une plaine pour la cabane suivie de deux cases de rivière en ligne.",
       "weight": 2,
       "layout": [
@@ -866,10 +859,11 @@
           "role": "water"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "fisher",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     },
     {
       "id": "fisher_corner",
@@ -882,7 +876,7 @@
         "plain"
       ],
       "produces": "food",
-      "description": "+1 nourriture / tour.",
+      "description": "+2 nourriture par action Produire.",
       "pattern": "Deux cases de rivière côte à côte ; la cabane sur plaine sous une extrémité.",
       "weight": 2,
       "layout": [
@@ -897,10 +891,11 @@
           "role": "water"
         }
       },
-      "production": 1,
+      "production": 2,
       "family": "fisher",
       "tier": 1,
-      "points": 1
+      "points": 1,
+      "traversable": true
     }
   ],
   "maxFamilyCopies": 12

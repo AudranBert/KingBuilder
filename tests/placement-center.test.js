@@ -10,8 +10,8 @@ const tile = { cells: [0, 1, 2].map(x => ({ x, y: 0, terrain: "plain" })) };
 test("terrain preview and actual exploration share a central anchor in all orientations", () => {
   for (let rotation = 0; rotation < 8; rotation++) {
     const g = createSandboxGame();
-    g.players[0].x = 8;
-    g.players[0].y = 8;
+    g.players[0].units[0].x = 8;
+    g.players[0].units[0].y = 8;
     g.tileMarket[0] = tile;
     const choice = { kind: "terrain", index: 0, rotation };
     const pointer = { x: 7, y: 7 };

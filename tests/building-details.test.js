@@ -17,7 +17,7 @@ test("les détails exposent motif, étoiles, coût et effet sans survol", () => 
   assert.match(html, /id="building-details-title">Mine<\/h2>/);
   assert.match(html, /1 étoile/);
   assert.match(html, /2 × 2 montagnes/);
-  assert.match(html, /1 or \/ tour/);
+  assert.match(html, /2 or par action Produire/);
   assert.match(html, /Coût/);
   assert.match(html, /Montagne/);
   assert.match(buildingDetailsView("castle"), /Bâtiment de départ uniquement/);
@@ -42,14 +42,14 @@ test("cartes du marché et inspection des bâtiments posés donnent accès aux d
   g.buildingMarket = ["mine_square"];
   const market = buildingMarketView(g, { buildingRotation: 0 });
   assert.match(market, /aria-haspopup="dialog"/);
-  assert.match(market, /1 or \/ tour/);
+  assert.match(market, /2 or par action Produire/);
   assert.match(market, /title="Cliquer pour les placements/);
   assert.match(market, /data-building-details="mine_square"/);
   const p = g.players[0];
   g.board[key(p.x, p.y)].building = {type: "mill_l", owner: 0, rotation: 2};
   const selected = selectionView(g, {selected: {x:p.x, y:p.y}});
   assert.match(selected, /Moulin/);
-  assert.match(selected, /Nourriture des fermes voisines/);
+  assert.match(selected, /Production des fermes voisines/);
   assert.match(selected, /data-building-details="mill_l"/);
   assert.match(selected, /data-building-orientation="2"/);
 });

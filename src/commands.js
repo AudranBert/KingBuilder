@@ -5,7 +5,7 @@ import { moveUnitTo } from './ui/interactions.js';
 const actions = Object.freeze({
   moveUnitTo, explore: engine.explore, build: engine.build,
   buyTerrain: engine.buyTerrain, placeOpeningTile: engine.placeOpeningTile,
-  assign: engine.assign, assignWorker: engine.assignWorker,
+  produce: engine.produce,
   trainUnit: engine.trainUnit, rerollMarket: engine.rerollMarket,
   endTurn: engine.endTurn,
 });

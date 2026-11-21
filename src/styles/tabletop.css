@@ -168,8 +168,13 @@ body {
   height: 19px;
 }
 .military-piece .wood-piece {
-  width: 24px;
-  height: 27px;
+  width: calc(var(--cell) * .70);
+  height: calc(var(--cell) * .70);
+}
+.military-piece { right: 2px; bottom: 2px; }
+.mobile-worker-piece .wood-piece {
+  width: calc(var(--cell) * .72);
+  height: calc(var(--cell) * .72);
 }
 .crest {
   color: #dba34a;

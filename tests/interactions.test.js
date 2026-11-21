@@ -26,7 +26,7 @@ test("le bandeau garde seulement la cause du blocage et préfixe les erreurs", (
     "Impossible : ressources insuffisantes : il manque 2 bois (or insuffisant).");
 });
 
-test("glisser le roi suit un chemin de trois cases et épuise ses déplacements", () => {
+test("glisser le premier ouvrier suit un chemin de tpremier ouvriers cases et épuise ses déplacements", () => {
   const g = createGame();
   g.board[key(1, 6)] = { terrain: "forest" };
   g.board[key(2, 6)] = { terrain: "plain" };
@@ -43,11 +43,11 @@ test("glisser le roi suit un chemin de trois cases et épuise ses déplacements"
   assert.deepEqual(g, before);
   moveUnitTo(g, 3, 6);
   assert.deepEqual(
-    [actor(g).x, actor(g).y, g.moves, g.acted],
+    [actor(g).x, actor(g).y, g.players[g.active].units[0].moves, g.players[g.active].units[0].acted],
     [3, 6, 0, false],
   );
 });
-test("un dépôt inaccessible ne déplace pas partiellement le roi", () => {
+test("un dépôt inaccessible ne déplace pas partiellement le premier ouvrier", () => {
   for (const terrain of ["mountain", "river", null]) {
     const g = createGame();
     if (terrain) g.board[key(1, 6)] = { terrain };
@@ -60,19 +60,19 @@ test("un dépôt inaccessible ne déplace pas partiellement le roi", () => {
   }
   const g = createGame();
   g.board[key(1, 6)] = { terrain: "plain" };
-  g.acted = true;
+  g.players[g.active].units[0].ended = true;
   assert.throws(() => moveUnitTo(g, 1, 6));
 });
-test("glisser un émissaire sélectionné ne dépense pas les déplacements du roi", () => {
+test("glisser un second ouvrier sélectionné ne dépense pas les déplacements du premier ouvrier", () => {
   const g = createGame();
   g.board[key(5, 5)] = {
     terrain: "plain",
-    building: { type: "chancellery", owner: 0 },
+    building: { type: "house", owner: 0 },
   };
   g.board[key(6, 5)] = { terrain: "plain" };
   g.players[0].resources.gold = 1;
-  const unit = {id:0,type:"emissary",x:5,y:5,moves:0,acted:true,ended:true};
-  g.players[0].units.push(unit);
+  const unit = g.players[0].units[1];Object.assign(unit,{x:5,y:5,moves:0,acted:true,ended:true});
+
   endTurn(g);
   endTurn(g);
   const drag = dragFromCard(
@@ -82,26 +82,14 @@ test("glisser un émissaire sélectionné ne dépense pas les déplacements du r
   selectUnit(g, drag.id);
   moveUnitTo(g, 6, 5);
   assert.equal(unit.moves, 2);
-  assert.equal(g.moves, 3);
+  assert.equal(g.players[g.active].units[0].moves, 3);
   assert.equal(unit.x, 6);
   assert.equal(
     dragFromCard({ dataset: { unitDrag: "" } }, createUIState()).id,
     null,
   );
 });
-test("l’aperçu ouvrier et le dépôt partagent les mêmes contraintes", () => {
-  const g = createGame();
-  g.board[key(2, 6)] = {
-    terrain: "forest",
-    building: { type: "sawmill", owner: 0 },
-  };
-  const drag = { kind: "worker", id: 0 };
-  assert.equal(placementGuidance(g, drag).get(key(2, 6)).error, null);
-  assert.equal(placementGuidance(g, drag).has(key(3, 6)), false);
-  assert.equal(dragPreview(g, drag, { x: 2, y: 6 }).error, null);
-  assignWorker(g, 0, 2, 6);
-  const before = structuredClone(g);
-  assert.ok(dragPreview(g, drag, { x: 3, y: 6 }).error);
-  assert.throws(() => assignWorker(g, 0, 3, 6));
-  assert.deepEqual(g, before);
+test("les affectations à distance sont refusées par l’aperçu et la commande", () => {
+ const g=createGame();g.board["2,6"]={terrain:"forest",building:{type:"sawmill",owner:0}};
+ const before=structuredClone(g);assert.ok(dragPreview(g,{kind:"worker",id:0},{x:2,y:6}).error);assert.throws(()=>assignWorker(g,0,2,6));assert.deepEqual(g,before);
 });

@@ -6,7 +6,7 @@
     "flag": 4,
     "goldPerPoint": 2
   },
-  "startingWorkers": 1,
+  "startingWorkers": 2,
   "markets": {
     "terrainSize": 4,
     "buildingSize": 4,

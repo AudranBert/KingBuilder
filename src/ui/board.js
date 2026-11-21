@@ -146,23 +146,14 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
     render(g, ui) {
       if (size !== (g.boardSize ?? RULES.size)) createCells(g.boardSize ?? RULES.size);
       element.setAttribute("aria-label", t("board.boardBySpaces", [size, size]));
-      const exhausted = (pawn) =>
-        g.finished ||
-        (pawn.type === "king"
-          ? pawn.owner === g.active && (g.kingEnded || g.acted || g.moves < 1)
-          : pawn.ended || pawn.acted || pawn.moves < 1);
-      const current = actor(g),
-        pawnIndex = new Map(),
-        workerIndex = new Map();
+      const exhausted = pawn => g.finished || pawn.ended || (pawn.type === "soldier" ? pawn.acted || pawn.moves < 1 : pawn.acted && pawn.moves < 1);
+      const current = actor(g), pawnIndex = new Map();
       for (let owner = 0; owner < g.players.length; owner++) {
-        for (const pawn of pawns(g, owner)) {
-          const position = key(pawn.x, pawn.y);
-          if (!pawnIndex.has(position)) pawnIndex.set(position, []);
-          pawnIndex.get(position).push({ ...pawn, owner });
+        for (const pawn of pawns(g,owner)) {
+          const position = key(pawn.x,pawn.y);
+          if (!pawnIndex.has(position)) pawnIndex.set(position,[]);
+          pawnIndex.get(position).push({...pawn,owner});
         }
-        for (const worker of g.players[owner].workerAssignments)
-          if (worker.building)
-            workerIndex.set(worker.building, { owner, id: worker.id });
       }
       const unitSelected = hasSelectedUnit(g, ui),
         currentKey = unitSelected ? key(current.x, current.y) : null,
@@ -178,7 +169,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
           occupants = pawnIndex.get(position) || [];
         const near = !guidance.size && ui.mode === "move" && paths.has(position);
         const selected = ui.selected?.x === x && ui.selected?.y === y;
-        button.className = `cell ${cell ? `terrain-${cell.terrain}` : "unknown"} ${b || cell?.overlay ? "built-tile" : ""} ${cell?.overlay?.role === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "king") ? "king" : ""}`;
+        button.className = `cell ${cell ? `terrain-${cell.terrain}` : "unknown"} ${b || cell?.overlay ? "built-tile" : ""} ${cell?.overlay?.role === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "worker") ? "king" : ""}`;
         if (!guidance.size && ui.mode === "move" && targets.has(position)) button.classList.add("combat-target");
         button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[cell.terrain].texture}`, import.meta.url).href}")` : "";
         button.style.backgroundColor = cell ? TERRAINS[cell.terrain].color : "";
@@ -193,9 +184,8 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         if (cell?.overlay?.role === "field") parts.push(t("board.field"));
         for (const pawn of occupants)
           parts.push(
-            `${pawn.type === "king" ? definitionText("units", UNIT_DEFINITIONS.king) : definitionText("units", UNIT_DEFINITIONS[pawn.type]) + " " + (pawn.id + 1)} · ${kingdomName(g.players[pawn.owner].name)}${exhausted(pawn) ? t("board.actionsComplete") : ""}`,
+            `${definitionText("units", UNIT_DEFINITIONS[pawn.type]) + " " + (pawn.id + 1)} · ${kingdomName(g.players[pawn.owner].name)}${exhausted(pawn) ? t("board.actionsComplete") : ""}`,
           );
-        if (workerIndex.has(position)) parts.push(t("board.assigned", [definitionText("units", UNIT_DEFINITIONS.worker)]));
         if (currentKey === position) parts.push(t("board.selectedUnit"));
         if (guidance.has(position)) parts.push(translateMessage(guidance.get(position).error) || t("board.validPlacement"));
         button.setAttribute("aria-label", parts.join(", "));
@@ -210,17 +200,11 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         if (cell?.flag) html += `<span class="control-flag ${cell.flag.owner === 0 ? "amber" : cell.flag.owner === 1 ? "jade" : "neutral"}" aria-hidden="true">⚑</span>`;
         if (b && BUILDINGS[b.type].garrison) html += `<span class="garrison-badge" title="${t("createBoard.fixedGarrison1Defense1")}">♜</span>`;
         if (b?.type && BUILDINGS[b.type].produces) {
-          const amount = productionAmount(g, x, y);
-          if (!amount) html += `<span class="inactive-producer" title="${t("createBoard.withoutNoProduction", [e(definitionText("units", UNIT_DEFINITIONS.worker).toLowerCase())])}" aria-label="${t("createBoard.withoutNoProduction", [e(definitionText("units", UNIT_DEFINITIONS.worker).toLowerCase())])}">!</span>`;
-          if (amount > BUILDINGS[b.type].production)
-            html += `<span class="boost" aria-hidden="true">×${amount / BUILDINGS[b.type].production}</span>`;
+          const used = b.productionRound === g.round;
+          html += `<span class="production-badge ${used ? 'used' : ''}" title="${e(t(used ? 'messages.productionUsed' : 'production.available'))}">${used ? '✓' : '+' + productionAmount(g,x,y)}</span>`;
         }
-        if (workerIndex.has(position))
-          html += `<span class="worker-piece ${workerIndex.get(position).owner === 1 ? "jade" : ""}" ${workerIndex.get(position).owner === g.active && !g.finished && ui.mode !== 'inspect' ? `data-worker-drag="${workerIndex.get(position).id}"` : ""} title="${t("createBoard.assigned", [e(definitionText("units", UNIT_DEFINITIONS.worker))])}">${piece("worker")}</span>`;
-        for (const pawn of occupants.filter((p) => p.type === "king"))
-          html += `<span class="king-piece ${pawn.owner === 1 ? "jade" : ""} ${exhausted(pawn) ? "exhausted" : ""}" ${pawn.owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && !g.acted && !g.kingEnded && g.moves > 0 ? `data-unit-drag=""` : ""} ${pawn.owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? 'data-unit-select=""' : ""} aria-hidden="true">${piece("king")}</span>`;
         for (let owner = 0; owner < g.players.length; owner++) {
-          for (const kind of ["soldier", "emissary"]) {
+          for (const kind of ["soldier", "worker"]) {
           const units = occupants.filter(
             (p) => p.owner === owner && p.type === kind,
           );
@@ -228,12 +212,12 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
             units.find(
               (u) =>
                 u.id === g.selectedUnitId &&
-                !u.acted &&
+                !(u.type === "soldier" && u.acted) &&
                 !u.ended &&
                 u.moves > 0,
-            ) || units.find((u) => !u.acted && !u.ended && u.moves > 0);
+            ) || units.find((u) => !(u.type === "soldier" && u.acted) && !u.ended && u.moves > 0);
           if (units.length)
-            html += `<span class="military-piece ${kind === "emissary" ? "emissary-piece" : ""} ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind)}${kind === "soldier" ? `<sup>${units.length}</sup>` : ""}</span>`;
+            html += `<span class="military-piece ${kind === "worker" ? "mobile-worker-piece" : ""} ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind)}${kind === "soldier" ? `<sup>${units.length}</sup>` : `<sup>${units.length > 1 ? units.length : units[0].id + 1}</sup>`}</span>`;
           }
         }
         const borders = territoryBorders(g, x, y);

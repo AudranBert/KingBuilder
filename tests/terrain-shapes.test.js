@@ -67,8 +67,8 @@ test("révéler la croix ou le U révèle cinq cases sans points directs et lais
   for (const id of [5, 6]) {
     const g = createGame();
     g.tileMarket[0] = getTile(g, id);
-    g.players[0].x = 6;
-    g.players[0].y = 7;
+    g.players[0].units[0].x = 6;
+    g.players[0].units[0].y = 7;
     const cells = placement(g, 0, 7, 7);
     const occupied = new Set(coordinates(cells));
     const count = Object.keys(g.board).length;
@@ -129,8 +129,8 @@ test("tous les nouveaux motifs pivotent, préservent les trous et marquent uniqu
     for (let r = 0; r < 4; r++) {
       const g = createGame();
       g.tileMarket[0] = getTile(g, id);
-      g.players[0].x = 6;
-      g.players[0].y = 7;
+      g.players[0].units[0].x = 6;
+      g.players[0].units[0].y = 7;
       const cells = placement(g, 0, 7, 7, r);
       assert.ok(cells);
       const occupied = new Set(coordinates(cells));

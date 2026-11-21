@@ -227,15 +227,13 @@ export function compileConfiguration(
   const units = unitConfig.units.length
     ? index(unitConfig.units, "units.json.units")
     : {};
-  for (const id of ["king", "worker"])
+  for (const id of ["worker"])
     if (!units[id]) fail(`units.json.units.${id}`, "définition obligatoire.");
   for (const unit of Object.values(units)) {
     const path = `units.json.units.${unit.id}`;
     label(unit.icon, `${path}.icon`);
     costs(unit.cost, resources, `${path}.cost`);
-    integer(unit.moves, `${path}.moves`, unit.id === "worker" ? 0 : 1);
-    if (unit.id === "worker" && unit.moves !== 0)
-      fail(`${path}.moves`, "les ouvriers s’affectent sans déplacement : 0 requis.");
+    integer(unit.moves, `${path}.moves`, 1);
     const expected = unit.id === "king" ? "initial" : unit.id === "worker" ? "house" : "building";
     if (unit.recruitment !== expected)
       fail(`${path}.recruitment`, `utilisez ${expected} pour cette unité.`);
@@ -392,7 +390,7 @@ export function compileConfiguration(
       object(b.boost, path);
       if (!buildings[b.boost.target]?.produces)
         fail(path, "boost.target doit viser un bâtiment de production.");
-      integer(b.boost.multiplier, `${path}.boost.multiplier`, 2);
+      integer(b.boost.bonus, `${path}.boost.bonus`, 1);
       range(b.boost.range, path);
       if (typeof b.boost.owned !== "boolean")
         fail(path, "boost.owned doit être un booléen.");

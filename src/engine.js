@@ -137,8 +137,8 @@ function meetsAdjacency(g, rule, x, y, owner) {
 export function productionAmount(g, x, y) {
   const b = g.board[key(x, y)]?.building,
     definition = BUILDINGS[b?.type];
-  if (!definition?.produces || !workersAt(g, b.owner, x, y).length) return 0;
-  let multiplier = 1;
+  if (!definition?.produces) return 0;
+  let bonusAmount = 0;
   for (const [k, c] of Object.entries(g.board)) {
     const bonus = BUILDINGS[c.building?.type]?.boost;
     if (
@@ -156,12 +156,12 @@ export function productionAmount(g, x, y) {
         })
       : withinRange(x, y, tx, ty, bonus.range);
     if (reachesFarm)
-      multiplier = Math.max(multiplier, bonus.multiplier);
+      bonusAmount = Math.max(bonusAmount, bonus.bonus || 1);
   }
-  return definition.production * multiplier;
+  return definition.production + bonusAmount;
 }
 export function migrateGame(g) {
-  if (g.version !== 5) throw Error(sourceMessage("messages.olderRulesAreNoLongerCompatible"));
+  if (g.version !== 6) throw Error(sourceMessage("messages.olderRulesAreNoLongerCompatible"));
   g.boardSize ??= RULES.size;
   g.turnLimit ??= RULES.rounds;
   g.openingTilesPerPlayer ??= GAME_DEFAULTS.openingTilesPerPlayer;
@@ -232,36 +232,11 @@ export function migrateGame(g) {
   return g;
 }
 export function workersAt(g, owner, x, y) {
-  return g.players[owner].workerAssignments.filter(
-    (w) => w.building === key(x, y),
-  );
+  return g.players[owner].units.filter(u => u.type === "worker" && u.x === x && u.y === y);
 }
-export function workerAssignmentError(g, id, x, y) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
-  const p = g.players[g.active],
-    w = p.workerAssignments.find((w) => w.id === id);
-  if (!w) return sourceMessage("messages.chooseOneOfYour", [UNIT_DEFINITIONS.worker.name.toLowerCase()]);
-  if (x === null && y === null) return null;
-  const site = buildingAt(g, x, y),
-    b = site?.building;
-  if (!b || b.owner !== g.active || !BUILDINGS[b.type].produces)
-    return sourceMessage("messages.chooseYourOwnProductionBuilding");
-  if (
-    p.workerAssignments.some(
-      (other) => other.id !== id && other.building === key(site.x, site.y),
-    )
-  )
-    return sourceMessage("messages.thisBuildingAlreadyHasA", [UNIT_DEFINITIONS.worker.name.toLowerCase()]);
-  return null;
-}
-export function assignWorker(g, id, x, y) {
-  const error = workerAssignmentError(g, id, x, y);
-  if (error) throw Error(error);
-  const w = g.players[g.active].workerAssignments.find((w) => w.id === id),
-    site = x === null ? null : buildingAt(g, x, y);
-  w.building = site ? key(site.x, site.y) : null;
-}
+// Direct assignment is no longer legal: workers must travel on the board.
+export function workerAssignmentError() { return sourceMessage("messages.workersMustMove"); }
+export function assignWorker() { throw Error(workerAssignmentError()); }
 const inside = (g, x, y) => withinBoard(x, y, g.boardSize ?? RULES.size);
 const shuffle = (a, rng) => {
   for (let i = a.length - 1; i > 0; i--) {
@@ -324,10 +299,13 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
         gold: options.resources.gold + (owner === 1 ? 1 : 0),
       },
       workers: RULES.startingWorkers,
-      units: [],
-      workerAssignments: Array.from({ length: RULES.startingWorkers }, (_, id) => ({ id, building: null })),
+      units: Array.from({ length: RULES.startingWorkers }, (_, id) => ({
+        id, type: "worker", x: p.x, y: p.y, home: { x:p.x, y:p.y },
+        moves: UNIT_DEFINITIONS.worker.moves, acted:false, ended:false, skipTurns:0,
+      })),
+      workerAssignments: [],
       revealed: 0,
-      nextUnitId: 0,
+      nextUnitId: RULES.startingWorkers,
       home: { x: p.x, y: p.y },
       kingSkip: 0,
       progress: emptyProgress(),
@@ -385,7 +363,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
     board[key(x, y)] = { terrain: "plain", flag: { owner: null } };
   }
   const game = {
-    version: 5,
+    version: 6,
     mode,
     mapId: selectedMap?.id ?? null,
     boardSize: size,
@@ -402,7 +380,7 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
     buildingReplacements: 0,
     active: 0,
     round: 1,
-    moves: UNIT_DEFINITIONS.king.moves,
+    moves: UNIT_DEFINITIONS.worker.moves,
     acted: false,
     kingEnded: false,
     selectedUnitId: null,
@@ -490,46 +468,22 @@ function note(g, text) {
 }
 export function actor(g) {
   const p = g.players[g.active];
-  if (g.selectedUnitId !== null && g.selectedUnitId !== undefined) {
-    const unit = p.units.find((u) => u.id === g.selectedUnitId);
-    if (!unit) throw Error(sourceMessage("messages.unknownUnit"));
-    return {
-      ...unit,
-      ...(unit.type === "soldier" ? { count: selectedSoldiers(g).length, moves: Math.min(...selectedSoldiers(g).map(u => u.moves)), acted: selectedSoldiers(g).some(u => u.acted || u.ended) } : {}),
-      name: UNIT_DEFINITIONS[unit.type].name + " " + (unit.id + 1),
-      icon: UNIT_DEFINITIONS[unit.type].icon,
-    };
-  }
+  const unit = g.selectedUnitId !== null && g.selectedUnitId !== undefined
+    ? p.units.find(u => u.id === g.selectedUnitId)
+    : p.units.find(u => u.type === "worker");
+  if (!unit) throw Error(sourceMessage("messages.unknownUnit"));
   return {
-    id: null,
-    type: "king",
-    name: UNIT_DEFINITIONS.king.name,
-    icon: UNIT_DEFINITIONS.king.icon,
-    x: p.x,
-    y: p.y,
-    moves: g.moves,
-    acted: g.acted,
-    ended: g.kingEnded,
+    ...unit,
+    ...(unit.type === "soldier" ? { count: selectedSoldiers(g).length, moves: Math.min(...selectedSoldiers(g).map(u => u.moves)), acted: selectedSoldiers(g).some(u => u.acted || u.ended) } : {}),
+    name: UNIT_DEFINITIONS[unit.type].name + " " + (unit.id + 1),
+    icon: UNIT_DEFINITIONS[unit.type].icon,
   };
 }
 function updateActor(g, changes) {
-  if (actor(g).type === "soldier") {
-    for (const unit of selectedSoldiers(g)) Object.assign(unit, changes);
-    return;
-  }
-  const p = g.players[g.active];
-  if (g.selectedUnitId !== null && g.selectedUnitId !== undefined) {
-    Object.assign(
-      p.units.find((u) => u.id === g.selectedUnitId),
-      changes,
-    );
-    return;
-  }
-  for (const [k, v] of Object.entries(changes)) {
-    if (k === "x" || k === "y") p[k] = v;
-    else if (k === "ended") g.kingEnded = v;
-    else g[k] = v;
-  }
+  const unit = actor(g);
+  if (unit.type === "soldier") {
+    for (const soldier of selectedSoldiers(g)) Object.assign(soldier, changes);
+  } else Object.assign(g.players[g.active].units.find(u => u.id === unit.id), changes);
 }
 export function selectUnit(g, id) {
   available(g);
@@ -541,7 +495,7 @@ export function selectUnit(g, id) {
 export function pawns(g, owner) {
   const p = g.players[owner];
   if (!p) return [];
-  return [{ id: null, type: "king", x: p.x, y: p.y }, ...(p.units || [])];
+  return p.units || [];
 }
 const enemyAt = (g, x, y) =>
   pawns(g, 1 - g.active).some((p) => p.x === x && p.y === y);
@@ -618,15 +572,10 @@ export function destroyBuilding(g, x, y) {
 function returnBuilders(g, owner, x, y) {
   const p = g.players[owner];
   if (!p) return;
-  if (p.x === x && p.y === y) {
-    Object.assign(p, p.home); p.kingSkip = 1;
-    note(g, sourceMessage("messages.theKingReturnsToTheKeepAnd", [p.name]));
-  }
   for (const unit of p.units) {
-    if (unit.type !== "emissary" || unit.x !== x || unit.y !== y) continue;
-    const home = unit.home, b = home && g.board[key(home.x,home.y)]?.building;
-    Object.assign(unit, b?.owner === owner && b.type === "chancellery" ? home : p.home,
-      { moves:0, acted:true, ended:true, skipTurns:1 });
+    if (unit.type !== "worker" || unit.x !== x || unit.y !== y) continue;
+    Object.assign(unit, p.home, { moves:0, acted:true, ended:true, skipTurns:0 });
+    note(g, sourceMessage("messages.workerReturns", [p.name]));
   }
 }
 export function attack(g, x, y) {
@@ -680,7 +629,7 @@ export function moveError(g, x, y) {
   if (g.finished) return sourceMessage("messages.theGameIsOver");
   if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
   const unit = actor(g);
-  if (unit.moves < 1 || unit.acted || unit.ended)
+  if (unit.moves < 1 || (unit.type === "soldier" && unit.acted) || unit.ended)
     return sourceMessage("messages.thisUnitHasFinishedMoving");
   if (!inside(g, x, y) || distance(unit, { x, y }) !== 1)
     return sourceMessage("messages.chooseAnAdjacentSpaceNotDiagonal");
@@ -769,7 +718,7 @@ export function explore(g, index, x, y, rotation = 0, anchor = 0) {
     const counts = g.players[g.active].progress.terrain;
     counts[c.terrain] = (counts[c.terrain] || 0) + 1;
   }
-  updateActor(g, { moves: 0, acted: true });
+  updateActor(g, { acted: true });
   if (g.tileDeck.length) g.tileMarket[index] = g.tileDeck.shift();
   else g.tileMarket.splice(index, 1);
   note(g, sourceMessage("messages.exploreSpaces", [p.name, cells.length]));
@@ -798,7 +747,7 @@ export function buyTerrain(g, terrain, x, y) {
   g.board[key(x, y)] = { terrain };
   p.revealed++;
   p.progress.terrain[terrain] = (p.progress.terrain[terrain] || 0) + 1;
-  updateActor(g, { moves: 0, acted: true });
+  updateActor(g, { acted: true });
   note(g, sourceMessage("messages.buysASpaceOfForGold", [p.name, TERRAINS[terrain].name.toLowerCase(), RULES.trade.singleTerrainCost]));
   awardMissions(g);
 }
@@ -896,12 +845,12 @@ export function build(
       });
   }
   if (b.grantsWorker) {
-    for (let n = 0; n < b.grantsWorker; n++) addWorker(g);
+    for (let n = 0; n < b.grantsWorker; n++) addWorker(g, x, y);
   }
   if (b.onBuildUnit) spawnUnit(g, x, y, b.onBuildUnit);
   for (const [resource, amount] of Object.entries(b.onBuildGain || {}))
     p.resources[resource] += amount;
-  updateActor(g, { moves: 0, acted: true });
+  updateActor(g, { acted: true });
   const replacement = drawBuildingOffers(g, 1);
   if (replacement.length) g.buildingMarket[index] = replacement[0];
   else g.buildingMarket.splice(index, 1);
@@ -946,14 +895,13 @@ export function trainUnit(g, x, y, type) {
   awardMissions(g);
   return unit;
 }
-export const assigned = (g, i) =>
-  g.players[i].workerAssignments.filter((w) => w.building !== null).length;
+export const assigned = (g, i) => g.players[i].units.filter(u => u.type === "worker" && g.board[key(u.x,u.y)]?.building?.owner === i).length;
 export function recruitError() { return sourceMessage("messages.buildAHouseToGainAWorker"); }
 export function recruit() { throw Error(recruitError()); }
-function addWorker(g) {
+function addWorker(g, x, y) {
   const p = g.players[g.active];
-  p.workerAssignments.push({ id: Math.max(-1, ...p.workerAssignments.map(w => w.id)) + 1, building: null });
-  p.workers = p.workerAssignments.length;
+  spawnUnit(g, x, y, "worker");
+  p.workers++;
   p.progress.recruited++;
 }
 function spawnUnit(g, x, y, type) {
@@ -963,52 +911,44 @@ function spawnUnit(g, x, y, type) {
   p.units.push(unit);
   return unit;
 }
-export function assign(g, x, y) {
-  available(g);
-  const site = buildingAt(g, x, y),
-    b = site?.building;
-  if (!b || b.owner !== g.active || !BUILDINGS[b.type].produces)
-    throw Error(sourceMessage("messages.chooseYourOwnProductionBuilding"));
-  const target = key(site.x, site.y),
-    p = g.players[g.active],
-    current = p.workerAssignments.find((w) => w.building === target);
-  if (current) {
-    assignWorker(g, current.id, null, null);
-    return;
-  }
-  const free = p.workerAssignments.find((w) => w.building === null);
-  if (!free)
-    throw Error(
-      sourceMessage("messages.allYourWorkersAreAssignedReassignOne"),
-    );
-  assignWorker(g, free.id, site.x, site.y);
+export function assign() { throw Error(workerAssignmentError()); }
+export function productionPreview(g) {
+  const unit = actor(g), cell = g.board[key(unit.x,unit.y)];
+  const b = cell?.building, definition = BUILDINGS[b?.type];
+  if (b) return b.owner === g.active && definition?.produces
+    ? { resource:definition.produces, amount:productionAmount(g,unit.x,unit.y), building:b } : null;
+  if (cell?.overlay || cell?.flag) return null;
+  const resource = cell?.terrain === "plain" ? "food" : cell?.terrain === "forest" ? "material" : null;
+  return resource ? {resource,amount:1} : null;
 }
-export function harvestPreview(g, owner = g.active) {
-  const amounts = Object.fromEntries(
-    Object.entries(RESOURCE_DEFINITIONS)
-      .filter(([, definition]) => !definition.calculated)
-      .map(([id]) => [id, 0]),
-  );
-  const inactive = [];
-  for (const [position, c] of Object.entries(g.board)) {
-    const b = c.building, definition = BUILDINGS[b?.type];
-    if (b?.owner !== owner || !definition?.produces) continue;
-    const n = productionAmount(g, ...parseKey(position));
-    amounts[definition.produces] += n;
-    if (!n) inactive.push(position);
-  }
-  return { amounts, inactive };
+export function produceError(g) {
+  if (g.finished) return sourceMessage("messages.theGameIsOver");
+  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+  const unit = actor(g);
+  if (unit.type !== "worker") return sourceMessage("messages.onlyWorkersProduce");
+  if (unit.acted || unit.ended) return sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction");
+  const preview = productionPreview(g);
+  if (!preview) return sourceMessage("messages.noProductionHere");
+  if (preview.building?.productionRound === g.round) return sourceMessage("messages.productionUsed");
+  return null;
+}
+export function produce(g) {
+  const error = produceError(g);
+  if (error) throw Error(error);
+  const preview = productionPreview(g), p = g.players[g.active];
+  p.resources[preview.resource] += preview.amount;
+  if (preview.building) preview.building.productionRound = g.round;
+  updateActor(g,{acted:true});
+  note(g,sourceMessage("messages.produces",[p.name,preview.amount,RESOURCES[preview.resource].toLowerCase()]));
+  awardMissions(g);
+}
+// Kept as a stable read interface: ending a turn grants no automatic resources.
+export function harvestPreview() {
+  return { amounts:Object.fromEntries(Object.keys(RESOURCES).map(id => [id,0])),inactive:[] };
 }
 export function endTurn(g) {
   available(g);
   const p = g.players[g.active];
-  const earned = [];
-  for (const [r, n] of Object.entries(harvestPreview(g).amounts)) {
-    if (!n) continue;
-    p.resources[r] += n;
-    earned.push(`${n} ${RESOURCES[r].toLowerCase()}`);
-  }
-  if (earned.length) note(g, sourceMessage("messages.harvests", [p.name, earned.join(", ")]));
   awardMissions(g);
   const lastPlayer = g.active === g.players.length - 1;
   if (lastPlayer && g.round >= (g.turnLimit ?? RULES.rounds)) {
@@ -1025,7 +965,7 @@ export function endTurn(g) {
   g.active = (g.active + 1) % g.players.length;
   g.selectedUnitId = null;
   g.armySelection = null;
-  g.moves = UNIT_DEFINITIONS.king.moves;
+  g.moves = UNIT_DEFINITIONS.worker.moves;
   g.acted = false;
   g.kingEnded = false;
   g.recruited = false;
@@ -1051,7 +991,7 @@ export function endTurn(g) {
 export function movementPaths(g) {
   const unit = actor(g),
     paths = new Map();
-  if (g.finished || g.opening || unit.acted || unit.ended || unit.moves < 1) return paths;
+  if (g.finished || g.opening || (unit.type === "soldier" && unit.acted) || unit.ended || unit.moves < 1) return paths;
   const queue = [{ x: unit.x, y: unit.y, path: [] }],
     seen = new Set([key(unit.x, unit.y)]);
   for (let i = 0; i < queue.length; i++) {
