@@ -1,0 +1,247 @@
+{
+  "shapes": [
+    {
+      "id": "cross5",
+      "name": "Croix de 5",
+      "weight": 1,
+      "pattern": [
+        ".x.",
+        "xxx",
+        ".x."
+      ]
+    },
+    {
+      "id": "u5",
+      "name": "U de 5",
+      "weight": 1,
+      "pattern": [
+        "x.x",
+        "xxx"
+      ]
+    },
+    {
+      "id": "stairs5",
+      "name": "Escalier de 5",
+      "weight": 1,
+      "pattern": [
+        "xx.",
+        ".xx",
+        "..x"
+      ]
+    },
+    {
+      "id": "offset5",
+      "name": "Bloc décalé de 5",
+      "weight": 1,
+      "pattern": [
+        ".xx.",
+        ".xxx"
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "T de 5",
+      "weight": 1,
+      "pattern": [
+        "xxx",
+        ".x.",
+        ".x."
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "cross5-1",
+      "name": "Domaine agricole",
+      "shapeId": "cross5",
+      "pattern": [
+        ".P.",
+        "PPP",
+        ".P."
+      ],
+      "intent": "Motif complet de ferme"
+    },
+    {
+      "id": "u5-1",
+      "name": "Prairie en U",
+      "shapeId": "u5",
+      "pattern": [
+        "P.P",
+        "PPP"
+      ],
+      "intent": "Entourer un espace libre"
+    },
+    {
+      "id": "stairs5-1",
+      "name": "Lisière en escalier",
+      "shapeId": "stairs5",
+      "pattern": [
+        "FF.",
+        ".FP",
+        "..P"
+      ],
+      "intent": "Forêt continue et deux accès"
+    },
+    {
+      "id": "offset5-1",
+      "name": "Prairie étagée",
+      "shapeId": "offset5",
+      "pattern": [
+        ".PP.",
+        ".PPP"
+      ],
+      "intent": "Développer des champs"
+    },
+    {
+      "id": "t5-1",
+      "name": "Prairie en T",
+      "shapeId": "t5",
+      "pattern": [
+        "PPP",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Ferme à compléter et accès"
+    },
+    {
+      "id": "stairs5-2",
+      "name": "Méandre en escalier",
+      "shapeId": "stairs5",
+      "pattern": [
+        "RR.",
+        ".RP",
+        "..P"
+      ],
+      "intent": "Rivière continue et rive habitable"
+    },
+    {
+      "id": "t5-2",
+      "name": "Quai naturel",
+      "shapeId": "t5",
+      "pattern": [
+        "RRR",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Motif complet de port avec accès"
+    },
+    {
+      "id": "stairs5-3",
+      "name": "Crête en escalier",
+      "shapeId": "stairs5",
+      "pattern": [
+        "MF.",
+        ".PP",
+        "..P"
+      ],
+      "intent": "Montagne, forêt et accès en escalier"
+    },
+    {
+      "id": "t5-3",
+      "name": "Promontoire",
+      "shapeId": "t5",
+      "pattern": [
+        "MMM",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Trois montagnes alignées et accès"
+    },
+    {
+      "id": "line2-4",
+      "name": "Gué ouvert",
+      "shapeId": "cross5",
+      "pattern": [
+        ".R.",
+        "PRP",
+        ".P."
+      ],
+      "intent": "Rivière bordée de trois plaines"
+    },
+    {
+      "id": "cross5-4",
+      "name": "Rivière traversante",
+      "shapeId": "cross5",
+      "pattern": [
+        ".R.",
+        "PRP",
+        ".R."
+      ],
+      "intent": "Trois eaux alignées et deux rives"
+    },
+    {
+      "id": "u5-4",
+      "name": "Couronne rocheuse",
+      "shapeId": "u5",
+      "pattern": [
+        "P.P",
+        "MMM"
+      ],
+      "intent": "Trois montagnes en ligne et deux accès"
+    },
+    {
+      "id": "stairs5-4",
+      "name": "Forêt en escalier",
+      "shapeId": "stairs5",
+      "pattern": [
+        "FF.",
+        ".FF",
+        "..F"
+      ],
+      "intent": "Forêt continue de cinq cases à contourner ou exploiter"
+    },
+    {
+      "id": "offset5-4",
+      "name": "Massif étagé",
+      "shapeId": "offset5",
+      "pattern": [
+        ".MF.",
+        ".MPP"
+      ],
+      "intent": "Pierre avec deux accès"
+    },
+    {
+      "id": "t5-4",
+      "name": "Bois du chemin",
+      "shapeId": "t5",
+      "pattern": [
+        "FFF",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Forêt alignée et chemin constructible"
+    },
+    {
+      "id": "cross5-5",
+      "name": "Croisée des lisières",
+      "shapeId": "cross5",
+      "pattern": [
+        ".F.",
+        "PPP",
+        ".F."
+      ],
+      "intent": "Corridor constructible entre deux bois"
+    },
+    {
+      "id": "stairs5-5",
+      "name": "Bois au fil de l’eau",
+      "shapeId": "stairs5",
+      "pattern": [
+        "PF.",
+        ".FR",
+        "..R"
+      ],
+      "intent": "Forêt et rivière continues"
+    },
+    {
+      "id": "offset5-5",
+      "name": "Rive étroite",
+      "shapeId": "offset5",
+      "pattern": [
+        ".PR.",
+        ".PRR"
+      ],
+      "intent": "Plaine longeant une rivière"
+    }
+  ]
+}

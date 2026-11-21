@@ -201,7 +201,7 @@ export function compileConfiguration(
       `game-rules.json.gold.${field}`,
       field.endsWith("StartingAmount") || field === "startingAmount" ? 0 : 1,
     );
-  object(tileConfig, "terrain-tiles.json");
+  object(tileConfig, "terrain-tiles");
   object(buildingConfig, "buildings");
   object(resourceConfig, "resources.json");
   object(unitConfig, "units.json");
@@ -245,36 +245,36 @@ export function compileConfiguration(
     if (unit.recruitment === "initial" && Object.keys(unit.cost).length)
       fail(`${path}.cost`, "une unité fournie au départ doit avoir un coût vide.");
   }
-  const shapes = index(tileConfig.shapes, "terrain-tiles.json.shapes");
+  const shapes = index(tileConfig.shapes, "terrain-tiles.shapes");
   for (const shape of Object.values(shapes))
     shape.cells = diagram(
       shape.pattern,
       ["x"],
-      `terrain-tiles.json.${shape.id}.pattern`,
+      `terrain-tiles.${shape.id}.pattern`,
     ).map(({ x, y }) => ({ x, y }));
-  integer(tileConfig.deckSize, "terrain-tiles.json.deckSize", 1);
+  integer(tileConfig.deckSize, "terrain-tiles/index.json.deckSize", 1);
   for (const shape of Object.values(shapes))
-    integer(shape.weight, `terrain-tiles.json.${shape.id}.weight`, 1);
-  object(tileConfig.legend, "terrain-tiles.json.legend");
+    integer(shape.weight, `terrain-tiles.${shape.id}.weight`, 1);
+  object(tileConfig.legend, "terrain-tiles/index.json.legend");
   for (const [symbol, terrain] of Object.entries(tileConfig.legend)) {
     if (symbol.length !== 1 || symbol === ".")
       fail(
-        "terrain-tiles.json.legend",
+        "terrain-tiles/index.json.legend",
         "symboles d’une lettre, hors point, attendus.",
       );
     if (!terrainDefinitions[terrain])
-      fail("terrain-tiles.json.legend", `terrain inconnu : ${terrain}.`);
+      fail("terrain-tiles/index.json.legend", `terrain inconnu : ${terrain}.`);
   }
   const tiles = Object.values(
-    index(tileConfig.tiles, "terrain-tiles.json.tiles"),
+    index(tileConfig.tiles, "terrain-tiles.tiles"),
   );
   if (tiles.length !== tileConfig.deckSize)
     fail(
-      "terrain-tiles.json.deckSize",
+      "terrain-tiles/index.json.deckSize",
       "la taille de pioche doit correspondre au nombre de tuiles définies.",
     );
   for (const tile of tiles) {
-    const path = `terrain-tiles.json.tiles.${tile.id}`;
+    const path = `terrain-tiles.tiles.${tile.id}`;
     const shape = shapes[tile.shapeId];
     if (!shape) fail(path, "forme inconnue.");
     const cells = diagram(

@@ -1,0 +1,136 @@
+{
+  "shapes": [
+    {
+      "id": "line3",
+      "name": "Ligne de 3",
+      "weight": 1,
+      "pattern": [
+        "xxx"
+      ]
+    },
+    {
+      "id": "corner3",
+      "name": "L de 3",
+      "weight": 1,
+      "pattern": [
+        "xx",
+        "x."
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "line3-1",
+      "name": "Crête rocheuse",
+      "shapeId": "line3",
+      "pattern": [
+        "MMM"
+      ],
+      "intent": "Trois montagnes en ligne à raccorder à une plaine"
+    },
+    {
+      "id": "corner3-1",
+      "name": "Bois en coude",
+      "shapeId": "corner3",
+      "pattern": [
+        "FF",
+        "F."
+      ],
+      "intent": "Forêt continue à exploiter"
+    },
+    {
+      "id": "line3-2",
+      "name": "Bois de lisière",
+      "shapeId": "line3",
+      "pattern": [
+        "PFF"
+      ],
+      "intent": "Production de bois"
+    },
+    {
+      "id": "corner3-2",
+      "name": "Bosquet",
+      "shapeId": "corner3",
+      "pattern": [
+        "FF",
+        "P."
+      ],
+      "intent": "Bois et accès"
+    },
+    {
+      "id": "line3-3",
+      "name": "Contrefort",
+      "shapeId": "line3",
+      "pattern": [
+        "PMF"
+      ],
+      "intent": "Accès à une montagne et une forêt"
+    },
+    {
+      "id": "corner3-3",
+      "name": "Méandre",
+      "shapeId": "corner3",
+      "pattern": [
+        "RR",
+        "P."
+      ],
+      "intent": "Préparer un pont ou un port"
+    },
+    {
+      "id": "cross5-3",
+      "name": "Col étroit",
+      "shapeId": "line3",
+      "pattern": [
+        "PPM"
+      ],
+      "intent": "Accès court à la montagne"
+    },
+    {
+      "id": "u5-3",
+      "name": "Petit méandre",
+      "shapeId": "corner3",
+      "pattern": [
+        "RR",
+        "R."
+      ],
+      "intent": "Coude de rivière compact"
+    },
+    {
+      "id": "offset5-3",
+      "name": "Bras d’eau",
+      "shapeId": "line3",
+      "pattern": [
+        "RRR"
+      ],
+      "intent": "Trois eaux alignées"
+    },
+    {
+      "id": "line3-4",
+      "name": "Bras de rivière",
+      "shapeId": "line3",
+      "pattern": [
+        "PRR"
+      ],
+      "intent": "Accès et obstacle"
+    },
+    {
+      "id": "corner3-4",
+      "name": "Éperon rocheux",
+      "shapeId": "corner3",
+      "pattern": [
+        "MP",
+        "P."
+      ],
+      "intent": "Pierre et accès"
+    },
+    {
+      "id": "line3-5",
+      "name": "Rive boisée",
+      "shapeId": "line3",
+      "pattern": [
+        "FRF"
+      ],
+      "intent": "Choisir une rive à exploiter"
+    }
+  ]
+}

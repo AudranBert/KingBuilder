@@ -1,0 +1,41 @@
+{
+  "shapes": [
+    {
+      "id": "line2",
+      "name": "Ligne de 2",
+      "weight": 1,
+      "pattern": [
+        "xx"
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "line2-1",
+      "name": "Petit bois",
+      "shapeId": "line2",
+      "pattern": [
+        "FF"
+      ],
+      "intent": "Petite réserve forestière"
+    },
+    {
+      "id": "line2-2",
+      "name": "Lisière",
+      "shapeId": "line2",
+      "pattern": [
+        "PF"
+      ],
+      "intent": "Bois et logement"
+    },
+    {
+      "id": "line2-3",
+      "name": "Plaine ouverte",
+      "shapeId": "line2",
+      "pattern": [
+        "PP"
+      ],
+      "intent": "Deux plaines pour bâtir"
+    }
+  ]
+}

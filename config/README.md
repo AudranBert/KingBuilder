@@ -11,7 +11,8 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 | `units.json` | Ouvrier mobile et soldat |
 | `buildings/index.json` | Liste des fichiers de bâtiments et paramètres de pioche |
 | `buildings/<famille>.json` | Bâtiment de base et toutes ses variantes : coûts, motifs, production, garnisons et points |
-| `terrain-tiles.json` | Treize formes et quarante-huit tuiles prédéfinies, de deux à cinq cases |
+| `terrain-tiles/index.json` | Taille de pioche, légende des terrains et liste des fichiers par taille |
+| `terrain-tiles/<taille>.json` | Formes et tuiles prédéfinies de cette taille : `2.json`, `3.json`, `4.json`, `5.json` |
 | `terrains.json` | Terrains, traversabilité et apparence |
 | `missions.json` | Missions communes, contribution et récompenses en or |
 
@@ -52,6 +53,12 @@ Les maisons coûtent 3 nourritures et 3 matériaux. Leur ouvrier apparaît sur l
 L’action Produire gagne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre ou la production du bâtiment occupé et possédé. Un bâtiment producteur peut être activé une seule fois par tour ; les ouvriers dont l’action reste disponible produisent automatiquement à la fin du tour. Les producteurs standards donnent 2 ressources. Les moulins ajoutent +1, sans cumul.
 
 Les comportements militaires et les retours des bâtisseurs sont attachés à ces rôles. Ajouter une entrée à `units.json` ne suffit pas à créer une nouvelle règle de combat.
+
+## Tuiles de terrain
+
+Chaque fichier de `terrain-tiles/` regroupe les formes (`shapes`) et les tuiles (`tiles`) d'une même taille. Par exemple, `3.json` contient toutes les formes et tuiles de trois cases. Les points dans un motif représentent des cases ignorées et ne comptent pas dans la taille.
+
+`terrain-tiles/index.json` contient `deckSize`, la légende commune `legend` et `files`, la liste des noms de fichiers sans extension (`"2"`, `"3"`, `"4"`, `"5"`). Pour ajouter une taille, créer son fichier et ajouter son nom à `files`. Pour ajouter une tuile, la placer dans le fichier de sa taille avec une référence `shapeId` vers une forme du même fichier, puis ajuster `deckSize`.
 
 ## Bâtiments
 

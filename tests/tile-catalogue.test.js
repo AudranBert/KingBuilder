@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createGame } from "../src/engine.js";
-import { CONFIG, BUILDING_CONFIGURATION } from "../src/configuration.js";
+import { CONFIG, BUILDING_CONFIGURATION, TERRAIN_TILE_CONFIGURATION } from "../src/configuration.js";
 import { compileConfiguration } from "../src/config-schema.js";
 const definitions = await Promise.all(
   [
@@ -14,7 +14,7 @@ const definitions = await Promise.all(
     "terrains",
     "missions",
   ].map((n) =>
-    n === "buildings" ? BUILDING_CONFIGURATION : readFile(new URL(`../config/${n}.json`, import.meta.url), "utf8").then(
+    n === "terrain-tiles" ? TERRAIN_TILE_CONFIGURATION : n === "buildings" ? BUILDING_CONFIGURATION : readFile(new URL(`../config/${n}.json`, import.meta.url), "utf8").then(
       JSON.parse,
     ),
   ),
@@ -80,7 +80,7 @@ test("les erreurs du catalogue sont identifiées avant de lancer la partie", () 
   ]) {
     const input = structuredClone(definitions);
     mutate(input[0]);
-    assert.throws(() => compileConfiguration(...input), /terrain-tiles.json/);
+    assert.throws(() => compileConfiguration(...input), /terrain-tiles/);
   }
 });
 

@@ -1,0 +1,194 @@
+{
+  "shapes": [
+    {
+      "id": "zigzag4",
+      "name": "Z de 4",
+      "weight": 1,
+      "pattern": [
+        "xx.",
+        ".xx"
+      ]
+    },
+    {
+      "id": "square4",
+      "name": "Carré de 4",
+      "weight": 1,
+      "pattern": [
+        "xx",
+        "xx"
+      ]
+    },
+    {
+      "id": "corner4",
+      "name": "L de 4",
+      "weight": 1,
+      "pattern": [
+        "x..",
+        "xxx"
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "T de 4",
+      "weight": 1,
+      "pattern": [
+        ".x.",
+        "xxx"
+      ]
+    },
+    {
+      "id": "line4",
+      "name": "Ligne de 4",
+      "weight": 1,
+      "pattern": [
+        "xxxx"
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "zigzag4-1",
+      "name": "Prairies décalées",
+      "shapeId": "zigzag4",
+      "pattern": [
+        "PP.",
+        ".PP"
+      ],
+      "intent": "Relier deux zones"
+    },
+    {
+      "id": "square4-1",
+      "name": "Bosquet carré",
+      "shapeId": "square4",
+      "pattern": [
+        "FF",
+        "FF"
+      ],
+      "intent": "Forêt compacte pour les scieries"
+    },
+    {
+      "id": "corner4-1",
+      "name": "Contrefort en angle",
+      "shapeId": "corner4",
+      "pattern": [
+        "P..",
+        "PMF"
+      ],
+      "intent": "Montagne, forêt et accès de plaine"
+    },
+    {
+      "id": "t4-1",
+      "name": "Berge en T",
+      "shapeId": "t4",
+      "pattern": [
+        ".P.",
+        "RRP"
+      ],
+      "intent": "Deux eaux reliées et deux accès"
+    },
+    {
+      "id": "line4-1",
+      "name": "Filon accessible",
+      "shapeId": "line4",
+      "pattern": [
+        "PMMM"
+      ],
+      "intent": "Motif complet de mine"
+    },
+    {
+      "id": "corner4-2",
+      "name": "Massif en angle",
+      "shapeId": "corner4",
+      "pattern": [
+        "P..",
+        "MMM"
+      ],
+      "intent": "Prolonger une chaîne de montagnes"
+    },
+    {
+      "id": "line4-2",
+      "name": "Rivière allongée",
+      "shapeId": "line4",
+      "pattern": [
+        "RRRR"
+      ],
+      "intent": "Long obstacle à franchir ou rive à aménager"
+    },
+    {
+      "id": "corner4-3",
+      "name": "Bois en angle",
+      "shapeId": "corner4",
+      "pattern": [
+        "F..",
+        "FFP"
+      ],
+      "intent": "Accès à une forêt continue"
+    },
+    {
+      "id": "line4-3",
+      "name": "Longue lisière",
+      "shapeId": "line4",
+      "pattern": [
+        "PFFF"
+      ],
+      "intent": "Forêt continue avec accès"
+    },
+    {
+      "id": "corner4-4",
+      "name": "Coude de rivière",
+      "shapeId": "corner4",
+      "pattern": [
+        "R..",
+        "RRP"
+      ],
+      "intent": "Détour et rive constructible"
+    },
+    {
+      "id": "line4-4",
+      "name": "Estuaire",
+      "shapeId": "line4",
+      "pattern": [
+        "PRRR"
+      ],
+      "intent": "Trois eaux alignées et accès"
+    },
+    {
+      "id": "zigzag4-5",
+      "name": "Lisière de rive",
+      "shapeId": "zigzag4",
+      "pattern": [
+        "FP.",
+        ".PR"
+      ],
+      "intent": "Construire entre forêt et eau"
+    },
+    {
+      "id": "square4-5",
+      "name": "Bord de forêt",
+      "shapeId": "square4",
+      "pattern": [
+        "PF",
+        "PF"
+      ],
+      "intent": "Aligner scieries et maisons"
+    },
+    {
+      "id": "line4-5",
+      "name": "Berge partagée",
+      "shapeId": "line4",
+      "pattern": [
+        "RRPP"
+      ],
+      "intent": "Préparer un port ou un pont"
+    },
+    {
+      "id": "line4-6",
+      "name": "Corridor entre bois",
+      "shapeId": "line4",
+      "pattern": [
+        "FPPF"
+      ],
+      "intent": "Deux plaines entre deux ressources"
+    }
+  ]
+}

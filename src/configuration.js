@@ -36,10 +36,31 @@ const buildingGroups = await Promise.all(buildingFiles.map(async name => {
   return entries;
 }));
 export const BUILDING_CONFIGURATION = { ...buildingSettings, buildings: buildingGroups.flat() };
-const [tiles, resources, units, gameRules, terrains, missions] =
+const { files: tileFiles, ...tileSettings } = await readJson("terrain-tiles/index");
+if (!Array.isArray(tileFiles) || !tileFiles.length ||
+    tileFiles.some(size => typeof size !== 'string' || !/^[1-9]\d*$/.test(size) || !Number.isSafeInteger(Number(size))) ||
+    new Set(tileFiles).size !== tileFiles.length)
+  throw Error("Index des tuiles de terrain invalide.");
+const tileGroups = await Promise.all(tileFiles.map(async size => {
+  const group = await readJson(`terrain-tiles/${size}`);
+  const hasSize = entry => Array.isArray(entry?.pattern) &&
+    entry.pattern.every(row => typeof row === 'string') &&
+    entry.pattern.join('').replaceAll('.', '').length === Number(size);
+  if (!group || !Array.isArray(group.shapes) || !group.shapes.length ||
+      !Array.isArray(group.tiles) || !group.tiles.length ||
+      !group.shapes.every(hasSize) || !group.tiles.every(hasSize) ||
+      group.tiles.some(tile => !group.shapes.some(shape => shape.id === tile.shapeId)))
+    throw Error(`Taille ou forme de tuile invalide dans terrain-tiles/${size}.json.`);
+  return group;
+}));
+export const TERRAIN_TILE_CONFIGURATION = {
+  ...tileSettings,
+  shapes: tileGroups.flatMap(group => group.shapes),
+  tiles: tileGroups.flatMap(group => group.tiles),
+};
+const [resources, units, gameRules, terrains, missions] =
   await Promise.all(
     [
-      "terrain-tiles",
       "resources",
       "units",
       "game-rules",
@@ -48,7 +69,7 @@ const [tiles, resources, units, gameRules, terrains, missions] =
     ].map(readJson),
   );
 export const CONFIG = compileConfiguration(
-  tiles,
+  TERRAIN_TILE_CONFIGURATION,
   BUILDING_CONFIGURATION,
   resources,
   units,

@@ -9,8 +9,10 @@ import {
   score,
 } from "../src/engine.js";
 const coordinates = (cells) => cells.map((c) => key(c.x, c.y)).sort();
+// Refer to stable catalogue definitions rather than their position in the deck.
+const examples = ["line2", "line3", "corner3", "zigzag4", "square4", "cross5", "u5", "corner4", "t4", "line4", "stairs5", "offset5", "t5"];
 function getTile(g, id) {
-  return [...g.tileMarket, ...g.tileDeck].find((t) => t.id === id);
+  return [...g.tileMarket, ...g.tileDeck].find((t) => t.definitionId === `${examples[id]}-1`);
 }
 test("la pioche de 48 tuiles comprend treize formes de cinq cases au maximum", () => {
   const g = createGame();

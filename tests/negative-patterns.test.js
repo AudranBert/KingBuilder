@@ -2,12 +2,12 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {compileConfiguration} from '../src/config-schema.js';
-import {BUILDING_CONFIGURATION} from '../src/configuration.js';
+import {BUILDING_CONFIGURATION,TERRAIN_TILE_CONFIGURATION} from '../src/configuration.js';
 import {BUILDINGS,createGame,patternAt,buildError,build,selectUnit} from '../src/engine.js';
 import {buildingDiagram} from '../src/ui/html.js';
 
 const originals=await Promise.all(['terrain-tiles','buildings','resources','units','game-rules','terrains','missions']
-  .map(async name=>name==='buildings'?BUILDING_CONFIGURATION:JSON.parse(await readFile(new URL(`../config/${name}.json`,import.meta.url),'utf8'))));
+  .map(async name=>name==='terrain-tiles'?TERRAIN_TILE_CONFIGURATION:name==='buildings'?BUILDING_CONFIGURATION:JSON.parse(await readFile(new URL(`../config/${name}.json`,import.meta.url),'utf8'))));
 function definition(layout){
   const configs=structuredClone(originals);
   const house=configs[1].buildings.find(b=>b.id==='house');house.layout=layout;house.terrain='plain';
