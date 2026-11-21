@@ -11,7 +11,7 @@ import { costPayment, tradePrice, settleMissions, initializeMissions } from "../
 import { moveUnitTo } from "../src/ui/interactions.js";
 import { validateGame } from "../src/validation.js";
 import { territoryBorders } from "../src/ui/board.js";
-import { armyControlsView, rulesView, tradeView } from "../src/ui/views.js";
+import { armyControlsView, rulesView, tradeView, playersView } from "../src/ui/views.js";
 import { createUIState, hasSelectedUnit } from "../src/ui/state.js";
 
 function game() {
@@ -284,4 +284,15 @@ test("propriété visuelle : terrains communs, contour des bâtiments et drapeau
 test("les piles, les couleurs et le blocage des bâtisseurs restent valides",()=>{
   const g=game();soldiers(g,0,2,2,2);g.players[1].kingSkip=1;g.board["6,6"].flag.owner=0;
   selectUnit(g,g.players[0].units.find(u=>u.type==="soldier").id);selectArmy(g,1);validateGame(g);
+});
+
+
+test("banques des deux joueurs : affichage permanent et prix propres à chaque royaume",()=>{
+ const g=game();g.board["2,2"].building={type:"sawmill",owner:0};g.board["3,2"].building={type:"farm",owner:1};
+ assert.equal(tradePrice(g,"food",0),3);assert.equal(tradePrice(g,"material",0),2);
+ assert.equal(tradePrice(g,"food",1),2);assert.equal(tradePrice(g,"material",1),3);
+ for(const active of [0,1]){
+  g.active=active;const markup=playersView(g);assert.equal((markup.match(/class="player-bank"/g)||[]).length,2);
+  const players=markup.split('<article').slice(1);assert.match(players[0],/Banque<\/strong> · 3/);assert.match(players[1],/Banque<\/strong> · 2/);
+ }
 });

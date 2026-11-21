@@ -102,7 +102,7 @@ export function playersView(g) {
   return g.players
     .map(
       (p, i) =>
-        `<article class="player ${i === 1 ? "jade" : ""} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(kingdomName(p.name))}${g.active === i && !g.finished ? t("views.yourTurn") : ""}"><div class="crest" aria-hidden="true">${piece("worker", i)}</div><div class="player-name"><h2>${e(kingdomName(p.name))}</h2></div><div class="resources">${Object.entries(
+        `<article class="player ${i === 1 ? "jade" : ""} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(kingdomName(p.name))}${g.active === i && !g.finished ? t("views.yourTurn") : ""}"><div class="crest" aria-hidden="true">${piece("worker", i)}</div><div class="player-name"><h2>${e(kingdomName(p.name))}</h2></div><div class="player-economy"><div class="resources">${Object.entries(
           RESOURCE_DEFINITIONS,
         )
           .map(
@@ -111,7 +111,7 @@ export function playersView(g) {
           )
           .join(
             "",
-          )}${i === g.active ? `<div id="trade-info" class="trade-info">${tradeView(g)}</div>` : ""}</div><div class="player-score" title="${t("playersView.currentScore")}"><b>${totalScore(g, i)}</b><small>★</small></div></article>`,
+          )}</div><div class="player-bank">${tradeView(g, i)}</div></div><div class="player-score" title="${t("playersView.currentScore")}"><b>${totalScore(g, i)}</b><small>★</small></div></article>`,
     )
     .join("");
 }
@@ -281,8 +281,8 @@ export function armyControlsView(g) {
   const defense = defenseAt(g, g.active, unit.x, unit.y);
   return `<div class="army-controls"><div class="army-strength"><span class="army-stat" data-army-stat="attack" aria-label="${t("army.attackPower", [attack])}" title="${t("army.attackExplanation")}">${iconHTML("assets/textures/icon-sword.svg")}<b>${attack}</b></span><span class="army-stat" data-army-stat="defense" aria-label="${t("army.defensePower", [defense.defense])}" title="${t("army.defenseExplanation", [defense.defenders, defense.garrison, defense.bonus])}">${iconHTML("assets/textures/icon-shield.svg")}<b>${defense.defense}</b></span></div>${ready.length ? `<label>${t("armyControlsView.armySize")}<select data-army-size aria-label="${t("armyControlsView.selectedStackSize")}">${ready.map((_,i) => `<option value="${i+1}" ${selectedSoldiers(g).length === i+1 ? "selected" : ""}>${i+1}</option>`).join("")}</select></label>` : `<span>${t("armyControlsView.activationComplete")}</span>`}</div>`;
 }
-export function tradeView(g) {
-  return `<span title="${t("tradeView.buyingMissingResourcesBasePricePerEnemy", [RULES.trade.basePrice, RULES.trade.producerSurcharge])}"><strong>${t("tradeView.bank")}</strong> · ${tradePrice(g,"food")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} · ${tradePrice(g,"material")} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}</span>`;
+export function tradeView(g, owner = g.active) {
+  return `<span title="${t("tradeView.buyingMissingResourcesBasePricePerEnemy", [RULES.trade.basePrice, RULES.trade.producerSurcharge])}"><strong>${t("tradeView.bank")}</strong> · ${tradePrice(g,"food",owner)} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} · ${tradePrice(g,"material",owner)} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}</span>`;
 }
 export function rulesView(g) {
   const size = g?.boardSize ?? GAME_DEFAULTS.boardSize,

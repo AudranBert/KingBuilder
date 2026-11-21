@@ -123,10 +123,10 @@ export function buildingPayment(g, index) {
   if (!cost) return null;
   return costPayment(g, cost);
 }
-export function tradePrice(g, resource) {
+export function tradePrice(g, resource, owner = g.active) {
   if (resource === "gold") return null;
   const producers = Object.values(g.board).filter(c =>
-    c.building && c.building.owner !== g.active && CONFIG.buildings[c.building.type]?.produces === resource).length;
+    c.building && c.building.owner !== owner && CONFIG.buildings[c.building.type]?.produces === resource).length;
   return CONFIG.rules.trade.basePrice + producers * CONFIG.rules.trade.producerSurcharge;
 }
 export function costPayment(g, cost) {
