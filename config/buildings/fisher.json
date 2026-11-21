@@ -51,7 +51,7 @@
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
     "pattern": "One plain building space and two water spaces in an L.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "rr",
       ".B"

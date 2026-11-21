@@ -51,7 +51,7 @@
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
     "pattern": "Three mountains in an L; building space at one end.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Bm",
       ".m"

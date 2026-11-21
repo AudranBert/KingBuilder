@@ -9,7 +9,7 @@
     "terrain": "mountain",
     "description": "Passage.",
     "pattern": "One mountain space.",
-    "weight": 6,
+    "weight": 4,
     "layout": [
       "B"
     ],

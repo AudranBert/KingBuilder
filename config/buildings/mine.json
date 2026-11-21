@@ -52,7 +52,7 @@
     "produces": "gold",
     "description": "+1 gold per turn with a worker.",
     "pattern": "Four spaces in an L: one plain building space and three mountains.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Bmm",
       "..m"

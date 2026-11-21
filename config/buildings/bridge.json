@@ -9,7 +9,7 @@
     "terrain": "river",
     "description": "Passage.",
     "pattern": "One river space.",
-    "weight": 6,
+    "weight": 5,
     "layout": [
       "B"
     ],

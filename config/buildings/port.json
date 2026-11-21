@@ -33,7 +33,7 @@
     "produces": "gold",
     "description": "1 gold with a worker, plus 1 per friendly market or fisher within two orthogonal steps. Bonuses stack.",
     "pattern": "One plain building space beside a 2 × 2 river square.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Brr",
       ".rr"

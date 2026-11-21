@@ -3,7 +3,7 @@
     "id": "barracks",
     "name": "Barracks",
     "icon": "assets/textures/buildings/barracks.svg",
-    "weight": 3,
+    "weight": 4,
     "cost": {
       "food": 1,
       "material": 2
