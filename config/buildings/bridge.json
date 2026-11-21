@@ -2,7 +2,7 @@
   {
     "id": "bridge",
     "name": "Bridge",
-    "icon": "assets/textures/buildings-bridge.svg",
+    "icon": "assets/textures/buildings/bridge.svg",
     "cost": {
       "material": 2
     },

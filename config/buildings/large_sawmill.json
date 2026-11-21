@@ -2,7 +2,7 @@
   {
     "id": "large_sawmill",
     "name": "Large logging camp",
-    "icon": "assets/textures/buildings-sawmill.svg",
+    "icon": "assets/textures/buildings/sawmill.svg",
     "cost": {
       "material": 3
     },
@@ -25,7 +25,7 @@
   {
     "id": "large_sawmill_t",
     "name": "Large logging camp",
-    "icon": "assets/textures/buildings-sawmill.svg",
+    "icon": "assets/textures/buildings/sawmill.svg",
     "cost": {
       "material": 3
     },

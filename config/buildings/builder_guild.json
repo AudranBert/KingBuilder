@@ -4,7 +4,7 @@
     "name": "Builders guild",
     "tier": 3,
     "description": "Buildings cost one less wood. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-builder-guild.svg",
+    "icon": "assets/textures/buildings/builder-guild.svg",
     "cost": {
       "material": 4
     },
@@ -22,7 +22,7 @@
     "name": "Builders guild",
     "tier": 3,
     "description": "Buildings cost one less wood. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-builder-guild.svg",
+    "icon": "assets/textures/buildings/builder-guild.svg",
     "cost": {
       "material": 4
     },

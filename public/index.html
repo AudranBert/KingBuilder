@@ -15,7 +15,7 @@
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="Kingbuilder" />
     <meta name="twitter:description" content="" data-i18n-content="static.aBoardGameOfExplorationBuildingAnd" />
-    <link rel="icon" type="image/svg+xml" href="assets/identity/kingbuilder.svg" />
+    <link rel="icon" type="image/svg+xml" href="assets/textures/interface/kingbuilder.svg" />
     <link rel="stylesheet" href="src/styles/style.css" />
     <link rel="stylesheet" href="src/styles/ui.css" />
     <link rel="stylesheet" href="src/styles/tabletop.css" />
@@ -25,15 +25,15 @@
   </head>
   <body>
     <section id="main-menu" class="main-menu" aria-labelledby="menu-title">
-      <div class="language-picker"><button id="language-toggle" class="language-toggle" type="button" data-i18n-aria-label="language.switch"><img id="language-flag" src="assets/identity/flag-fr.svg" alt="" aria-hidden="true" /></button></div>
+      <div class="language-picker"><button id="language-toggle" class="language-toggle" type="button" data-i18n-aria-label="language.switch"><img id="language-flag" src="assets/textures/interface/flag-fr.svg" alt="" aria-hidden="true" /></button></div>
       <div class="menu-intro">
-        <span class="menu-crest" aria-hidden="true"><img src="assets/identity/kingbuilder.svg" alt="" /></span>
+        <span class="menu-crest" aria-hidden="true"><img src="assets/textures/interface/kingbuilder.svg" alt="" /></span>
         <h1 id="menu-title">King<span>Builder</span></h1>
         <div class="terrain-ribbon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       </div>
       <div class="mode-grid" aria-label="" data-i18n-aria-label="static.gameModes">
         <button class="mode-card" data-game-mode="solo">
-          <span class="mode-icon" aria-hidden="true"><img src="assets/identity/solo.svg" alt="" /></span
+          <span class="mode-icon" aria-hidden="true"><img src="assets/textures/interface/solo.svg" alt="" /></span
           ><span
             ><strong data-i18n="static.solo"></strong
             ><small
@@ -42,7 +42,7 @@
           ><span aria-hidden="true">→</span>
         </button>
         <button class="mode-card" disabled>
-          <span class="mode-icon" aria-hidden="true"><img src="assets/identity/bot.svg" alt="" /></span
+          <span class="mode-icon" aria-hidden="true"><img src="assets/textures/interface/bot.svg" alt="" /></span
           ><span
             ><strong data-i18n="static.versusBot"></strong
             ><small data-i18n="static.playAgainstTheComputer"></small
@@ -50,7 +50,7 @@
           >
         </button>
         <button class="mode-card" data-game-mode="local">
-          <span class="mode-icon" aria-hidden="true"><img src="assets/identity/local.svg" alt="" /></span
+          <span class="mode-icon" aria-hidden="true"><img src="assets/textures/interface/local.svg" alt="" /></span
           ><span
             ><strong data-i18n="static.twoPlayersLocal"></strong
             ><small
@@ -58,15 +58,15 @@
             ></span
           ><span aria-hidden="true">→</span>
         </button>
-        <button class="mode-card" id="online-menu"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/online.svg" alt="" /></span><span><strong data-i18n="static.playOnline"></strong><small data-i18n="static.createAGameOrJoinAFriend"></small></span><span aria-hidden="true">→</span></button>
+        <button class="mode-card" id="online-menu"><span class="mode-icon" aria-hidden="true"><img src="assets/textures/interface/online.svg" alt="" /></span><span><strong data-i18n="static.playOnline"></strong><small data-i18n="static.createAGameOrJoinAFriend"></small></span><span aria-hidden="true">→</span></button>
       </div>
-      <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/catalogue.svg" alt="" /></span><span><strong data-i18n="static.catalogue"></strong><small data-i18n="static.theTilesAndBuildingsOfYourNext"></small></span><span aria-hidden="true">→</span></button>
-      <button id="menu-rules-button" class="mode-card catalogue-entry" aria-haspopup="dialog" aria-controls="rules-dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/identity/rules.svg" alt="" /></span><span><strong data-i18n="static.rules"></strong></span><span aria-hidden="true">→</span></button>
+      <button id="catalogue-button" class="mode-card catalogue-entry" aria-haspopup="dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/textures/interface/catalogue.svg" alt="" /></span><span><strong data-i18n="static.catalogue"></strong><small data-i18n="static.theTilesAndBuildingsOfYourNext"></small></span><span aria-hidden="true">→</span></button>
+      <button id="menu-rules-button" class="mode-card catalogue-entry" aria-haspopup="dialog" aria-controls="rules-dialog"><span class="mode-icon" aria-hidden="true"><img src="assets/textures/interface/rules.svg" alt="" /></span><span><strong data-i18n="static.rules"></strong></span><span aria-hidden="true">→</span></button>
       <section id="game-history" class="game-history" aria-labelledby="history-title" hidden><h2 id="history-title" data-i18n="static.recentGames"></h2><div id="history-list"></div></section>
     </section>
     <header class="topbar" hidden>
       <a class="brand" href="./"
-        ><span class="brand-icon" aria-hidden="true"><img src="assets/identity/kingbuilder.svg" alt="" /></span
+        ><span class="brand-icon" aria-hidden="true"><img src="assets/textures/interface/kingbuilder.svg" alt="" /></span
         ><span>King<span class="brand-light">Builder</span></span></a
       >
       <nav>
@@ -82,7 +82,7 @@
         <div class="land-column">
           <section class="market-panel">
             <div class="section-title">
-              <h2 aria-label="" data-i18n-aria-label="static.terrain" title="" data-i18n-title="static.terrain"><img class="market-heading-icon" src="assets/textures/icon-terrain.svg" alt="" /></h2>
+              <h2 aria-label="" data-i18n-aria-label="static.terrain" title="" data-i18n-title="static.terrain"><img class="market-heading-icon" src="assets/textures/interface/terrain.svg" alt="" /></h2>
               <button
                 id="reroll-terrain"
                 class="reroll"
@@ -113,7 +113,7 @@
               ><button data-mode="inspect" aria-pressed="false" data-i18n="static.inspect"></button><button id="undo-action" class="secondary" aria-label="" data-i18n-aria-label="static.undoTheLastAction" title="" data-i18n-title="static.undoTheLastAction" disabled data-i18n="static.undo"></button>
             </div>
             <div class="round" aria-label="" data-i18n-aria-label="static.gameTurn" title="" data-i18n-title="static.gameTurn">
-              <img src="assets/textures/icon-hourglass.svg" alt="" />
+              <img src="assets/textures/interface/hourglass.svg" alt="" />
               <strong id="round">01 / 25</strong>
             </div>
           </div>
@@ -139,7 +139,7 @@
         <div class="building-column">
           <section class="market-panel">
             <div class="section-title">
-              <h2 aria-label="" data-i18n-aria-label="views.buildings" title="" data-i18n-title="views.buildings"><img class="market-heading-icon" src="assets/textures/buildings-house.svg" alt="" /></h2>
+              <h2 aria-label="" data-i18n-aria-label="views.buildings" title="" data-i18n-title="views.buildings"><img class="market-heading-icon" src="assets/textures/buildings/house.svg" alt="" /></h2>
               <button
                 id="reroll-building"
                 class="reroll"
@@ -202,9 +202,9 @@
         <legend data-i18n="static.startingResources"></legend>
         <p data-i18n="static.theSecondPlayerAlwaysReceives1Extra"></p>
         <div class="resource-sliders">
-          <label for="setting-material"><img src="assets/textures/resources-wood.svg" alt="" /><span data-i18n="resources.material.name"></span><output id="setting-material-value" for="setting-material">3</output><input id="setting-material" type="range" min="0" max="10" step="1" value="3" /></label>
-          <label for="setting-food"><img src="assets/textures/resources-wheat.svg" alt="" /><span data-i18n="resources.food.name"></span><output id="setting-food-value" for="setting-food">2</output><input id="setting-food" type="range" min="0" max="10" step="1" value="2" /></label>
-          <label for="setting-gold"><img src="assets/textures/resources-gold.svg" alt="" /><span data-i18n="resources.gold.name"></span><output id="setting-gold-value" for="setting-gold">1</output><input id="setting-gold" type="range" min="0" max="10" step="1" value="1" /></label>
+          <label for="setting-material"><img src="assets/textures/resources/wood.svg" alt="" /><span data-i18n="resources.material.name"></span><output id="setting-material-value" for="setting-material">3</output><input id="setting-material" type="range" min="0" max="10" step="1" value="3" /></label>
+          <label for="setting-food"><img src="assets/textures/resources/wheat.svg" alt="" /><span data-i18n="resources.food.name"></span><output id="setting-food-value" for="setting-food">2</output><input id="setting-food" type="range" min="0" max="10" step="1" value="2" /></label>
+          <label for="setting-gold"><img src="assets/textures/resources/gold.svg" alt="" /><span data-i18n="resources.gold.name"></span><output id="setting-gold-value" for="setting-gold">1</output><input id="setting-gold" type="range" min="0" max="10" step="1" value="1" /></label>
         </div>
       </fieldset>
       <div class="dialog-actions settings-actions">

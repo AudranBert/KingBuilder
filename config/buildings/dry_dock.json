@@ -4,7 +4,7 @@
     "name": "Dry dock",
     "tier": 3,
     "description": "Your units can move on water. No worker required.",
-    "icon": "assets/textures/buildings-dry-dock.svg",
+    "icon": "assets/textures/buildings/dry-dock.svg",
     "cost": {
       "material": 4
     },
@@ -25,7 +25,7 @@
     "name": "Dry dock",
     "tier": 3,
     "description": "Your units can move on water. No worker required.",
-    "icon": "assets/textures/buildings-dry-dock.svg",
+    "icon": "assets/textures/buildings/dry-dock.svg",
     "cost": {
       "material": 4
     },

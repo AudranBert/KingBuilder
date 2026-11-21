@@ -2,7 +2,7 @@
   {
     "id": "quarry",
     "name": "Quarry",
-    "icon": "assets/textures/buildings-quarry.svg",
+    "icon": "assets/textures/buildings/quarry.svg",
     "cost": {
       "material": 1
     },
@@ -22,7 +22,7 @@
   {
     "id": "quarry_mountain",
     "name": "Quarry",
-    "icon": "assets/textures/buildings-quarry.svg",
+    "icon": "assets/textures/buildings/quarry.svg",
     "cost": {
       "material": 1
     },
@@ -43,7 +43,7 @@
   {
     "id": "quarry_ridge",
     "name": "Quarry",
-    "icon": "assets/textures/buildings-quarry.svg",
+    "icon": "assets/textures/buildings/quarry.svg",
     "cost": {
       "material": 1
     },

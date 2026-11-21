@@ -3,7 +3,7 @@
     {
       "id": "soldier",
       "name": "Soldier",
-      "icon": "assets/textures/units-soldier.svg",
+      "icon": "assets/textures/units/soldier.svg",
       "cost": {
         "food": 1
       },
@@ -13,7 +13,7 @@
     {
       "id": "worker",
       "name": "Worker",
-      "icon": "assets/textures/units-worker.svg",
+      "icon": "assets/textures/units/worker.svg",
       "cost": {},
       "moves": 3,
       "recruitment": "house"

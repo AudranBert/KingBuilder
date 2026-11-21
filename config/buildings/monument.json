@@ -2,7 +2,7 @@
   {
     "id": "monument",
     "name": "Monument",
-    "icon": "assets/textures/buildings-monument.svg",
+    "icon": "assets/textures/buildings/monument.svg",
     "cost": {
       "material": 3,
       "gold": 2
@@ -21,7 +21,7 @@
   {
     "id": "monument_l",
     "name": "Monument",
-    "icon": "assets/textures/buildings-monument.svg",
+    "icon": "assets/textures/buildings/monument.svg",
     "cost": {
       "material": 3,
       "gold": 2

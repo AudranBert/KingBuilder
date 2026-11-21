@@ -4,7 +4,7 @@
     "name": "Great bridge",
     "tier": 3,
     "description": "+6 score. Two water spaces connecting two required plain or forest banks.",
-    "icon": "assets/textures/buildings-bridge.svg",
+    "icon": "assets/textures/buildings/bridge.svg",
     "cost": {
       "material": 4
     },
@@ -23,7 +23,7 @@
     "name": "Great bridge",
     "tier": 3,
     "description": "+6 score. Two water spaces connecting two required plain or forest banks.",
-    "icon": "assets/textures/buildings-bridge.svg",
+    "icon": "assets/textures/buildings/bridge.svg",
     "cost": {
       "material": 4
     },

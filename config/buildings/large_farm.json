@@ -2,7 +2,7 @@
   {
     "id": "large_farm",
     "name": "Large farm",
-    "icon": "assets/textures/buildings-farm.svg",
+    "icon": "assets/textures/buildings/farm.svg",
     "cost": {
       "material": 3
     },
@@ -26,7 +26,7 @@
   {
     "id": "large_farm_line",
     "name": "Large farm",
-    "icon": "assets/textures/buildings-farm.svg",
+    "icon": "assets/textures/buildings/farm.svg",
     "cost": {
       "material": 3
     },

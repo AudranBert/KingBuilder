@@ -2,7 +2,7 @@
   {
     "id": "house",
     "name": "House",
-    "icon": "assets/textures/buildings-house.svg",
+    "icon": "assets/textures/buildings/house.svg",
     "cost": {
       "food": 3,
       "material": 3
@@ -21,7 +21,7 @@
   {
     "id": "house_water",
     "name": "House",
-    "icon": "assets/textures/buildings-house.svg",
+    "icon": "assets/textures/buildings/house.svg",
     "cost": {
       "food": 3,
       "material": 3
@@ -41,7 +41,7 @@
   {
     "id": "house_forest",
     "name": "House",
-    "icon": "assets/textures/buildings-house.svg",
+    "icon": "assets/textures/buildings/house.svg",
     "cost": {
       "food": 3,
       "material": 3

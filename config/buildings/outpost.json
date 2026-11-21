@@ -2,7 +2,7 @@
   {
     "id": "outpost",
     "name": "Tower",
-    "icon": "assets/textures/buildings-outpost.svg",
+    "icon": "assets/textures/buildings/outpost.svg",
     "cost": {
       "material": 2
     },

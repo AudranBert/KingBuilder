@@ -2,7 +2,7 @@
   {
     "id": "mill",
     "name": "Mill",
-    "icon": "assets/textures/buildings-mill.svg",
+    "icon": "assets/textures/buildings/mill.svg",
     "cost": {
       "material": 2
     },
@@ -28,7 +28,7 @@
   {
     "id": "mill_line",
     "name": "Mill",
-    "icon": "assets/textures/buildings-mill.svg",
+    "icon": "assets/textures/buildings/mill.svg",
     "cost": {
       "material": 2
     },
@@ -55,7 +55,7 @@
   {
     "id": "mill_l",
     "name": "Mill",
-    "icon": "assets/textures/buildings-mill.svg",
+    "icon": "assets/textures/buildings/mill.svg",
     "cost": {
       "material": 2
     },

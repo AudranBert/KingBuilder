@@ -4,7 +4,7 @@
     "name": "Stable",
     "tier": 3,
     "description": "+1 movement point to your units. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-stable.svg",
+    "icon": "assets/textures/buildings/stable.svg",
     "cost": {
       "material": 4
     },
@@ -22,7 +22,7 @@
     "name": "Stable",
     "tier": 3,
     "description": "+1 movement point to your units. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-stable.svg",
+    "icon": "assets/textures/buildings/stable.svg",
     "cost": {
       "material": 4
     },

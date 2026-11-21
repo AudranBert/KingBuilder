@@ -4,7 +4,7 @@
     "name": "Small monument",
     "tier": 2,
     "description": "+2 score.",
-    "icon": "assets/textures/buildings-monument.svg",
+    "icon": "assets/textures/buildings/monument.svg",
     "cost": {
       "material": 3
     },
@@ -21,7 +21,7 @@
     "name": "Small monument",
     "tier": 2,
     "description": "+2 score.",
-    "icon": "assets/textures/buildings-monument.svg",
+    "icon": "assets/textures/buildings/monument.svg",
     "cost": {
       "material": 3
     },

@@ -2,7 +2,7 @@
   {
     "id": "mine",
     "name": "Mine",
-    "icon": "assets/textures/buildings-mine.svg",
+    "icon": "assets/textures/buildings/mine.svg",
     "cost": {
       "material": 2
     },
@@ -22,7 +22,7 @@
   {
     "id": "mine_square",
     "name": "Mine",
-    "icon": "assets/textures/buildings-mine.svg",
+    "icon": "assets/textures/buildings/mine.svg",
     "cost": {
       "material": 2
     },
@@ -44,7 +44,7 @@
   {
     "id": "mine_l",
     "name": "Mine",
-    "icon": "assets/textures/buildings-mine.svg",
+    "icon": "assets/textures/buildings/mine.svg",
     "cost": {
       "material": 2
     },

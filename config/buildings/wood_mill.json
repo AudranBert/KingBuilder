@@ -4,7 +4,7 @@
     "name": "Sawmill",
     "tier": 2,
     "description": "+1 wood to logging camps within two orthogonal steps. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-wood-mill.svg",
+    "icon": "assets/textures/buildings/wood-mill.svg",
     "cost": {
       "material": 3
     },
@@ -27,7 +27,7 @@
     "name": "Sawmill",
     "tier": 2,
     "description": "+1 wood to logging camps within two orthogonal steps. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-wood-mill.svg",
+    "icon": "assets/textures/buildings/wood-mill.svg",
     "cost": {
       "material": 3
     },

@@ -4,7 +4,7 @@
     "name": "Forge",
     "tier": 3,
     "description": "+1 combat strength to your armies. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-forge.svg",
+    "icon": "assets/textures/buildings/forge.svg",
     "cost": {
       "material": 4
     },
@@ -22,7 +22,7 @@
     "name": "Forge",
     "tier": 3,
     "description": "+1 combat strength to your armies. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-forge.svg",
+    "icon": "assets/textures/buildings/forge.svg",
     "cost": {
       "material": 4
     },

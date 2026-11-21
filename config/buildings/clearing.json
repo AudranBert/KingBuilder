@@ -2,7 +2,7 @@
   {
     "id": "clearing",
     "name": "Clearing",
-    "icon": "assets/textures/buildings-clearing.svg",
+    "icon": "assets/textures/buildings/clearing.svg",
     "cost": {},
     "terrain": "forest",
     "description": "+2 materials; forest → plain.",

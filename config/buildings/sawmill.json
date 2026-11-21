@@ -2,7 +2,7 @@
   {
     "id": "sawmill",
     "name": "Logging camp",
-    "icon": "assets/textures/buildings-sawmill.svg",
+    "icon": "assets/textures/buildings/sawmill.svg",
     "cost": {
       "material": 1
     },
@@ -22,7 +22,7 @@
   {
     "id": "sawmill_cross",
     "name": "Logging camp",
-    "icon": "assets/textures/buildings-sawmill.svg",
+    "icon": "assets/textures/buildings/sawmill.svg",
     "cost": {
       "material": 1
     },
@@ -43,7 +43,7 @@
   {
     "id": "sawmill_l",
     "name": "Logging camp",
-    "icon": "assets/textures/buildings-sawmill.svg",
+    "icon": "assets/textures/buildings/sawmill.svg",
     "cost": {
       "material": 1
     },

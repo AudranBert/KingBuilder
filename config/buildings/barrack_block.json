@@ -4,7 +4,7 @@
     "name": "Barrack block",
     "tier": 3,
     "description": "Barracks within two orthogonal steps can recruit two soldiers per turn, for one wheat each. No worker required.",
-    "icon": "assets/textures/buildings-barrack-block.svg",
+    "icon": "assets/textures/buildings/barrack-block.svg",
     "cost": {
       "material": 4
     },
@@ -22,7 +22,7 @@
     "name": "Barrack block",
     "tier": 3,
     "description": "Barracks within two orthogonal steps can recruit two soldiers per turn, for one wheat each. No worker required.",
-    "icon": "assets/textures/buildings-barrack-block.svg",
+    "icon": "assets/textures/buildings/barrack-block.svg",
     "cost": {
       "material": 4
     },

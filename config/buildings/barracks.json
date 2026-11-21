@@ -2,7 +2,7 @@
   {
     "id": "barracks",
     "name": "Barracks",
-    "icon": "assets/textures/buildings-barracks.svg",
+    "icon": "assets/textures/buildings/barracks.svg",
     "weight": 3,
     "cost": {
       "food": 1,
@@ -24,7 +24,7 @@
   {
     "id": "barracks_forest",
     "name": "Barracks",
-    "icon": "assets/textures/buildings-barracks.svg",
+    "icon": "assets/textures/buildings/barracks.svg",
     "weight": 3,
     "cost": {
       "food": 1,

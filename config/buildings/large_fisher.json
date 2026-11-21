@@ -2,7 +2,7 @@
   {
     "id": "large_fisher",
     "name": "Large fishing hut",
-    "icon": "assets/textures/buildings-fisher.svg",
+    "icon": "assets/textures/buildings/fisher.svg",
     "cost": {
       "material": 3
     },
@@ -27,7 +27,7 @@
   {
     "id": "large_fisher_line",
     "name": "Large fishing hut",
-    "icon": "assets/textures/buildings-fisher.svg",
+    "icon": "assets/textures/buildings/fisher.svg",
     "cost": {
       "material": 3
     },

@@ -4,7 +4,7 @@
     "name": "Toll gate",
     "tier": 3,
     "description": "+1 gold per tier 1 producer within two orthogonal steps, with a worker. Build on a bridge or between two mountains.",
-    "icon": "assets/textures/buildings-toll.svg",
+    "icon": "assets/textures/buildings/toll.svg",
     "cost": {
       "material": 4
     },
@@ -30,7 +30,7 @@
     "name": "Toll gate",
     "tier": 3,
     "description": "+1 gold per tier 1 producer within two orthogonal steps, with a worker. Build on a bridge or between two mountains.",
-    "icon": "assets/textures/buildings-toll.svg",
+    "icon": "assets/textures/buildings/toll.svg",
     "cost": {
       "material": 4
     },

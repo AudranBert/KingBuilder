@@ -2,7 +2,7 @@
   {
     "id": "fisher",
     "name": "Fisher",
-    "icon": "assets/textures/buildings-fisher.svg",
+    "icon": "assets/textures/buildings/fisher.svg",
     "cost": {
       "material": 1
     },
@@ -22,7 +22,7 @@
   {
     "id": "fisher_bank",
     "name": "Fisher",
-    "icon": "assets/textures/buildings-fisher.svg",
+    "icon": "assets/textures/buildings/fisher.svg",
     "cost": {
       "material": 1
     },
@@ -43,7 +43,7 @@
   {
     "id": "fisher_corner",
     "name": "Fisher",
-    "icon": "assets/textures/buildings-fisher.svg",
+    "icon": "assets/textures/buildings/fisher.svg",
     "cost": {
       "material": 1
     },

@@ -4,7 +4,7 @@
     "name": "Large monument",
     "tier": 3,
     "description": "+7 score.",
-    "icon": "assets/textures/buildings-monument.svg",
+    "icon": "assets/textures/buildings/monument.svg",
     "cost": {
       "material": 4
     },
@@ -22,7 +22,7 @@
     "name": "Large monument",
     "tier": 3,
     "description": "+7 score.",
-    "icon": "assets/textures/buildings-monument.svg",
+    "icon": "assets/textures/buildings/monument.svg",
     "cost": {
       "material": 4
     },

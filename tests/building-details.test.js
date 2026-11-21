@@ -9,7 +9,7 @@ test('tour et donjon affichent leur défense totale avec le même bouton d’inf
   for (const type of ['castle', 'outpost']) {
     g.board[key(p.x, p.y)].building = { type, owner: g.active };
     const html = selectionView(g, { mode: 'inspect', selected: { x: p.x, y: p.y } });
-    assert.match(html, /icon-shield\.svg[^>]*> 2/);
+    assert.match(html, /shield\.svg[^>]*> 2/);
     assert.ok(html.includes(BUILDINGS[type].icon));
   }
 });

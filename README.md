@@ -146,6 +146,6 @@ npm run build
 
 Les valeurs par défaut du plateau, de la durée et des ressources viennent de `config/game-rules.json` et `config/resources.json`. Le menu et le moteur utilisent les mêmes réglages.
 
-`src/` contient le moteur et l’interface ; `config/` contient les règles et les catalogues ; `assets/textures/` contient les illustrations. Le build recopie les sources dans `dist/`, seul dossier à publier. Ne pas modifier `dist/` directement.
+`src/` contient le moteur et l’interface ; `config/` contient les règles et les catalogues ; `assets/textures/` contient les illustrations, classées dans `buildings/`, `resources/`, `units/`, `terrains/` et `interface/`. Les terrains distinguent les fichiers `*-texture.svg` du plateau et `*-icon.svg` des pictogrammes. Les futurs sons pourront être placés à côté, dans `assets/sounds/`. Le build recopie les sources dans `dist/`, seul dossier à publier. Ne pas modifier `dist/` directement.
 
 Le guide [config/README.md](config/README.md) décrit les champs configurables. Les coûts, le tarif de la banque et les points constituent une première base d’équilibrage.

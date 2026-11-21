@@ -4,7 +4,7 @@
     "name": "Market",
     "tier": 2,
     "description": "Resource purchases cost one less gold (minimum 1). No worker required.",
-    "icon": "assets/textures/buildings-market.svg",
+    "icon": "assets/textures/buildings/market.svg",
     "cost": {
       "material": 3
     },
@@ -22,7 +22,7 @@
     "name": "Market",
     "tier": 2,
     "description": "Resource purchases cost one less gold (minimum 1). No worker required.",
-    "icon": "assets/textures/buildings-market.svg",
+    "icon": "assets/textures/buildings/market.svg",
     "cost": {
       "material": 3
     },

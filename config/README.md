@@ -81,7 +81,7 @@ Les autres cases ne sont ni réservées ni attribuées au bâtiment. Plusieurs p
 {
   "id": "example",
   "name": "Atelier",
-  "icon": "assets/textures/buildings-sawmill.svg",
+  "icon": "assets/textures/buildings/sawmill.svg",
   "cost": {"material": 2},
   "terrain": "plain",
   "description": "+1 matériau / tour.",

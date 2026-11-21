@@ -2,7 +2,7 @@
   {
     "id": "castle",
     "name": "Keep",
-    "icon": "assets/textures/buildings-castle.svg",
+    "icon": "assets/textures/buildings/castle.svg",
     "cost": {},
     "terrain": "plain",
     "description": "Garrison 1; losing your keep means defeat.",

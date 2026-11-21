@@ -2,7 +2,7 @@
   {
     "id": "tunnel",
     "name": "Tunnel",
-    "icon": "assets/textures/buildings-tunnel.svg",
+    "icon": "assets/textures/buildings/tunnel.svg",
     "cost": {
       "material": 2
     },

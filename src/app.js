@@ -968,7 +968,7 @@ export function startGame({ initialGame = null } = {}) {
   $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toast(error.message)); });
   if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); openOnlineDialog(); }
   function updateLanguageFlag() {
-    $('#language-flag').src = new URL(`../assets/identity/flag-${getLanguage()}.svg`, import.meta.url).href;
+    $('#language-flag').src = new URL(`../assets/textures/interface/flag-${getLanguage()}.svg`, import.meta.url).href;
     $('#language-toggle').setAttribute('aria-label', t('language.switch'));
   }
   updateLanguageFlag();

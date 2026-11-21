@@ -2,7 +2,7 @@
   {
     "id": "farm",
     "name": "Farm",
-    "icon": "assets/textures/buildings-farm.svg",
+    "icon": "assets/textures/buildings/farm.svg",
     "cost": {
       "material": 1
     },
@@ -23,7 +23,7 @@
   {
     "id": "farm_z",
     "name": "Farm",
-    "icon": "assets/textures/buildings-farm.svg",
+    "icon": "assets/textures/buildings/farm.svg",
     "cost": {
       "material": 1
     },
@@ -46,7 +46,7 @@
   {
     "id": "farm_t",
     "name": "Farm",
-    "icon": "assets/textures/buildings-farm.svg",
+    "icon": "assets/textures/buildings/farm.svg",
     "cost": {
       "material": 1
     },

@@ -3,21 +3,21 @@
     {
       "id": "material",
       "name": "Materials",
-      "icon": "assets/textures/resources-wood.svg",
+      "icon": "assets/textures/resources/wood.svg",
       "startingAmount": 3,
       "points": 0
     },
     {
       "id": "food",
       "name": "Food",
-      "icon": "assets/textures/resources-wheat.svg",
+      "icon": "assets/textures/resources/wheat.svg",
       "startingAmount": 2,
       "points": 0
     },
     {
       "id": "gold",
       "name": "Gold",
-      "icon": "assets/textures/resources-gold.svg",
+      "icon": "assets/textures/resources/gold.svg",
       "startingAmount": 2,
       "points": 0
     }

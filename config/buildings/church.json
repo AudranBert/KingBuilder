@@ -4,7 +4,7 @@
     "name": "Church",
     "tier": 3,
     "description": "Double the score of monuments within two orthogonal steps. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-church.svg",
+    "icon": "assets/textures/buildings/church.svg",
     "cost": {
       "material": 4
     },
@@ -22,7 +22,7 @@
     "name": "Church",
     "tier": 3,
     "description": "Double the score of monuments within two orthogonal steps. No worker required; does not stack.",
-    "icon": "assets/textures/buildings-church.svg",
+    "icon": "assets/textures/buildings/church.svg",
     "cost": {
       "material": 4
     },

@@ -343,7 +343,7 @@ test('une armée sans déplacement est grisée et un clic hors du pion la désé
   app.clickCell(x, y, String(player.units.find(u=>u.type==='soldier').id));
   assert.match(app.node('#selection').innerHTML, /^<span class="selected-unit-icon/);
   assert.match(app.node('#selection').innerHTML, /selected-unit-moves[^>]*Déplacements restants : 0/);
-  assert.match(app.node('#selection').innerHTML, /icon-boots\.svg/);
+  assert.match(app.node('#selection').innerHTML, /boots\.svg/);
   assert.match(app.node('#selection').innerHTML, /selected-unit-icon/);
   assert.match(app.node('#selection').innerHTML, /data-army-stat="attack"/);
   app.clickCell(x, y);

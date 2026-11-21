@@ -4,7 +4,7 @@
     "name": "Explorers guild",
     "tier": 3,
     "description": "Buy one terrain space anywhere for one gold. No worker required.",
-    "icon": "assets/textures/buildings-explorer-guild.svg",
+    "icon": "assets/textures/buildings/explorer-guild.svg",
     "cost": {
       "material": 4
     },
@@ -22,7 +22,7 @@
     "name": "Explorers guild",
     "tier": 3,
     "description": "Buy one terrain space anywhere for one gold. No worker required.",
-    "icon": "assets/textures/buildings-explorer-guild.svg",
+    "icon": "assets/textures/buildings/explorer-guild.svg",
     "cost": {
       "material": 4
     },

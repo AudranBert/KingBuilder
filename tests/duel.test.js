@@ -164,8 +164,8 @@ test('les puissances de la description utilisent les mêmes défenses que les co
   const html = armyControlsView(g);
   assert.match(html, /Attaque : 1/);
   assert.match(html, /Défense : 6/);
-  assert.match(html, /icon-sword\.svg/);
-  assert.match(html, /icon-shield\.svg/);
+  assert.match(html, /sword\.svg/);
+  assert.match(html, /shield\.svg/);
   assert.doesNotMatch(html, /disponible/);
   const enemy = soldiers(g, 1, 8, 3, 2);
   g.active = 1;
@@ -207,8 +207,8 @@ test("commerce : prix par producteur adverse, aucune influence des affectations"
   const payment=costPayment(g,{material:2,food:1,gold:3});
   assert.equal(payment.gold,10);assert.equal(payment.totalGold,13);assert.equal(payment.affordable,true);
   assert.deepEqual(payment.resources,{material:0,food:0,gold:13});
-  assert.match(tradeView(g), /2 <img[^>]+resources-gold\.svg[^>]*> → <img[^>]+resources-wheat\.svg/);
-  assert.match(tradeView(g), /4 <img[^>]+resources-gold\.svg[^>]*> → <img[^>]+resources-wood\.svg/);
+  assert.match(tradeView(g), /2 <img[^>]+gold\.svg[^>]*> → <img[^>]+wheat\.svg/);
+  assert.match(tradeView(g), /4 <img[^>]+gold\.svg[^>]*> → <img[^>]+wood\.svg/);
 });
 
 test("achat à la construction : confirmation exacte, paiement atomique et or non achetable",()=>{

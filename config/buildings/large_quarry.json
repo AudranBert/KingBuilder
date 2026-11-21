@@ -2,7 +2,7 @@
   {
     "id": "large_quarry",
     "name": "Large quarry",
-    "icon": "assets/textures/buildings-quarry.svg",
+    "icon": "assets/textures/buildings/quarry.svg",
     "cost": {
       "material": 3
     },
@@ -24,7 +24,7 @@
   {
     "id": "large_quarry_line",
     "name": "Large quarry",
-    "icon": "assets/textures/buildings-quarry.svg",
+    "icon": "assets/textures/buildings/quarry.svg",
     "cost": {
       "material": 3
     },

@@ -53,9 +53,9 @@ export function diagram(cells, { building = null, large = false, maxSize = 64 } 
         field = terrainId === 'field',
         icon =
           cell.symbol === 'c'
-            ? 'assets/textures/pattern-building.svg'
+            ? 'assets/textures/interface/pattern-building.svg'
           : cell.symbol === '!p'
-            ? 'assets/textures/terrains-not-plain.svg'
+            ? 'assets/textures/terrains/not-plain-icon.svg'
           : cell.symbol === 'B' || (cell.symbol === 'r' && building?.greatBridge)
             ? building?.icon
             : field
