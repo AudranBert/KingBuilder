@@ -27,7 +27,7 @@ import {
   isRotation,
   inside as withinBoard,
 } from "./geometry.js";
-import { canAfford, payCost } from "./economy.js";
+import { payCost } from "./economy.js";
 export { key } from "./geometry.js";
 import {
   CONFIG,
@@ -58,17 +58,16 @@ export const RULES = {
 };
 export const GAME_DEFAULTS = Object.freeze({
   mapId: "base",
-  rounds: 25,
+  rounds: RULES.rounds,
   openingTilesPerPlayer: 0,
-  boardSize: 11,
+  boardSize: RULES.size,
   missionsEnabled: true,
-  resources: Object.freeze({ material: 3, food: 2, gold: 1 }),
+  resources: Object.freeze({ ...START_RESOURCES }),
 });
 export function gameSettings(settings = {}) {
   const resources = { ...GAME_DEFAULTS.resources, ...(settings.resources || {}) };
   const result = {
-    // Explicit old setup settings remain supported for older clients and scenarios.
-    mapId: Object.hasOwn(settings, "mapId") ? settings.mapId : (Object.hasOwn(settings, "openingTilesPerPlayer")) ? null : GAME_DEFAULTS.mapId,
+    mapId: settings.mapId === undefined ? GAME_DEFAULTS.mapId : settings.mapId,
     rounds: settings.rounds ?? GAME_DEFAULTS.rounds,
     openingTilesPerPlayer:
       settings.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
@@ -184,85 +183,6 @@ export function productionAmount(g, x, y) {
   else if (definition.portBonus && connectedPort(g,b.owner,x,y)) bonusAmount += 2;
   return definition.production + bonusAmount;
 }
-export function migrateGame(g) {
-  if (g.version !== 6) throw Error(sourceMessage("messages.olderRulesAreNoLongerCompatible"));
-  g.boardSize ??= RULES.size;
-  g.turnLimit ??= RULES.rounds;
-  g.openingTilesPerPlayer ??= GAME_DEFAULTS.openingTilesPerPlayer;
-  delete g.preplacedTerrainCount;
-  g.missionsEnabled ??= GAME_DEFAULTS.missionsEnabled;
-  g.startingResources ??= { ...RULES.startResources };
-  if (g.opening) {
-    g.opening.perPlayer ??= g.openingTilesPerPlayer;
-    g.opening.totalPlacements ??=
-      g.opening.perPlayer * g.players.length;
-  }
-  g.buildingReplacements ??= RULES.markets.advancedFromReplacement;
-  for (const cell of Object.values(g.board)) {
-    if (!cell.overlay) continue;
-    if (cell.overlay.role === 'field') cell.terrain = cell.overlay.previousTerrain || 'plain';
-    delete cell.overlay;
-  }
-  for (const c of Object.values(g.board))
-    if (c.building && !BUILDINGS[c.building.type])
-      throw Error(
-        sourceMessage("messages.thisGameStateUsesABuildingRemoved"),
-      );
-  for (const p of g.players) {
-    p.units ??= [];
-    for (const [id, definition] of Object.entries(RESOURCE_DEFINITIONS))
-      if (!definition.calculated && p.resources[id] === undefined) p.resources[id] = 0;
-  }
-  g.buildingDeck = g.buildingDeck.filter((id) => BUILDINGS[id]);
-  g.buildingMarket = g.buildingMarket.filter((id) => BUILDINGS[id]);
-  while (g.buildingMarket.length < RULES.markets.buildingSize && g.buildingDeck.length)
-    g.buildingMarket.push(g.buildingDeck.shift());
-  while (g.tileMarket.length < RULES.markets.terrainSize && g.tileDeck.length)
-    g.tileMarket.push(g.tileDeck.shift());
-  for (const [owner, p] of g.players.entries()) {
-    const occupied = new Set();
-    for (const worker of p.workerAssignments || []) {
-      const b = g.board[worker.building]?.building;
-      if (
-        worker.building !== null &&
-        (!b ||
-          b.owner !== owner ||
-          !BUILDINGS[b.type]?.produces ||
-          occupied.has(worker.building))
-      )
-        worker.building = null;
-      if (worker.building !== null) occupied.add(worker.building);
-    }
-  }
-  g.selectedUnitId ??= null;
-  g.kingEnded ??= Boolean(g.recruited);
-  for (const p of g.players)
-    for (const unit of p.units)
-      if (!UNIT_DEFINITIONS[unit.type])
-        throw Error(
-          sourceMessage("messages.thisGameStateUsesAUnitRemoved"),
-        );
-  if (
-    g.selectedUnitId !== null &&
-    !g.players[g.active].units.some((u) => u.id === g.selectedUnitId)
-  )
-    g.selectedUnitId = null;
-  if (Array.isArray(g.armySelection)) {
-    const lead = g.players[g.active].units.find(u => u.id === g.selectedUnitId);
-    const selected = g.players[g.active].units.filter(u => g.armySelection.includes(u.id));
-    if (lead?.type !== "soldier" || !g.armySelection.includes(lead.id) ||
-      selected.length !== g.armySelection.length || selected.some(u => u.type !== "soldier" || u.x !== lead.x || u.y !== lead.y))
-      g.armySelection = null;
-  }
-  initializeMissions(g);
-  return g;
-}
-export function workersAt(g, owner, x, y) {
-  return g.players[owner].units.filter(u => u.type === "worker" && u.x === x && u.y === y);
-}
-// Direct assignment is no longer legal: workers must travel on the board.
-export function workerAssignmentError() { return sourceMessage("messages.workersMustMove"); }
-export function assignWorker() { throw Error(workerAssignmentError()); }
 const inside = (g, x, y) => withinBoard(x, y, g.boardSize ?? RULES.size);
 const shuffle = (a, rng) => {
   for (let i = a.length - 1; i > 0; i--) {
@@ -271,19 +191,10 @@ const shuffle = (a, rng) => {
   }
   return a;
 };
-export function createGame(rng = Math.random, mode = "local", settings = null) {
+export function createGame(rng = Math.random, mode = "local", settings = {}) {
   if (!["solo", "local"].includes(mode))
     throw Error(sourceMessage("messages.gameModeUnavailable"));
-  const options = settings === null
-      ? {
-          rounds: RULES.rounds,
-          openingTilesPerPlayer: GAME_DEFAULTS.openingTilesPerPlayer,
-          boardSize: RULES.size,
-          missionsEnabled: GAME_DEFAULTS.missionsEnabled,
-          resources: { ...RULES.startResources },
-        }
-      : gameSettings(settings),
-    size = options.boardSize;
+  const options = gameSettings(settings ?? {}), size = options.boardSize;
   const tileDeck = shuffle(
     CONFIG.tiles.map((tile, id) => ({
       id,
@@ -329,7 +240,6 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
         id, type: "worker", x: p.x, y: p.y, home: { x:p.x, y:p.y },
         moves: UNIT_DEFINITIONS.worker.moves, acted:false, ended:false, skipTurns:0,
       })),
-      workerAssignments: [],
       revealed: 0,
       nextUnitId: RULES.startingWorkers,
       home: { x: p.x, y: p.y },
@@ -408,7 +318,6 @@ export function createGame(rng = Math.random, mode = "local", settings = null) {
     round: 1,
     moves: UNIT_DEFINITIONS.worker.moves,
     acted: false,
-    kingEnded: false,
     selectedUnitId: null,
     recruited: false,
     workerRecruitsUsed: 0,
@@ -583,15 +492,6 @@ export function destroyBuilding(g, x, y) {
   // Only the actual building cell is a military target, never an auxiliary tile.
   const position = key(x,y), cell = g.board[position], b = cell?.building;
   if (!b) return;
-  for (const p of g.players)
-    for (const worker of p.workerAssignments)
-      if (worker.building === position) worker.building = null;
-  for (const part of Object.values(g.board)) {
-    if (part.overlay?.anchor !== position) continue;
-    if (part.overlay.previousTerrain) part.terrain = part.overlay.previousTerrain;
-    else if (part.overlay.role === "field") part.terrain = "plain";
-    delete part.overlay;
-  }
   delete cell.building;
   note(g, sourceMessage("messages.destroyed", [BUILDINGS[b.type].name]));
 }
@@ -925,9 +825,6 @@ export function trainUnit(g, x, y, type) {
   awardMissions(g);
   return unit;
 }
-export const assigned = (g, i) => g.players[i].units.filter(u => u.type === "worker" && g.board[key(u.x,u.y)]?.building?.owner === i).length;
-export function recruitError() { return sourceMessage("messages.buildAHouseToGainAWorker"); }
-export function recruit() { throw Error(recruitError()); }
 function addWorker(g, x, y) {
   const p = g.players[g.active];
   spawnUnit(g, x, y, "worker");
@@ -941,7 +838,6 @@ function spawnUnit(g, x, y, type) {
   p.units.push(unit);
   return unit;
 }
-export function assign() { throw Error(workerAssignmentError()); }
 export function productionPreview(g, unit = actor(g), owner = g.active) {
   const cell = g.board[key(unit.x,unit.y)];
   const b = cell?.building, definition = BUILDINGS[b?.type];
@@ -1019,14 +915,13 @@ export function endTurn(g) {
   g.armySelection = null;
   g.moves = UNIT_DEFINITIONS.worker.moves + kingdomBonus(g,g.active,"movementBonus");
   g.acted = false;
-  g.kingEnded = false;
   g.recruited = false;
   g.workerRecruitsUsed = 0;
   g.rerollsUsed = 0;
   const next = g.players[g.active];
   if (next.kingSkip > 0) {
     next.kingSkip--;
-    g.moves = 0; g.acted = true; g.kingEnded = true;
+    g.moves = 0; g.acted = true;
   }
   g.players[g.active].units.forEach((u) => {
     if (u.skipTurns > 0) {

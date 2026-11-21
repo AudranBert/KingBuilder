@@ -1,6 +1,7 @@
+import {prepareBuilding} from "./helpers.js";
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createGame,rerollMarket,rerollError,endTurn,build,buildingPayment,key} from "../src/engine.js";
+import { createGame, rerollMarket, rerollError, build, buildingPayment } from "../src/engine.js";
 import {initializeMissions,settleMissions,missionTarget} from "../src/objectives.js";
 test("l’or remplace le prestige initial et les relances sans consommer d’action",()=>{
  const g=createGame(),p=g.players[0];assert.equal(g.players[1].resources.gold,p.resources.gold+1);assert.equal(p.prestige,undefined);
@@ -24,7 +25,7 @@ test("nouvelle mission déjà remplie : une contribution supplémentaire est né
  g.players[0].revealed++;settleMissions(g);assert.equal(missionTarget(g,"explore-12"),32);assert.equal(g.missions.claimed.length,1);
 });
 test("paiement : les ressources disponibles sont utilisées avant l’achat et prix actualisé",()=>{
- const g=createGame();g.missions.market=[];g.board["1,6"]={terrain:"plain"};g.buildingMarket[0]="house";g.players[0].resources={food:1,material:0,gold:13};
+ const g=createGame();g.missions.market=[];prepareBuilding(g,"house",1,6);g.buildingMarket[0]="house";g.players[0].resources={food:1,material:0,gold:13};
  const payment=buildingPayment(g,0);assert.equal(payment.gold,10);
  g.board["9,9"]={terrain:"forest",building:{type:"sawmill",owner:1}};
  const before=structuredClone(g);assert.throws(()=>build(g,0,1,6,0,{allowGold:true,expectedGold:10}));assert.deepEqual(g,before);

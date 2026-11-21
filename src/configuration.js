@@ -14,19 +14,19 @@ async function readJson(name) {
     throw Error(`Impossible de lire ${name}.json : ${error.message}`);
   }
 }
-const mapFiles = await readJson("maps/index");
-if (!Array.isArray(mapFiles) || !mapFiles.length ||
-    mapFiles.some(name => typeof name !== 'string' || !/^[a-z0-9_-]+$/.test(name)) ||
-    new Set(mapFiles).size !== mapFiles.length)
-  throw Error("Index des cartes invalide.");
+async function readIndex(directory, message, validName = name => /^[a-z0-9_-]+$/.test(name)) {
+  const index = await readJson(directory + "/index");
+  const files = Array.isArray(index) ? index : index?.files;
+  if (!Array.isArray(files) || !files.length ||
+      files.some(name => typeof name !== "string" || !validName(name)) ||
+      new Set(files).size !== files.length) throw Error(message);
+  return { ...(Array.isArray(index) ? {} : index), files };
+}
+const { files: mapFiles } = await readIndex("maps", "Index des cartes invalide.");
 export const MAPS = await Promise.all(mapFiles.map(name => readJson(`maps/${name}`)));
 if (MAPS.some(map => !map || typeof map.id !== 'string') || new Set(MAPS.map(map => map.id)).size !== MAPS.length)
   throw Error("Identifiants des cartes invalides ou en double.");
-const { files: buildingFiles, ...buildingSettings } = await readJson("buildings/index");
-if (!Array.isArray(buildingFiles) || !buildingFiles.length ||
-    buildingFiles.some(name => typeof name !== 'string' || !/^[a-z0-9_-]+$/.test(name)) ||
-    new Set(buildingFiles).size !== buildingFiles.length)
-  throw Error("Index des bâtiments invalide.");
+const { files: buildingFiles, ...buildingSettings } = await readIndex("buildings", "Index des bâtiments invalide.");
 const buildingGroups = await Promise.all(buildingFiles.map(async name => {
   const entries = await readJson(`buildings/${name}`);
   if (!Array.isArray(entries) || !entries.length ||
@@ -36,11 +36,8 @@ const buildingGroups = await Promise.all(buildingFiles.map(async name => {
   return entries;
 }));
 export const BUILDING_CONFIGURATION = { ...buildingSettings, buildings: buildingGroups.flat() };
-const { files: tileFiles, ...tileSettings } = await readJson("terrain-tiles/index");
-if (!Array.isArray(tileFiles) || !tileFiles.length ||
-    tileFiles.some(size => typeof size !== 'string' || !/^[1-9]\d*$/.test(size) || !Number.isSafeInteger(Number(size))) ||
-    new Set(tileFiles).size !== tileFiles.length)
-  throw Error("Index des tuiles de terrain invalide.");
+const { files: tileFiles, ...tileSettings } = await readIndex("terrain-tiles", "Index des tuiles de terrain invalide.",
+  size => /^[1-9]\d*$/.test(size) && Number.isSafeInteger(Number(size)));
 const tileGroups = await Promise.all(tileFiles.map(async size => {
   const group = await readJson(`terrain-tiles/${size}`);
   const hasSize = entry => Array.isArray(entry?.pattern) &&
@@ -58,11 +55,7 @@ export const TERRAIN_TILE_CONFIGURATION = {
   shapes: tileGroups.flatMap(group => group.shapes),
   tiles: tileGroups.flatMap(group => group.tiles),
 };
-const { files: missionFiles, ...missionSettings } = await readJson("missions/index");
-if (!Array.isArray(missionFiles) || !missionFiles.length ||
-    missionFiles.some(name => typeof name !== 'string' || !/^[a-z0-9_-]+$/.test(name)) ||
-    new Set(missionFiles).size !== missionFiles.length)
-  throw Error("Index des missions invalide.");
+const { files: missionFiles, ...missionSettings } = await readIndex("missions", "Index des missions invalide.");
 const missionGroups = await Promise.all(missionFiles.map(async name => {
   const entries = await readJson(`missions/${name}`);
   if (!Array.isArray(entries) || !entries.length || entries.some(m => !m || m.family !== name))

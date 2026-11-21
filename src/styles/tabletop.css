@@ -272,19 +272,6 @@ body {
   background: #f6c94f55;
   pointer-events: none;
 }
-.worker-drag-handle {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-  padding: 7px 0;
-}
-.worker-drag-handle small {
-  margin-left: auto;
-  color: #8b6a35;
-}
 @media (max-width: 1050px) {
   .game-layout > .land-column {
     grid-column: 1;
@@ -331,9 +318,6 @@ body {
   bottom: -2px;
   z-index: 6;
   touch-action: none;
-}
-.worker-piece[data-worker-drag] {
-  cursor: grab;
 }
 .worker-piece .wood-piece {
   width: 20px;

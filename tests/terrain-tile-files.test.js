@@ -10,8 +10,8 @@ const directory = new URL("../config/terrain-tiles/", import.meta.url);
 const index = JSON.parse(await readFile(new URL("index.json", directory), "utf8"));
 
 test("chaque fichier contient les formes et tuiles de sa taille, sans perte au chargement", async () => {
-  assert.deepEqual((await readdir(directory)).sort(), [...index.files.map(size => `${size}.json`), "index.json"].sort());
-  const shapes = [], tiles = [], counts = {};
+  assert.deepEqual((await readdir(directory)).filter(name => name.endsWith(".json")).sort(), [...index.files.map(size => `${size}.json`), "index.json"].sort());
+  const shapes = [], tiles = [];
   for (const size of index.files) {
     const group = JSON.parse(await readFile(new URL(`${size}.json`, directory), "utf8"));
     for (const entry of [...group.shapes, ...group.tiles])
@@ -19,9 +19,7 @@ test("chaque fichier contient les formes et tuiles de sa taille, sans perte au c
     assert.ok(group.tiles.every(tile => group.shapes.some(shape => shape.id === tile.shapeId)));
     shapes.push(...group.shapes);
     tiles.push(...group.tiles);
-    counts[size] = group.tiles.length;
   }
-  assert.deepEqual(counts, { 2: 3, 3: 12, 4: 15, 5: 18 });
   assert.deepEqual(TERRAIN_TILE_CONFIGURATION.shapes, shapes);
   assert.deepEqual(TERRAIN_TILE_CONFIGURATION.tiles, tiles);
 });

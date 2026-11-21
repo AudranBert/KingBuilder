@@ -40,7 +40,7 @@ function validateTiles(tiles) {
     );
   }
 }
-export function validateGame(game, { legacy = false } = {}) {
+export function validateGame(game) {
   requireValid(
     record(game) && game.version === 6,
     "version inconnue.",
@@ -146,45 +146,28 @@ export function validateGame(game, { legacy = false } = {}) {
         nonnegative(player.revealed),
       "ressources ou population incorrectes.",
     );
-    if (!legacy || game.version === 6) {
+    requireValid(Array.isArray(player.units), "liste d’unités incorrecte.");
+    requireValid(player.units.filter(u => u.type === "worker").length === player.workers,
+      "population d’ouvriers incohérente.");
+    const ids = new Set();
+    for (const unit of player.units) {
       requireValid(
-        Array.isArray(player.workerAssignments) &&
-          player.workerAssignments.length === 0 && player.units.filter(u => u.type === "worker").length === player.workers,
-        "population d’ouvriers incohérente.",
+        UNIT_DEFINITIONS[unit.type] &&
+        !["king", "emissary"].includes(unit.type) &&
+          nonnegative(unit.id) &&
+          !ids.has(unit.id) &&
+          inside(unit.x, unit.y, boardSize) &&
+          game.board[key(unit.x, unit.y)] &&
+          nonnegative(unit.moves) &&
+          unit.moves <= UNIT_DEFINITIONS[unit.type].moves &&
+          (unit.skipTurns === undefined || nonnegative(unit.skipTurns) && unit.skipTurns <= 1) &&
+          typeof unit.acted === "boolean" &&
+          (unit.ended === undefined || typeof unit.ended === "boolean"),
+        "unité incorrecte.",
       );
-      const ids = new Set();
-      for (const w of player.workerAssignments) {
-        requireValid(
-          nonnegative(w.id) &&
-            !ids.has(w.id) &&
-            (w.building === null || typeof w.building === "string"),
-          "affectation incorrecte.",
-        );
-        ids.add(w.id);
-      }
+      ids.add(unit.id);
     }
-    if (player.units !== undefined) {
-      requireValid(Array.isArray(player.units), "liste d’unités incorrecte.");
-      const ids = new Set();
-      for (const unit of player.units) {
-        requireValid(
-          UNIT_DEFINITIONS[unit.type] &&
-          !["king", "emissary"].includes(unit.type) &&
-            nonnegative(unit.id) &&
-            !ids.has(unit.id) &&
-            inside(unit.x, unit.y, boardSize) &&
-            game.board[key(unit.x, unit.y)] &&
-            nonnegative(unit.moves) &&
-            unit.moves <= UNIT_DEFINITIONS[unit.type].moves &&
-            (unit.skipTurns === undefined || nonnegative(unit.skipTurns) && unit.skipTurns <= 1) &&
-            typeof unit.acted === "boolean" &&
-            (unit.ended === undefined || typeof unit.ended === "boolean"),
-          "unité incorrecte.",
-        );
-        ids.add(unit.id);
-      }
-      requireValid(player.units.every(u=>u.id < player.nextUnitId), "compteur d’unités périmé.");
-    }
+    requireValid(player.units.every(u=>u.id < player.nextUnitId), "compteur d’unités périmé.");
   }
   requireValid(
     Array.isArray(game.tileMarket) &&
@@ -246,9 +229,9 @@ export function validateGame(game, { legacy = false } = {}) {
         new Set(ids).size === ids.length,
       "mission inconnue ou répétée.",
     );
-  } else requireValid(legacy, "missions absentes.");
+  } else requireValid(false, "missions absentes.");
   requireValid(
-    (legacy && game.rerollsUsed === undefined) || nonnegative(game.rerollsUsed),
+    nonnegative(game.rerollsUsed),
     "quota de relance incorrect.",
   );
   requireValid(game.workerRecruitsUsed === undefined || nonnegative(game.workerRecruitsUsed), "quota de recrutement incorrect.");
@@ -272,7 +255,7 @@ export function validateGame(game, { legacy = false } = {}) {
           ),
           "compteur de mission incorrect.",
         );
-    } else requireValid(legacy, "progression absente.");
+    } else requireValid(false, "progression absente.");
   }
   validateTiles([
     ...game.tileMarket,
@@ -281,4 +264,3 @@ export function validateGame(game, { legacy = false } = {}) {
   requireValid(Array.isArray(game.tileDeck), "pioche de terrains absente.");
   return game;
 }
-

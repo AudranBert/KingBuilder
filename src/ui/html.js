@@ -1,12 +1,5 @@
 import { t, definitionText } from "../i18n.js";
-import {
-  RESOURCE_ICONS,
-  RESOURCES,
-  TERRAINS,
-  BUILDINGS,
-  buildingPattern,
-  transformed,
-} from "../engine.js";
+import { RESOURCE_ICONS, TERRAINS, BUILDINGS, buildingPattern, transformed } from "../engine.js";
 import { bounds } from "../geometry.js";
 
 export const escapeHTML = (value) =>

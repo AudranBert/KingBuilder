@@ -16,7 +16,6 @@ import {
   exploreError,
   buyTerrainError,
   openingError,
-  workerAssignmentError,
   BUILDINGS,
 } from "../engine.js";
 
@@ -42,14 +41,6 @@ export function placementErrorText(error) {
 }
 export function placementGuidance(g, placement) {
   const results = new Map();
-  if (placement?.kind === 'worker') {
-    for (const [position, cell] of Object.entries(g.board)) {
-      if (cell.building?.owner !== g.active || !BUILDINGS[cell.building.type].produces) continue;
-      const [x, y] = position.split(',').map(Number);
-      results.set(position, dragPreview(g, placement, { x, y }));
-    }
-    return results;
-  }
   if (!placement || !["terrain", "building", "single-terrain"].includes(placement.kind)) return results;
   for (let y = 0; y < (g.boardSize ?? RULES.size); y++)
     for (let x = 0; x < (g.boardSize ?? RULES.size); x++)
@@ -63,8 +54,6 @@ export function dragFromCard(card, ui) {
       kind: "unit",
       id: data.unitDrag === "" ? null : Number(data.unitDrag),
     };
-  if (data.workerDrag !== undefined)
-    return { kind: "worker", id: Number(data.workerDrag) };
   if (data.singleTerrain !== undefined)
     return { kind: "single-terrain", terrain: data.singleTerrain };
   return data.tile !== undefined
@@ -90,8 +79,6 @@ export function dragPreview(g, drag, pos) {
       error: path ? null : sourceMessage("messages.thisSpaceIsUnreachable"),
     };
   }
-  if (drag.kind === "worker")
-    return { cells: [pos], error: workerAssignmentError(g, drag.id, x, y) };
   if (drag.kind === "building")
     return {
       cells: patternAt(g.buildingMarket[drag.index], x, y, drag.rotation),

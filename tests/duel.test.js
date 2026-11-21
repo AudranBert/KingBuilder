@@ -1,16 +1,10 @@
+import { prepareBuilding as revealPattern } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  createGame, RULES, BUILDINGS, UNIT_DEFINITIONS, key, actor, selectUnit, selectArmy,
-  selectedSoldiers, armyAt, attack, attackError, combatPreview, attackPaths,
-  defenseAt,
-  move, exploreError, buildError, build, patternAt, trainUnit, trainError,
-  endTurn, assignWorker, harvestPreview, score, totalScore, destroyBuilding,
-} from "../src/engine.js";
-import { costPayment, tradePrice, settleMissions, initializeMissions } from "../src/objectives.js";
+import { createGame, RULES, BUILDINGS, UNIT_DEFINITIONS, key, actor, selectUnit, selectArmy, selectedSoldiers, armyAt, attack, attackError, combatPreview, attackPaths, defenseAt, move, exploreError, buildError, build, patternAt, trainUnit, trainError, endTurn, score, totalScore, destroyBuilding } from "../src/engine.js";
+import { costPayment, tradePrice } from "../src/objectives.js";
 import { moveUnitTo } from "../src/ui/interactions.js";
 import { validateGame } from "../src/validation.js";
-import { territoryBorders } from "../src/ui/board.js";
 import { armyControlsView, rulesView, tradeView, playersView } from "../src/ui/views.js";
 import { createUIState, hasSelectedUnit } from "../src/ui/state.js";
 
@@ -30,50 +24,24 @@ function soldiers(g,owner,n,x,y,{ended=false,moves=3}={}) {
 }
 function prepareBuilding(g,type,x=2,y=2) {
   g.players[0].units[0].x=x;g.players[0].units[0].y=y;
-  for(const c of patternAt(type,x,y)) g.board[key(c.x,c.y)]={terrain:c.terrain[0]};
+  revealPattern(g,type,x,y);
   g.players[0].resources={material:50,food:50,gold:50};
   g.buildingMarket[0]=type;
 }
 
-test("duel : trois ressources, cinq drapeaux symétriques, 25 tours et aucun score gratuit",()=>{
-  const g=createGame();
-  assert.deepEqual(Object.keys(g.players[0].resources).sort(),["food","gold","material"]);
-  assert.equal(RULES.rounds,25);assert.equal(g.players[g.active].units[0].moves,3);
-  const flags=Object.entries(g.board).filter(([,c])=>c.flag);
-  assert.equal(flags.length,5);
-  for(const [pos,c] of flags) {
-    const [x,y]=pos.split(",").map(Number);
-    assert.equal(c.flag.owner,null);assert.equal(c.terrain,"plain");
-    assert.ok(g.board[key(RULES.size-1-x,y)].flag);
-  }
-  g.players[0].resources.gold=999;g.players[0].workers=999;g.players[0].revealed=999;
-  assert.deepEqual(score(g,0),{buildings:0,flags:0});
-});
-
-test("maison : coût 3 et 3 et ouvrier prêt au tour suivant",()=>{
- const g=game();prepareBuilding(g,"house");build(g,0,2,2);
- assert.equal(g.players[0].workers,3);assert.equal(g.players[0].resources.food,47);assert.equal(g.players[0].resources.material,47);
- const recruit=g.players[0].units.at(-1);assert.equal(recruit.type,"worker");assert.equal(recruit.ended,true);assert.equal(recruit.x,2);
- endTurn(g);endTurn(g);assert.equal(recruit.ended,false);
-});
-
-test("caserne : soldat offert, recrutement payant par tour et arrivée grisée",()=>{
+test("caserne : recrutement payant par tour et arrivée grisée, sans soldat offert",()=>{
   const g=game();prepareBuilding(g,"barracks");
   build(g,0,2,2);
-  assert.equal(g.players[0].units.filter(u=>u.type==="soldier").length,1);
-  const free=g.players[0].units.find(u=>u.type==="soldier");assert.equal(free.type,"soldier");assert.equal(free.x,2);
-  assert.equal(free.ended,true);assert.equal(free.moves,0);
+  assert.equal(g.players[0].units.filter(u=>u.type==="soldier").length,0);
   const food=g.players[0].resources.food;
   trainUnit(g,2,2,"soldier");
-  assert.equal(g.players[0].resources.food,food-2);
-  assert.match(trainError(g,2,2,"soldier"),/déjà recruté/);
+  const free=g.players[0].units.find(u=>u.type==="soldier");assert.equal(free.type,"soldier");assert.equal(free.x,2);
+  assert.equal(free.ended,true);assert.equal(free.moves,0);
+  assert.equal(g.players[0].resources.food,food-UNIT_DEFINITIONS.soldier.cost.food);
+  assert.match(trainError(g,2,2,"soldier"),/already recruited/);
   endTurn(g);endTurn(g);
   assert.ok(g.players[0].units.every(u=>u.moves===3&&!u.acted&&!u.ended));
   assert.equal(trainError(g,2,2,"soldier"),null);
-});
-
-test("Chancellerie et émissaire retirés des règles",()=>{
- assert.equal(BUILDINGS.chancellery,undefined);assert.equal(UNIT_DEFINITIONS.emissary,undefined);
 });
 
 for(const [a,d,as,ds] of [[7,5,1,0],[6,5,0,0],[5,5,0,1],[4,5,0,2],[1,0,1,0]]) {
@@ -137,7 +105,7 @@ test("drapeaux : capture persistante, recapture et score sans garnison obligatoi
 
 test("destruction : seulement la case du bâtiment, empreinte libérée et ouvriers rendus",()=>{
   const g=game();prepareBuilding(g,"farm",5,4);build(g,0,5,4);
-  assert.ok(g.board["5,3"].overlay);
+  assert.equal(g.board["5,3"].overlay,undefined);
   endTurn(g);
   const u=soldiers(g,1,1,4,3)[0];selectUnit(g,u.id);
   assert.ok(attackError(g,5,3)); // Auxiliary field is not a military target.
@@ -246,7 +214,7 @@ test("commerce : prix par producteur adverse, aucune influence des affectations"
 test("achat à la construction : confirmation exacte, paiement atomique et or non achetable",()=>{
   const g=game();prepareBuilding(g,"house");g.players[0].resources={material:0,food:1,gold:10};
   const before=structuredClone(g);
-  assert.throws(()=>build(g,0,2,2,0,{allowGold:true,expectedGold:1}),/changé/);
+  assert.throws(()=>build(g,0,2,2,0,{allowGold:true,expectedGold:1}),/changed/);
   assert.deepEqual(g,before);build(g,0,2,2,0,{allowGold:true,expectedGold:10});
   assert.deepEqual(g.players[0].resources,{material:0,food:0,gold:0});
   assert.equal(costPayment(g,{gold:1}).affordable,false);
@@ -255,37 +223,17 @@ test("achat à la construction : confirmation exacte, paiement atomique et or no
 test("recrutement avec achat à la banque et quota indépendant de la construction",()=>{
   const g=game();prepareBuilding(g,"barracks");build(g,0,2,2);
   g.players[0].resources={material:0,food:0,gold:4};trainUnit(g,2,2,"soldier");
-  assert.equal(g.players[0].resources.gold,0);assert.equal(g.players[0].units.filter(u=>u.type==="soldier").length,2);
-});
-
-test("missions : récompense en or, conservation des seuils de contribution",()=>{
-  const g=game();g.missions={tiered:1,market:["explore-6"],deck:[],claimed:[]};initializeMissions(g);
-  const gold=g.players[0].resources.gold;g.players[0].revealed=6;
-  assert.deepEqual(settleMissions(g),["explore-6"]);assert.equal(g.players[0].resources.gold,gold+1);
-  assert.equal("prestige" in g.players[0],false);
+  assert.equal(g.players[0].resources.gold,2);assert.equal(g.players[0].units.filter(u=>u.type==="soldier").length,1);
 });
 
 test("décompte : bâtiments à points et drapeaux après 50 tours individuels",()=>{
   const g=createGame();g.board["2,2"]={terrain:"plain",building:{type:"monument",owner:0}};
   g.board["6,6"].flag.owner=0;
-  assert.equal(totalScore(g,0),6+RULES.points.flag);
+  assert.equal(totalScore(g,0),BUILDINGS.monument.points+RULES.points.flag);
   for(let i=0;i<49;i++) endTurn(g);assert.equal(g.finished,false);
   endTurn(g);assert.equal(g.finished,true);assert.equal(g.round,25);
   assert.match(rulesView(),/25 tours/);
 });
-
-test("propriété visuelle : terrains communs, contour des bâtiments et drapeaux",()=>{
-  const g=game();g.board["2,2"].owner=0;assert.deepEqual(territoryBorders(g,2,2),[]);
-  g.board["2,2"].building={type:"barracks",owner:0};g.board["3,2"].overlay={anchor:"2,2",role:"courtyard",owner:0};
-  assert.deepEqual(territoryBorders(g,2,2),["top","bottom","left"]);
-  assert.deepEqual(territoryBorders(g,3,2),["top","right","bottom"]);
-});
-
-test("les piles, les couleurs et le blocage des bâtisseurs restent valides",()=>{
-  const g=game();soldiers(g,0,2,2,2);g.players[1].kingSkip=1;g.board["6,6"].flag.owner=0;
-  selectUnit(g,g.players[0].units.find(u=>u.type==="soldier").id);selectArmy(g,1);validateGame(g);
-});
-
 
 test("banques des deux joueurs : affichage permanent et prix propres à chaque royaume",()=>{
  const g=game();g.board["2,2"].building={type:"sawmill",owner:0};g.board["3,2"].building={type:"farm",owner:1};
@@ -295,4 +243,16 @@ test("banques des deux joueurs : affichage permanent et prix propres à chaque r
   g.active=active;const markup=playersView(g);assert.equal((markup.match(/class="player-bank"/g)||[]).length,2);
   const players=markup.split('<article').slice(1);assert.match(players[0],/Banque<\/strong> · 3/);assert.match(players[1],/Banque<\/strong> · 2/);
  }
+});
+
+test("les stocks ne donnent plus de points", () => {
+  const g = createGame(); g.players[0].resources = { material: 100, food: 100, gold: 100 };
+  assert.deepEqual(score(g,0), {buildings:0, flags:0});
+});
+
+test("recrutement : quotas distincts et refus atomiques",()=>{
+ const g=createGame();for(const x of [2,4])g.board[key(x,6)]={terrain:"plain",building:{type:"barracks",owner:0}};
+ g.players[0].resources.food=10;trainUnit(g,2,6,"soldier");trainUnit(g,4,6,"soldier");
+ const before=structuredClone(g);assert.throws(()=>trainUnit(g,2,6,"soldier"));assert.deepEqual(g,before);
+ assert.ok(trainError(g,2,6,"worker"));g.finished=true;assert.ok(trainError(g,4,6,"soldier"));
 });

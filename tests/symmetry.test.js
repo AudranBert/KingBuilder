@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createSandboxGame } from "./helpers.js";
-import { transformed, buildingPattern, patternAt, key, migrateGame } from "../src/engine.js";
+import { transformed, buildingPattern, patternAt, key } from "../src/engine.js";
 import { applyCommand } from "../src/commands.js";
 import { rotatePoint } from "../src/geometry.js";
 
@@ -39,7 +39,7 @@ test("bâtiments en miroir : pose, annexes et sauvegarde conservent l’orientat
     for (const c of cells) g.board[key(c.x,c.y)] = { terrain:c.terrain[0] };
     const result = applyCommand(g, { type:"build", args:[0,7,7,orientation] });
     assert.equal(result.board["7,7"].building.rotation, orientation);
-    for (const c of cells.filter(c => c.role !== "building")) assert.equal(result.board[key(c.x,c.y)].overlay.anchor, "7,7");
-    assert.equal(migrateGame(JSON.parse(JSON.stringify(result))).board["7,7"].building.rotation, orientation);
+    for (const c of cells.filter(c => c.symbol !== "B")) assert.deepEqual(result.board[key(c.x,c.y)], g.board[key(c.x,c.y)]);
+    assert.equal(JSON.parse(JSON.stringify(result)).board["7,7"].building.rotation, orientation);
   }
 });

@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {
   createGame, build, buildError, buildingAt, terrainAt, bridgeAt, selectUnit,
-  move, produce, productionPreview, endTurn, migrateGame,
+  move, produce, productionPreview, endTurn,
 } from '../src/engine.js';
 import {catalogueView} from '../src/ui/views.js';
 
@@ -33,19 +33,6 @@ test('deux patterns peuvent partager un terrain déjà occupé par un autre bât
   Object.assign(g.players[0].units[1],{x:6,y:4});selectUnit(g,1);g.buildingMarket=['small_monument'];
   assert.equal(buildError(g,0,6,4,2),null);build(g,0,6,4,2);
   assert.deepEqual(g.board['5,4'],neighbour);
-});
-
-test('les anciennes réservations sont libérées au chargement',()=>{
-  const g=setup();g.board={
-    '4,4':{terrain:'plain',building:{type:'farm',owner:0}},
-    '5,4':{terrain:'field',overlay:{anchor:'4,4',role:'field',owner:0,previousTerrain:'plain'}},
-    '6,4':{terrain:'forest',overlay:{anchor:'4,4',role:'timber',owner:0}},
-    '9,9':{terrain:'field'},
-  };
-  migrateGame(g);
-  assert.deepEqual(g.board['5,4'],{terrain:'plain'});assert.deepEqual(g.board['6,4'],{terrain:'forest'});
-  assert.deepEqual(g.board['9,9'],{terrain:'field'});assert.equal(buildingAt(g,5,4),null);
-  assert.deepEqual(productionPreview(g,{x:6,y:4},0),{resource:'material',amount:1});
 });
 
 test('le grand pont reste franchissable et ses cases de passage restent réutilisables',()=>{

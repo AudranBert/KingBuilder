@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { MAPS, mapCells } from "../src/maps.js";
-import { createGame, gameSettings, startOpening, migrateGame, openingError, placeOpeningTile } from "../src/engine.js";
+import { createGame, gameSettings, startOpening, openingError, placeOpeningTile } from "../src/engine.js";
 import { validateGame } from "../src/validation.js";
 
 test("la draft optionnelle se termine sur chaque carte sans modifier ses cases initiales", () => {
@@ -43,7 +43,7 @@ test("chaque carte fonctionne pour toutes les tailles, en solo et en duel", () =
       assert.equal(game.active, 0);
       assert.deepEqual(game.tileDeck, deck);
       assert.doesNotThrow(() => validateGame(game));
-      assert.equal(migrateGame(structuredClone(game)).mapId, map.id);
+      assert.equal(validateGame(JSON.parse(JSON.stringify(game))).mapId, map.id);
     }
   }
 });

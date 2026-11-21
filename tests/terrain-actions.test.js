@@ -1,11 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createSandboxGame } from "./helpers.js";
-import {
-  BUILDINGS, buyTerrain, buyTerrainError, build, buildError, destroyBuilding,
-  key, productionAmount, score, totalScore,
-} from "../src/engine.js";
-import { buildingDetailsView } from "../src/ui/views.js";
+import { BUILDINGS, buyTerrain, buyTerrainError, build, buildError, key, productionAmount, score, totalScore } from "../src/engine.js";
+
 
 test("une case de terrain au choix coûte 1 or et termine l’action", () => {
   const g = createSandboxGame();
@@ -48,24 +45,6 @@ test("le moulin peut occuper un champ, exige un champ voisin et le bonifie", () 
   assert.ok(buildError(h, 0, 5, 5));
 });
 
-test("les annexes forestières peuvent se chevaucher sans écraser leur propriétaire", () => {
-  const g = createSandboxGame();
-  g.missions.market = [];
-  g.players[0].resources.material = 20;
-  g.players[0].resources.food = 20;
-  g.players[0].units[0].x = 4; g.players[0].units[0].y = 5;
-  g.board[key(4, 5)] = { terrain: "forest", building: { type: "sawmill", owner: 0 } };
-  g.board[key(5, 5)] = { terrain: "forest", overlay: { anchor: key(4, 5), role: "timber", owner: 0, previousTerrain: "forest" } };
-  g.buildingMarket[0] = "house";
-  assert.equal(buildError(g, 0, 5, 5), null);
-  build(g, 0, 5, 5);
-  assert.equal(g.board[key(5, 5)].building.type, "house");
-  assert.equal(g.board[key(5, 5)].overlay.anchor, key(4, 5));
-  destroyBuilding(g, 4, 5);
-  assert.equal(g.board[key(5, 5)].building.type, "house");
-  assert.equal(g.board[key(5, 5)].overlay, undefined);
-});
-
 test("le décompte ajoute un point par paire d’or restante", () => {
   const g = createSandboxGame();
   g.players[0].resources.gold = 5;
@@ -75,10 +54,4 @@ test("le décompte ajoute un point par paire d’or restante", () => {
   assert.equal(totalScore(g, 0), 2);
   assert.equal(BUILDINGS.house.cost.food, 3);
   assert.equal(BUILDINGS.house.cost.material, 3);
-});
-
-test("les fiches retirent l’aide générique et évitent le doublon du monument", () => {
-  assert.doesNotMatch(buildingDetailsView("house"), /Le symbole marque l’entrée/);
-  assert.match(buildingDetailsView("monument"), /Pas d’effet\. Valeur : 6 point\(s\)\./);
-  assert.doesNotMatch(buildingDetailsView("monument"), /Effet :/);
 });

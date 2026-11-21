@@ -12,7 +12,7 @@ Node.js 20 ou supérieur suffit, sans installation de dépendances.
 npm start
 ```
 
-Ouvrir http://127.0.0.1:4173. Solo et Local multiplayer sont disponibles ; les modes bot et en ligne restent verrouillés. Avant chaque nouvelle partie, un menu permet de régler la durée, la préparation, les ressources initiales et la taille de la grille.
+Ouvrir http://127.0.0.1:4173. Solo et Local multiplayer sont disponibles ; le mode bot reste verrouillé. Le multijoueur en ligne permet de créer ou rejoindre un salon privé. Avant chaque nouvelle partie, un menu permet de régler la durée, la préparation, les ressources initiales et la taille de la grille.
 
 Une partie reste active tant que la page reste ouverte. Choisir un mode depuis le menu lance une nouvelle partie. Les réglages proposent aussi un interrupteur « Missions communes », activé par défaut : le désactiver retire les objectifs et leurs récompenses pour cette partie. En ligne, ce choix appartient à l’hôte.
 
@@ -34,14 +34,14 @@ English is the source language. Edit names, descriptions, placement patterns and
 
 - Occuper le donjon adverse avec au moins un soldat survivant donne une victoire immédiate.
 - Sinon, après le nombre de tours choisi (25 par défaut, de 20 à 40) pour chaque joueur, additionner les points des bâtiments, des drapeaux contrôlés et de l’or restant. Une égalité donne une victoire partagée.
-- Chaque bâtiment ordinaire rapporte 1 point ; un monument en rapporte 6 ; chaque drapeau vaut 4 points. Le donjon et le défrichement ne rapportent rien.
+- Chaque bâtiment ordinaire rapporte 1 point ; un monument en rapporte 4 ; chaque drapeau vaut 4 points. Le donjon et le défrichement ne rapportent rien.
 - Chaque paire de pièces d’or restant en stock rapporte 1 point. Les terrains révélés, les ouvriers, les soldats, la nourriture et les matériaux ne rapportent aucun point.
 
 ### Plateau et placement
 
-- Plateau de 11 × 11 par défaut, réglable de 7 × 7 à 15 × 15. Les cinq objectifs s’adaptent à la taille choisie.
+- Plateau de 13 × 13 par défaut, réglable de 9 × 9 à 13 × 13 par tailles impaires. Les cinq objectifs s’adaptent à la taille choisie.
 - Les deux ouvriers de chaque joueur commencent au milieu des bords opposés, chacun sur son donjon. Les trois cases directement voisines par un bord sont des plaines déjà révélées et sans propriétaire ; les diagonales restent inexplorées.
-- Avant le tour 1, chaque joueur place de 0 à 4 grandes tuiles terrain (2 par défaut), en commençant par J2 en local. Les offres sont communes et ne se renouvellent pas pendant cette préparation. Ces poses ne consomment ni tour ni action et ne remplissent pas les missions.
+- Avant le tour 1, chaque joueur place de 0 à 2 grandes tuiles terrain (0 par défaut), en commençant par J2 en local. Les offres sont communes et ne se renouvellent pas pendant cette préparation. Ces poses ne consomment ni tour ni action et ne remplissent pas les missions.
 - Cinq drapeaux neutres sont préplacés et déjà révélés : un au centre, quatre autour du centre.
 - Les joueurs révèlent des tuiles de terrain depuis un marché commun de quatre offres. Les terrains restent utilisables par les deux joueurs.
 - Les empreintes des bâtiments et leurs terrains requis forment le puzzle. Tous les éléments du motif doivent être révélés et respecter les terrains. Les annexes compatibles peuvent se chevaucher ; seules les cases occupées par un bâtiment lui-même bloquent une autre construction. L’entrée doit être à une case maximum du bâtisseur, sans diagonale.
@@ -68,7 +68,7 @@ Pour 1 or, un ouvrier peut révéler une case voisine du terrain de son choix (p
 
 L’or remplace le prestige : les missions donnent de l’or ; renouveler les quatre offres d’un marché coûte 1 or, une fois par joueur et par tour. Les missions continuent à exiger une contribution après leur apparition, et montent de difficulté après leur attribution.
 
-Départ par défaut : deux ouvriers mobiles au donjon, 3 matériaux, 2 nourritures et 1 or. Chaque ressource peut être réglée de 0 à 10 avant la partie. Le second joueur reçoit toujours 1 or supplémentaire.
+Départ par défaut : deux ouvriers mobiles au donjon, 3 matériaux, 2 nourritures et 2 ors. Chaque ressource peut être réglée de 0 à 10 avant la partie. Le second joueur reçoit toujours 1 or supplémentaire.
 
 ### Ouvriers et maisons
 
@@ -84,8 +84,8 @@ Le roi, l’émissaire et la Chancellerie ont été supprimés. Les états de pa
 
 ### Casernes et armées
 
-- Une caserne coûte 1 nourriture et 2 matériaux et fournit un premier soldat gratuit.
-- Chaque caserne permet ensuite de recruter un soldat par tour pour 2 nourritures, éventuellement achetées à la banque.
+- Une caserne coûte 1 nourriture et 2 matériaux sans fournir de soldat gratuit.
+- Chaque caserne permet ensuite de recruter un soldat par tour pour 1 nourriture, éventuellement achetées à la banque.
 - Les nouvelles recrues apparaissent sur la case de leur caserne et sont grisées jusqu’au prochain tour.
 - Les soldats sur une même case forment une pile. Choisir un effectif permet de laisser les autres sur place ; déplacer une pile sur une autre permet de les réunir.
 - Chaque pion conserve son budget et son état d’activation. Les recrues ou soldats épuisés ne repartent pas avec une pile disponible. Une pile utilise le budget minimal des soldats sélectionnés.
@@ -143,6 +143,8 @@ npm test
 npm run check:config
 npm run build
 ```
+
+Les valeurs par défaut du plateau, de la durée et des ressources viennent de `config/game-rules.json` et `config/resources.json`. Le menu et le moteur utilisent les mêmes réglages.
 
 `src/` contient le moteur et l’interface ; `config/` contient les règles et les catalogues ; `assets/textures/` contient les illustrations. Le build recopie les sources dans `dist/`, seul dossier à publier. Ne pas modifier `dist/` directement.
 

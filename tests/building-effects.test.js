@@ -31,6 +31,6 @@ test('grand pont et péage imposent leur géographie',()=>{
  const g=setup();g.selectedUnitId=g.players[0].units[0].id;g.buildingMarket=['great_bridge'];g.board['4,4']={terrain:'river'};g.board['5,4']={terrain:'river'};assert.ok(buildError(g,0,4,4));g.board['3,4']={terrain:'plain'};g.board['6,4']={terrain:'plain'};assert.equal(buildError(g,0,4,4),null);
  g.board['4,5']={terrain:'plain'};
  g.board['4,6']={terrain:'plain'};
- g.buildingMarket=['toll'];assert.ok(buildError(g,0,4,4));g.board['4,4'].building={type:'bridge',owner:0};assert.equal(buildError(g,0,4,4),null);build(g,0,4,4);assert.equal(g.board['4,4'].building.type,'toll');
+ g.buildingMarket=['toll'];assert.ok(buildError(g,0,4,4));g.board['4,4'].building={type:'bridge',owner:0};g.board['4,6']={terrain:'plain',building:{type:'house',owner:0}};assert.equal(buildError(g,0,4,4),null);build(g,0,4,4);assert.equal(g.board['4,4'].building.type,'toll');
  assert.equal(BUILDINGS.large_monument.points,7);
 });

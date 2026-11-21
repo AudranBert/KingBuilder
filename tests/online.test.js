@@ -1,3 +1,4 @@
+import { Readable } from 'node:stream';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { Rooms } from '../backend/rooms.mjs';
@@ -101,12 +102,26 @@ test('salons : expiration et capacité bornée', () => {
   assert.throws(() => rooms.read(host.code, host.token), /expired/);
   assert.ok(rooms.create(settings));
 });
-test('API HTTP : création, invitation, reprise, validation et CORS', async t => {
+// Exercise the real HTTP request listener without needing a TCP port.
+function request(server, url, { method = 'GET', headers = {}, body } = {}) {
+  return new Promise(resolve => {
+    const req = Readable.from(body === undefined ? [] : [Buffer.from(body)]);
+    Object.assign(req, { url, method, socket: { remoteAddress: '127.0.0.1' },
+      headers: Object.fromEntries(Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value])) });
+    const responseHeaders = new Headers();
+    const res = {
+      statusCode: 200,
+      setHeader(key, value) { responseHeaders.set(key, value); },
+      writeHead(status) { this.statusCode = status; return this; },
+      end(value) { resolve(new Response(this.statusCode === 204 ? null : value, { status: this.statusCode, headers: responseHeaders })); },
+    };
+    server.emit('request', req, res);
+  });
+}
+
+test('API HTTP : création, invitation, reprise, validation et CORS', async () => {
   const server = createServer({ origins: ['https://example.test'] });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  t.after(() => { server.closeAllConnections(); server.close(); });
-  const url = `http://127.0.0.1:${server.address().port}`;
-  const post = (path, body, token) => fetch(url + path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) });
+  const post = (path, body, token) => request(server, path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) });
   const host = await (await post('/rooms', { settings })).json();
   const guest = await (await post(`/rooms/${host.code}/join`, {})).json();
   assert.equal(guest.joined, true);
@@ -114,8 +129,24 @@ test('API HTTP : création, invitation, reprise, validation et CORS', async t =>
   assert.equal(started.status, 200);
   const move = await post(`/rooms/${host.code}/commands`, { id: 'turn', revision: 1, command: { type: 'endTurn', args: [] } }, host.token);
   assert.equal(move.status, 200);
-  const restored = await (await fetch(`${url}/rooms/${host.code}`, { headers: { Authorization: `Bearer ${guest.token}` } })).json();
+  const restored = await (await request(server, `/rooms/${host.code}`, { headers: { Authorization: `Bearer ${guest.token}` } })).json();
   assert.equal(restored.revision, 2); assert.equal(restored.game.active, 1);
-  assert.equal((await fetch(url + '/health', { headers: { Origin: 'https://evil.test' } })).status, 403);
-  assert.equal((await fetch(url + '/health', { headers: { Origin: 'https://example.test' } })).headers.get('access-control-allow-origin'), 'https://example.test');
+  assert.equal((await request(server, '/health', { headers: { Origin: 'https://evil.test' } })).status, 403);
+  assert.equal((await request(server, '/health', { headers: { Origin: 'https://example.test' } })).headers.get('access-control-allow-origin'), 'https://example.test');
+});
+
+// Keep a transport smoke test as well; restricted runners can still run the API tests above.
+test('HTTP transport : health endpoint over TCP', async t => {
+  const server = createServer();
+  t.after(() => { server.closeAllConnections(); server.close(); });
+  try {
+    await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
+    const response = await fetch(`http://127.0.0.1:${server.address().port}/health`);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { status: 'ok' });
+  } catch (error) {
+    if (['EACCES', 'EPERM'].includes(error.code ?? error.cause?.code)) {
+      t.skip('This runner blocks local TCP connections; API request handling is tested in-process.');
+    } else throw error;
+  }
 });

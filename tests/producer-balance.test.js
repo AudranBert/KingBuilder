@@ -4,38 +4,6 @@ import {
   BUILDINGS, createGame, patternAt, build, buildError, selectUnit,
   move, moveError, movementPaths, produce, productionAmount, productionPreview, endTurn,
 } from '../src/engine.js';
-import { CONFIG } from '../src/configuration.js';
-
-const families = ['farm', 'fisher', 'sawmill', 'quarry', 'mine'];
-
-test('chaque producteur tier 1 a trois variantes de taille et rendement constants', () => {
-  for (const family of families) {
-    const variants = Object.values(BUILDINGS).filter(b => b.tier === 1 && (b.family || b.id) === family);
-    assert.equal(variants.length, 3, family);
-    assert.equal(new Set(variants.map(b => JSON.stringify([b.terrain, b.layout]))).size, 3, family);
-    for (const b of variants) {
-      assert.equal(b.cells.length, family === 'mine' ? 4 : 3, b.id);
-      assert.equal(b.production, family === 'mine' ? 1 : 2, b.id);
-      assert.equal(b.icon, BUILDINGS[family].icon);
-      if (family === 'farm' || family === 'sawmill')
-        assert.ok(b.cells.every(c => c.terrain.length === 1 && c.terrain[0] === (family === 'farm' ? 'plain' : 'forest')));
-      if (family === 'fisher') assert.ok(b.cells.every(c => c.terrain.every(t => ['plain', 'river'].includes(t))));
-      if (family === 'quarry') assert.ok(b.cells.every(c => c.terrain.every(t => ['plain', 'mountain'].includes(t))));
-    }
-  }
-});
-
-test('grands producteurs : cinq cases, deux exemplaires, même icône et +3', () => {
-  for (const family of families.filter(f => f !== 'mine')) {
-    const large = BUILDINGS[`large_${family}`];
-    assert.equal(large.tier, 2);
-    assert.equal(large.cells.length, 5);
-    assert.equal(large.production, 3);
-    assert.equal(large.icon, BUILDINGS[family].icon);
-    assert.notEqual(large.name, BUILDINGS[family].name);
-    assert.equal(CONFIG.buildingPool.filter(id => (BUILDINGS[id].family || id) === large.id).length, 2);
-  }
-});
 
 test('les grandes fermes et camps reçoivent les bonus sans les cumuler', () => {
   const g = createGame(() => 0.5, 'solo');

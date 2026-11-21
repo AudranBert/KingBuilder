@@ -1,6 +1,6 @@
 // Shared mouse, pen and touch drag lifecycle. A click never starts placement.
 const sourceSelector =
-  "[data-tile],[data-building],[data-single-terrain],[data-worker-drag],[data-unit-drag]";
+  "[data-tile],[data-building],[data-single-terrain],[data-unit-drag]";
 export function installDrag({
   root,
   begin,
@@ -20,9 +20,7 @@ export function installDrag({
     const hit = document.elementFromPoint(event.clientX, event.clientY);
     const cell = hit?.closest("#board [data-x]");
     if (cell) return { x: +cell.dataset.x, y: +cell.dataset.y };
-    return hit?.closest("[data-worker-reserve]")
-      ? { workerReserve: true }
-      : null;
+    return null;
   }
   function refresh() {
     if (ghost && content) ghost.innerHTML = content();
@@ -39,7 +37,7 @@ export function installDrag({
     }
     window.scrollBy?.(0, edgeSpeed(point.clientY, 0, window.innerHeight));
     const destination = target(point);
-    preview(destination?.workerReserve ? null : destination);
+    preview(destination);
     scrollFrame = requestAnimationFrame(scrollWhileDragging);
   }
   function finish(event = {}, cancelled = true) {

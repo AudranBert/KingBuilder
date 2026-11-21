@@ -1,21 +1,9 @@
+import { prepareBuilding } from "./helpers.js";
+import { placementGuidance } from "../src/ui/interactions.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  createGame,
-  key,
-  selectUnit,
-  trainUnit,
-  endTurn,
-  actor,
-  assignWorker,
-} from "../src/engine.js";
-import {
-  dragFromCard,
-  dragPreview,
-  moveUnitTo,
-  placementErrorText,
-  placementGuidance,
-} from "../src/ui/interactions.js";
+import { createGame, key, selectUnit, endTurn, actor } from "../src/engine.js";
+import { dragFromCard, dragPreview, moveUnitTo, placementErrorText } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
 
 test("le bandeau garde seulement la cause du blocage et préfixe les erreurs", () => {
@@ -89,7 +77,30 @@ test("glisser un second ouvrier sélectionné ne dépense pas les déplacements 
     null,
   );
 });
-test("les affectations à distance sont refusées par l’aperçu et la commande", () => {
- const g=createGame();g.board["2,6"]={terrain:"forest",building:{type:"sawmill",owner:0}};
- const before=structuredClone(g);assert.ok(dragPreview(g,{kind:"worker",id:0},{x:2,y:6}).error);assert.throws(()=>assignWorker(g,0,2,6));assert.deepEqual(g,before);
+
+test("les guides de placement respectent rotations, action, coût et terrains sans mutation", () => {
+  const g = createGame();
+  g.players[0].resources.food=3;
+  g.buildingMarket = ["house"];
+  prepareBuilding(g, "house", 1, 6);
+  const choice = {kind: "building", index: 0, rotation: 0};
+  const before = structuredClone(g);
+  assert.equal(placementGuidance(g, choice).get("1,6").error, null);
+  assert.deepEqual(g, before);
+  g.players[0].resources.material = 0;
+  g.players[0].resources.gold = 0;
+  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /3 materials/);
+  g.players[0].resources.material = 2;
+  g.board[key(1, 6)].terrain = "river";
+  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /incompatible terrain/);
+  g.players[g.active].units[0].acted = true;
+  assert.ok([...placementGuidance(g, choice).values()].every(result => result.error));
+  g.players[g.active].units[0].acted = false;
+  for (const rotation of [0, 1, 2, 3]) {
+    const terrain = {kind: "terrain", index: 0, rotation};
+    for (const [position, result] of placementGuidance(g, terrain)) {
+      const [x, y] = position.split(",").map(Number);
+      assert.deepEqual(result, dragPreview(g, terrain, {x, y}));
+    }
+  }
 });

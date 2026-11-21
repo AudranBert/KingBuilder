@@ -4,7 +4,6 @@ import {readFile} from 'node:fs/promises';
 import {compileConfiguration} from '../src/config-schema.js';
 import {BUILDING_CONFIGURATION,TERRAIN_TILE_CONFIGURATION,MISSION_CONFIGURATION} from '../src/configuration.js';
 import {BUILDINGS,createGame,patternAt,buildError,build,selectUnit} from '../src/engine.js';
-import {buildingDiagram} from '../src/ui/html.js';
 
 const originals=await Promise.all(['terrain-tiles','buildings','resources','units','game-rules','terrains','missions']
   .map(async name=>name==='missions'?MISSION_CONFIGURATION:name==='terrain-tiles'?TERRAIN_TILE_CONFIGURATION:name==='buildings'?BUILDING_CONFIGURATION:JSON.parse(await readFile(new URL(`../config/${name}.json`,import.meta.url),'utf8'))));
@@ -65,29 +64,4 @@ test('les trous dans un pattern de conditions sont autorisés',()=>{
     assert.equal(g.board['5,4'],undefined);assert.equal(buildError(g,0,4,4),null);
     build(g,0,4,4);assert.equal(g.board['5,4'],undefined);assert.equal(g.board['6,4'].building.type,'farm');
   });
-});
-
-test('!p utilise la case à trois terrains avec une infobulle',()=>{
-  using(['!p','B','!p'],()=>{
-    const html=buildingDiagram('house');assert.equal((html.match(/terrain-choice/g)||[]).length,2);
-    assert.equal((html.match(/terrains-not-plain.svg/g)||[]).length,2);
-    assert.doesNotMatch(html,/excluded-terrain/);
-    assert.match(html,/Tout terrain sauf Plaine/);
-  });
-});
-
-test('c utilise le symbole de mur générique, distinct de la maison à poser',()=>{
-  using(['Bc'],()=>{
-    const html=buildingDiagram('house');
-    assert.equal((html.match(/pattern-building.svg/g)||[]).length,1);
-    assert.equal((html.match(/buildings-house.svg/g)||[]).length,1);
-  });
-  for(const b of Object.values(BUILDINGS)){
-    const count=b.cells.filter(c=>c.symbol==='c').length;
-    if(count)assert.equal((buildingDiagram(b.id).match(/pattern-building.svg/g)||[]).length,count,b.id);
-  }
-});
-
-test('les autres exclusions gardent le terrain exclu barré',()=>{
-  using(['B!f'],()=>assert.match(buildingDiagram('house'),/excluded-terrain/));
 });

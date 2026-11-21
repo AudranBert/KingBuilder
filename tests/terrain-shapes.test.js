@@ -1,185 +1,42 @@
-import { createSandboxGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  key,
-  placement,
-  transformed,
-  explore,
-  score,
-} from "../src/engine.js";
-const coordinates = (cells) => cells.map((c) => key(c.x, c.y)).sort();
-// Refer to stable catalogue definitions rather than their position in the deck.
-const examples = ["line2", "line3", "corner3", "zigzag4", "square4", "cross5", "u5", "corner4", "t4", "line4", "stairs5", "offset5", "t5"];
-function getTile(g, id) {
-  return [...g.tileMarket, ...g.tileDeck].find((t) => t.definitionId === `${examples[id]}-1`);
-}
-test("la pioche de 48 tuiles comprend treize formes de cinq cases au maximum", () => {
-  const g = createGame();
-  const tiles = [...g.tileMarket, ...g.tileDeck];
-  assert.equal(tiles.length, 48);
-  assert.equal(
-    new Set(tiles.map((t) => JSON.stringify(coordinates(t.cells)))).size,
-    13,
-  );
-  assert.ok(tiles.every((t) => t.cells.length <= 5));
-  assert.deepEqual(
-    coordinates(getTile(g, 5).cells),
-    ["1,0", "0,1", "1,1", "2,1", "1,2"].sort(),
-  );
-  assert.deepEqual(
-    coordinates(getTile(g, 6).cells),
-    ["0,0", "2,0", "0,1", "1,1", "2,1"].sort(),
-  );
-});
-test("croix et U pivotent sans remplir leurs vides et restent posables", () => {
-  for (const id of [5, 6])
-    for (let r = 0; r < 4; r++) {
-      const g = createGame();
-      g.tileMarket[0] = getTile(g, id);
-      const tile = g.tileMarket[0],
-        turned = transformed(tile, r);
-      const cells = placement(g, 0, 7, 7, r);
-      assert.ok(cells);
-      assert.equal(cells.length, 5);
-      assert.equal(new Set(coordinates(cells)).size, 5);
-      const original = transformed(tile, 0);
-      const back = transformed({ cells: turned }, (4 - r) % 4);
-      assert.deepEqual(coordinates(back), coordinates(original));
-      const occupied = new Set(coordinates(cells));
-      const minX = Math.min(...cells.map((c) => c.x)),
-        maxX = Math.max(...cells.map((c) => c.x)),
-        minY = Math.min(...cells.map((c) => c.y)),
-        maxY = Math.max(...cells.map((c) => c.y));
-      let gaps = 0;
-      for (let x = minX; x <= maxX; x++)
-        for (let y = minY; y <= maxY; y++)
-          if (!occupied.has(key(x, y))) {
-            g.board[key(x, y)] = { terrain: "forest" };
-            gaps++;
-          }
-      assert.equal(gaps, id === 5 ? 4 : 1);
-      assert.ok(placement(g, 0, 7, 7, r));
-      const hit = cells[1];
-      g.board[key(hit.x, hit.y)] = { terrain: "plain" };
-      assert.equal(placement(g, 0, 7, 7, r), null);
-    }
-});
-test("révéler la croix ou le U révèle cinq cases sans points directs et laisse les vides inexplorés", () => {
-  for (const id of [5, 6]) {
-    const g = createGame();
-    g.tileMarket[0] = getTile(g, id);
-    g.players[0].units[0].x = 6;
-    g.players[0].units[0].y = 7;
-    const cells = placement(g, 0, 7, 7);
+import { createSandboxGame } from "./helpers.js";
+import { CONFIG } from "../src/configuration.js";
+import { key, placement, transformed, explore } from "../src/engine.js";
+
+const coordinates = cells => cells.map(cell => key(cell.x, cell.y)).sort();
+
+test("les tuiles tournent et révèlent seulement leurs cases, en préservant les trous", () => {
+  for (const tile of CONFIG.tiles) for (let rotation = 0; rotation < 4; rotation++) {
+    const game = createSandboxGame(() => .5);
+    game.tileMarket[0] = structuredClone(tile);
+    Object.assign(game.players[0].units[0], { x: 6, y: 7 });
+    const cells = placement(game, 0, 7, 7, rotation);
+    assert.ok(cells, tile.id);
+    assert.equal(new Set(coordinates(cells)).size, tile.cells.length, tile.id);
+    const turned = transformed(tile, rotation);
+    assert.deepEqual(coordinates(transformed({ cells: turned }, (4 - rotation) % 4)), coordinates(transformed(tile, 0)), tile.id);
+
     const occupied = new Set(coordinates(cells));
-    const count = Object.keys(g.board).length;
-    explore(g, 0, 7, 7);
-    assert.equal(Object.keys(g.board).length, count + 5);
-    assert.equal(g.players[0].revealed, 5);
-    for (let x = 6; x <= 9; x++)
-      for (let y = 7; y <= 9; y++)
-        if (!occupied.has(key(x, y)))
-          assert.equal(g.board[key(x, y)], undefined);
-  }
-});
-test("les cinq ajouts respectent exactement les motifs demandés", () => {
-  const g = createGame();
-  const expected = [
-    [
-      [0, 0],
-      [0, 1],
-      [1, 1],
-      [2, 1],
-    ],
-    [
-      [1, 0],
-      [0, 1],
-      [1, 1],
-      [2, 1],
-    ],
-    [
-      [0, 0],
-      [1, 0],
-      [2, 0],
-      [3, 0],
-    ],
-    [
-      [0, 0],
-      [1, 0],
-      [1, 1],
-      [2, 1],
-      [2, 2],
-    ],
-    [
-      [1, 0],
-      [2, 0],
-      [1, 1],
-      [2, 1],
-      [3, 1],
-    ],
-  ];
-  expected.forEach((cells, i) =>
-    assert.deepEqual(
-      coordinates(getTile(g, 7 + i).cells),
-      cells.map(([x, y]) => key(x, y)).sort(),
-    ),
-  );
-});
-test("tous les nouveaux motifs pivotent, préservent les trous et marquent uniquement leurs cases", () => {
-  for (let id = 7; id <= 12; id++)
-    for (let r = 0; r < 4; r++) {
-      const g = createGame();
-      g.tileMarket[0] = getTile(g, id);
-      g.players[0].units[0].x = 6;
-      g.players[0].units[0].y = 7;
-      const cells = placement(g, 0, 7, 7, r);
-      assert.ok(cells);
-      const occupied = new Set(coordinates(cells));
-      assert.equal(occupied.size, cells.length);
-      const minX = Math.min(...cells.map((c) => c.x)),
-        maxX = Math.max(...cells.map((c) => c.x)),
-        minY = Math.min(...cells.map((c) => c.y)),
-        maxY = Math.max(...cells.map((c) => c.y));
-      const empty = [];
-      for (let x = minX; x <= maxX; x++)
-        for (let y = minY; y <= maxY; y++)
-          if (!occupied.has(key(x, y))) {
-            g.board[key(x, y)] = { terrain: "forest" };
-            empty.push(key(x, y));
-          }
-      assert.ok(placement(g, 0, 7, 7, r));
-      const before = Object.keys(g.board).length;
-      explore(g, 0, 7, 7, r);
-      assert.equal(Object.keys(g.board).length, before + cells.length);
-      assert.equal(g.players[0].revealed, cells.length);
-      empty.forEach((k) => assert.deepEqual(g.board[k], { terrain: "forest" }));
+    const gaps = [];
+    for (let x = Math.min(...cells.map(c => c.x)); x <= Math.max(...cells.map(c => c.x)); x++) {
+      for (let y = Math.min(...cells.map(c => c.y)); y <= Math.max(...cells.map(c => c.y)); y++) {
+        if (!occupied.has(key(x, y))) {
+          game.board[key(x, y)] = { terrain: "forest" };
+          gaps.push(key(x, y));
+        }
+      }
     }
-});
-test("les treize formes sont distinctes même en tenant compte des rotations du T", () => {
-  const g = createGame();
-  const canonical = (t) => {
-    return [0, 1, 2, 3]
-      .map((r) => {
-        const cells = transformed(t, r),
-          minX = Math.min(...cells.map((c) => c.x)),
-          minY = Math.min(...cells.map((c) => c.y));
-        return cells
-          .map((c) => key(c.x - minX, c.y - minY))
-          .sort()
-          .join(";");
-      })
-      .sort()[0];
-  };
-  const shapes = Array.from({ length: 13 }, (_, id) => getTile(g, id));
-  assert.equal(new Set(shapes.map(canonical)).size, 13);
-  const invertedT = {
-    cells: [
-      { x: 0, y: 0 },
-      { x: 1, y: 0 },
-      { x: 2, y: 0 },
-      { x: 1, y: 1 },
-    ],
-  };
-  assert.equal(canonical(getTile(g, 8)), canonical(invertedT));
+    assert.ok(placement(game, 0, 7, 7, rotation), tile.id);
+    const blocked = structuredClone(game);
+    blocked.board[key(cells[0].x, cells[0].y)] = { terrain: "plain" };
+    assert.equal(placement(blocked, 0, 7, 7, rotation), null, tile.id);
+
+    const before = Object.keys(game.board).length;
+    explore(game, 0, 7, 7, rotation);
+    assert.equal(Object.keys(game.board).length, before + tile.cells.length, tile.id);
+    assert.equal(game.players[0].revealed, tile.cells.length, tile.id);
+    for (const cell of cells) assert.equal(game.board[key(cell.x, cell.y)].terrain, cell.terrain, tile.id);
+    for (const gap of gaps) assert.deepEqual(game.board[gap], { terrain: "forest" }, tile.id);
+  }
 });

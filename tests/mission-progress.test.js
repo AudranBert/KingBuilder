@@ -1,47 +1,14 @@
-import { createSandboxGame as createGame } from "./helpers.js";
+import { createSandboxGame as createGame, prepareBuilding } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { key, score, harvestPreview, assignWorker, endTurn, build, migrateGame, missionTarget } from "../src/engine.js";
+import { endTurn, build, missionTarget } from "../src/engine.js";
 import { settleMissions, initializeMissions } from "../src/objectives.js";
-import { placementGuidance, dragPreview } from "../src/ui/interactions.js";
-import { harvestView, missionsView } from "../src/ui/views.js";
+
+import { missionsView } from "../src/ui/views.js";
 import { validateGame } from "../src/validation.js";
 
-test("les stocks ne donnent plus de points", () => {
-  const g = createGame(); g.players[0].resources = { material: 100, food: 100, gold: 100 };
-  assert.deepEqual(score(g,0), {buildings:0, flags:0});
-});
 
-test("les ouvriers restés au donjon ne produisent pas et l’interface décrit l’action", () => {
- const g=createGame(),before={...g.players[0].resources};assert.match(harvestView(g),/action/);endTurn(g);assert.deepEqual(g.players[0].resources,before);
-});
 
-test("les guides de placement respectent rotations, action, coût et terrains sans mutation", () => {
-  const g = createGame();
-  g.players[0].resources.food=3;
-  g.buildingMarket = ["house"];
-  g.board[key(1, 6)] = {terrain: "plain"};
-  const choice = {kind: "building", index: 0, rotation: 0};
-  const before = structuredClone(g);
-  assert.equal(placementGuidance(g, choice).get("1,6").error, null);
-  assert.deepEqual(g, before);
-  g.players[0].resources.material = 0;
-  g.players[0].resources.gold = 0;
-  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /3 matériaux/);
-  g.players[0].resources.material = 2;
-  g.board[key(1, 6)].terrain = "river";
-  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /terrain incompatible/);
-  g.players[g.active].units[0].acted = true;
-  assert.ok([...placementGuidance(g, choice).values()].every(result => result.error));
-  g.players[g.active].units[0].acted = false;
-  for (const rotation of [0, 1, 2, 3]) {
-    const terrain = {kind: "terrain", index: 0, rotation};
-    for (const [position, result] of placementGuidance(g, terrain)) {
-      const [x, y] = position.split(",").map(Number);
-      assert.deepEqual(result, dragPreview(g, terrain, {x, y}));
-    }
-  }
-});
 
 function farmMission() {
   const g = createGame();
@@ -62,7 +29,7 @@ test("deux fermes déjà construites exigent une troisième et les contributions
   endTurn(g);
   g.players[0].resources.food=3;
   g.buildingMarket[0] = "house";
-  g.board[key(1, 6)] = {terrain: "plain"};
+  prepareBuilding(g, "house", 1, 6);
   build(g, 0, 1, 6);
   assert.equal(g.missions.claimed.length, 0);
   g.players[0].progress.built.farm_t = 1;
@@ -86,7 +53,7 @@ test("les seuils individuels des missions restent stables et les états invalide
   assert.match(missionsView(g), /2\/3/);
   assert.match(missionsView(g), /4\/5/);
   g.players[0].progress.built.farm_t = 1;
-  migrateGame(g);
+  validateGame(JSON.parse(JSON.stringify(g)));
   assert.equal(missionTarget(g, "built-farm-2"), 3);
   assert.deepEqual(settleMissions(g), ["built-farm-2"]);
   const bad = farmMission();

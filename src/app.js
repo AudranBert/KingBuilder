@@ -29,7 +29,6 @@ import {
   produce as localProduce,
   endTurn as localEndTurn,
   selectUnit,
-  assignWorker as localAssignWorker,
   trainUnit as localTrainUnit,
   totalScore,
   key,
@@ -143,7 +142,7 @@ export function startGame({ initialGame = null } = {}) {
   const buyTerrain = mutation('buyTerrain', localBuyTerrain), placeOpeningTile = mutation('placeOpeningTile', localPlaceOpeningTile),
     rerollMarket = mutation('rerollMarket', localRerollMarket), explore = mutation('explore', localExplore),
     build = mutation('build', localBuild), produce = mutation('produce', localProduce), endTurn = mutation('endTurn', localEndTurn),
-    assignWorker = mutation('assignWorker', localAssignWorker), trainUnit = mutation('trainUnit', localTrainUnit),
+    trainUnit = mutation('trainUnit', localTrainUnit),
     moveUnitTo = mutation('moveUnitTo', localMoveUnitTo);
   function showMenu() {
     refreshHistory();
@@ -221,8 +220,7 @@ export function startGame({ initialGame = null } = {}) {
       }
     }
     const action = mobile ? t("app.tap") : t("app.click");
-    const instruction = choice.kind === "worker" ? t("app.oneOfYourProductionBuildingsToAssign")
-      : choice.kind === "unit" ? t("app.aReachableSpaceToMoveTheUnit")
+    const instruction = choice.kind === "unit" ? t("app.aReachableSpaceToMoveTheUnit")
       : t("app.aGreenSpaceToPlace", [choice.kind === "building" ? t("app.theBuilding") : choice.kind === "single-terrain" ? t("app.theTerrain") : t("app.theTerrainTile")]);
     $("#placement-help").textContent = `${action} ${instruction}`;
   }
@@ -377,8 +375,7 @@ export function startGame({ initialGame = null } = {}) {
       ({ x, y } = placementOrigin(game, d, { x, y }));
       if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
       else act(() => {
-        if (d.kind === "worker") assignWorker(game, d.id, x, y);
-        else if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
+        if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
         else if (game.opening) placeOpeningTile(game, d.index, x, y, d.rotation);
         else explore(game, d.index, x, y, d.rotation);
         ui.placement = null;
@@ -571,20 +568,6 @@ export function startGame({ initialGame = null } = {}) {
     }
     const workerSelect = event.target.closest('[data-worker-select]');
     if (workerSelect && !workerSelect.disabled) { chooseUnit(Number(workerSelect.dataset.workerSelect)); return; }
-    const worker = event.target.closest('[data-worker-drag]');
-    if (worker && !game.finished && ui.mode !== 'inspect') {
-      ui.placement = { kind: 'worker', id: Number(worker.dataset.workerDrag) };
-      ui.selected = null;
-      render();
-      return;
-    }
-    if (ui.placement?.kind === 'worker' && event.target.closest('[data-worker-reserve]')) {
-      act(() => {
-        assignWorker(game, ui.placement.id, null, null);
-        ui.placement = null;
-      });
-      return;
-    }
     const mode = event.target.closest("[data-mode]");
     if (mode) {
       ui.mode = mode.dataset.mode;
@@ -915,18 +898,13 @@ export function startGame({ initialGame = null } = {}) {
         return buildingDiagram(game.buildingMarket[d.index], d.rotation);
       if (d.kind === "single-terrain")
         return terrainDiagram({ cells: [{ x: 0, y: 0, terrain: d.terrain }] });
-      return piece(d.kind === "worker" ? "worker" : actor(game).type, game.active);
+      return piece(actor(game).type, game.active);
     },
     drop(pos) {
       const d = ui.drag;
-      if (!pos.workerReserve) pos = placementOrigin(game, d, pos);
+      pos = placementOrigin(game, d, pos);
       ui.drag = null;
-      if (pos.workerReserve) {
-        if (d.kind === "worker")
-          act(() => assignWorker(game, d.id, null, null));
-      } else if (d.kind === "unit") act(() => moveUnitTo(game, pos.x, pos.y));
-      else if (d.kind === "worker")
-        act(() => assignWorker(game, d.id, pos.x, pos.y));
+      if (d.kind === "unit") act(() => moveUnitTo(game, pos.x, pos.y));
       else if (d.kind === "terrain")
         act(() => game.opening
           ? placeOpeningTile(game, d.index, pos.x, pos.y, d.rotation)
