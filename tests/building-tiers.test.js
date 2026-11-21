@@ -8,9 +8,9 @@ test("le marché initial exclut les tiers 2 et conserve chaque exemplaire config
   for (let seed = 0; seed < 50; seed++) {
     let state = seed + 1;
     const g = createGame(() => ((state = (state * 1664525 + 1013404223) >>> 0) / 2 ** 32));
-    assert.equal(g.buildingMarket.length, 4);
+    assert.equal(g.buildingMarket.length, 5);
     assert.ok(g.buildingMarket.every(id => BUILDINGS[id].tier === 1));
-    assert.equal(new Set(g.buildingMarket.map(id => BUILDINGS[id].family || id)).size, 4);
+    assert.equal(new Set(g.buildingMarket.map(id => BUILDINGS[id].family || id)).size, 5);
     const cards = [...g.buildingMarket, ...g.buildingDeck];
     const expected = BUILDING_CONFIGURATION.buildings.flatMap(b => Array(b.constructible === false ? 0 : b.weight).fill(b.id));
     assert.deepEqual(cards.sort(), expected.sort());
@@ -56,10 +56,10 @@ test("dès le deuxième remplacement les tiers avancés sont autorisés", () => 
 test("la première relance exclut les tiers 2 et la deuxième les autorise", () => {
   const g = createGame();
   g.players[0].resources.gold = 5;
-  g.buildingDeck = ["mill", "barracks", "sawmill", "bridge", "farm_t", "quarry"];
+  g.buildingDeck = ["mill", "barracks", "sawmill", "bridge", "farm_t", "quarry", "mine"];
   const cards = [...g.buildingMarket, ...g.buildingDeck].sort();
   rerollMarket(g, "building");
-  assert.deepEqual(g.buildingMarket, ["sawmill", "bridge", "farm_t", "quarry"]);
+  assert.deepEqual(g.buildingMarket, ["sawmill", "bridge", "farm_t", "quarry", "mine"]);
   assert.equal(g.buildingReplacements, 1);
   g.rerollsUsed = 0;
   rerollMarket(g, "building");
@@ -78,7 +78,7 @@ test("une relance de terrains ne débloque pas les bâtiments de tier 2", () => 
 test("une première relance sans assez de cartes éligibles est refusée sans mutation", () => {
   const g = createGame();
   g.players[0].resources.gold = 5;
-  g.buildingDeck = ["mill", "barracks", "house", "farm_t"];
+  g.buildingDeck = ["mill", "barracks", "house", "forge", "farm_t"];
   const before = structuredClone(g);
   assert.match(rerollError(g, "building"), /tier 1 or lower/);
   assert.throws(() => rerollMarket(g, "building"));

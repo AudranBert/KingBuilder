@@ -9,7 +9,7 @@
   "startingWorkers": 2,
   "markets": {
     "terrainSize": 4,
-    "buildingSize": 4,
+    "buildingSize": 5,
     "initialMaxTier": 1,
     "advancedFromReplacement": 2
   },

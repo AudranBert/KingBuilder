@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import {createGame,key,explore,move,placement,endTurn,build,RULES,score,movementPaths} from "../src/engine.js";
 test("13×13, deux donjons, cinq drapeaux et marchés communs",()=>{
  const g=createGame(); assert.equal(RULES.size,13);assert.equal(g.players[1].units[0].x,12);
- assert.equal(Object.keys(g.board).length,13);assert.equal(g.tileMarket.length,4);assert.equal(g.buildingMarket.length,4);
+ assert.equal(Object.keys(g.board).length,13);assert.equal(g.tileMarket.length,4);assert.equal(g.buildingMarket.length,5);
  for(const p of g.players)for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
   const x=p.x+dx,y=p.y+dy;if(x<0||x>=RULES.size)continue;
   if(dx&&dy){assert.equal(g.board[key(x,y)],undefined);continue;}
