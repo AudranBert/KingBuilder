@@ -1,12 +1,12 @@
 [
   {
     "id": "castle",
-    "name": "Donjon",
+    "name": "Keep",
     "icon": "assets/textures/buildings-castle.svg",
     "cost": {},
     "terrain": "plain",
-    "description": "Garnison 1 ; donjon conquis = défaite.",
-    "pattern": "Une case de plaine.",
+    "description": "Garrison 1; losing your keep means defeat.",
+    "pattern": "One plain space.",
     "constructible": false,
     "layout": [
       "B"

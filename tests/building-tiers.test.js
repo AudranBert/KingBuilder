@@ -97,7 +97,7 @@ test("une première relance sans assez de cartes éligibles est refusée sans mu
   g.players[0].resources.gold = 5;
   g.buildingDeck = ["mill", "barracks", "house", "farm_t"];
   const before = structuredClone(g);
-  assert.match(rerollError(g, "building"), /tier 1 ou inférieur/);
+  assert.match(rerollError(g, "building"), /tier 1 or lower/);
   assert.throws(() => rerollMarket(g, "building"));
   assert.deepEqual(g, before);
 });

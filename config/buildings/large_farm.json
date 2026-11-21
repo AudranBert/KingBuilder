@@ -1,15 +1,15 @@
 [
   {
     "id": "large_farm",
-    "name": "Grande ferme",
+    "name": "Large farm",
     "icon": "assets/textures/buildings-farm.svg",
     "cost": {
       "material": 3
     },
     "terrain": "plain",
     "produces": "food",
-    "description": "+3 blé par tour avec un ouvrier.",
-    "pattern": "Cinq plaines en croix ; entrée au centre.",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five plains in a cross; entrance in the middle.",
     "weight": 1,
     "layout": [
       ".p.",
@@ -25,15 +25,15 @@
   },
   {
     "id": "large_farm_line",
-    "name": "Grande ferme",
+    "name": "Large farm",
     "icon": "assets/textures/buildings-farm.svg",
     "cost": {
       "material": 3
     },
     "terrain": "plain",
     "produces": "food",
-    "description": "+3 blé par tour avec un ouvrier.",
-    "pattern": "Cinq plaines en L ; entrée à l’angle.",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five plains in an L; entrance at the corner.",
     "weight": 1,
     "layout": [
       "Bppp",

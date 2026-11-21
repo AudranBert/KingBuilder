@@ -8,8 +8,8 @@
     },
     "terrain": "plain",
     "produces": "gold",
-    "description": "+1 or par tour avec un ouvrier.",
-    "pattern": "Une plaine d’entrée suivie de trois montagnes en ligne.",
+    "description": "+1 gold per turn with a worker.",
+    "pattern": "One plain entrance followed by three mountains in a line.",
     "weight": 2,
     "layout": [
       "Bmmm"
@@ -28,8 +28,8 @@
     },
     "terrain": "plain",
     "produces": "gold",
-    "description": "+1 or par tour avec un ouvrier.",
-    "pattern": "Un carré de quatre cases : une plaine d’entrée et trois montagnes.",
+    "description": "+1 gold per turn with a worker.",
+    "pattern": "A square of four spaces: one plain entrance and three mountains.",
     "weight": 2,
     "layout": [
       "Bm",
@@ -50,8 +50,8 @@
     },
     "terrain": "plain",
     "produces": "gold",
-    "description": "+1 or par tour avec un ouvrier.",
-    "pattern": "Quatre cases en coude : une plaine d’entrée et trois montagnes.",
+    "description": "+1 gold per turn with a worker.",
+    "pattern": "Four spaces in an L: one plain entrance and three mountains.",
     "weight": 2,
     "layout": [
       "Bmm",

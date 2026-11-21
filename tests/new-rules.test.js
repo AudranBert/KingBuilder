@@ -10,7 +10,7 @@ import { buildingDetailsView } from "../src/ui/views.js";
 test("une case de terrain au choix coûte 1 or et termine l’action", () => {
   const g = createSandboxGame();
   const gold = g.players[0].resources.gold;
-  assert.match(buyTerrainError(g, "mountain", 1, 6), /case inexplorée/);
+  assert.match(buyTerrainError(g, "mountain", 1, 6), /unexplored space/);
   assert.equal(buyTerrainError(g, "mountain", 0, 4) !== null, true);
   assert.equal(buyTerrainError(g, "field", 2, 6) !== null, true);
   g.players[0].units[0].x = 1;

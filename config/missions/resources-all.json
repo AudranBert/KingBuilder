@@ -1,7 +1,7 @@
 [
   {
     "id": "stock-8",
-    "name": "Avoir 8 ressources",
+    "name": "Have 8 resources",
     "metric": "resources",
     "target": 8,
     "reward": {
@@ -12,7 +12,7 @@
   },
   {
     "id": "stock-12",
-    "name": "Avoir 12 ressources",
+    "name": "Have 12 resources",
     "metric": "resources",
     "target": 12,
     "reward": {
@@ -23,7 +23,7 @@
   },
   {
     "id": "resources-all-18",
-    "name": "Avoir 18 ressources",
+    "name": "Have 18 resources",
     "metric": "resources",
     "target": 18,
     "reward": {

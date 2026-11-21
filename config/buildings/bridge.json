@@ -1,14 +1,14 @@
 [
   {
     "id": "bridge",
-    "name": "Pont",
+    "name": "Bridge",
     "icon": "assets/textures/buildings-bridge.svg",
     "cost": {
       "material": 2
     },
     "terrain": "river",
     "description": "Passage.",
-    "pattern": "Une case de rivière.",
+    "pattern": "One river space.",
     "weight": 6,
     "layout": [
       "B"

@@ -3,13 +3,13 @@
     "id": "forge",
     "name": "Forge",
     "tier": 3,
-    "description": "+1 en combat aux armées du royaume. Sans ouvrier, non cumulable.",
+    "description": "+1 combat strength to your armies. No worker required; does not stack.",
     "icon": "assets/textures/buildings-forge.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Une plaine pour la forge et deux montagnes en ligne.",
+    "pattern": "One plain forge and two mountains in a line.",
     "layout": [
       "Bmm"
     ],
@@ -21,13 +21,13 @@
     "id": "forge_forest",
     "name": "Forge",
     "tier": 3,
-    "description": "+1 en combat aux armées du royaume. Sans ouvrier, non cumulable.",
+    "description": "+1 combat strength to your armies. No worker required; does not stack.",
     "icon": "assets/textures/buildings-forge.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Une plaine pour la forge et deux forêts en coude.",
+    "pattern": "One plain forge and two forests in an L.",
     "layout": [
       "Bf",
       ".f"

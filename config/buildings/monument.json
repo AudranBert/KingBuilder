@@ -9,7 +9,7 @@
     },
     "terrain": "plain",
     "description": "+4 score.",
-    "pattern": "Quatre cases en carré : trois plaines et une montagne.",
+    "pattern": "Four spaces in a square: three plains and one mountain.",
     "layout": [
       "Bp",
       "pm"
@@ -28,7 +28,7 @@
     },
     "terrain": "plain",
     "description": "+4 score.",
-    "pattern": "Quatre cases en carré : trois plaines et une eau.",
+    "pattern": "Four spaces in a square: three plains and one water space.",
     "layout": [
       "Bp",
       "pr"

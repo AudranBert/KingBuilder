@@ -1,7 +1,7 @@
 [
   {
     "id": "stock-iron",
-    "name": "Réserve d’or : 3",
+    "name": "Gold reserve: 3",
     "metric": "resources",
     "target": 3,
     "resource": "gold",
@@ -13,7 +13,7 @@
   },
   {
     "id": "resources-iron-5",
-    "name": "Réserve d’or : 5",
+    "name": "Gold reserve: 5",
     "metric": "resources",
     "target": 5,
     "resource": "gold",
@@ -25,7 +25,7 @@
   },
   {
     "id": "resources-iron-8",
-    "name": "Réserve d’or : 8",
+    "name": "Gold reserve: 8",
     "metric": "resources",
     "target": 8,
     "resource": "gold",

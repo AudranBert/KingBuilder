@@ -1,7 +1,7 @@
 [
   {
     "id": "barracks",
-    "name": "Caserne",
+    "name": "Barracks",
     "icon": "assets/textures/buildings-barracks.svg",
     "weight": 3,
     "cost": {
@@ -12,8 +12,8 @@
     "layout": [
       "Bc"
     ],
-    "description": "Recrute 1 soldat pour 1 blé, une fois par tour. Sans ouvrier.",
-    "pattern": "Une plaine d’entrée à côté d’un bâtiment existant hors pont et tunnel.",
+    "description": "Recruit one soldier for one wheat, once per turn. No worker required.",
+    "pattern": "A plain entrance beside an existing building, excluding bridges and tunnels.",
     "trains": [
       "soldier"
     ],
@@ -23,7 +23,7 @@
   },
   {
     "id": "barracks_forest",
-    "name": "Caserne",
+    "name": "Barracks",
     "icon": "assets/textures/buildings-barracks.svg",
     "weight": 3,
     "cost": {
@@ -34,8 +34,8 @@
     "layout": [
       "Bp"
     ],
-    "description": "Recrute 1 soldat pour 1 blé, une fois par tour. Sans ouvrier.",
-    "pattern": "Une forêt pour la caserne et une plaine pour la cour.",
+    "description": "Recruit one soldier for one wheat, once per turn. No worker required.",
+    "pattern": "One forest for the barracks and one plain for the courtyard.",
     "trains": [
       "soldier"
     ],

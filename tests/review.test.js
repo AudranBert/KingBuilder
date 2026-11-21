@@ -51,13 +51,13 @@ test("coordonnées fractionnaires, angles et ancres invalides sont refusés sans
 test("la disponibilité affichée respecte les obstacles et les actions de l’unité", () => {
   const g = createGame();
   g.board[key(1, 6)] = { terrain: "mountain" };
-  assert.match(moveError(g, 1, 6), /infranchissable/);
+  assert.match(moveError(g, 1, 6), /impassable/);
   g.board[key(1, 6)] = { terrain: "plain" };
   g.players[1].units[0].x = 1;
-  assert.match(moveError(g, 1, 6), /adverse/);
+  assert.match(moveError(g, 1, 6), /enemy/);
   g.players[1].units[0].x = 11;
   g.players[g.active].units[0].acted = true;
-  assert.match(exploreError(g, 0, 0, 8), /terminé/);
+  assert.match(exploreError(g, 0, 0, 8), /completed/);
 });
 test("une ressource absente ou non finie ne permet pas de construire à crédit", () => {
   for (const amount of [undefined, NaN]) {

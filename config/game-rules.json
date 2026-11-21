@@ -19,14 +19,14 @@
   },
   "players": [
     {
-      "name": "Royaume d’Ambre",
+      "name": "Kingdom of Amber",
       "start": {
         "x": 0,
         "y": 0.5
       }
     },
     {
-      "name": "Royaume de Jade",
+      "name": "Kingdom of Jade",
       "start": {
         "x": 1,
         "y": 0.5

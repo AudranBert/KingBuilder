@@ -2,7 +2,7 @@
   "units": [
     {
       "id": "soldier",
-      "name": "Soldat",
+      "name": "Soldier",
       "icon": "assets/textures/units-soldier.svg",
       "cost": {
         "food": 1
@@ -12,7 +12,7 @@
     },
     {
       "id": "worker",
-      "name": "Ouvrier",
+      "name": "Worker",
       "icon": "assets/textures/units-worker.svg",
       "cost": {},
       "moves": 3,

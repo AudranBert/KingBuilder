@@ -2,7 +2,7 @@
   "shapes": [
     {
       "id": "line3",
-      "name": "Ligne de 3",
+      "name": "Line of 3",
       "weight": 1,
       "pattern": [
         "xxx"
@@ -10,7 +10,7 @@
     },
     {
       "id": "corner3",
-      "name": "L de 3",
+      "name": "L of 3",
       "weight": 1,
       "pattern": [
         "xx",
@@ -21,116 +21,116 @@
   "tiles": [
     {
       "id": "line3-1",
-      "name": "Crête rocheuse",
+      "name": "Rocky ridge",
       "shapeId": "line3",
       "pattern": [
         "MMM"
       ],
-      "intent": "Trois montagnes en ligne à raccorder à une plaine"
+      "intent": "Three mountains in a line to connect to a plain"
     },
     {
       "id": "corner3-1",
-      "name": "Bois en coude",
+      "name": "Bent woodland",
       "shapeId": "corner3",
       "pattern": [
         "FF",
         "F."
       ],
-      "intent": "Forêt continue à exploiter"
+      "intent": "Continuous forest to harvest"
     },
     {
       "id": "line3-2",
-      "name": "Bois de lisière",
+      "name": "Edge woodland",
       "shapeId": "line3",
       "pattern": [
         "PFF"
       ],
-      "intent": "Production de bois"
+      "intent": "Wood production"
     },
     {
       "id": "corner3-2",
-      "name": "Bosquet",
+      "name": "Grove",
       "shapeId": "corner3",
       "pattern": [
         "FF",
         "P."
       ],
-      "intent": "Bois et accès"
+      "intent": "Woodland and access"
     },
     {
       "id": "line3-3",
-      "name": "Contrefort",
+      "name": "Foothill",
       "shapeId": "line3",
       "pattern": [
         "PMF"
       ],
-      "intent": "Accès à une montagne et une forêt"
+      "intent": "Access to a mountain and a forest"
     },
     {
       "id": "corner3-3",
-      "name": "Méandre",
+      "name": "Meander",
       "shapeId": "corner3",
       "pattern": [
         "RR",
         "P."
       ],
-      "intent": "Préparer un pont ou un port"
+      "intent": "Prepare a bridge or harbor"
     },
     {
       "id": "cross5-3",
-      "name": "Col étroit",
+      "name": "Narrow pass",
       "shapeId": "line3",
       "pattern": [
         "PPM"
       ],
-      "intent": "Accès court à la montagne"
+      "intent": "Short mountain access"
     },
     {
       "id": "u5-3",
-      "name": "Petit méandre",
+      "name": "Small meander",
       "shapeId": "corner3",
       "pattern": [
         "RR",
         "R."
       ],
-      "intent": "Coude de rivière compact"
+      "intent": "Compact river bend"
     },
     {
       "id": "offset5-3",
-      "name": "Bras d’eau",
+      "name": "Water channel",
       "shapeId": "line3",
       "pattern": [
         "RRR"
       ],
-      "intent": "Trois eaux alignées"
+      "intent": "Three water spaces in a line"
     },
     {
       "id": "line3-4",
-      "name": "Bras de rivière",
+      "name": "River branch",
       "shapeId": "line3",
       "pattern": [
         "PRR"
       ],
-      "intent": "Accès et obstacle"
+      "intent": "Access and obstacle"
     },
     {
       "id": "corner3-4",
-      "name": "Éperon rocheux",
+      "name": "Rocky spur",
       "shapeId": "corner3",
       "pattern": [
         "MP",
         "P."
       ],
-      "intent": "Pierre et accès"
+      "intent": "Stone and access"
     },
     {
       "id": "line3-5",
-      "name": "Rive boisée",
+      "name": "Wooded bank",
       "shapeId": "line3",
       "pattern": [
         "FRF"
       ],
-      "intent": "Choisir une rive à exploiter"
+      "intent": "Choose a bank to harvest"
     }
   ]
 }

@@ -26,7 +26,7 @@ test("explorer garde les déplacements mais interdit de produire ou construire e
 test("bâtiment : deux ressources, une production partagée par tour et aucun second gain automatique",()=>{
  const g=setup(),p=g.players[0];g.board["1,5"]={terrain:"plain",building:{type:"farm",owner:0}};
  move(g,1,5);const before=p.resources.food;produce(g);assert.equal(p.resources.food,before+2);
- selectUnit(g,1);move(g,1,5);const snapshot=structuredClone(g);assert.match(produceError(g),/déjà produit/);assert.throws(()=>produce(g));assert.deepEqual(g,snapshot);
+ selectUnit(g,1);move(g,1,5);const snapshot=structuredClone(g);assert.match(produceError(g),/already produced/);assert.throws(()=>produce(g));assert.deepEqual(g,snapshot);
  endTurn(g);assert.equal(p.resources.food,before+2);assert.equal(produceError(g),null);produce(g);assert.equal(p.resources.food,before+4);
 });
 test("maison : coût 3 et 3, recrue sur place active seulement au tour suivant",()=>{
@@ -61,7 +61,7 @@ test("commande produire autoritaire, refus atomique et anciennes affectations bl
  assert.throws(()=>assignWorker(g,0,9,9));assert.throws(()=>applyCommand(g,{type:"assignWorker",unit:0,args:[0,9,9]}));validateGame(next);
 });
 test("les parties des anciennes règles sont refusées explicitement",()=>{
- const g=setup();g.version=5;assert.throws(()=>migrateGame(g),/anciennes règles/);
+ const g=setup();g.version=5;assert.throws(()=>migrateGame(g),/Older rules/);
 });
 
 

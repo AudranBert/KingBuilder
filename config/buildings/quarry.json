@@ -1,15 +1,15 @@
 [
   {
     "id": "quarry",
-    "name": "Carrière",
+    "name": "Quarry",
     "icon": "assets/textures/buildings-quarry.svg",
     "cost": {
       "material": 1
     },
     "terrain": "plain",
     "produces": "material",
-    "description": "+2 bois par tour avec un ouvrier.",
-    "pattern": "Une plaine d’entrée entre deux montagnes en ligne.",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "One plain entrance between two mountains in a line.",
     "weight": 2,
     "layout": [
       "mBm"
@@ -21,15 +21,15 @@
   },
   {
     "id": "quarry_mountain",
-    "name": "Carrière",
+    "name": "Quarry",
     "icon": "assets/textures/buildings-quarry.svg",
     "cost": {
       "material": 1
     },
     "terrain": "plain",
     "produces": "material",
-    "description": "+2 bois par tour avec un ouvrier.",
-    "pattern": "Une plaine d’entrée suivie de deux montagnes en ligne.",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "One plain entrance followed by two mountains in a line.",
     "weight": 2,
     "layout": [
       "Bmm"
@@ -42,15 +42,15 @@
   },
   {
     "id": "quarry_ridge",
-    "name": "Carrière",
+    "name": "Quarry",
     "icon": "assets/textures/buildings-quarry.svg",
     "cost": {
       "material": 1
     },
     "terrain": "mountain",
     "produces": "material",
-    "description": "+2 bois par tour avec un ouvrier.",
-    "pattern": "Trois montagnes en coude ; entrée à une extrémité.",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three mountains in an L; entrance at one end.",
     "weight": 2,
     "layout": [
       "Bm",

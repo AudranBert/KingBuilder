@@ -20,9 +20,13 @@ Une partie reste active tant que la page reste ouverte. Choisir un mode depuis l
 
 Le drapeau du menu principal bascule entre le français et l’anglais à chaque clic. Le français est utilisé au premier lancement ; le choix est ensuite conservé dans le navigateur.
 
-Les textes sont regroupés dans `src/locales/fr.js` et `src/locales/en.js`, avec les mêmes clés dans les deux fichiers. Les vues utilisent `t(clé, paramètres)` ; les paramètres `{0}`, `{1}`, etc. peuvent être réordonnés selon la langue. Les traductions ne contiennent pas la mise en page HTML.
+L’anglais est la langue de référence des données et des messages du moteur. Les JSON de `config/` contiennent les noms, descriptions, motifs et intentions en anglais. Les traductions françaises sont regroupées dans `src/locales/fr.js`. Les textes généraux de l’interface ont leur référence anglaise dans `src/locales/en.js`. Les vues utilisent `t(clé, paramètres)` ; les paramètres `{0}`, `{1}`, etc. peuvent être réordonnés selon la langue. Les traductions ne contiennent pas la mise en page HTML.
 
-Les noms et descriptions du catalogue utilisent des clés fondées sur les identifiants de configuration, par exemple `buildings.house.name`. Les textes statiques déclarent leur clé avec `data-i18n` et les attributs accessibles avec `data-i18n-aria-label`, `data-i18n-title` ou `data-i18n-placeholder`. Pour ajouter ou modifier un texte, mettre à jour les deux fichiers de langue ; les tests vérifient la parité et la couverture du catalogue.
+Les noms et descriptions du catalogue utilisent des clés fondées sur les identifiants de configuration, par exemple `buildings.house.name`. Les textes statiques déclarent leur clé avec `data-i18n` et les attributs accessibles avec `data-i18n-aria-label`, `data-i18n-title` ou `data-i18n-placeholder`. Pour modifier un bâtiment, une mission, un terrain, une tuile ou une carte, éditer le texte anglais dans son JSON puis sa traduction dans `fr.js`. Les textes des JSON sont enregistrés automatiquement comme références anglaises : ne pas les recopier dans `en.js`. Une traduction française absente affiche le texte anglais du JSON. Pour les textes généraux de l’interface, modifier `en.js` et `fr.js`. Les tests vérifient les clés, les paramètres et la couverture des configurations. Le français reste la langue affichée par défaut.
+
+### Editing game content
+
+English is the source language. Edit names, descriptions, placement patterns and tile intents directly in `config/**/*.json`, then update the matching key in `src/locales/fr.js` (for example, `buildings.farm.name` or `maps.valley.description`). Do not duplicate JSON text in `src/locales/en.js`: it is registered automatically when the configuration loads. New content without a French translation falls back to its English JSON text. General UI messages live in `src/locales/en.js`, with French translations in `fr.js`; preserve their `{0}`, `{1}`, etc. placeholders. The display language defaults to French independently of the source language.
 
 ## Règles du duel
 

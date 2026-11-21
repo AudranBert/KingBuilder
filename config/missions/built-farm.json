@@ -1,7 +1,7 @@
 [
   {
     "id": "build-farm",
-    "name": "Construire 1 ferme",
+    "name": "Build 1 farm",
     "metric": "built",
     "target": 1,
     "building": "farm",
@@ -13,7 +13,7 @@
   },
   {
     "id": "built-farm-2",
-    "name": "Construire 2 fermes",
+    "name": "Build 2 farms",
     "metric": "built",
     "target": 2,
     "building": "farm",
@@ -25,7 +25,7 @@
   },
   {
     "id": "built-farm-3",
-    "name": "Construire 3 fermes",
+    "name": "Build 3 farms",
     "metric": "built",
     "target": 3,
     "building": "farm",

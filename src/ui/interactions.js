@@ -1,4 +1,4 @@
-import { message as sourceMessage } from "../i18n.js";
+import { message as sourceMessage, sourceText } from "../i18n.js";
 import { rotatePoint } from "../geometry.js";
 import {
   actor,
@@ -21,10 +21,11 @@ import {
 } from "../engine.js";
 
 export function placementErrorText(error) {
-  const terrain = error.match(/terrain incompatible, il faut (.*?) à la place de /);
+  error = sourceText(error);
+  const terrain = error.match(/(?:incompatible terrain, requires |terrain incompatible, il faut )(.*?)(?: instead of | à la place de )/);
   if (terrain) return sourceMessage("messages.cannotPlaceRequiresHere", [terrain[1]]);
   const adjacency = Object.values(BUILDINGS).find(b =>
-    b.adjacency?.length && error === `${b.name} : ${b.pattern}`);
+    b.adjacency?.length && (error === `${b.name} : ${b.pattern}` || error === `${b.name}: ${b.pattern}`));
   if (adjacency?.adjacency.every(rule => rule.terrain === "field" && rule.owned && rule.range === "edge"))
     return sourceMessage("messages.cannotPlaceTheEntranceMustTouchOne");
   const short = {
@@ -36,7 +37,7 @@ export function placementErrorText(error) {
     [sourceMessage("messages.thePatternExtendsBeyondTheBoard")]: sourceMessage("messages.theTileExtendsBeyondTheBoard"),
     [sourceMessage("messages.chooseYourOwnProductionBuilding")]: sourceMessage("messages.chooseOneOfYourProductionBuildings"),
   };
-  const message = short[error] || error.replace(/^(Impossible|Erreur)\s*:\s*/i, "");
+  const message = short[error] || error.replace(/^(Cannot place|Error|Impossible|Erreur)\s*:\s*/i, "");
   return sourceMessage("messages.cannotPlace", [message.charAt(0).toLowerCase() + message.slice(1)]);
 }
 export function placementGuidance(g, placement) {

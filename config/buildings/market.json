@@ -1,15 +1,15 @@
 [
   {
     "id": "market",
-    "name": "Marché",
+    "name": "Market",
     "tier": 2,
-    "description": "Réduit de 1 or le prix d’achat de chaque ressource (minimum 1). Sans ouvrier.",
+    "description": "Resource purchases cost one less gold (minimum 1). No worker required.",
     "icon": "assets/textures/buildings-market.svg",
     "cost": {
       "material": 3
     },
     "terrain": "plain",
-    "pattern": "Deux plaines : marché et place.",
+    "pattern": "Two plains: a market and a square.",
     "layout": [
       "Bp"
     ],
@@ -19,15 +19,15 @@
   },
   {
     "id": "market_water",
-    "name": "Marché",
+    "name": "Market",
     "tier": 2,
-    "description": "Réduit de 1 or le prix d’achat de chaque ressource (minimum 1). Sans ouvrier.",
+    "description": "Resource purchases cost one less gold (minimum 1). No worker required.",
     "icon": "assets/textures/buildings-market.svg",
     "cost": {
       "material": 3
     },
     "terrain": "plain",
-    "pattern": "Une plaine pour le marché et une eau pour le quai.",
+    "pattern": "One plain for the market and one water space for the quay.",
     "layout": [
       "Br"
     ],

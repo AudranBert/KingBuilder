@@ -1,15 +1,15 @@
 [
   {
     "id": "large_sawmill",
-    "name": "Grand camp bûcheron",
+    "name": "Large logging camp",
     "icon": "assets/textures/buildings-sawmill.svg",
     "cost": {
       "material": 3
     },
     "terrain": "forest",
     "produces": "material",
-    "description": "+3 bois par tour avec un ouvrier.",
-    "pattern": "Cinq forêts en bloc prolongé ; entrée dans un angle.",
+    "description": "+3 wood per turn with a worker.",
+    "pattern": "Five forests in an extended block; entrance at a corner.",
     "weight": 1,
     "layout": [
       "Bf",
@@ -24,15 +24,15 @@
   },
   {
     "id": "large_sawmill_t",
-    "name": "Grand camp bûcheron",
+    "name": "Large logging camp",
     "icon": "assets/textures/buildings-sawmill.svg",
     "cost": {
       "material": 3
     },
     "terrain": "forest",
     "produces": "material",
-    "description": "+3 bois par tour avec un ouvrier.",
-    "pattern": "Cinq forêts en T.",
+    "description": "+3 wood per turn with a worker.",
+    "pattern": "Five forests in a T.",
     "weight": 1,
     "layout": [
       "fBf",

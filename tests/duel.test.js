@@ -102,7 +102,7 @@ test("tour : tous les terrains révélés libres, avec ou sans drapeau",()=>{
     assert.equal(g.board["2,2"].building.type,"outpost");
     assert.equal(g.board["2,2"].terrain,terrain);
     endTurn(g);endTurn(g);g.buildingMarket[0]="outpost";
-    assert.match(buildError(g,0,2,2),/chevauche/);
+    assert.match(buildError(g,0,2,2),/overlaps/);
   }
   const g=game();prepareBuilding(g,"outpost");g.board["2,2"].flag={owner:null};
   build(g,0,2,2);assert.equal(g.board["2,2"].flag.owner,0);
@@ -122,7 +122,7 @@ test("donjon : une égalité conserve le donjon ; une occupation termine immédi
   assert.equal(g.finished,false);assert.ok(g.board[key(x,y)].building);
   units=soldiers(g,0,3,x-1,y);selectUnit(g,units[0].id);attack(g,x,y);
   assert.equal(g.finished,true);assert.equal(g.winner,0);assert.equal(g.victory,"conquest");
-  assert.equal(armyAt(g,0,x,y).length,1);assert.throws(()=>endTurn(g),/terminée/);
+  assert.equal(armyAt(g,0,x,y).length,1);assert.throws(()=>endTurn(g),/game is over/);
   validateGame(g);
 });
 
@@ -220,8 +220,8 @@ test("les recrues grisées ne repartent pas en fusionnant et les soldats ne bât
   const g=game(), fresh=soldiers(g,0,1,2,2)[0];soldiers(g,0,2,2,2,{ended:true,moves:0});
   selectUnit(g,fresh.id);assert.equal(selectedSoldiers(g).length,1);move(g,3,2);
   assert.equal(armyAt(g,0,2,2).length,2);
-  assert.match(buildError(g,0,3,2),/ne peuvent pas construire/);
-  assert.match(exploreError(g,0,3,3),/ne peuvent pas explorer/);
+  assert.match(buildError(g,0,3,2),/cannot build/);
+  assert.match(exploreError(g,0,3,3),/cannot explore/);
 });
 
 test("déplacement puis combat : cible à trois cases, aucune chaîne d’occupation",()=>{

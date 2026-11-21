@@ -1,15 +1,15 @@
 [
   {
     "id": "stable",
-    "name": "Écurie",
+    "name": "Stable",
     "tier": 3,
-    "description": "+1 PM aux unités du royaume. Sans ouvrier, non cumulable.",
+    "description": "+1 movement point to your units. No worker required; does not stack.",
     "icon": "assets/textures/buildings-stable.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Trois plaines en ligne : écurie et enclos.",
+    "pattern": "Three plains in a line: stable and paddock.",
     "layout": [
       "Bpp"
     ],
@@ -19,15 +19,15 @@
   },
   {
     "id": "stable_forest",
-    "name": "Écurie",
+    "name": "Stable",
     "tier": 3,
-    "description": "+1 PM aux unités du royaume. Sans ouvrier, non cumulable.",
+    "description": "+1 movement point to your units. No worker required; does not stack.",
     "icon": "assets/textures/buildings-stable.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Trois cases en coude : deux plaines et une eau.",
+    "pattern": "Three spaces in an L: two plains and one water space.",
     "layout": [
       "Br",
       "p."

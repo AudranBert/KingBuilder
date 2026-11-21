@@ -323,7 +323,7 @@ test("tous les bâtiments sont dans la pioche et les anciennes parties restent j
   );
   g.version = 1;
   const old = structuredClone(g.board);
-  assert.throws(() => migrateGame(g), /anciennes règles/);
+  assert.throws(() => migrateGame(g), /Older rules/);
   g.version = 6;
   migrateGame(g);
   assert.equal(g.version, 6);

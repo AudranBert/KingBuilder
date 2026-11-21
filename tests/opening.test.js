@@ -12,10 +12,10 @@ test("préparation commune : cinq offres, ordre J2 J1 J2 J1 et tour 1 intact", (
   assert.equal(g.opening.tiles.length, 5);
   assert.ok(g.opening.tiles.every(tile => [5, 6].includes(tile.cells.length)));
   assert.equal(g.active, 1);
-  assert.throws(() => endTurn(g), /préparation/);
-  assert.match(moveError(g, 11, 6), /préparation/);
-  assert.match(exploreError(g, 0, 10, 6), /préparation/);
-  assert.match(buildError(g, 0, 11, 6), /préparation/);
+  assert.throws(() => endTurn(g), /setup/);
+  assert.match(moveError(g, 11, 6), /setup/);
+  assert.match(exploreError(g, 0, 10, 6), /setup/);
+  assert.match(buildError(g, 0, 11, 6), /setup/);
   const owners = [];
   for (let turn = 0; turn < 4; turn++) {
     owners.push(g.active);
@@ -45,7 +45,7 @@ test("préparation : pose invalide atomique et solo à deux poses", () => {
   const g = createGame(() => 0.42, "solo", { mapId: null, boardSize: 13, openingTilesPerPlayer: 2 });
   startOpening(g);
   const before = structuredClone(g);
-  assert.match(openingError(g, 0, 0, 6), /chevauchement/);
+  assert.match(openingError(g, 0, 0, 6), /overlapping/);
   assert.throws(() => placeOpeningTile(g, 0, 0, 6));
   assert.deepEqual(g, before);
   for (let i = 0; i < 2; i++) {

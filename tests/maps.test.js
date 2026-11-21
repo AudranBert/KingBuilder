@@ -73,7 +73,7 @@ test("le scaling conserve les motifs et les variantes remplacent les zones", () 
 
 test("Nouveau monde conserve cinq drapeaux symétriques et aucun terrain supplémentaire", () => {
   const map = MAPS.find(map => map.id === 'base');
-  assert.equal(map.name.fr, 'Nouveau monde');
+  assert.equal(map.name, 'New lands');
   for (const boardSize of [9, 11, 13]) {
     const positions = mapCells(map, boardSize);
     const center = (boardSize - 1) / 2;

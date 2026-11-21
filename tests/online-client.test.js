@@ -67,7 +67,7 @@ test('reprise : une partie terminée ou abandonnée ne peut plus être reprise',
   client.accept(host); // A stale local entry must also be rejected by server verification.
   assert.equal(await client.canResume(), false);
   assert.equal(savedSession(), null);
-  await assert.rejects(client.resume(), /inachevée/);
+  await assert.rejects(client.resume(), /unfinished/);
 });
 
 test('reprise : terminer une partie dans un onglet ne supprime pas celle d’un autre onglet', t => {

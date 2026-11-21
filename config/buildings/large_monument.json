@@ -1,7 +1,7 @@
 [
   {
     "id": "large_monument",
-    "name": "Gros monument",
+    "name": "Large monument",
     "tier": 3,
     "description": "+7 score.",
     "icon": "assets/textures/buildings-monument.svg",
@@ -9,7 +9,7 @@
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Cinq cases en bloc : deux plaines, une eau et deux montagnes.",
+    "pattern": "Five spaces in a block: two plains, one water space and two mountains.",
     "layout": [
       "pBr",
       ".mm"
@@ -19,7 +19,7 @@
   },
   {
     "id": "large_monument_l",
-    "name": "Gros monument",
+    "name": "Large monument",
     "tier": 3,
     "description": "+7 score.",
     "icon": "assets/textures/buildings-monument.svg",
@@ -27,7 +27,7 @@
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Six cases en escalier : trois plaines et trois forêts.",
+    "pattern": "Six spaces in a staircase: three plains and three forests.",
     "layout": [
       "Bpf",
       "pf.",

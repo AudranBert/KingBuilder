@@ -796,11 +796,11 @@ export function startGame({ initialGame = null } = {}) {
   let lobbySaveTimer;
   function updateMapDescription() {
     const map = MAPS.find(map => map.id === $('#setting-map').value);
-    $('#setting-map-description').textContent = map ? map.description[getLanguage()] : t('maps.randomHelp');
+    $('#setting-map-description').textContent = map ? definitionText('maps', map, 'description') : t('maps.randomHelp');
   }
   function renderMapOptions() {
     const current = $('#setting-map').value || GAME_DEFAULTS.mapId;
-    html('#setting-map', `<option value="random">${e(t('maps.random'))}</option>${MAPS.map(map => `<option value="${e(map.id)}">${e(map.name[getLanguage()])}</option>`).join('')}`);
+    html('#setting-map', `<option value="random">${e(t('maps.random'))}</option>${MAPS.map(map => `<option value="${e(map.id)}">${e(definitionText('maps', map))}</option>`).join('')}`);
     $('#setting-map').value = current;
     updateMapDescription();
   }

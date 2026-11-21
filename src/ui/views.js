@@ -58,7 +58,7 @@ function mapsCatalogueView(size) {
     <p class="map-preview-legend">${t("maps.previewLegend")}</p>
     <div class="catalogue-grid">${MAPS.map(map => {
       const game = createGame(() => .5, 'local', { mapId: map.id, boardSize });
-      const name = map.name[getLanguage()];
+      const name = definitionText('maps', map);
       const flags = Object.values(game.board).filter(cell => cell.flag).length;
       const cells = Array.from({ length: boardSize ** 2 }, (_, i) => {
         const x = i % boardSize, y = Math.floor(i / boardSize), cell = game.board[key(x, y)];
@@ -66,7 +66,7 @@ function mapsCatalogueView(size) {
         const color = cell?.building ? cell.building.owner === 0 ? '#a85b00' : '#156958' : '#483819';
         return `<rect x="${x * 20}" y="${y * 20}" width="19" height="19" rx="2" fill="${cell ? TERRAINS[cell.terrain].color : '#f1eadb'}"/>${symbol ? `<text x="${x * 20 + 9.5}" y="${y * 20 + 10}" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="bold" fill="${color}" stroke="#fff8e8" stroke-width=".65" paint-order="stroke">${symbol}</text>` : ''}`;
       }).join('');
-      return `<article class="catalogue-card" data-catalogue-map="${e(map.id)}"><h3>${e(name)}</h3><svg class="map-preview" viewBox="0 0 ${boardSize * 20} ${boardSize * 20}" role="img" aria-label="${e(t("maps.previewLabel", [name, boardSize, flags]))}">${cells}</svg><p>${e(map.description[getLanguage()])}</p></article>`;
+      return `<article class="catalogue-card" data-catalogue-map="${e(map.id)}"><h3>${e(name)}</h3><svg class="map-preview" viewBox="0 0 ${boardSize * 20} ${boardSize * 20}" role="img" aria-label="${e(t("maps.previewLabel", [name, boardSize, flags]))}">${cells}</svg><p>${e(definitionText('maps', map, 'description'))}</p></article>`;
     }).join('')}</div></section>`;
 }
 

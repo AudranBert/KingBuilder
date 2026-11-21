@@ -1,7 +1,7 @@
 [
   {
     "id": "stock-wood",
-    "name": "Avoir 5 matériaux",
+    "name": "Have 5 materials",
     "metric": "resources",
     "target": 5,
     "resource": "material",
@@ -13,7 +13,7 @@
   },
   {
     "id": "resources-wood-8",
-    "name": "Réserve de matériaux : 8",
+    "name": "Material reserve: 8",
     "metric": "resources",
     "target": 8,
     "resource": "material",
@@ -25,7 +25,7 @@
   },
   {
     "id": "resources-wood-12",
-    "name": "Réserve de matériaux : 12",
+    "name": "Material reserve: 12",
     "metric": "resources",
     "target": 12,
     "resource": "material",

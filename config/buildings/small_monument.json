@@ -1,7 +1,7 @@
 [
   {
     "id": "small_monument",
-    "name": "Petit monument",
+    "name": "Small monument",
     "tier": 2,
     "description": "+2 score.",
     "icon": "assets/textures/buildings-monument.svg",
@@ -9,7 +9,7 @@
       "material": 3
     },
     "terrain": "plain",
-    "pattern": "Une plaine d’entrée et une montagne.",
+    "pattern": "One plain entrance and one mountain.",
     "layout": [
       "Bm"
     ],
@@ -18,7 +18,7 @@
   },
   {
     "id": "small_monument_forest",
-    "name": "Petit monument",
+    "name": "Small monument",
     "tier": 2,
     "description": "+2 score.",
     "icon": "assets/textures/buildings-monument.svg",
@@ -26,7 +26,7 @@
       "material": 3
     },
     "terrain": "plain",
-    "pattern": "Une plaine d’entrée et une eau.",
+    "pattern": "One plain entrance and one water space.",
     "layout": [
       "Br"
     ],

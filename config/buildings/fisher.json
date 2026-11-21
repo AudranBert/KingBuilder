@@ -1,15 +1,15 @@
 [
   {
     "id": "fisher",
-    "name": "Pêcheur",
+    "name": "Fisher",
     "icon": "assets/textures/buildings-fisher.svg",
     "cost": {
       "material": 1
     },
     "terrain": "river",
     "produces": "food",
-    "description": "+2 blé par tour avec un ouvrier.",
-    "pattern": "Trois eaux en ligne ; entrée au centre.",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "Three water spaces in a line; entrance in the middle.",
     "weight": 2,
     "layout": [
       "rBr"
@@ -21,15 +21,15 @@
   },
   {
     "id": "fisher_bank",
-    "name": "Pêcheur",
+    "name": "Fisher",
     "icon": "assets/textures/buildings-fisher.svg",
     "cost": {
       "material": 1
     },
     "terrain": "plain",
     "produces": "food",
-    "description": "+2 blé par tour avec un ouvrier.",
-    "pattern": "Une plaine d’entrée suivie de deux eaux en ligne.",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "One plain entrance followed by two water spaces in a line.",
     "weight": 2,
     "layout": [
       "Brr"
@@ -42,15 +42,15 @@
   },
   {
     "id": "fisher_corner",
-    "name": "Pêcheur",
+    "name": "Fisher",
     "icon": "assets/textures/buildings-fisher.svg",
     "cost": {
       "material": 1
     },
     "terrain": "plain",
     "produces": "food",
-    "description": "+2 blé par tour avec un ouvrier.",
-    "pattern": "Une plaine d’entrée et deux eaux en coude.",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "One plain entrance and two water spaces in an L.",
     "weight": 2,
     "layout": [
       "rr",

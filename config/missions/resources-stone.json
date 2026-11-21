@@ -1,7 +1,7 @@
 [
   {
     "id": "stock-stone",
-    "name": "Avoir 4 matériaux",
+    "name": "Have 4 materials",
     "metric": "resources",
     "target": 4,
     "resource": "material",
@@ -13,7 +13,7 @@
   },
   {
     "id": "resources-stone-7",
-    "name": "Réserve de pierre : 7",
+    "name": "Stone reserve: 7",
     "metric": "resources",
     "target": 7,
     "resource": "material",
@@ -25,7 +25,7 @@
   },
   {
     "id": "resources-stone-10",
-    "name": "Réserve de pierre : 10",
+    "name": "Stone reserve: 10",
     "metric": "resources",
     "target": 10,
     "resource": "material",

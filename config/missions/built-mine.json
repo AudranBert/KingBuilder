@@ -1,7 +1,7 @@
 [
   {
     "id": "build-mine",
-    "name": "Construire 1 mine",
+    "name": "Build 1 mine",
     "metric": "built",
     "target": 1,
     "building": "mine",
@@ -13,7 +13,7 @@
   },
   {
     "id": "built-mine-2",
-    "name": "Construire 2 mines",
+    "name": "Build 2 mines",
     "metric": "built",
     "target": 2,
     "building": "mine",
@@ -25,7 +25,7 @@
   },
   {
     "id": "built-mine-3",
-    "name": "Construire 3 mines",
+    "name": "Build 3 mines",
     "metric": "built",
     "target": 3,
     "building": "mine",

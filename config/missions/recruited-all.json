@@ -1,7 +1,7 @@
 [
   {
     "id": "workers-1",
-    "name": "Recruter 1 ouvrier",
+    "name": "Recruit 1 worker",
     "metric": "recruited",
     "target": 1,
     "reward": {
@@ -12,7 +12,7 @@
   },
   {
     "id": "workers-3",
-    "name": "Recruter 3 ouvriers",
+    "name": "Recruit 3 workers",
     "metric": "recruited",
     "target": 3,
     "reward": {
@@ -23,7 +23,7 @@
   },
   {
     "id": "recruited-all-5",
-    "name": "Recruter 5 ouvriers",
+    "name": "Recruit 5 workers",
     "metric": "recruited",
     "target": 5,
     "reward": {

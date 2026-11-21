@@ -1,15 +1,15 @@
 [
   {
     "id": "great_bridge",
-    "name": "Grand pont",
+    "name": "Great bridge",
     "tier": 3,
-    "description": "+6 score. Deux eaux reliant deux rives obligatoires sur plaine ou forêt.",
+    "description": "+6 score. Two water spaces connecting two required plain or forest banks.",
     "icon": "assets/textures/buildings-bridge.svg",
     "cost": {
       "material": 4
     },
     "terrain": "river",
-    "pattern": "Deux eaux en ligne entre deux rives obligatoires sur plaine ou forêt.",
+    "pattern": "Two water spaces in a line between two required plain or forest banks.",
     "layout": [
       "lBrl"
     ],
@@ -20,15 +20,15 @@
   },
   {
     "id": "great_bridge_bend",
-    "name": "Grand pont",
+    "name": "Great bridge",
     "tier": 3,
-    "description": "+6 score. Deux eaux reliant deux rives obligatoires sur plaine ou forêt.",
+    "description": "+6 score. Two water spaces connecting two required plain or forest banks.",
     "icon": "assets/textures/buildings-bridge.svg",
     "cost": {
       "material": 4
     },
     "terrain": "river",
-    "pattern": "Deux eaux reliées et deux rives décalées obligatoires sur plaine ou forêt.",
+    "pattern": "Two connected water spaces with two offset, required plain or forest banks.",
     "layout": [
       "l.",
       "Br",

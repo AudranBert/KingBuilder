@@ -1,15 +1,15 @@
 [
   {
     "id": "wood_mill",
-    "name": "Scierie",
+    "name": "Sawmill",
     "tier": 2,
-    "description": "+1 bois aux camps bûcherons à portée de 2. Sans ouvrier, non cumulable.",
+    "description": "+1 wood to logging camps within two orthogonal steps. No worker required; does not stack.",
     "icon": "assets/textures/buildings-wood-mill.svg",
     "cost": {
       "material": 3
     },
     "terrain": "plain",
-    "pattern": "Une plaine pour la scierie et une forêt pour le bois.",
+    "pattern": "One plain for the sawmill and one forest for timber.",
     "layout": [
       "Bf"
     ],
@@ -24,15 +24,15 @@
   },
   {
     "id": "wood_mill_forest",
-    "name": "Scierie",
+    "name": "Sawmill",
     "tier": 2,
-    "description": "+1 bois aux camps bûcherons à portée de 2. Sans ouvrier, non cumulable.",
+    "description": "+1 wood to logging camps within two orthogonal steps. No worker required; does not stack.",
     "icon": "assets/textures/buildings-wood-mill.svg",
     "cost": {
       "material": 3
     },
     "terrain": "forest",
-    "pattern": "Deux forêts : scierie et réserve de bois.",
+    "pattern": "Two forests: a sawmill and a timber reserve.",
     "layout": [
       "Bf"
     ],

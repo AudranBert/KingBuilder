@@ -3,21 +3,63 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import english from "../src/locales/en.js";
 import french from "../src/locales/fr.js";
-import { t, translateMessage, getLanguage, setLanguage, restoreLanguage, translateDocument, kingdomName } from "../src/i18n.js";
+import { t, message, definitionText, registerDefinitions, translateMessage, getLanguage, setLanguage, restoreLanguage, translateDocument, kingdomName } from "../src/i18n.js";
 import { createGame, BUILDINGS } from "../src/engine.js";
 import { BUILDING_CONFIGURATION, TERRAIN_TILE_CONFIGURATION, MISSION_CONFIGURATION } from "../src/configuration.js";
 import { catalogueView, buildingDetailsView, playersView, rulesView, trainingView } from "../src/ui/views.js";
 import { e } from "../src/ui/html.js";
 import { placementErrorText } from "../src/ui/interactions.js";
 
+test("English JSON text is authoritative and missing French translations fall back to it", () => {
+  const farm = BUILDINGS.farm;
+  const edited = { ...farm, name: "Edited farm" };
+  const added = { id: "test_new_building", name: "New workshop", description: "A new production building." };
+  try {
+    setLanguage("en", { persist: false });
+    assert.equal(definitionText("buildings", farm), "Farm");
+    assert.equal(definitionText("buildings", edited), "Edited farm");
+    assert.equal(message("messages.theGameIsOver"), "The game is over.");
+    setLanguage("fr", { persist: false });
+    assert.equal(definitionText("buildings", farm), "Ferme");
+    assert.equal(definitionText("buildings", added), "New workshop");
+    assert.equal(definitionText("buildings", added, "description"), added.description);
+    assert.equal(message("messages.theGameIsOver"), "The game is over.");
+    registerDefinitions("buildings", [added]);
+    assert.equal(t("buildings.test_new_building.name"), "New workshop");
+    const source = readFileSync(new URL("../src/locales/en.js", import.meta.url), "utf8");
+    assert.doesNotMatch(source, /"buildings\.farm\.(name|description|pattern)"/);
+  } finally {
+    for (const field of ["name", "description"]) delete english[`buildings.test_new_building.${field}`];
+    registerDefinitions("buildings", [farm]);
+    setLanguage("fr", { persist: false });
+  }
+});
+
+test("English engine messages and legacy French messages display in either language", () => {
+  try {
+    setLanguage("fr", { persist: false });
+    assert.equal(translateMessage(message("messages.theGameIsOver")), "La partie est terminée.");
+    assert.equal(translateMessage("La partie est terminée."), "La partie est terminée.");
+    assert.equal(translateMessage("Cannot place: requires plain or fields here."), "Impossible : il faut plaine ou champs ici.");
+    assert.equal(translateMessage("Cannot place: insufficient resources: missing 2 materials, 1 food (not enough gold)."),
+      "Impossible : Ressources insuffisantes : il manque 2 matériaux, 1 nourriture (or insuffisant).");
+    assert.equal(translateMessage("Unknown player <King>"), "Unknown player <King>");
+    assert.equal(kingdomName("Kingdom of Amber"), french["players.amber"]);
+    assert.equal(kingdomName("Amber"), "Ambre");
+    setLanguage("en", { persist: false });
+    assert.equal(translateMessage("La partie est terminée."), "The game is over.");
+    assert.equal(kingdomName("Royaume d'Ambre"), "Kingdom of Amber");
+  } finally { setLanguage("fr", { persist: false }); }
+});
+
 test("les traductions couvrent chaque texte du catalogue et des configurations", () => {
   assert.deepEqual(Object.keys(english).sort(), Object.keys(french).sort());
-  const frenchMessages = new Set(Object.values(french));
+  const englishMessages = new Set(Object.values(english));
   function visit(value) {
     if (!value || typeof value !== "object") return;
     for (const [key, entry] of Object.entries(value)) {
       if (["name", "description", "pattern", "intent"].includes(key) && typeof entry === "string") {
-        assert.ok(frenchMessages.has(entry), `Missing translation: ${entry}`);
+        assert.ok(englishMessages.has(entry), `Missing English source text: ${entry}`);
       } else visit(entry);
     }
   }
@@ -57,7 +99,7 @@ test("l’anglais traduit l’interface sans modifier la partie ni les pseudos",
     assert.equal(t("app.amber", [e("Maison <King>"), 1]), "Maison &lt;King&gt; (Amber) · 1");
     assert.equal(t("app.amber", ["Maison {1}", 7]), "Maison {1} (Amber) · 7");
     assert.equal(kingdomName("Maison"), "Maison");
-    assert.match(catalogueView(), /soldier granted; recruit 1 \/ turn/);
+    assert.match(catalogueView(), /Recruit one soldier for one wheat, once per turn/);
     assert.match(catalogueView(), /losing your keep means defeat/);
     assert.match(buildingDetailsView("house"), /House/);
     assert.match(rulesView(game), /7\. Move the pieces/);

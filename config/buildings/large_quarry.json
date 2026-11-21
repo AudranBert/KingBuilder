@@ -1,15 +1,15 @@
 [
   {
     "id": "large_quarry",
-    "name": "Grande carrière",
+    "name": "Large quarry",
     "icon": "assets/textures/buildings-quarry.svg",
     "cost": {
       "material": 3
     },
     "terrain": "plain",
     "produces": "material",
-    "description": "+3 bois par tour avec un ouvrier.",
-    "pattern": "Cinq cases en bloc : une entrée sur plaine, deux montagnes et deux forêts.",
+    "description": "+3 wood per turn with a worker.",
+    "pattern": "Five spaces in a block: a plain entrance, two mountains and two forests.",
     "weight": 1,
     "layout": [
       "Bmm",
@@ -23,15 +23,15 @@
   },
   {
     "id": "large_quarry_line",
-    "name": "Grande carrière",
+    "name": "Large quarry",
     "icon": "assets/textures/buildings-quarry.svg",
     "cost": {
       "material": 3
     },
     "terrain": "plain",
     "produces": "material",
-    "description": "+3 bois par tour avec un ouvrier.",
-    "pattern": "Cinq cases en bloc : une entrée sur plaine, deux montagnes et deux forêts du côté de l’entrée.",
+    "description": "+3 wood per turn with a worker.",
+    "pattern": "Five spaces in a block: a plain entrance, two mountains and two forests on the entrance side.",
     "weight": 1,
     "layout": [
       "Bmm",

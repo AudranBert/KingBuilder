@@ -1,7 +1,7 @@
 [
   {
     "id": "large_fisher",
-    "name": "Grande cabane de pêcheur",
+    "name": "Large fishing hut",
     "icon": "assets/textures/buildings-fisher.svg",
     "cost": {
       "material": 3
@@ -11,8 +11,8 @@
       "river"
     ],
     "produces": "food",
-    "description": "+3 blé par tour avec un ouvrier.",
-    "pattern": "Cinq cases : entrée sur plaine ou eau et quatre eaux en bloc.",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five spaces: a plain or water entrance and four water spaces in a block.",
     "weight": 1,
     "layout": [
       "Brr",
@@ -26,7 +26,7 @@
   },
   {
     "id": "large_fisher_line",
-    "name": "Grande cabane de pêcheur",
+    "name": "Large fishing hut",
     "icon": "assets/textures/buildings-fisher.svg",
     "cost": {
       "material": 3
@@ -36,8 +36,8 @@
       "river"
     ],
     "produces": "food",
-    "description": "+3 blé par tour avec un ouvrier.",
-    "pattern": "Cinq cases en ligne : entrée sur plaine ou eau, trois eaux puis une plaine.",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five spaces in a line: a plain or water entrance, three water spaces, then one plain.",
     "weight": 1,
     "layout": [
       "Brrrp"

@@ -1,15 +1,15 @@
 [
   {
     "id": "port",
-    "name": "Port",
+    "name": "Harbor",
     "icon": "assets/textures/buildings-port.svg",
     "cost": {
       "material": 2
     },
     "terrain": "plain",
     "produces": "gold",
-    "description": "+1 or avec un ouvrier ; +2 si marché ou pêcheur à portée de 2, ou autre port relié par eau continue.",
-    "pattern": "Une plaine avec 3 cases de rivière alignées sur un côté.",
+    "description": "+1 gold with a worker; +2 with a market or fisher within two steps, or another harbor connected by continuous water.",
+    "pattern": "One plain with 3 river spaces in a line along one side.",
     "weight": 2,
     "layout": [
       ".r",
@@ -24,15 +24,15 @@
   },
   {
     "id": "port_square",
-    "name": "Port",
+    "name": "Harbor",
     "icon": "assets/textures/buildings-port.svg",
     "cost": {
       "material": 2
     },
     "terrain": "plain",
     "produces": "gold",
-    "description": "+1 or avec un ouvrier ; +2 si marché ou pêcheur à portée de 2, ou autre port relié par eau continue.",
-    "pattern": "Une plaine d’entrée à côté d’un carré de 2 × 2 cases de rivière.",
+    "description": "+1 gold with a worker; +2 with a market or fisher within two steps, or another harbor connected by continuous water.",
+    "pattern": "One plain entrance beside a 2 × 2 river square.",
     "weight": 2,
     "layout": [
       "Brr",
@@ -47,15 +47,15 @@
   },
   {
     "id": "port_l",
-    "name": "Port",
+    "name": "Harbor",
     "icon": "assets/textures/buildings-port.svg",
     "cost": {
       "material": 2
     },
     "terrain": "plain",
     "produces": "gold",
-    "description": "+1 or avec un ouvrier ; +2 si marché ou pêcheur à portée de 2, ou autre port relié par eau continue.",
-    "pattern": "Une entrée sur plaine et trois cases de rivière en coude.",
+    "description": "+1 gold with a worker; +2 with a market or fisher within two steps, or another harbor connected by continuous water.",
+    "pattern": "One plain entrance and three river spaces in a bend.",
     "weight": 1,
     "layout": [
       "Brr",

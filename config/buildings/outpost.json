@@ -1,7 +1,7 @@
 [
   {
     "id": "outpost",
-    "name": "Tour",
+    "name": "Tower",
     "icon": "assets/textures/buildings-outpost.svg",
     "cost": {
       "material": 2
@@ -13,8 +13,8 @@
       "river",
       "field"
     ],
-    "description": "Garnison 1.",
-    "pattern": "Une case révélée libre.",
+    "description": "Garrison 1.",
+    "pattern": "One empty revealed space.",
     "layout": [
       "B"
     ],

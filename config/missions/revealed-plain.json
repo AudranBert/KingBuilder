@@ -1,7 +1,7 @@
 [
   {
     "id": "plain-3",
-    "name": "Révéler 3 plaines",
+    "name": "Reveal 3 plains",
     "metric": "revealed",
     "target": 3,
     "terrain": "plain",
@@ -13,7 +13,7 @@
   },
   {
     "id": "plain-6",
-    "name": "Révéler 6 plaines",
+    "name": "Reveal 6 plains",
     "metric": "revealed",
     "target": 6,
     "terrain": "plain",
@@ -25,7 +25,7 @@
   },
   {
     "id": "revealed-plain-9",
-    "name": "Révéler 9 plaines",
+    "name": "Reveal 9 plains",
     "metric": "revealed",
     "target": 9,
     "terrain": "plain",

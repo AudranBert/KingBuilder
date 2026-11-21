@@ -8,7 +8,7 @@
     },
     "terrain": "mountain",
     "description": "Passage.",
-    "pattern": "Une case de montagne.",
+    "pattern": "One mountain space.",
     "weight": 6,
     "layout": [
       "B"

@@ -1,7 +1,7 @@
 [
   {
     "id": "mountain-3",
-    "name": "Révéler 3 montagnes",
+    "name": "Reveal 3 mountains",
     "metric": "revealed",
     "target": 3,
     "terrain": "mountain",
@@ -13,7 +13,7 @@
   },
   {
     "id": "mountain-6",
-    "name": "Révéler 6 montagnes",
+    "name": "Reveal 6 mountains",
     "metric": "revealed",
     "target": 6,
     "terrain": "mountain",
@@ -25,7 +25,7 @@
   },
   {
     "id": "revealed-mountain-9",
-    "name": "Révéler 9 montagnes",
+    "name": "Reveal 9 mountains",
     "metric": "revealed",
     "target": 9,
     "terrain": "mountain",

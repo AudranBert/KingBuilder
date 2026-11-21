@@ -2,7 +2,7 @@
   "terrains": [
     {
       "id": "plain",
-      "name": "Plaine",
+      "name": "Plain",
       "icon": "assets/textures/terrains-plain.svg",
       "walkable": true,
       "color": "#bacb86",
@@ -11,7 +11,7 @@
     },
     {
       "id": "forest",
-      "name": "Forêt",
+      "name": "Forest",
       "icon": "assets/textures/terrains-forest.svg",
       "walkable": true,
       "color": "#668c68",
@@ -20,7 +20,7 @@
     },
     {
       "id": "mountain",
-      "name": "Montagne",
+      "name": "Mountain",
       "icon": "assets/textures/terrains-mountain.svg",
       "walkable": false,
       "color": "#a6ada1",
@@ -29,7 +29,7 @@
     },
     {
       "id": "river",
-      "name": "Rivière",
+      "name": "River",
       "icon": "assets/textures/terrains-river.svg",
       "walkable": false,
       "color": "#94bdc2",
@@ -38,7 +38,7 @@
     },
     {
       "id": "field",
-      "name": "Champs",
+      "name": "Fields",
       "icon": "assets/textures/terrains-field.svg",
       "texture": "assets/textures/field.svg",
       "walkable": true,

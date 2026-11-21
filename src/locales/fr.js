@@ -1,4 +1,4 @@
-// Shared message keys; parameters use {0}, {1}, …
+// Shared message keys; parameters use {0}, {1}, etc.
 export default {
   "html.excludedTerrain": "Tout terrain sauf {0}",
   "catalogue.referenceLegend": "Pointillés : condition de placement.",
@@ -851,4 +851,12 @@ export default {
   "settings.missionsInvalid": "L’activation des missions doit être un booléen.",
   "rulesView.setupWithoutMissions": "Sur le plateau {0} × {1}, chacun place {2} tuile(s) de préparation sur des cases libres, en alternance. À deux, Jade commence.",
   "rulesView.productionWithoutMissions": "Produire donne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre, ou la production indiquée de votre bâtiment occupé. Un bâtiment produit une fois par tour. Les ouvriers sans action utilisée produisent automatiquement en fin de tour. Les moulins ajoutent +1 sans cumul. Une maison coûte 3 nourriture et 3 matériaux ; son ouvrier est actif au prochain tour. Les missions sont désactivées.",
+  "maps.clearings.name": "Les clairières",
+  "maps.clearings.description": "5 drapeaux et des forêts pour produire du bois.",
+  "maps.islands.name": "Îlot",
+  "maps.islands.description": "3 drapeaux dont 1 sur l’îlot central.",
+  "maps.base.name": "Nouveau monde",
+  "maps.base.description": "Plateau simple avec 5 drapeaux.",
+  "maps.valley.name": "La vallée",
+  "maps.valley.description": "5 drapeaux et des montagnes qui créent des zones stratégiques."
 };

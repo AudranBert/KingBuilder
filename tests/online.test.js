@@ -7,17 +7,17 @@ import { GAME_DEFAULTS } from '../src/engine.js';
 const settings = { ...GAME_DEFAULTS, openingTilesPerPlayer: 0 };
 test('pseudos : chaque joueur choisit son nom, défaut par couleur et conservation au lancement', () => {
   const rooms = new Rooms(), host = rooms.create(settings), guest = rooms.join(host.code);
-  assert.equal(host.game.players[0].name, 'Ambre');
+  assert.equal(host.game.players[0].name, 'Amber');
   assert.equal(guest.game.players[1].name, 'Jade');
   rooms.profile(host.code, guest.token, { nickname: '  Alice  ' });
   rooms.profile(host.code, host.token, { nickname: 'Bob' });
   const started = rooms.lobby(host.code, host.token, { revision: 2, start: true });
   assert.deepEqual(started.game.players.map(p => p.name), ['Bob', 'Alice']);
-  assert.throws(() => rooms.profile(host.code, guest.token, { nickname: 'Autre' }), /lancée/);
+  assert.throws(() => rooms.profile(host.code, guest.token, { nickname: 'Autre' }), /started/);
 });
 test('chronomètre : expiration autoritaire et abandon hors de son tour', () => {
   const rooms = new Rooms(), host = rooms.create(settings), guest = rooms.join(host.code);
-  assert.throws(() => rooms.lobby(host.code, host.token, { revision: 0, settings: { ...settings, turnSeconds: 10 } }), /Temps/);
+  assert.throws(() => rooms.lobby(host.code, host.token, { revision: 0, settings: { ...settings, turnSeconds: 10 } }), /time limit/);
   rooms.lobby(host.code, host.token, { revision: 0, settings: { ...settings, turnSeconds: 30 }, start: true });
   const room = rooms.rooms.get(host.code);
   assert.ok(room.deadline);
@@ -36,15 +36,15 @@ test('chronomètre : expiration autoritaire et abandon hors de son tour', () => 
 test('lobby : réglages réservés à l’hôte et lancement explicite à deux', () => {
   const rooms = new Rooms(), host = rooms.create(settings);
   assert.equal(host.started, false);
-  assert.throws(() => rooms.lobby(host.code, host.token, { revision: 0, start: true }), /deuxième/);
+  assert.throws(() => rooms.lobby(host.code, host.token, { revision: 0, start: true }), /second player/);
   const guest = rooms.join(host.code);
-  assert.throws(() => rooms.command(host.code, host.token, { id: 'early', revision: 0, command: { type: 'endTurn', args: [] } }), /lancée/);
-  assert.throws(() => rooms.lobby(host.code, guest.token, { revision: 0, settings }), /hôte/);
+  assert.throws(() => rooms.command(host.code, host.token, { id: 'early', revision: 0, command: { type: 'endTurn', args: [] } }), /started/);
+  assert.throws(() => rooms.lobby(host.code, guest.token, { revision: 0, settings }), /host/);
   const updated = rooms.lobby(host.code, host.token, { revision: 0, settings: { ...settings, rounds: 30 } });
   assert.equal(updated.started, false);
   assert.equal(rooms.read(host.code, guest.token).settings.rounds, 30);
   assert.equal(rooms.lobby(host.code, host.token, { revision: 1, start: true }).started, true);
-  assert.throws(() => rooms.lobby(host.code, host.token, { revision: 2, settings }), /déjà/);
+  assert.throws(() => rooms.lobby(host.code, host.token, { revision: 2, settings }), /already/);
 });
 
 test('missions : le choix de l’hôte est partagé et appliqué au lancement en ligne', () => {
@@ -56,7 +56,7 @@ test('missions : le choix de l’hôte est partagé et appliqué au lancement en
   assert.equal(updated.game.missionsEnabled, true);
   assert.ok(updated.game.missions.market.length > 0);
   assert.equal(rooms.read(host.code, guest.token).settings.missionsEnabled, true);
-  assert.throws(() => rooms.lobby(host.code, guest.token, { revision: 1, settings: noMissions }), /hôte/);
+  assert.throws(() => rooms.lobby(host.code, guest.token, { revision: 1, settings: noMissions }), /host/);
   const started = rooms.lobby(host.code, host.token, { revision: 1, settings: noMissions, start: true });
   assert.equal(started.game.missionsEnabled, false);
   assert.deepEqual(started.game.missions.market, []);
@@ -80,25 +80,25 @@ test('cartes : le choix de l’hôte et le plateau sont partagés en ligne', () 
 test('salon privé : authentification, tours, commandes atomiques et dédoublonnage', () => {
   const rooms = new Rooms(), host = rooms.create(settings), guest = rooms.join(host.code);
   assert.equal(host.player, 0); assert.equal(guest.player, 1);
-  assert.throws(() => rooms.join(host.code), /complète/);
-  assert.throws(() => rooms.read(host.code, 'fake'), /refusé/);
+  assert.throws(() => rooms.join(host.code), /full/);
+  assert.throws(() => rooms.read(host.code, 'fake'), /denied/);
   assert.equal(host.game.tileDeck.length, 0);
   rooms.rooms.get(host.code).started = true;
   const request = { id: 'one', revision: 0, command: { type: 'endTurn', args: [] } };
-  assert.throws(() => rooms.command(host.code, guest.token, request), /tour/);
+  assert.throws(() => rooms.command(host.code, guest.token, request), /turn/);
   const next = rooms.command(host.code, host.token, request);
   assert.equal(next.game.active, 1); assert.equal(next.revision, 1);
   assert.equal(rooms.command(host.code, host.token, request).revision, 1);
-  assert.throws(() => rooms.command(host.code, guest.token, { ...request, id: 'stale' }), /changé/);
+  assert.throws(() => rooms.command(host.code, guest.token, { ...request, id: 'stale' }), /changed/);
   assert.throws(() => rooms.command(host.code, guest.token, { id: 'bad', revision: 1, command: { type: 'build', args: [999, 0, 0] } }));
   assert.equal(rooms.read(host.code, guest.token).revision, 1);
 });
 test('salons : expiration et capacité bornée', () => {
   const rooms = new Rooms({ maxRooms: 1 });
   const host = rooms.create(settings);
-  assert.throws(() => rooms.create(settings), /complet/);
+  assert.throws(() => rooms.create(settings), /full/);
   rooms.rooms.get(host.code).updatedAt = 0;
-  assert.throws(() => rooms.read(host.code, host.token), /expirée/);
+  assert.throws(() => rooms.read(host.code, host.token), /expired/);
   assert.ok(rooms.create(settings));
 });
 test('API HTTP : création, invitation, reprise, validation et CORS', async t => {

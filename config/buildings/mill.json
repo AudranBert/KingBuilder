@@ -1,7 +1,7 @@
 [
   {
     "id": "mill",
-    "name": "Moulin",
+    "name": "Mill",
     "icon": "assets/textures/buildings-mill.svg",
     "cost": {
       "material": 2
@@ -10,8 +10,8 @@
       "plain",
       "field"
     ],
-    "description": "+1 blé aux fermes à portée de 2. Sans ouvrier, non cumulable.",
-    "pattern": "Une entrée sur plaine ou champ, à côté d’un champ existant.",
+    "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
+    "pattern": "A plain or field entrance beside an existing field.",
     "weight": 1,
     "layout": [
       "Bw"
@@ -27,7 +27,7 @@
   },
   {
     "id": "mill_line",
-    "name": "Moulin",
+    "name": "Mill",
     "icon": "assets/textures/buildings-mill.svg",
     "cost": {
       "material": 2
@@ -36,8 +36,8 @@
       "plain",
       "field"
     ],
-    "description": "+1 blé aux fermes à portée de 2. Sans ouvrier, non cumulable.",
-    "pattern": "Une entrée sur plaine ou champ, à côté d’un bâtiment existant hors pont et tunnel.",
+    "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
+    "pattern": "A plain or field entrance beside an existing building, excluding bridges and tunnels.",
     "weight": 2,
     "layout": [
       "Bc"
@@ -54,7 +54,7 @@
   },
   {
     "id": "mill_l",
-    "name": "Moulin",
+    "name": "Mill",
     "icon": "assets/textures/buildings-mill.svg",
     "cost": {
       "material": 2
@@ -63,8 +63,8 @@
       "plain",
       "field"
     ],
-    "description": "+1 blé aux fermes à portée de 2. Sans ouvrier, non cumulable.",
-    "pattern": "Une entrée sur plaine ou champ et deux plaines de cour en coude.",
+    "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
+    "pattern": "A plain or field entrance and two courtyard plains in an L.",
     "weight": 2,
     "layout": [
       "Bp",

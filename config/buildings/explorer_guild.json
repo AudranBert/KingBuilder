@@ -1,15 +1,15 @@
 [
   {
     "id": "explorer_guild",
-    "name": "Guilde des explorateurs",
+    "name": "Explorers guild",
     "tier": 3,
-    "description": "Permet d’acheter une case de terrain n’importe où pour 1 or. Sans ouvrier.",
+    "description": "Buy one terrain space anywhere for one gold. No worker required.",
     "icon": "assets/textures/buildings-explorer-guild.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Une plaine pour la guilde et deux montagnes en ligne.",
+    "pattern": "One plain guild and two mountains in a line.",
     "layout": [
       "Bmm"
     ],
@@ -19,15 +19,15 @@
   },
   {
     "id": "explorer_guild_forest",
-    "name": "Guilde des explorateurs",
+    "name": "Explorers guild",
     "tier": 3,
-    "description": "Permet d’acheter une case de terrain n’importe où pour 1 or. Sans ouvrier.",
+    "description": "Buy one terrain space anywhere for one gold. No worker required.",
     "icon": "assets/textures/buildings-explorer-guild.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Une plaine pour la guilde et deux forêts en coude.",
+    "pattern": "One plain guild and two forests in an L.",
     "layout": [
       "Bf",
       ".f"

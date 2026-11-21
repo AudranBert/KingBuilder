@@ -1,9 +1,9 @@
 [
   {
     "id": "toll",
-    "name": "Péage",
+    "name": "Toll gate",
     "tier": 3,
-    "description": "+1 or par bâtiment tier 1 à portée de 2, avec un ouvrier. Sur un pont ou entre deux montagnes.",
+    "description": "+1 gold per tier 1 producer within two orthogonal steps, with a worker. Build on a bridge or between two mountains.",
     "icon": "assets/textures/buildings-toll.svg",
     "cost": {
       "material": 4
@@ -12,7 +12,7 @@
       "plain",
       "river"
     ],
-    "pattern": "Entrée sur plaine ou eau, à deux cases en ligne d’un bâtiment existant, hors pont et tunnel.",
+    "pattern": "A plain or water entrance exactly two spaces in a straight line from an existing building, excluding bridges and tunnels.",
     "layout": [
       "B",
       ".",
@@ -27,9 +27,9 @@
   },
   {
     "id": "toll_forest",
-    "name": "Péage",
+    "name": "Toll gate",
     "tier": 3,
-    "description": "+1 or par bâtiment tier 1 à portée de 2, avec un ouvrier. Sur un pont ou entre deux montagnes.",
+    "description": "+1 gold per tier 1 producer within two orthogonal steps, with a worker. Build on a bridge or between two mountains.",
     "icon": "assets/textures/buildings-toll.svg",
     "cost": {
       "material": 4
@@ -38,7 +38,7 @@
       "plain",
       "river"
     ],
-    "pattern": "Entrée sur plaine ou eau, encadrée par deux cases opposées de tout terrain sauf plaine.",
+    "pattern": "A plain or water entrance between two opposite spaces of any terrain except plain.",
     "layout": [
       "!p",
       "B",

@@ -1,15 +1,15 @@
 [
   {
     "id": "sawmill",
-    "name": "Camp bûcheron",
+    "name": "Logging camp",
     "icon": "assets/textures/buildings-sawmill.svg",
     "cost": {
       "material": 1
     },
     "terrain": "forest",
     "produces": "material",
-    "description": "+2 bois par tour avec un ouvrier.",
-    "pattern": "Trois forêts en ligne ; entrée à une extrémité.",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three forests in a line; entrance at one end.",
     "weight": 2,
     "layout": [
       "Bff"
@@ -21,15 +21,15 @@
   },
   {
     "id": "sawmill_cross",
-    "name": "Camp bûcheron",
+    "name": "Logging camp",
     "icon": "assets/textures/buildings-sawmill.svg",
     "cost": {
       "material": 1
     },
     "terrain": "forest",
     "produces": "material",
-    "description": "+2 bois par tour avec un ouvrier.",
-    "pattern": "Trois forêts en ligne ; entrée au centre.",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three forests in a line; entrance in the middle.",
     "weight": 2,
     "layout": [
       "fBf"
@@ -42,15 +42,15 @@
   },
   {
     "id": "sawmill_l",
-    "name": "Camp bûcheron",
+    "name": "Logging camp",
     "icon": "assets/textures/buildings-sawmill.svg",
     "cost": {
       "material": 1
     },
     "terrain": "forest",
     "produces": "material",
-    "description": "+2 bois par tour avec un ouvrier.",
-    "pattern": "Trois forêts en coude ; entrée à une extrémité.",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three forests in an L; entrance at one end.",
     "weight": 2,
     "layout": [
       "Bf",

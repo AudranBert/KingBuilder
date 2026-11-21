@@ -1,7 +1,7 @@
 [
   {
     "id": "explore-6",
-    "name": "Révéler 6 cases",
+    "name": "Reveal 6 spaces",
     "metric": "revealed",
     "target": 6,
     "reward": {
@@ -12,7 +12,7 @@
   },
   {
     "id": "explore-12",
-    "name": "Révéler 12 cases",
+    "name": "Reveal 12 spaces",
     "metric": "revealed",
     "target": 12,
     "reward": {
@@ -23,7 +23,7 @@
   },
   {
     "id": "explore-20",
-    "name": "Révéler 20 cases",
+    "name": "Reveal 20 spaces",
     "metric": "revealed",
     "target": 20,
     "reward": {

@@ -1,7 +1,7 @@
 [
   {
     "id": "build-sawmill",
-    "name": "Construire 1 scierie",
+    "name": "Build 1 sawmill",
     "metric": "built",
     "target": 1,
     "building": "sawmill",
@@ -13,7 +13,7 @@
   },
   {
     "id": "two-sawmills",
-    "name": "Construire 2 scieries",
+    "name": "Build 2 sawmills",
     "metric": "built",
     "target": 2,
     "building": "sawmill",
@@ -25,7 +25,7 @@
   },
   {
     "id": "built-sawmill-3",
-    "name": "Construire 3 scieries",
+    "name": "Build 3 sawmills",
     "metric": "built",
     "target": 3,
     "building": "sawmill",

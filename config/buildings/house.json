@@ -1,15 +1,15 @@
 [
   {
     "id": "house",
-    "name": "Maison",
+    "name": "House",
     "icon": "assets/textures/buildings-house.svg",
     "cost": {
       "food": 3,
       "material": 3
     },
     "terrain": "plain",
-    "description": "+1 ouvrier, actif au prochain tour.",
-    "pattern": "Une plaine à côté d’un bâtiment existant, hors pont et tunnel.",
+    "description": "+1 worker, active next turn.",
+    "pattern": "One plain next to an existing building, excluding bridges and tunnels.",
     "weight": 3,
     "layout": [
       "Bc"
@@ -20,15 +20,15 @@
   },
   {
     "id": "house_water",
-    "name": "Maison",
+    "name": "House",
     "icon": "assets/textures/buildings-house.svg",
     "cost": {
       "food": 3,
       "material": 3
     },
     "terrain": "plain",
-    "description": "+1 ouvrier, actif au prochain tour.",
-    "pattern": "Une plaine à côté d’une eau.",
+    "description": "+1 worker, active next turn.",
+    "pattern": "One plain next to water.",
     "weight": 2,
     "layout": [
       "Br"
@@ -40,15 +40,15 @@
   },
   {
     "id": "house_forest",
-    "name": "Maison",
+    "name": "House",
     "icon": "assets/textures/buildings-house.svg",
     "cost": {
       "food": 3,
       "material": 3
     },
     "terrain": "plain",
-    "description": "+1 ouvrier, actif au prochain tour.",
-    "pattern": "Une plaine à côté d’une forêt.",
+    "description": "+1 worker, active next turn.",
+    "pattern": "One plain next to a forest.",
     "weight": 2,
     "layout": [
       "Bf"

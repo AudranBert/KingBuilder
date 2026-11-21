@@ -2,7 +2,7 @@
   "shapes": [
     {
       "id": "cross5",
-      "name": "Croix de 5",
+      "name": "Cross of 5",
       "weight": 1,
       "pattern": [
         ".x.",
@@ -12,7 +12,7 @@
     },
     {
       "id": "u5",
-      "name": "U de 5",
+      "name": "U of 5",
       "weight": 1,
       "pattern": [
         "x.x",
@@ -21,7 +21,7 @@
     },
     {
       "id": "stairs5",
-      "name": "Escalier de 5",
+      "name": "Staircase of 5",
       "weight": 1,
       "pattern": [
         "xx.",
@@ -31,7 +31,7 @@
     },
     {
       "id": "offset5",
-      "name": "Bloc décalé de 5",
+      "name": "Offset block of 5",
       "weight": 1,
       "pattern": [
         ".xx.",
@@ -40,7 +40,7 @@
     },
     {
       "id": "t5",
-      "name": "T de 5",
+      "name": "T of 5",
       "weight": 1,
       "pattern": [
         "xxx",
@@ -52,196 +52,196 @@
   "tiles": [
     {
       "id": "cross5-1",
-      "name": "Domaine agricole",
+      "name": "Farmland",
       "shapeId": "cross5",
       "pattern": [
         ".P.",
         "PPP",
         ".P."
       ],
-      "intent": "Motif complet de ferme"
+      "intent": "Complete farm pattern"
     },
     {
       "id": "u5-1",
-      "name": "Prairie en U",
+      "name": "U-shaped meadow",
       "shapeId": "u5",
       "pattern": [
         "P.P",
         "PPP"
       ],
-      "intent": "Entourer un espace libre"
+      "intent": "Surround an empty space"
     },
     {
       "id": "stairs5-1",
-      "name": "Lisière en escalier",
+      "name": "Stepped forest edge",
       "shapeId": "stairs5",
       "pattern": [
         "FF.",
         ".FP",
         "..P"
       ],
-      "intent": "Forêt continue et deux accès"
+      "intent": "Continuous forest and two access points"
     },
     {
       "id": "offset5-1",
-      "name": "Prairie étagée",
+      "name": "Tiered meadow",
       "shapeId": "offset5",
       "pattern": [
         ".PP.",
         ".PPP"
       ],
-      "intent": "Développer des champs"
+      "intent": "Develop fields"
     },
     {
       "id": "t5-1",
-      "name": "Prairie en T",
+      "name": "T-shaped meadow",
       "shapeId": "t5",
       "pattern": [
         "PPP",
         ".P.",
         ".P."
       ],
-      "intent": "Ferme à compléter et accès"
+      "intent": "Partial farm and access"
     },
     {
       "id": "stairs5-2",
-      "name": "Méandre en escalier",
+      "name": "Stepped meander",
       "shapeId": "stairs5",
       "pattern": [
         "RR.",
         ".RP",
         "..P"
       ],
-      "intent": "Rivière continue et rive habitable"
+      "intent": "Continuous river and habitable bank"
     },
     {
       "id": "t5-2",
-      "name": "Quai naturel",
+      "name": "Natural quay",
       "shapeId": "t5",
       "pattern": [
         "RRR",
         ".P.",
         ".P."
       ],
-      "intent": "Motif complet de port avec accès"
+      "intent": "Complete harbor pattern with access"
     },
     {
       "id": "stairs5-3",
-      "name": "Crête en escalier",
+      "name": "Stepped ridge",
       "shapeId": "stairs5",
       "pattern": [
         "MF.",
         ".PP",
         "..P"
       ],
-      "intent": "Montagne, forêt et accès en escalier"
+      "intent": "Mountain, forest and stepped access"
     },
     {
       "id": "t5-3",
-      "name": "Promontoire",
+      "name": "Headland",
       "shapeId": "t5",
       "pattern": [
         "MMM",
         ".P.",
         ".P."
       ],
-      "intent": "Trois montagnes alignées et accès"
+      "intent": "Three mountains in a line with access"
     },
     {
       "id": "line2-4",
-      "name": "Gué ouvert",
+      "name": "Open ford",
       "shapeId": "cross5",
       "pattern": [
         ".R.",
         "PRP",
         ".P."
       ],
-      "intent": "Rivière bordée de trois plaines"
+      "intent": "River bordered by three plains"
     },
     {
       "id": "cross5-4",
-      "name": "Rivière traversante",
+      "name": "Crossing river",
       "shapeId": "cross5",
       "pattern": [
         ".R.",
         "PRP",
         ".R."
       ],
-      "intent": "Trois eaux alignées et deux rives"
+      "intent": "Three water spaces in a line and two banks"
     },
     {
       "id": "u5-4",
-      "name": "Couronne rocheuse",
+      "name": "Rocky crown",
       "shapeId": "u5",
       "pattern": [
         "P.P",
         "MMM"
       ],
-      "intent": "Trois montagnes en ligne et deux accès"
+      "intent": "Three mountains in a line and two access points"
     },
     {
       "id": "stairs5-4",
-      "name": "Forêt en escalier",
+      "name": "Stepped forest",
       "shapeId": "stairs5",
       "pattern": [
         "FF.",
         ".FF",
         "..F"
       ],
-      "intent": "Forêt continue de cinq cases à contourner ou exploiter"
+      "intent": "Continuous five-space forest to go around or harvest"
     },
     {
       "id": "offset5-4",
-      "name": "Massif étagé",
+      "name": "Tiered mountain range",
       "shapeId": "offset5",
       "pattern": [
         ".MF.",
         ".MPP"
       ],
-      "intent": "Pierre avec deux accès"
+      "intent": "Stone with two access points"
     },
     {
       "id": "t5-4",
-      "name": "Bois du chemin",
+      "name": "Pathside woodland",
       "shapeId": "t5",
       "pattern": [
         "FFF",
         ".P.",
         ".P."
       ],
-      "intent": "Forêt alignée et chemin constructible"
+      "intent": "Forest in a line and buildable path"
     },
     {
       "id": "cross5-5",
-      "name": "Croisée des lisières",
+      "name": "Forest-edge crossing",
       "shapeId": "cross5",
       "pattern": [
         ".F.",
         "PPP",
         ".F."
       ],
-      "intent": "Corridor constructible entre deux bois"
+      "intent": "Buildable corridor between two woodlands"
     },
     {
       "id": "stairs5-5",
-      "name": "Bois au fil de l’eau",
+      "name": "Waterside woodland",
       "shapeId": "stairs5",
       "pattern": [
         "PF.",
         ".FR",
         "..R"
       ],
-      "intent": "Forêt et rivière continues"
+      "intent": "Continuous forest and river"
     },
     {
       "id": "offset5-5",
-      "name": "Rive étroite",
+      "name": "Narrow bank",
       "shapeId": "offset5",
       "pattern": [
         ".PR.",
         ".PRR"
       ],
-      "intent": "Plaine longeant une rivière"
+      "intent": "Plain alongside a river"
     }
   ]
 }

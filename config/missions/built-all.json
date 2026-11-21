@@ -1,7 +1,7 @@
 [
   {
     "id": "build-2",
-    "name": "Construire 2 bâtiments",
+    "name": "Build 2 buildings",
     "metric": "built",
     "target": 2,
     "reward": {
@@ -12,7 +12,7 @@
   },
   {
     "id": "build-4",
-    "name": "Construire 4 bâtiments",
+    "name": "Build 4 buildings",
     "metric": "built",
     "target": 4,
     "reward": {
@@ -23,7 +23,7 @@
   },
   {
     "id": "built-all-6",
-    "name": "Construire 6 bâtiments",
+    "name": "Build 6 buildings",
     "metric": "built",
     "target": 6,
     "reward": {

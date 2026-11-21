@@ -1,4 +1,4 @@
-import { message as sourceMessage } from "./i18n.js";
+import { registerDefinitions } from "./i18n.js";
 import { compileConfiguration } from "./config-schema.js";
 async function readJson(name) {
   const url = new URL(`../config/${name}.json`, import.meta.url);
@@ -76,7 +76,7 @@ const [resources, units, gameRules, terrains] =
       "resources",
       "units",
       "game-rules",
-      sourceMessage("messages.terrain"),
+      "terrains",
     ].map(readJson),
   );
 export const CONFIG = compileConfiguration(
@@ -88,6 +88,16 @@ export const CONFIG = compileConfiguration(
   terrains,
   MISSION_CONFIGURATION,
 );
+for (const [category, definitions] of Object.entries({
+  buildings: BUILDING_CONFIGURATION.buildings,
+  missions: MISSION_CONFIGURATION.missions,
+  shapes: TERRAIN_TILE_CONFIGURATION.shapes,
+  tiles: TERRAIN_TILE_CONFIGURATION.tiles,
+  resources: resources.resources,
+  units: units.units,
+  terrains: terrains.terrains,
+  maps: MAPS,
+})) registerDefinitions(category, definitions);
 export const RESOURCE_DEFINITIONS = CONFIG.resources;
 export const RESOURCES = Object.fromEntries(
   Object.entries(CONFIG.resources).map(([id, r]) => [id, r.name]),
