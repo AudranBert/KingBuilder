@@ -1,0 +1,38 @@
+[
+  {
+    "id": "build-port",
+    "name": "Construire 1 port",
+    "metric": "built",
+    "target": 1,
+    "building": "port",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-port",
+    "difficulty": 1
+  },
+  {
+    "id": "built-port-2",
+    "name": "Construire 2 ports",
+    "metric": "built",
+    "target": 2,
+    "building": "port",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-port",
+    "difficulty": 2
+  },
+  {
+    "id": "built-port-3",
+    "name": "Construire 3 ports",
+    "metric": "built",
+    "target": 3,
+    "building": "port",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-port",
+    "difficulty": 3
+  }
+]

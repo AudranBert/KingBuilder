@@ -1,0 +1,38 @@
+[
+  {
+    "id": "stock-wood",
+    "name": "Avoir 5 matériaux",
+    "metric": "resources",
+    "target": 5,
+    "resource": "material",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-wood",
+    "difficulty": 1
+  },
+  {
+    "id": "resources-wood-8",
+    "name": "Réserve de matériaux : 8",
+    "metric": "resources",
+    "target": 8,
+    "resource": "material",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-wood",
+    "difficulty": 2
+  },
+  {
+    "id": "resources-wood-12",
+    "name": "Réserve de matériaux : 12",
+    "metric": "resources",
+    "target": 12,
+    "resource": "material",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-wood",
+    "difficulty": 3
+  }
+]

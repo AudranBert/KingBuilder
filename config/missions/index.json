@@ -1,0 +1,24 @@
+{
+  "marketSize": 3,
+  "initialDifficulty": 1,
+  "maxDifficulty": 3,
+  "requiredContribution": 1,
+  "files": [
+    "revealed-all",
+    "revealed-forest",
+    "revealed-plain",
+    "revealed-river",
+    "revealed-mountain",
+    "built-all",
+    "built-sawmill",
+    "built-farm",
+    "built-port",
+    "built-mine",
+    "recruited-all",
+    "resources-all",
+    "resources-wood",
+    "resources-stone",
+    "resources-iron",
+    "resources-wheat"
+  ]
+}

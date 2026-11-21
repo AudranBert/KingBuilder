@@ -426,19 +426,19 @@ export function compileConfiguration(
       "buildings/index.json.startingBuilding",
       "le terrain d’entrée doit être praticable par le roi.",
     );
-  object(missionConfig, "missions.json");
-  integer(missionConfig.marketSize, "missions.json.marketSize", 1);
-  integer(missionConfig.initialDifficulty, "missions.json.initialDifficulty", 1);
-  integer(missionConfig.maxDifficulty, "missions.json.maxDifficulty", missionConfig.initialDifficulty);
-  integer(missionConfig.requiredContribution, "missions.json.requiredContribution");
+  object(missionConfig, "missions");
+  integer(missionConfig.marketSize, "missions/index.json.marketSize", 1);
+  integer(missionConfig.initialDifficulty, "missions/index.json.initialDifficulty", 1);
+  integer(missionConfig.maxDifficulty, "missions/index.json.maxDifficulty", missionConfig.initialDifficulty);
+  integer(missionConfig.requiredContribution, "missions/index.json.requiredContribution");
   const missions = index(
     structuredClone(missionConfig.missions),
-    "missions.json.missions",
+    "missions/*.json",
   );
   if (Object.values(missions).filter(m => m.difficulty === missionConfig.initialDifficulty).length < missionConfig.marketSize)
-    fail("missions.json.missions", "pas assez de missions du niveau initial.");
+    fail("missions/*.json", "pas assez de missions du niveau initial.");
   for (const m of Object.values(missions)) {
-    const path = `missions.json.${m.id}`;
+    const path = `missions.${m.id}`;
     if (!["revealed", "built", "recruited", "resources"].includes(m.metric))
       fail(path, "objectif inconnu.");
     identifier(m.family, `${path}.family`);
@@ -473,27 +473,27 @@ export function compileConfiguration(
       variants.some((m, i) => m.difficulty !== i + 1)
     )
       fail(
-        `missions.json.${family}`,
+        `missions.${family}`,
         "chaque objectif doit avoir une version par niveau jusqu’à maxDifficulty.",
       );
     const objective = (m) =>
       JSON.stringify([m.metric, m.terrain, m.building, m.resource]);
     if (variants.some((m) => objective(m) !== objective(variants[0])))
       fail(
-        `missions.json.${family}`,
+        `missions.${family}`,
         "les niveaux doivent concerner le même objectif.",
       );
     if (
       variants.some((m, i) => i > 0 && m.target <= variants[i - 1].target)
     )
       fail(
-        `missions.json.${family}`,
+        `missions.${family}`,
         "les seuils doivent augmenter avec la difficulté.",
       );
   }
   if ([...families.values()].length < missionConfig.marketSize)
     fail(
-      "missions.json.missions",
+      "missions/*.json",
       "pas assez d’objectifs distincts pour le marché.",
     );
   return {

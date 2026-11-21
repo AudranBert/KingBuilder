@@ -5,9 +5,9 @@ import {tmpdir} from "node:os";
 import path from "node:path";
 import {pathToFileURL} from "node:url";
 import {compileConfiguration} from "../src/config-schema.js";
-import {BUILDING_CONFIGURATION,TERRAIN_TILE_CONFIGURATION} from "../src/configuration.js";
+import {BUILDING_CONFIGURATION,TERRAIN_TILE_CONFIGURATION,MISSION_CONFIGURATION} from "../src/configuration.js";
 const names=["terrain-tiles","buildings","resources","units","game-rules","terrains","missions"];
-const originals=await Promise.all(names.map(n=>n==="terrain-tiles"?TERRAIN_TILE_CONFIGURATION:n==="buildings"?BUILDING_CONFIGURATION:readFile(new URL(`../config/${n}.json`,import.meta.url),"utf8").then(JSON.parse)));
+const originals=await Promise.all(names.map(n=>n==="missions"?MISSION_CONFIGURATION:n==="terrain-tiles"?TERRAIN_TILE_CONFIGURATION:n==="buildings"?BUILDING_CONFIGURATION:readFile(new URL(`../config/${n}.json`,import.meta.url),"utf8").then(JSON.parse)));
 const configs=()=>structuredClone(originals);
 test("configuration sans mutation : trois ressources, deux unités et nouveaux bâtiments",()=>{
  const input=configs(),before=structuredClone(input),c=compileConfiguration(...input);
@@ -71,7 +71,7 @@ test("les cinq drapeaux, le commerce et les valeurs de score sont validés",()=>
 test("missions : or uniquement, familles complètes et seuils croissants",()=>{
  for(const change of [c=>c[6].missions[0].reward={prestige:1},c=>c[6].missions[0].reward.gold=0,
  c=>c[6].missions.pop(),c=>c[6].missions[1].target=1,c=>c[6].missions[0].resource="missing"]){
- const input=configs();change(input);assert.throws(()=>compileConfiguration(...input),/missions.json/);}
+ const input=configs();change(input);assert.throws(()=>compileConfiguration(...input),/missions/);}
 });
 test("configuration réelle : coûts, score et quota des casernes suivent les fichiers",async()=>{
  const root=await mkdtemp(path.join(tmpdir(),"kingbuilder-duel-"));
@@ -84,6 +84,13 @@ test("configuration réelle : coûts, score et quota des casernes suivent les fi
  input[1].buildings.find(b=>b.id==="barracks").trainingLimit=2;
  for(let i=0;i<names.length;i++){
  if(names[i]==="terrain-tiles")continue;
+ if(names[i]==="missions"){
+ const {missions,...settings}=input[i];
+ const families=Map.groupBy(missions,m=>m.family);
+ await writeFile(path.join(root,"config/missions/index.json"),JSON.stringify({...settings,files:[...families.keys()]}));
+ for(const [family,entries] of families)await writeFile(path.join(root,"config/missions",family+".json"),JSON.stringify(entries));
+ continue;
+ }
  if(names[i]==="buildings"){
  const index=JSON.parse(await readFile(path.join(root,"config/buildings/index.json"),"utf8"));
  for(const family of index.files)await writeFile(path.join(root,"config/buildings",family+".json"),JSON.stringify(input[i].buildings.filter(b=>(b.family||b.id)===family)));

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "explore-6",
+    "name": "Révéler 6 cases",
+    "metric": "revealed",
+    "target": 6,
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-all",
+    "difficulty": 1
+  },
+  {
+    "id": "explore-12",
+    "name": "Révéler 12 cases",
+    "metric": "revealed",
+    "target": 12,
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-all",
+    "difficulty": 2
+  },
+  {
+    "id": "explore-20",
+    "name": "Révéler 20 cases",
+    "metric": "revealed",
+    "target": 20,
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-all",
+    "difficulty": 3
+  }
+]

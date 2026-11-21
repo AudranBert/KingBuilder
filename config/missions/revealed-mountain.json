@@ -1,0 +1,38 @@
+[
+  {
+    "id": "mountain-3",
+    "name": "Révéler 3 montagnes",
+    "metric": "revealed",
+    "target": 3,
+    "terrain": "mountain",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-mountain",
+    "difficulty": 1
+  },
+  {
+    "id": "mountain-6",
+    "name": "Révéler 6 montagnes",
+    "metric": "revealed",
+    "target": 6,
+    "terrain": "mountain",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-mountain",
+    "difficulty": 2
+  },
+  {
+    "id": "revealed-mountain-9",
+    "name": "Révéler 9 montagnes",
+    "metric": "revealed",
+    "target": 9,
+    "terrain": "mountain",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-mountain",
+    "difficulty": 3
+  }
+]

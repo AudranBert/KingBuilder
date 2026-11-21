@@ -58,14 +58,25 @@ export const TERRAIN_TILE_CONFIGURATION = {
   shapes: tileGroups.flatMap(group => group.shapes),
   tiles: tileGroups.flatMap(group => group.tiles),
 };
-const [resources, units, gameRules, terrains, missions] =
+const { files: missionFiles, ...missionSettings } = await readJson("missions/index");
+if (!Array.isArray(missionFiles) || !missionFiles.length ||
+    missionFiles.some(name => typeof name !== 'string' || !/^[a-z0-9_-]+$/.test(name)) ||
+    new Set(missionFiles).size !== missionFiles.length)
+  throw Error("Index des missions invalide.");
+const missionGroups = await Promise.all(missionFiles.map(async name => {
+  const entries = await readJson(`missions/${name}`);
+  if (!Array.isArray(entries) || !entries.length || entries.some(m => !m || m.family !== name))
+    throw Error(`Catégorie de missions invalide dans missions/${name}.json.`);
+  return entries;
+}));
+export const MISSION_CONFIGURATION = { ...missionSettings, missions: missionGroups.flat() };
+const [resources, units, gameRules, terrains] =
   await Promise.all(
     [
       "resources",
       "units",
       "game-rules",
       sourceMessage("messages.terrain"),
-      "missions",
     ].map(readJson),
   );
 export const CONFIG = compileConfiguration(
@@ -75,7 +86,7 @@ export const CONFIG = compileConfiguration(
   units,
   gameRules,
   terrains,
-  missions,
+  MISSION_CONFIGURATION,
 );
 export const RESOURCE_DEFINITIONS = CONFIG.resources;
 export const RESOURCES = Object.fromEntries(

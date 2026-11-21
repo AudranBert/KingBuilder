@@ -1,0 +1,35 @@
+[
+  {
+    "id": "stock-8",
+    "name": "Avoir 8 ressources",
+    "metric": "resources",
+    "target": 8,
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-all",
+    "difficulty": 1
+  },
+  {
+    "id": "stock-12",
+    "name": "Avoir 12 ressources",
+    "metric": "resources",
+    "target": 12,
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-all",
+    "difficulty": 2
+  },
+  {
+    "id": "resources-all-18",
+    "name": "Avoir 18 ressources",
+    "metric": "resources",
+    "target": 18,
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-all",
+    "difficulty": 3
+  }
+]

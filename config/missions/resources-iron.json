@@ -1,0 +1,38 @@
+[
+  {
+    "id": "stock-iron",
+    "name": "Réserve d’or : 3",
+    "metric": "resources",
+    "target": 3,
+    "resource": "gold",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-iron",
+    "difficulty": 1
+  },
+  {
+    "id": "resources-iron-5",
+    "name": "Réserve d’or : 5",
+    "metric": "resources",
+    "target": 5,
+    "resource": "gold",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-iron",
+    "difficulty": 2
+  },
+  {
+    "id": "resources-iron-8",
+    "name": "Réserve d’or : 8",
+    "metric": "resources",
+    "target": 8,
+    "resource": "gold",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-iron",
+    "difficulty": 3
+  }
+]

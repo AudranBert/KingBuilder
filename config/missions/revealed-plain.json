@@ -1,0 +1,38 @@
+[
+  {
+    "id": "plain-3",
+    "name": "Révéler 3 plaines",
+    "metric": "revealed",
+    "target": 3,
+    "terrain": "plain",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-plain",
+    "difficulty": 1
+  },
+  {
+    "id": "plain-6",
+    "name": "Révéler 6 plaines",
+    "metric": "revealed",
+    "target": 6,
+    "terrain": "plain",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-plain",
+    "difficulty": 2
+  },
+  {
+    "id": "revealed-plain-9",
+    "name": "Révéler 9 plaines",
+    "metric": "revealed",
+    "target": 9,
+    "terrain": "plain",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-plain",
+    "difficulty": 3
+  }
+]

@@ -14,7 +14,8 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 | `terrain-tiles/index.json` | Taille de pioche, légende des terrains et liste des fichiers par taille |
 | `terrain-tiles/<taille>.json` | Formes et tuiles prédéfinies de cette taille : `2.json`, `3.json`, `4.json`, `5.json` |
 | `terrains.json` | Terrains, traversabilité et apparence |
-| `missions.json` | Missions communes, contribution et récompenses en or |
+| `missions/index.json` | Liste des catégories, marché, niveaux et contribution requise |
+| `missions/<catégorie>.json` | Les trois niveaux d'une même mission, avec leurs seuils et récompenses |
 
 ## Partie
 
@@ -118,6 +119,10 @@ Quantités par famille, variantes comprises : défrichement 8 ; autres niveaux 0
 ## Missions
 
 Trois missions communes, 48 variantes réparties en trois difficultés. Chaque famille doit avoir une variante par niveau et des seuils croissants.
+
+Chaque fichier de `missions/` contient un tableau avec les trois versions d'une même catégorie, dans l'ordre des difficultés 1, 2 et 3. Par exemple, `missions/revealed-mountain.json` regroupe les missions demandant de révéler 3, 6 et 9 montagnes. Le nom du fichier correspond au champ `family` de ses missions.
+
+`missions/index.json` contient `marketSize`, `initialDifficulty`, `maxDifficulty`, `requiredContribution` et `files`, la liste des fichiers sans extension. Pour ajouter une catégorie, créer son fichier avec les trois niveaux puis ajouter son nom à `files`.
 
 Champs : `id`, `name`, `metric`, `target`, `family`, `difficulty`, `reward: {"gold": 1}`. Selon la métrique, préciser `terrain`, `building` ou `resource`.
 

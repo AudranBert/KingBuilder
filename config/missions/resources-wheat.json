@@ -1,0 +1,38 @@
+[
+  {
+    "id": "stock-wheat",
+    "name": "Réserve de nourriture : 4",
+    "metric": "resources",
+    "target": 4,
+    "resource": "food",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-wheat",
+    "difficulty": 1
+  },
+  {
+    "id": "resources-wheat-7",
+    "name": "Réserve de nourriture : 7",
+    "metric": "resources",
+    "target": 7,
+    "resource": "food",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-wheat",
+    "difficulty": 2
+  },
+  {
+    "id": "resources-wheat-10",
+    "name": "Réserve de nourriture : 10",
+    "metric": "resources",
+    "target": 10,
+    "resource": "food",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-wheat",
+    "difficulty": 3
+  }
+]

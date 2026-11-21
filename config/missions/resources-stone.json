@@ -1,0 +1,38 @@
+[
+  {
+    "id": "stock-stone",
+    "name": "Avoir 4 matériaux",
+    "metric": "resources",
+    "target": 4,
+    "resource": "material",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-stone",
+    "difficulty": 1
+  },
+  {
+    "id": "resources-stone-7",
+    "name": "Réserve de pierre : 7",
+    "metric": "resources",
+    "target": 7,
+    "resource": "material",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-stone",
+    "difficulty": 2
+  },
+  {
+    "id": "resources-stone-10",
+    "name": "Réserve de pierre : 10",
+    "metric": "resources",
+    "target": 10,
+    "resource": "material",
+    "reward": {
+      "gold": 1
+    },
+    "family": "resources-stone",
+    "difficulty": 3
+  }
+]

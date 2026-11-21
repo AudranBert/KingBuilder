@@ -1,0 +1,38 @@
+[
+  {
+    "id": "build-farm",
+    "name": "Construire 1 ferme",
+    "metric": "built",
+    "target": 1,
+    "building": "farm",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-farm",
+    "difficulty": 1
+  },
+  {
+    "id": "built-farm-2",
+    "name": "Construire 2 fermes",
+    "metric": "built",
+    "target": 2,
+    "building": "farm",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-farm",
+    "difficulty": 2
+  },
+  {
+    "id": "built-farm-3",
+    "name": "Construire 3 fermes",
+    "metric": "built",
+    "target": 3,
+    "building": "farm",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-farm",
+    "difficulty": 3
+  }
+]

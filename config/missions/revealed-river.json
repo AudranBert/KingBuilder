@@ -1,0 +1,38 @@
+[
+  {
+    "id": "river-3",
+    "name": "Révéler 3 rivières",
+    "metric": "revealed",
+    "target": 3,
+    "terrain": "river",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-river",
+    "difficulty": 1
+  },
+  {
+    "id": "river-6",
+    "name": "Révéler 6 rivières",
+    "metric": "revealed",
+    "target": 6,
+    "terrain": "river",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-river",
+    "difficulty": 2
+  },
+  {
+    "id": "revealed-river-9",
+    "name": "Révéler 9 rivières",
+    "metric": "revealed",
+    "target": 9,
+    "terrain": "river",
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-river",
+    "difficulty": 3
+  }
+]

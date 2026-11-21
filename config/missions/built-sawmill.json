@@ -1,0 +1,38 @@
+[
+  {
+    "id": "build-sawmill",
+    "name": "Construire 1 scierie",
+    "metric": "built",
+    "target": 1,
+    "building": "sawmill",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-sawmill",
+    "difficulty": 1
+  },
+  {
+    "id": "two-sawmills",
+    "name": "Construire 2 scieries",
+    "metric": "built",
+    "target": 2,
+    "building": "sawmill",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-sawmill",
+    "difficulty": 2
+  },
+  {
+    "id": "built-sawmill-3",
+    "name": "Construire 3 scieries",
+    "metric": "built",
+    "target": 3,
+    "building": "sawmill",
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-sawmill",
+    "difficulty": 3
+  }
+]

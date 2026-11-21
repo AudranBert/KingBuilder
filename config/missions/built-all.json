@@ -1,0 +1,35 @@
+[
+  {
+    "id": "build-2",
+    "name": "Construire 2 bâtiments",
+    "metric": "built",
+    "target": 2,
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-all",
+    "difficulty": 1
+  },
+  {
+    "id": "build-4",
+    "name": "Construire 4 bâtiments",
+    "metric": "built",
+    "target": 4,
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-all",
+    "difficulty": 2
+  },
+  {
+    "id": "built-all-6",
+    "name": "Construire 6 bâtiments",
+    "metric": "built",
+    "target": 6,
+    "reward": {
+      "gold": 1
+    },
+    "family": "built-all",
+    "difficulty": 3
+  }
+]

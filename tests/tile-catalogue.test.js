@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { createGame } from "../src/engine.js";
-import { CONFIG, BUILDING_CONFIGURATION, TERRAIN_TILE_CONFIGURATION } from "../src/configuration.js";
+import { CONFIG, BUILDING_CONFIGURATION, TERRAIN_TILE_CONFIGURATION, MISSION_CONFIGURATION } from "../src/configuration.js";
 import { compileConfiguration } from "../src/config-schema.js";
 const definitions = await Promise.all(
   [
@@ -14,7 +14,7 @@ const definitions = await Promise.all(
     "terrains",
     "missions",
   ].map((n) =>
-    n === "terrain-tiles" ? TERRAIN_TILE_CONFIGURATION : n === "buildings" ? BUILDING_CONFIGURATION : readFile(new URL(`../config/${n}.json`, import.meta.url), "utf8").then(
+    n === "missions" ? MISSION_CONFIGURATION : n === "terrain-tiles" ? TERRAIN_TILE_CONFIGURATION : n === "buildings" ? BUILDING_CONFIGURATION : readFile(new URL(`../config/${n}.json`, import.meta.url), "utf8").then(
       JSON.parse,
     ),
   ),
