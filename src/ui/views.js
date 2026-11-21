@@ -111,7 +111,7 @@ export function playersView(g) {
           )
           .join(
             "",
-          )}</div><div class="player-score" title="${t("playersView.currentScore")}"><b>${totalScore(g, i)}</b><small>★</small></div></article>`,
+          )}${i === g.active ? `<div id="trade-info" class="trade-info">${tradeView(g)}</div>` : ""}</div><div class="player-score" title="${t("playersView.currentScore")}"><b>${totalScore(g, i)}</b><small>★</small></div></article>`,
     )
     .join("");
 }
@@ -142,11 +142,14 @@ export function barracksView(g, ui = {}) {
 
 export function workersView(g, ui = {}) {
   return g.players[g.active].units.filter(u => u.type === "worker").map(w =>
-    `<button class="free-worker worker-status ${g.active === 1 ? "jade" : ""} ${g.selectedUnitId === w.id && hasSelectedUnit(g,ui) ? "selected" : ""}" data-worker-select="${w.id}" ${g.finished || g.opening || ui.mode === "inspect" ? "disabled" : ""} title="${e(t('worker.status',[w.id+1,w.moves,t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')]))}">${piece("worker", g.active)}<span>${w.id+1}</span><small>${w.moves} ↟ · ${t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')}</small></button>`
+    `<button class="free-worker worker-status ${g.active === 1 ? "jade" : ""} ${g.selectedUnitId === w.id && hasSelectedUnit(g,ui) ? "selected" : ""}" data-worker-select="${w.id}" ${g.finished || g.opening || ui.mode === "inspect" ? "disabled" : ""} title="${e(t('worker.status',[w.id+1,w.moves,t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')]))}">${piece("worker", g.active)}<span>${w.id+1}</span><small>${w.moves} ${iconHTML('assets/textures/icon-boots.svg')} · ${t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')}</small></button>`
   ).join("");
 }
 export function harvestView() { return `<span>${t("production.explicit")}</span>`; }
-export function harvestGains() { return t("production.noAutomatic"); }
+export function harvestGains(g) {
+  return Object.entries(harvestPreview(g).amounts).filter(([,amount]) => amount > 0)
+    .map(([resource,amount]) => `+${amount} ${iconHTML(RESOURCE_DEFINITIONS[resource].icon)}`).join(" · ") || t("production.noAutomatic");
+}
 
 export function terrainMarketView(g, ui) {
   return (

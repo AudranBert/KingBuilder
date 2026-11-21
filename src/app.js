@@ -60,7 +60,6 @@ import {
   catalogueView,
   harvestView,
   harvestGains,
-  tradeView,
 } from "./ui/views.js";
 
 export function startGame({ initialGame = null } = {}) {
@@ -327,13 +326,13 @@ export function startGame({ initialGame = null } = {}) {
     html("#selection", selectionView(game, ui));
     html("#harvest", harvestView(game));
     placementHelp();
-    html("#trade-info", tradeView(game));
     $("#end-turn").disabled = Boolean(opening);
+    const automaticGains = harvestGains(game);
     $("#end-turn").innerHTML = opening
       ? t("app.placeATerrainTile")
       : game.finished
       ? t("app.viewResults")
-      : `<strong>${t("render.endTurn")}</strong><small>${harvestGains(game)}</small>`;
+      : `<strong>${t("render.endTurn")}</strong>${automaticGains !== t("production.noAutomatic") ? `<small>${automaticGains}</small>` : ""}`;
     $("#round").innerHTML = opening
       ? `0 <small>/ ${game.turnLimit}</small>`
       : `${String(game.round).padStart(2, "0")} <small>/ ${game.turnLimit}</small>`;

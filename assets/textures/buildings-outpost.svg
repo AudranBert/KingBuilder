@@ -3,7 +3,7 @@
     <ellipse cx="40" cy="73" rx="26" ry="4" fill="#d4c9ad"/>
     <path d="M24 21h32v49H24Z" fill="#afb7b1" stroke="#626d69" stroke-width="2.5"/>
     <path d="M24 33h32M24 46h32M24 59h32M40 22v11M32 33v13m16-13v13M40 46v13M32 59v11m16-11v11" stroke="#818d88" stroke-width="1.5"/>
-    <path d="M19 14h7v8h7v-8h7v8h7v-8h7v8h7v-8h5v18H19Z" fill="#c7cec5" stroke="#626d69" stroke-width="2.5"/>
+    <path d="M18 14h8v8h4v-8h7v8h6v-8h7v8h4v-8h8v18H18Z" fill="#c7cec5" stroke="#626d69" stroke-width="2.5"/>
     <path d="M36 41v-9q4-7 8 0v9Z" fill="#485b5b" stroke="#5d6966" stroke-width="1.5"/>
     <path d="M34 70V56q6-9 12 0v14Z" fill="#49514d" stroke="#626d69" stroke-width="2"/>
   </g>

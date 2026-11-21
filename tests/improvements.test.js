@@ -12,7 +12,7 @@ test("les stocks ne donnent plus de points", () => {
   assert.deepEqual(score(g,0), {buildings:0, flags:0});
 });
 
-test("la fin de tour ne produit plus et l’interface indique l’action explicite", () => {
+test("les ouvriers restés au donjon ne produisent pas et l’interface décrit l’action", () => {
  const g=createGame(),before={...g.players[0].resources};assert.match(harvestView(g),/action/);endTurn(g);assert.deepEqual(g.players[0].resources,before);
 });
 

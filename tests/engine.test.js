@@ -44,8 +44,8 @@ test("un tunnel se construit sur une montagne et la rend franchissable",()=>{
  endTurn(g);endTurn(g);
  move(g,1,6);assert.equal(g.players[0].units[0].x,1);
 });
-test("finir le dernier tour ne donne aucune production automatique au tour 25",()=>{
+test("le dernier tour règle la production automatique avant le décompte au tour 25",()=>{
  const g=createGame();g.round=25;g.active=1;g.board["9,5"]={terrain:"forest",building:{type:"sawmill",owner:1}};
  Object.assign(g.players[1].units[0],{x:9,y:5});const before=g.players[1].resources.material;
- endTurn(g);assert.equal(g.players[1].resources.material,before);assert.equal(g.finished,true);
+ endTurn(g);assert.equal(g.players[1].resources.material,before+2);assert.equal(g.finished,true);
 });

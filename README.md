@@ -54,7 +54,7 @@ Les noms et descriptions du catalogue utilisent des clés fondées sur les ident
 | Matériaux | Scieries et carrières | Construction |
 | Or | Mines, ports et missions | Banque, bâtiments avancés et relances |
 
-Un ouvrier sur son bâtiment producteur peut utiliser son action Produire : il gagne immédiatement 2 ressources. Chaque bâtiment produit une seule fois par tour, quel que soit le nombre d’ouvriers. Un moulin voisin d’un champ allié ajoute +1 à la ferme, sans cumul. La fin de tour ne donne aucune production automatique.
+Un ouvrier sur son bâtiment producteur peut utiliser son action Produire : il gagne immédiatement 2 ressources. Chaque bâtiment produit une seule fois par tour, quel que soit le nombre d’ouvriers. Un moulin voisin d’un champ allié ajoute +1 à la ferme, sans cumul. En fin de tour, chaque ouvrier qui a encore son action produit automatiquement sur sa case, dans la limite d’une production par bâtiment et par tour.
 
 À la construction ou au recrutement, les ressources manquantes peuvent être achetées à la banque. Chaque ressource coûte **2 ors + 1 par bâtiment adverse capable de la produire**, même sans ouvrier. Le paiement utilise d’abord les stocks disponibles. L’or lui-même ne s’achète pas. L’achat ne permet pas de stocker des ressources supplémentaires.
 

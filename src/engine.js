@@ -912,10 +912,10 @@ function spawnUnit(g, x, y, type) {
   return unit;
 }
 export function assign() { throw Error(workerAssignmentError()); }
-export function productionPreview(g) {
-  const unit = actor(g), cell = g.board[key(unit.x,unit.y)];
+export function productionPreview(g, unit = actor(g), owner = g.active) {
+  const cell = g.board[key(unit.x,unit.y)];
   const b = cell?.building, definition = BUILDINGS[b?.type];
-  if (b) return b.owner === g.active && definition?.produces
+  if (b) return b.owner === owner && definition?.produces
     ? { resource:definition.produces, amount:productionAmount(g,unit.x,unit.y), building:b } : null;
   if (cell?.overlay || cell?.flag) return null;
   const resource = cell?.terrain === "plain" ? "food" : cell?.terrain === "forest" ? "material" : null;
@@ -935,20 +935,42 @@ export function produceError(g) {
 export function produce(g) {
   const error = produceError(g);
   if (error) throw Error(error);
-  const preview = productionPreview(g), p = g.players[g.active];
+  grantProduction(g, actor(g), productionPreview(g));
+}
+function grantProduction(g, unit, preview) {
+  const p = g.players[g.active];
   p.resources[preview.resource] += preview.amount;
   if (preview.building) preview.building.productionRound = g.round;
-  updateActor(g,{acted:true});
+  Object.assign(p.units.find(u => u.id === unit.id), { acted:true });
   note(g,sourceMessage("messages.produces",[p.name,preview.amount,RESOURCES[preview.resource].toLowerCase()]));
   awardMissions(g);
 }
-// Kept as a stable read interface: ending a turn grants no automatic resources.
-export function harvestPreview() {
-  return { amounts:Object.fromEntries(Object.keys(RESOURCES).map(id => [id,0])),inactive:[] };
+// Forecast and settlement share the same worker order and building quota.
+function automaticProductions(g, owner = g.active) {
+  if (g.finished || g.opening) return [];
+  const usedBuildings = new Set(), productions = [];
+  const workers = g.players[owner].units.filter(u => u.type === "worker" && !u.acted && !u.ended)
+    .sort((a,b) => a.id - b.id);
+  for (const unit of workers) {
+    const preview = productionPreview(g, unit, owner);
+    if (!preview) continue;
+    if (preview.building) {
+      const position = key(unit.x,unit.y);
+      if (preview.building.productionRound === g.round || usedBuildings.has(position)) continue;
+      usedBuildings.add(position);
+    }
+    productions.push({ unit, preview });
+  }
+  return productions;
+}
+export function harvestPreview(g, owner = g.active) {
+  const amounts = Object.fromEntries(Object.keys(RESOURCES).map(id => [id,0]));
+  for (const { preview } of automaticProductions(g, owner)) amounts[preview.resource] += preview.amount;
+  return { amounts, inactive:[] };
 }
 export function endTurn(g) {
   available(g);
-  const p = g.players[g.active];
+  for (const { unit, preview } of automaticProductions(g)) grantProduction(g, unit, preview);
   awardMissions(g);
   const lastPlayer = g.active === g.players.length - 1;
   if (lastPlayer && g.round >= (g.turnLimit ?? RULES.rounds)) {

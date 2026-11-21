@@ -48,7 +48,7 @@ Chaque entrée contient `id`, `name`, `icon`, `startingAmount` et `points` (0 po
 
 Les maisons coûtent 3 nourritures et 3 matériaux. Leur ouvrier apparaît sur la maison, actif au tour suivant. Un ouvrier capturé revient au donjon et est actif à son prochain tour.
 
-L’action Produire gagne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre ou la production du bâtiment occupé et possédé. Un bâtiment producteur peut être activé une seule fois par tour ; aucune production automatique n’est accordée à la fin du tour. Les producteurs standards donnent 2 ressources. Les moulins ajoutent +1, sans cumul.
+L’action Produire gagne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre ou la production du bâtiment occupé et possédé. Un bâtiment producteur peut être activé une seule fois par tour ; les ouvriers dont l’action reste disponible produisent automatiquement à la fin du tour. Les producteurs standards donnent 2 ressources. Les moulins ajoutent +1, sans cumul.
 
 Les comportements militaires et les retours des bâtisseurs sont attachés à ces rôles. Ajouter une entrée à `units.json` ne suffit pas à créer une nouvelle règle de combat.
 
