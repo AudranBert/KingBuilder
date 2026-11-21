@@ -161,11 +161,11 @@ test("clic droit : la sélection de tuile est effacée", (t) => {
   const app = mount(t);
   app.start("solo");
   app.selectTile();
-  assert.match(app.node("#placement-help").textContent, /case verte|Impossible :/);
+  assert.match(app.node("#placement-help").innerHTML, /case verte|Impossible :/);
   let prevented = false;
   app.node(".game-layout").dispatch("contextmenu", { preventDefault() { prevented = true; } });
   assert.equal(prevented, true);
-  assert.match(app.node("#placement-help").textContent, /Sélectionnez un ouvrier/);
+  assert.match(app.node("#placement-help").innerHTML, /Sélectionnez un ouvrier/);
 });
 
 test("menu : lancement solo, retour et résultat après 25 tours", (t) => {
@@ -251,7 +251,7 @@ test("les commandes tactiles pivotent la sélection et permettent de l’annuler
   app.selectWorker();
   assert.equal(app.node("#cancel-placement").disabled, true);
   assert.equal(app.node("#rotate-placement").disabled, true);
-  assert.match(app.node("#placement-help").textContent, /Choisissez une destination/);
+  assert.match(app.node("#placement-help").innerHTML, /Choisissez une destination/);
 });
 
 test("langue : français par défaut, bascule immédiate et choix mémorisé", (t) => {

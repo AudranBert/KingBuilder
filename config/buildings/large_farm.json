@@ -9,7 +9,7 @@
     "terrain": "plain",
     "produces": "food",
     "description": "+3 wheat per turn with a worker.",
-    "pattern": "Five plains in a cross; entrance in the middle.",
+    "pattern": "Five plains in a cross; building space in the middle.",
     "weight": 1,
     "layout": [
       ".p.",
@@ -33,7 +33,7 @@
     "terrain": "plain",
     "produces": "food",
     "description": "+3 wheat per turn with a worker.",
-    "pattern": "Five plains in an L; entrance at the corner.",
+    "pattern": "Five plains in an L; building space at the corner.",
     "weight": 1,
     "layout": [
       "Bppp",

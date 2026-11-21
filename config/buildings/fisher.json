@@ -9,7 +9,7 @@
     "terrain": "river",
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
-    "pattern": "Three water spaces in a line; entrance in the middle.",
+    "pattern": "Three water spaces in a line; building space in the middle.",
     "weight": 2,
     "layout": [
       "rBr"
@@ -29,7 +29,7 @@
     "terrain": "plain",
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
-    "pattern": "One plain entrance followed by two water spaces in a line.",
+    "pattern": "One plain building space followed by two water spaces in a line.",
     "weight": 2,
     "layout": [
       "Brr"
@@ -50,7 +50,7 @@
     "terrain": "plain",
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
-    "pattern": "One plain entrance and two water spaces in an L.",
+    "pattern": "One plain building space and two water spaces in an L.",
     "weight": 2,
     "layout": [
       "rr",

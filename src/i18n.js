@@ -123,11 +123,15 @@ function translateTo(targetLanguage, value, depth) {
   return message;
 }
 
-export function translateDocument(root = globalThis.document) {
+export function translateDocument(root = globalThis.document, renderText) {
   if (!root?.documentElement) return;
   root.documentElement.lang = language;
-  for (const element of root.querySelectorAll("[data-i18n]"))
-    element.textContent = t(element.getAttribute("data-i18n"));
+  for (const element of root.querySelectorAll("[data-i18n]")) {
+    const text = t(element.getAttribute("data-i18n"));
+    const html = renderText?.(text);
+    if (html?.includes('class="resource-symbol"')) element.innerHTML = html;
+    else element.textContent = text;
+  }
   for (const attribute of ["aria-label", "title", "placeholder", "content"]) {
     for (const element of root.querySelectorAll(`[data-i18n-${attribute}]`))
       element.setAttribute(attribute, t(element.getAttribute(`data-i18n-${attribute}`)));

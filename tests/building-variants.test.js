@@ -32,6 +32,24 @@ test('maison : bâtiment existant requis, ponts et tunnels exclus',()=>{
   const g=fixture('house');g.board['4,4'].terrain='forest';assert.ok(buildError(g,0,4,4));
 });
 
+test('péages : plaine, forêt ou pont, sans obligation de montagnes',()=>{
+  for(const type of ['toll','toll_forest'])for(const terrain of ['plain','forest','river','mountain']){
+    const g=fixture(type);
+    // Preserve each variant's layout while removing the old mountain constraint.
+    g.board['3,4']={terrain:'forest'};g.board['5,4']={terrain:'forest'};
+    g.board['4,4']={terrain};
+    if(['plain','forest'].includes(terrain))assert.equal(buildError(g,0,4,4),null,`${type}: ${terrain}`);
+    else assert.ok(buildError(g,0,4,4),`${type}: ${terrain}`);
+    if(terrain==='river'){
+      g.board['4,4'].building={type:'bridge',owner:1};
+      assert.ok(buildError(g,0,4,4),'pont adverse');
+      g.board['4,4'].building.owner=0;
+      assert.equal(buildError(g,0,4,4),null,`${type}: pont`);
+      build(g,0,4,4);assert.equal(g.board['4,4'].building.type,type);
+    }
+  }
+});
+
 test('maisons de rive et de forêt : voisin requis et conservé',()=>{
   for(const [type,terrain] of [['house_water','river'],['house_forest','forest']]){
     const g=fixture(type);g.board['5,4'].terrain='plain';assert.ok(buildError(g,0,4,4));

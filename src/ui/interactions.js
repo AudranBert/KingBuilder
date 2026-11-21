@@ -26,7 +26,7 @@ export function placementErrorText(error) {
   const adjacency = Object.values(BUILDINGS).find(b =>
     b.adjacency?.length && (error === `${b.name} : ${b.pattern}` || error === `${b.name}: ${b.pattern}`));
   if (adjacency?.adjacency.every(rule => rule.terrain === "field" && rule.owned && rule.range === "edge"))
-    return sourceMessage("messages.cannotPlaceTheEntranceMustTouchOne");
+    return sourceMessage("messages.cannotPlaceTheBuildingMustTouchOne");
   const short = {
     [sourceMessage("messages.thePatternMustFitOnEmptySpaces")]: sourceMessage("messages.theTileMustFitOnEmptySpaces"),
     [sourceMessage("messages.yourBuildingExplorationActionIsAlreadyComplete")]: sourceMessage("messages.thisUnitHasAlreadyActed"),

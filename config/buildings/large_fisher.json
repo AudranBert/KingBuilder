@@ -12,7 +12,7 @@
     ],
     "produces": "food",
     "description": "+3 wheat per turn with a worker.",
-    "pattern": "Five spaces: a plain or water entrance and four water spaces in a block.",
+    "pattern": "Five spaces: a plain or water building space and four water spaces in a block.",
     "weight": 1,
     "layout": [
       "Brr",
@@ -37,7 +37,7 @@
     ],
     "produces": "food",
     "description": "+3 wheat per turn with a worker.",
-    "pattern": "Five spaces in a line: a plain or water entrance, three water spaces, then one plain.",
+    "pattern": "Five spaces in a line: a plain or water building space, three water spaces, then one plain.",
     "weight": 1,
     "layout": [
       "Brrrp"

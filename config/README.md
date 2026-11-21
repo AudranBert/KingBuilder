@@ -63,6 +63,8 @@ Chaque fichier de `terrain-tiles/` regroupe les formes (`shapes`) et les tuiles 
 
 ## Bâtiments
 
+Pour construire, l’ouvrier doit être sur ou à portée orthogonale (`placement.constructionRange`) d’au moins une case du motif, y compris une case sans bâtiment. Il n’existe pas de point d’entrée imposé. Le symbole `B` indique uniquement la case qui porte le bâtiment et sert de référence aux coordonnées et rotations.
+
 Chaque fichier de `buildings/` contient un tableau avec le bâtiment de base et toutes ses variantes. Par exemple, `buildings/farm.json` regroupe `farm`, `farm_z` et `farm_t`. Les variantes gardent leur champ `family` et leur identifiant propre. Les bâtiments sans variante ont un tableau d'une seule entrée.
 
 `buildings/index.json` contient `deckSize`, `startingBuilding`, `maxFamilyCopies` et `files` : la liste des noms de fichiers sans extension, dans leur ordre de chargement. Pour ajouter une famille, créer son fichier puis ajouter son nom à `files`. Pour ajouter une variante, la placer dans le fichier de sa famille. Le nom du fichier doit correspondre à l'identifiant du bâtiment de base.

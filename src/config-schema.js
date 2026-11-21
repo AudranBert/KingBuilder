@@ -330,7 +330,7 @@ export function compileConfiguration(
       ),
       anchors = cells.filter((c) => c.symbol === "B");
     if (anchors.length !== 1)
-      fail(path, "le motif doit contenir exactement une entrée B.");
+      fail(path, "le motif doit contenir exactement une case bâtiment B.");
     const origin = anchors[0];
     b.cells = cells.map((c) => ({
       x: c.x - origin.x,
@@ -424,7 +424,7 @@ export function compileConfiguration(
   )
     fail(
       "buildings/index.json.startingBuilding",
-      "le terrain d’entrée doit être praticable par le roi.",
+      "le terrain du bâtiment de départ doit être praticable par un ouvrier.",
     );
   object(missionConfig, "missions");
   integer(missionConfig.marketSize, "missions/index.json.marketSize", 1);

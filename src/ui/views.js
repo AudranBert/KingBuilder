@@ -1,5 +1,5 @@
 import { t, definitionText, translateMessage, kingdomName, getLanguage } from "../i18n.js";
-import { iconHTML } from "./html.js";
+import { iconHTML, resourceTextHTML } from "./html.js";
 import { piece } from "./pieces.js";
 import { CONFIG } from "../configuration.js";
 import { MAPS } from "../maps.js";
@@ -61,7 +61,7 @@ function mapsCatalogueView(size) {
         const color = cell?.building ? cell.building.owner === 0 ? '#a85b00' : '#156958' : '#483819';
         return `<rect x="${x * 20}" y="${y * 20}" width="19" height="19" rx="2" fill="${cell ? TERRAINS[cell.terrain].color : '#f1eadb'}"/>${symbol ? `<text x="${x * 20 + 9.5}" y="${y * 20 + 10}" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="bold" fill="${color}" stroke="#fff8e8" stroke-width=".65" paint-order="stroke">${symbol}</text>` : ''}`;
       }).join('');
-      return `<article class="catalogue-card" data-catalogue-map="${e(map.id)}"><h3>${e(name)}</h3><svg class="map-preview" viewBox="0 0 ${boardSize * 20} ${boardSize * 20}" role="img" aria-label="${e(t("maps.previewLabel", [name, boardSize, flags]))}">${cells}</svg><p>${e(definitionText('maps', map, 'description'))}</p></article>`;
+      return `<article class="catalogue-card" data-catalogue-map="${e(map.id)}"><h3>${e(name)}</h3><svg class="map-preview" viewBox="0 0 ${boardSize * 20} ${boardSize * 20}" role="img" aria-label="${e(t("maps.previewLabel", [name, boardSize, flags]))}">${cells}</svg><p>${resourceTextHTML(definitionText('maps', map, 'description'))}</p></article>`;
     }).join('')}</div></section>`;
 }
 
@@ -90,7 +90,7 @@ export function catalogueView({ tier = "all", tileSize = "all", terrain = "all",
   return `${legend}<section id="catalogue-buildings" aria-label="${t("catalogueView.buildingCards")}">${tierFilters}<p role="status">${t("catalogueView.familiesCardsInTheDeckVariantsAre", [visibleFamilies.length, families.size, CONFIG.buildingDeckSize])}</p><div class="catalogue-grid">${visibleFamilies.map(variants => {
     const b = variants[0];
     const quantity = variants.reduce((sum, v) => sum + (v.constructible === false ? 0 : v.weight), 0);
-    return `<article class="catalogue-card" data-catalogue-family="${e(b.family || b.id)}"><h3>${buildingStars(b)} ${e([...new Set(variants.map(v => definitionText("buildings", v)))].join(" / "))}</h3><p>${b.constructible === false ? t("views.startingBuildingOutsideTheDeck") : t("views.copiesCost", [quantity, costHTML(b.cost)])}</p><p>${e(buildingDescription(b))} · ${t("common.points", [b.points || 0])}</p><div class="catalogue-patterns">${variants.map(v => `<figure data-catalogue-building="${e(v.id)}"><div class="catalogue-diagram">${buildingDiagram(v.id, 0, true)}</div><figcaption>${e(definitionText("buildings", v, "pattern"))}</figcaption></figure>`).join("")}</div></article>`;
+    return `<article class="catalogue-card" data-catalogue-family="${e(b.family || b.id)}"><h3>${buildingStars(b)} ${e([...new Set(variants.map(v => definitionText("buildings", v)))].join(" / "))}</h3><p>${b.constructible === false ? t("views.startingBuildingOutsideTheDeck") : t("views.copiesCost", [quantity, costHTML(b.cost)])}</p><p>${resourceTextHTML(buildingDescription(b))} · ${t("common.points", [b.points || 0])}</p><div class="catalogue-patterns">${variants.map(v => `<figure data-catalogue-building="${e(v.id)}"><div class="catalogue-diagram">${buildingDiagram(v.id, 0, true)}</div><figcaption>${e(definitionText("buildings", v, "pattern"))}</figcaption></figure>`).join("")}</div></article>`;
   }).join("")}</div>${visibleFamilies.length ? "" : `<p class="empty-state">${t("catalogueView.noBuildingsInThisTierYet")}</p>`}</section><section id="catalogue-tiles" aria-label="${t("catalogueView.terrainTiles")}" hidden>${tileFilters}<p role="status">${t("catalogueView.tilesCopiesInTheDeck", [tiles.length, CONFIG.tiles.length, CONFIG.tileDeckSize])}</p><div class="catalogue-grid">${tiles.map(tile => `<article class="catalogue-card" data-catalogue-tile="${e(tile.id)}"><h3>${e(definitionText("tiles", tile))}</h3><div class="catalogue-diagram">${terrainDiagram(tile, 0, 160)}</div><p>${t("catalogueView.spaces", [tile.cells.length, e(definitionText("shapes", CONFIG.shapes[tile.shapeId]))])}</p><p>${t("catalogueView.terrainTypeS", [e(terrainSignature(tile)), terrainCount(tile)])}</p><p>${e(definitionText("tiles", tile, "intent") || "")}</p></article>`).join("")}</div>${tiles.length ? "" : `<p class="empty-state">${t("catalogueView.noTilesMatchTheseFilters")}</p>`}</section>${mapsCatalogueView(mapSize)}`;
 }
 
@@ -190,7 +190,7 @@ function buildingEffectHTML(b) {
   const label = buildingDescription(b);
   let effect;
   if (b.grantsWorker) effect = `+${b.grantsWorker} ${iconHTML(UNIT_DEFINITIONS.worker.icon)}`;
-  else if (b.toll || b.portBonus) effect = e(label);
+  else if (b.toll || b.portBonus) effect = resourceTextHTML(label);
   else if (b.produces) effect = `+${b.production} ${iconHTML(RESOURCE_DEFINITIONS[b.produces].icon)} / ${e(t("production.action"))}`;
   else if (b.boost) effect = `+${b.boost.bonus || 1} ${iconHTML(RESOURCE_DEFINITIONS[BUILDINGS[b.boost.target].produces].icon)}`;
   else if (b.trains) effect = `${iconHTML(UNIT_DEFINITIONS[b.trains[0]].icon)} · +${b.trainingLimit} / ${iconHTML("assets/textures/interface/hourglass.svg")}`;
@@ -199,7 +199,7 @@ function buildingEffectHTML(b) {
   else if (b.transformTo) effect = `${iconHTML(TERRAINS.forest.icon)} → ${iconHTML(TERRAINS[b.transformTo].icon)} · +${b.onBuildGain.material} ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}`;
   else if (b.traversable) effect = `${iconHTML(TERRAINS[b.terrain[0]].icon)} → ↔`;
   else if (b.id === "monument") effect = `★ ${b.points}`;
-  else effect = e(label);
+  else effect = resourceTextHTML(label);
   return `<span title="${e(label)}" aria-label="${e(label)}">${effect}</span>`;
 }
 function buildingStars(b) {
@@ -211,7 +211,7 @@ export function buildingDetailsView(type, rotation = 0) {
   const terrains = [...new Set(b.cells.flatMap(c => [...c.terrain, ...(c.transformTo ? [c.transformTo] : [])]))];
   const effect = b.id === "monument"
     ? t("views.noEffectValuePointS", [b.points])
-    : `<strong>${t("buildingDetailsView.effect")}</strong> ${e(buildingDescription(b))} ${t("buildingDetailsView.value", [b.points || 0])}`;
+    : `<strong>${t("buildingDetailsView.effect")}</strong> ${resourceTextHTML(buildingDescription(b))} ${t("buildingDetailsView.value", [b.points || 0])}`;
   return `<div class="building-detail-heading">${buildingStars(b)}<h2 id="building-details-title">${e(definitionText("buildings", b))}</h2></div><div class="building-detail-diagram">${buildingDiagram(type, rotation, true)}</div><p class="building-legend">${terrains.map(id => `<span><i style="background:${TERRAINS[id].color}">${iconHTML(TERRAINS[id].icon)}</i>${e(definitionText("terrains", TERRAINS[id]))}</span>`).join("")}</p><p>${e(definitionText("buildings", b, "pattern"))}</p><p>${effect}</p><p><strong>${b.constructible === false ? t("views.availability") : t("views.cost")} :</strong> ${b.constructible === false ? t("views.startingBuildingOnly") : costHTML(b.cost)}</p>`;
 }
 
@@ -262,7 +262,7 @@ export function resultsView(g) {
         )
           .map(
             ([id, n]) =>
-              `<p><span>${{ flags: t("views.flags"), buildings: t("views.buildings"), gold: t("views.gold1", [RULES.points.goldPerPoint]) }[id]}</span><strong>${n}</strong></p>`,
+              `<p><span>${{ flags: t("views.flags"), buildings: t("views.buildings"), gold: resourceTextHTML(t("views.gold1", [RULES.points.goldPerPoint])) }[id]}</span><strong>${n}</strong></p>`,
           )
           .join(
             "",
@@ -282,26 +282,27 @@ export function tradeView(g, owner = g.active) {
   return `<span title="${t("tradeView.buyingMissingResourcesBasePricePerEnemy", [RULES.trade.basePrice, RULES.trade.producerSurcharge])}"><strong>${t("tradeView.bank")}</strong> · ${tradePrice(g,"food",owner)} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} · ${tradePrice(g,"material",owner)} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}</span>`;
 }
 export function rulesView(g) {
+  const ruleText = (key, values) => resourceTextHTML(t(key, values));
   const size = g?.boardSize ?? GAME_DEFAULTS.boardSize,
     rounds = g?.turnLimit ?? GAME_DEFAULTS.rounds,
     openingCount = g?.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer;
-  return `<h3>${t("rulesView.1TheGoal")}</h3>
-  <p>${t("rulesView.conquerTheEnemyKeepWithASurviving", [rounds, RULES.points.flag, RULES.points.goldPerPoint])}</p>
-  <h3>${t("rulesView.2SetUpTheBoard")}</h3>
+  return `<h3>${ruleText("rulesView.1TheGoal")}</h3>
+  <p>${ruleText("rulesView.conquerTheEnemyKeepWithASurviving", [rounds, RULES.points.flag, RULES.points.goldPerPoint])}</p>
+  <h3>${ruleText("rulesView.2SetUpTheBoard")}</h3>
   <p>${g?.mapId ? t(openingCount ? "maps.setupWithDraft" : "maps.setup", [size, openingCount]) : t(g?.missionsEnabled === false ? "rulesView.setupWithoutMissions" : "rulesView.onTheBoardEachPlayerPlacesSetup", [size, size, openingCount])}</p>
-  <h3>${t("rulesView.3TakeYourTurn")}</h3>
-  <p>${t("rulesView.eachUnitHasMovesAlongSharedEdges", [UNIT_DEFINITIONS.worker.moves])}</p>
-  <h3>${t("rulesView.4ExploreAndBuild")}</h3>
-  <p>${t("rulesView.placeATerrainTileTouchingTheBuilder", [RULES.trade.singleTerrainCost])}</p>
-  <p>${t("rulesView.toBuildPayTheCostAndPlace")}</p>
-  <h3>${t("rulesView.5ProduceAndProgress")}</h3>
-  <p>${t(g?.missionsEnabled === false ? "rulesView.productionWithoutMissions" : "rulesView.aHouseProvidesOneWorkerAssignIt")}</p>
-  <p>${t("rulesView.rerollingTheMarketCostsGoldOncePer", [GOLD.rerollCost])}</p>
-  <h3>${t("rulesView.6FightAndConquer")}</h3>
-  <p>${t("rulesView.groupYourSoldiersOrChooseANumber")}</p>
-  <p>${t("rulesView.withASurvivorOccupyAFlagTo")}</p>
-  <h3>${t("rulesView.7MoveThePieces")}</h3>
-  <p>${t("rulesView.clickOrDragUnitsAndCardsR")}</p>`;
+  <h3>${ruleText("rulesView.3TakeYourTurn")}</h3>
+  <p>${ruleText("rulesView.eachUnitHasMovesAlongSharedEdges", [UNIT_DEFINITIONS.worker.moves])}</p>
+  <h3>${ruleText("rulesView.4ExploreAndBuild")}</h3>
+  <p>${ruleText("rulesView.placeATerrainTileTouchingTheBuilder", [RULES.trade.singleTerrainCost])}</p>
+  <p>${ruleText("rulesView.toBuildPayTheCostAndPlace")}</p>
+  <h3>${ruleText("rulesView.5ProduceAndProgress")}</h3>
+  <p>${ruleText(g?.missionsEnabled === false ? "rulesView.productionWithoutMissions" : "rulesView.aHouseProvidesOneWorkerAssignIt")}</p>
+  <p>${ruleText("rulesView.rerollingTheMarketCostsGoldOncePer", [GOLD.rerollCost])}</p>
+  <h3>${ruleText("rulesView.6FightAndConquer")}</h3>
+  <p>${ruleText("rulesView.groupYourSoldiersOrChooseANumber")}</p>
+  <p>${ruleText("rulesView.withASurvivorOccupyAFlagTo")}</p>
+  <h3>${ruleText("rulesView.7MoveThePieces")}</h3>
+  <p>${ruleText("rulesView.clickOrDragUnitsAndCardsR")}</p>`;
 }
 
 export function missionsView(g) {

@@ -9,7 +9,7 @@
       "material": 3
     },
     "terrain": "plain",
-    "pattern": "One plain entrance and one mountain.",
+    "pattern": "One plain building space and one mountain.",
     "layout": [
       "Bm"
     ],
@@ -26,7 +26,7 @@
       "material": 3
     },
     "terrain": "plain",
-    "pattern": "One plain entrance and one water space.",
+    "pattern": "One plain building space and one water space.",
     "layout": [
       "Br"
     ],

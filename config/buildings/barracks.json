@@ -13,7 +13,7 @@
       "Bc"
     ],
     "description": "Recruit one soldier for one wheat, once per turn. No worker required.",
-    "pattern": "A plain entrance beside an existing building, excluding bridges and tunnels.",
+    "pattern": "A plain building space beside an existing building, excluding bridges and tunnels.",
     "trains": [
       "soldier"
     ],

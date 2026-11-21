@@ -11,7 +11,7 @@
       "field"
     ],
     "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
-    "pattern": "A plain or field entrance beside an existing field.",
+    "pattern": "A plain or field building space beside an existing field.",
     "weight": 1,
     "layout": [
       "Bw"
@@ -37,7 +37,7 @@
       "field"
     ],
     "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
-    "pattern": "A plain or field entrance beside an existing building, excluding bridges and tunnels.",
+    "pattern": "A plain or field building space beside an existing building, excluding bridges and tunnels.",
     "weight": 2,
     "layout": [
       "Bc"
@@ -64,7 +64,7 @@
       "field"
     ],
     "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
-    "pattern": "A plain or field entrance and two courtyard plains in an L.",
+    "pattern": "A plain or field building space and two courtyard plains in an L.",
     "weight": 2,
     "layout": [
       "Bp",

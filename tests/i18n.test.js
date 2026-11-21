@@ -7,8 +7,25 @@ import { t, message, definitionText, registerDefinitions, translateMessage, getL
 import { createGame, BUILDINGS } from "../src/engine.js";
 import { BUILDING_CONFIGURATION, TERRAIN_TILE_CONFIGURATION, MISSION_CONFIGURATION } from "../src/configuration.js";
 import { catalogueView, buildingDetailsView, playersView, rulesView, trainingView } from "../src/ui/views.js";
-import { e } from "../src/ui/html.js";
+import { e, resourceTextHTML } from "../src/ui/html.js";
 import { placementErrorText } from "../src/ui/interactions.js";
+
+test("les ressources dans les descriptions utilisent leurs icônes sans interpréter du HTML", () => {
+  try {
+    for(const language of ['fr','en']) {
+      setLanguage(language, {persist:false});
+      const prose=language==='fr' ? '1 or, 2 blé, 3 matériaux <script>' : '1 gold, 2 food, 3 materials <script>';
+      const html=resourceTextHTML(prose);
+      for(const icon of ['gold','wheat','wood']) assert.match(html,new RegExp(`resources/${icon}\\.svg`));
+      assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);
+      assert.equal(resourceTextHTML(language==='fr' ? 'forêt ou plaine' : 'forest or plain'),language==='fr' ? 'forêt ou plaine' : 'forest or plain');
+      const visibleText=html.replace(/<[^>]*>/g,'');
+      assert.doesNotMatch(visibleText, /\b(or|blé|matériaux|gold|food|materials)\b/);
+      assert.match(buildingDetailsView('port'), /class="resource-symbol"[^>]*>.*resources\/gold\.svg/);
+      assert.match(catalogueView(),/class="resource-symbol"/);
+    }
+  } finally {setLanguage('fr',{persist:false});}
+});
 
 test("English JSON text is authoritative and missing French translations fall back to it", () => {
   const farm = BUILDINGS.farm;
@@ -99,7 +116,7 @@ test("l’anglais traduit l’interface sans modifier la partie ni les pseudos",
     assert.equal(t("app.amber", [e("Maison <King>"), 1]), "Maison &lt;King&gt; (Amber) · 1");
     assert.equal(t("app.amber", ["Maison {1}", 7]), "Maison {1} (Amber) · 7");
     assert.equal(kingdomName("Maison"), "Maison");
-    assert.match(catalogueView(), /Recruit one soldier for one wheat, once per turn/);
+    assert.match(catalogueView(), /Recruit one soldier for one <span[^>]*aria-label="Food"[^>]*>.*wheat\.svg.*once per turn/);
     assert.match(catalogueView(), /losing your keep means defeat/);
     assert.match(buildingDetailsView("house"), /House/);
     assert.match(rulesView(game), /7\. Move the pieces/);

@@ -9,7 +9,7 @@
     "terrain": "forest",
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
-    "pattern": "Three forests in a line; entrance at one end.",
+    "pattern": "Three forests in a line; building space at one end.",
     "weight": 2,
     "layout": [
       "Bff"
@@ -29,7 +29,7 @@
     "terrain": "forest",
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
-    "pattern": "Three forests in a line; entrance in the middle.",
+    "pattern": "Three forests in a line; building space in the middle.",
     "weight": 2,
     "layout": [
       "fBf"
@@ -50,7 +50,7 @@
     "terrain": "forest",
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
-    "pattern": "Three forests in an L; entrance at one end.",
+    "pattern": "Three forests in an L; building space at one end.",
     "weight": 2,
     "layout": [
       "Bf",

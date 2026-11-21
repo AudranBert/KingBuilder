@@ -9,7 +9,7 @@
     "terrain": "plain",
     "produces": "gold",
     "description": "+1 gold per turn with a worker.",
-    "pattern": "One plain entrance followed by three mountains in a line.",
+    "pattern": "One plain building space followed by three mountains in a line.",
     "weight": 2,
     "layout": [
       "Bmmm"
@@ -29,7 +29,7 @@
     "terrain": "plain",
     "produces": "gold",
     "description": "+1 gold per turn with a worker.",
-    "pattern": "A square of four spaces: one plain entrance and three mountains.",
+    "pattern": "A square of four spaces: one plain building space and three mountains.",
     "weight": 2,
     "layout": [
       "Bm",
@@ -51,7 +51,7 @@
     "terrain": "plain",
     "produces": "gold",
     "description": "+1 gold per turn with a worker.",
-    "pattern": "Four spaces in an L: one plain entrance and three mountains.",
+    "pattern": "Four spaces in an L: one plain building space and three mountains.",
     "weight": 2,
     "layout": [
       "Bmm",

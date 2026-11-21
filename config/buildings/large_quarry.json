@@ -9,7 +9,7 @@
     "terrain": "plain",
     "produces": "material",
     "description": "+3 wood per turn with a worker.",
-    "pattern": "Five spaces in a block: a plain entrance, two mountains and two forests.",
+    "pattern": "Five spaces in a block: a plain building space, two mountains and two forests.",
     "weight": 1,
     "layout": [
       "Bmm",
@@ -31,7 +31,7 @@
     "terrain": "plain",
     "produces": "material",
     "description": "+3 wood per turn with a worker.",
-    "pattern": "Five spaces in a block: a plain entrance, two mountains and two forests on the entrance side.",
+    "pattern": "Five spaces in a block: a plain building space, two mountains and two forests on the building space side.",
     "weight": 1,
     "layout": [
       "Bmm",

@@ -5,6 +5,7 @@ import { createGame, RULES, BUILDINGS, UNIT_DEFINITIONS, key, actor, selectUnit,
 import { costPayment, tradePrice } from "../src/objectives.js";
 import { moveUnitTo } from "../src/ui/interactions.js";
 import { validateGame } from "../src/validation.js";
+import { applyCommand } from "../src/commands.js";
 import { armyControlsView, rulesView, tradeView, playersView } from "../src/ui/views.js";
 import { createUIState, hasSelectedUnit } from "../src/ui/state.js";
 
@@ -101,6 +102,57 @@ test("drapeaux : capture persistante, recapture et score sans garnison obligatoi
   assert.equal(g.board["3,2"].flag.owner,0);assert.equal(score(g,0).flags,RULES.points.flag);
   endTurn(g);u=soldiers(g,1,1,3,3)[0];selectUnit(g,u.id);attack(g,3,2);
   assert.equal(g.board["3,2"].flag.owner,1);
+});
+
+test("les ouvriers capturent les drapeaux libres en passant, sauf présence adverse",()=>{
+  for(const owner of [null,0,1]){
+    const g=game(), worker=g.players[0].units.find(u=>u.type==='worker');
+    Object.assign(worker,{x:2,y:2,moves:3,acted:false,ended:false});selectUnit(g,worker.id);
+    g.board['3,2'].flag={owner};
+    move(g,3,2);assert.equal(g.board['3,2'].flag.owner,0);
+    assert.equal(score(g,0).flags,RULES.points.flag);
+    move(g,2,2);worker.moves=2;g.board['3,2'].flag.owner=owner;moveUnitTo(g,4,2);
+    assert.deepEqual({x:worker.x,y:worker.y},{x:4,y:2});
+    assert.equal(g.board['3,2'].flag.owner,0);
+    Object.assign(worker,{x:2,y:2,moves:1});
+    g.board['3,2'].flag.owner=owner;
+    g.board['3,2'].building={type:'outpost',owner:1};
+    assert.throws(()=>move(g,3,2));assert.throws(()=>moveUnitTo(g,3,2));
+    delete g.board['3,2'].building;
+    soldiers(g,1,1,3,2);
+    assert.throws(()=>move(g,3,2));assert.throws(()=>moveUnitTo(g,3,2));
+    g.players[1].units=g.players[1].units.filter(u=>u.type!=='soldier');
+    Object.assign(g.players[1].units[0],{x:3,y:2});
+    assert.throws(()=>move(g,3,2));assert.throws(()=>moveUnitTo(g,3,2));
+    assert.equal(g.board['3,2'].flag.owner,owner);
+  }
+});
+
+test("ouvrier : capture des bâtiments sans défense, sans destruction ni réinitialisation",()=>{
+  for(const active of [0,1]){
+    const g=game();g.active=active;
+    const worker=g.players[active].units.find(u=>u.type==='worker');
+    Object.assign(worker,{x:2,y:2,moves:3,acted:false,ended:false});selectUnit(g,worker.id);
+    const building={type:'farm',owner:1-active,rotation:2,productionRound:g.round};
+    g.board['3,2']={terrain:'plain',building,flag:{owner:1-active}};
+    const captured=applyCommand(g,{type:'moveUnitTo',unit:worker.id,args:[3,2]});
+    assert.deepEqual(captured.board['3,2'].building,{...building,owner:active});
+    assert.equal(captured.board['3,2'].flag.owner,active);
+    assert.equal(captured.players[active].units.find(u=>u.id===worker.id).moves,2);
+    assert.equal(g.board['3,2'].building.owner,1-active);
+    validateGame(captured);
+    for(const type of ['outpost','castle']){
+      g.board['3,2'].building={type,owner:1-active};
+      assert.throws(()=>move(g,3,2));assert.throws(()=>moveUnitTo(g,3,2));
+    }
+    for(const type of ['worker','soldier']){
+      g.board['3,2'].building=building;
+      const defender=g.players[1-active].units[0];
+      Object.assign(defender,{type,x:3,y:2});
+      assert.throws(()=>move(g,3,2));assert.throws(()=>moveUnitTo(g,3,2));
+      assert.equal(building.owner,1-active);
+    }
+  }
 });
 
 test("destruction : seulement la case du bâtiment, empreinte libérée et ouvriers rendus",()=>{

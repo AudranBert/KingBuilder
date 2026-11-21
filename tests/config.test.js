@@ -13,7 +13,7 @@ test("compiler la configuration ne modifie pas les données JSON",()=>{
  const input=configs(),before=structuredClone(input);
  compileConfiguration(...input);
  assert.deepEqual(input,before);
-});test("motifs vides, disjoints, symboles inconnus et entrées multiples refusés",()=>{
+});test("motifs vides, disjoints, symboles inconnus et cases B multiples refusés",()=>{
  for(const pattern of [["..."],["x.x"],["xy"]]){const c=configs();c[0].shapes[0].pattern=pattern;assert.throws(()=>compileConfiguration(...c),/terrain-tiles/);}
  for(const layout of [["ff"],["BB"],["Bz"]]){const c=configs();c[1].buildings[0].layout=layout;assert.throws(()=>compileConfiguration(...c),/buildings/);}
 });

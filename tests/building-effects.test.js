@@ -15,8 +15,21 @@ test('monuments doublés une seule fois et caserne renforcée sans ouvrier',()=>
  put(g,2,2,'barracks');put(g,2,4,'barrack_block');assert.equal(trainingCapacity(g,2,2),2);
 });
 test('port et péage comptent les productions à portée',()=>{
- const g=setup();put(g,4,4,'port');put(g,6,4,'market');assert.equal(productionAmount(g,4,4),3);
+ const g=setup();put(g,4,4,'port');put(g,6,4,'market');assert.equal(productionAmount(g,4,4),2);
  put(g,4,5,'toll');put(g,4,6,'mine');put(g,3,5,'farm');assert.equal(productionAmount(g,4,5),2);
+});
+test('ports : un or de base et un par marché ou pêcheur allié à portée de deux',()=>{
+ for(const type of ['port','port_square','port_l']){
+  const g=setup();put(g,4,4,type);assert.equal(productionAmount(g,4,4),1);
+  put(g,6,4,'market');assert.equal(productionAmount(g,4,4),2);
+  put(g,4,5,'fisher');assert.equal(productionAmount(g,4,4),3);
+  put(g,3,3,'fisher_bank');assert.equal(productionAmount(g,4,4),4);
+  put(g,4,7,'fisher');assert.equal(productionAmount(g,4,4),4);
+  put(g,5,4,'market');g.board['5,4'].building.owner=1;assert.equal(productionAmount(g,4,4),4);
+  delete g.board['6,4'];delete g.board['4,5'];delete g.board['3,3'];
+  g.board['4,5']={terrain:'river'};g.board['4,6']={terrain:'river'};put(g,4,7,'port_square');
+  assert.equal(productionAmount(g,4,4),1);
+ }
 });
 test('guilde et marché réduisent effectivement les paiements',()=>{
  const g=setup();g.buildingMarket=['house'];const before=buildingPayment(g,0).resources.material;put(g,2,2,'builder_guild');assert.equal(buildingPayment(g,0).resources.material,before-1);

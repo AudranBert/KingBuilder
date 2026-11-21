@@ -18,7 +18,7 @@ test('les grandes fermes et camps reçoivent les bonus sans les cumuler', () => 
   assert.equal(productionAmount(g,2,2),4);
 });
 
-test('un ouvrier peut construire, rejoindre et exploiter une entrée sur montagne ou eau sans passage', () => {
+test('un ouvrier peut construire, rejoindre et exploiter un bâtiment sur montagne ou eau sans passage', () => {
   for (const [type, terrain] of [['quarry_ridge','mountain'], ['fisher','river'], ['large_fisher','river']]) {
     for (let rotation=0; rotation<4; rotation++) {
       const g = createGame(() => 0.5, 'solo');

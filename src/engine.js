@@ -140,24 +140,6 @@ export function kingdomBonus(g, owner, field) {
   return Math.max(0,...Object.values(g.board).filter(c=>c.building?.owner===owner).map(c=>Number(BUILDINGS[c.building.type]?.[field] || 0)));
 }
 function nearbyBuildings(g,owner,x,y){return Object.entries(g.board).flatMap(([k,c])=>{const [tx,ty]=parseKey(k);return c.building?.owner===owner && withinRange(x,y,tx,ty,'radius2') ? [{x:tx,y:ty,building:c.building}] : [];});}
-function connectedPort(g,owner,x,y){
-  const pending = [{x,y}], seen = new Set([key(x,y)]);
-  while (pending.length) {
-    const current = pending.pop();
-    for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
-      const tx = current.x+dx, ty = current.y+dy, position = key(tx,ty), cell = g.board[position];
-      if (!cell || seen.has(position)) continue;
-      const otherPort = cell.building?.owner === owner &&
-        (BUILDINGS[cell.building.type].family || cell.building.type) === 'port';
-      if (otherPort && (current.x !== x || current.y !== y || cell.terrain === 'river')) return true;
-      if (cell.terrain === 'river') {
-        seen.add(position);
-        pending.push({x:tx,y:ty});
-      }
-    }
-  }
-  return false;
-}
 function unitWalkable(g,cell,x,y){return walkable(cell)||(cell?.terrain==='river' && (kingdomBonus(g,g.active,'waterMovement') || bridgeAt(g,x,y)));}
 export function trainingCapacity(g,x,y){const b=g.board[key(x,y)]?.building;return (BUILDINGS[b?.type]?.trainingLimit||0)+(b && nearbyBuildings(g,b.owner,x,y).some(v=>BUILDINGS[v.building.type].trainingBoost)?1:0);}
 export function productionAmount(g, x, y) {
@@ -179,8 +161,7 @@ export function productionAmount(g, x, y) {
       bonusAmount = Math.max(bonusAmount, bonus.bonus || 1);
   }
   if (definition.toll) return nearbyBuildings(g, b.owner, x, y).filter(v => BUILDINGS[v.building.type].tier === 1 && BUILDINGS[v.building.type].produces).length;
-  if (definition.portBonus && nearbyBuildings(g,b.owner,x,y).some(v => ['market','fisher'].includes(BUILDINGS[v.building.type].productionFamily || BUILDINGS[v.building.type].family || v.building.type))) bonusAmount += 2;
-  else if (definition.portBonus && connectedPort(g,b.owner,x,y)) bonusAmount += 2;
+  if (definition.portBonus) bonusAmount += nearbyBuildings(g,b.owner,x,y).filter(v => ['market','fisher'].includes(BUILDINGS[v.building.type].productionFamily || BUILDINGS[v.building.type].family || v.building.type)).length;
   return definition.production + bonusAmount;
 }
 const inside = (g, x, y) => withinBoard(x, y, g.boardSize ?? RULES.size);
@@ -460,6 +441,11 @@ function hostileSite(g, x, y) {
   return Boolean((cell?.building && cell.building.owner !== g.active) ||
     (cell?.flag && cell.flag.owner !== g.active));
 }
+function siteBlocksMovement(g, x, y, unit) {
+  if (unit.type !== "worker") return hostileSite(g, x, y);
+  const building = g.board[key(x,y)]?.building;
+  return Boolean(building && building.owner !== g.active && BUILDINGS[building.type]?.garrison);
+}
 export function defenseAt(g, owner, x, y) {
   const defenders = armyAt(g, owner, x, y).length;
   const building = g.board[key(x, y)]?.building;
@@ -560,7 +546,7 @@ export function moveError(g, x, y) {
   if (!inside(g, x, y) || distance(unit, { x, y }) !== 1)
     return sourceMessage("messages.chooseAnAdjacentSpaceNotDiagonal");
   if (enemyAt(g, x, y)) return sourceMessage("messages.anEnemyPieceOccupiesThisSpaceUse");
-  if (hostileSite(g, x, y)) return sourceMessage("messages.thisPositionMustBeOccupiedUsingA");
+  if (siteBlocksMovement(g, x, y, unit)) return sourceMessage("messages.thisPositionMustBeOccupiedUsingA");
   if (g.board[key(x, y)] && !unitWalkable(g,g.board[key(x, y)],x,y))
     return sourceMessage("messages.thisTerrainIsImpassable");
   return null;
@@ -574,7 +560,14 @@ export function move(g, x, y) {
   }
   if (actor(g).type === "soldier") {
     for (const soldier of selectedSoldiers(g)) Object.assign(soldier,{x,y,moves:soldier.moves-1});
-  } else updateActor(g, { x, y, moves: actor(g).moves - 1 });
+  } else {
+    updateActor(g, { x, y, moves: actor(g).moves - 1 });
+    if (actor(g).type === "worker") {
+      const cell = g.board[key(x, y)];
+      if (cell.building) cell.building.owner = g.active;
+      if (cell.flag) cell.flag.owner = g.active;
+    }
+  }
   return "moved";
 }
 export function transformed(tile, rotation = 0, anchor = 0) {
@@ -700,12 +693,10 @@ export function buildError(
   if (!isRotation(rotation)) return sourceMessage("messages.invalidBuildingOrientation");
   const cells = patternAt(type, x, y, rotation);
   if (b.toll) {
-    const existing = g.board[key(x,y)]?.building;
-    const bridge = existing?.owner === g.active && existing.type === 'bridge';
-    const mountains = [[1,0],[0,1]].some(([dx,dy]) =>
-      g.board[key(x-dx,y-dy)]?.terrain === 'mountain' &&
-      g.board[key(x+dx,y+dy)]?.terrain === 'mountain');
-    if (!bridge && !mountains) return 'Le péage doit être sur un pont ou entre deux montagnes.';
+    const target = g.board[key(x,y)];
+    const bridge = target?.building?.owner === g.active &&
+      ['bridge','great_bridge'].includes(target.building.type);
+    if (target?.terrain === 'river' && !bridge) return `${b.name} : ${b.pattern}`;
   }
   for (const c of cells) {
     if (!inside(g, c.x, c.y)) return sourceMessage("messages.thePatternExtendsBeyondTheBoard");
@@ -728,9 +719,8 @@ export function buildError(
       return sourceMessage("messages.incompatibleTerrainRequiresInsteadOf", [b.name, c.terrain.map(id => TERRAINS[id].name.toLowerCase()).join(sourceMessage("messages.or")), TERRAINS[target.terrain].name.toLowerCase(), b.pattern]);
     if (enemyAt(g, c.x, c.y)) return sourceMessage("messages.anEnemyPieceOccupiesThePattern");
   }
-  const d = distance(unit, { x, y });
-  if (d > RULES.placement.constructionRange)
-    return sourceMessage("messages.placeTheEntranceWithinSpaceSOf", [RULES.placement.constructionRange]);
+  if (!cells.some(cell => distance(unit, cell) <= RULES.placement.constructionRange))
+    return sourceMessage("messages.placeTheTileWithinSpaceSOf", [RULES.placement.constructionRange]);
   if (b.adjacency?.some((rule) => !meetsAdjacency(g, rule, x, y, g.active)))
     return `${b.name} : ${b.pattern}`;
   if (
@@ -957,7 +947,7 @@ export function movementPaths(g) {
         seen.has(k) ||
         !inside(g, x, y) ||
         !unitWalkable(g,g.board[k],x,y) ||
-        enemyAt(g, x, y) || hostileSite(g, x, y)
+        enemyAt(g, x, y) || siteBlocksMovement(g, x, y, unit)
       )
         continue;
       seen.add(k);

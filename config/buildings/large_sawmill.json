@@ -9,7 +9,7 @@
     "terrain": "forest",
     "produces": "material",
     "description": "+3 wood per turn with a worker.",
-    "pattern": "Five forests in an extended block; entrance at a corner.",
+    "pattern": "Five forests in an extended block; building space at a corner.",
     "weight": 1,
     "layout": [
       "Bf",

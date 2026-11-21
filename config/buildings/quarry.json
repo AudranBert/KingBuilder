@@ -9,7 +9,7 @@
     "terrain": "plain",
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
-    "pattern": "One plain entrance between two mountains in a line.",
+    "pattern": "One plain building space between two mountains in a line.",
     "weight": 2,
     "layout": [
       "mBm"
@@ -29,7 +29,7 @@
     "terrain": "plain",
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
-    "pattern": "One plain entrance followed by two mountains in a line.",
+    "pattern": "One plain building space followed by two mountains in a line.",
     "weight": 2,
     "layout": [
       "Bmm"
@@ -50,7 +50,7 @@
     "terrain": "mountain",
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
-    "pattern": "Three mountains in an L; entrance at one end.",
+    "pattern": "Three mountains in an L; building space at one end.",
     "weight": 2,
     "layout": [
       "Bm",

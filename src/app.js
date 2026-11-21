@@ -40,6 +40,7 @@ import { createBoard } from "./ui/board.js";
 import {
   e,
   costText,
+  resourceTextHTML,
   iconHTML,
   terrainDiagram,
   buildingDiagram,
@@ -63,7 +64,7 @@ import {
 
 export function startGame({ initialGame = null } = {}) {
   restoreLanguage();
-  translateDocument();
+  translateDocument(document, resourceTextHTML);
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
@@ -195,34 +196,34 @@ export function startGame({ initialGame = null } = {}) {
     $("#mirror-placement").setAttribute("aria-pressed", String((choice?.kind === "building" ? ui.buildingRotation : ui.rotation) >= 4));
     $("#cancel-placement").disabled = !choice;
     if (!choice) {
-      $("#placement-help").textContent = game.opening
+      $("#placement-help").innerHTML = resourceTextHTML(game.opening
         ? t("app.chooseATerrainTile")
         : !hasSelectedUnit(game, ui) ? t("placement.selectUnitFirst")
-        : mobile ? t("placement.touchGuide") : t("placement.chooseDestination");
+        : mobile ? t("placement.touchGuide") : t("placement.chooseDestination"));
       return;
     }
     if (result?.error) {
-      $("#placement-help").textContent = translateMessage(placementErrorText(result.error));
+      $("#placement-help").innerHTML = resourceTextHTML(translateMessage(placementErrorText(result.error)));
       return;
     }
     if (result && ui.drag) {
-      $("#placement-help").textContent = t("app.releaseToPlace");
+      $("#placement-help").innerHTML = resourceTextHTML(t("app.releaseToPlace"));
       return;
     }
     if (["terrain", "building", "single-terrain"].includes(choice.kind)) {
       const options = [...placementGuidance(game, choice).values()];
       if (!options.some(option => !option.error)) {
         const reasons = new Set(options.map(option => option.error));
-        $("#placement-help").textContent = reasons.size === 1
+        $("#placement-help").innerHTML = resourceTextHTML(reasons.size === 1
           ? translateMessage(placementErrorText(options[0].error))
-          : t("app.cannotPlaceHereRotateOrChooseAnother");
+          : t("app.cannotPlaceHereRotateOrChooseAnother"));
         return;
       }
     }
     const action = mobile ? t("app.tap") : t("app.click");
     const instruction = choice.kind === "unit" ? t("app.aReachableSpaceToMoveTheUnit")
       : t("app.aGreenSpaceToPlace", [choice.kind === "building" ? t("app.theBuilding") : choice.kind === "single-terrain" ? t("app.theTerrain") : t("app.theTerrainTile")]);
-    $("#placement-help").textContent = `${action} ${instruction}`;
+    $("#placement-help").innerHTML = resourceTextHTML(`${action} ${instruction}`);
   }
   function previewPlacement(pos) {
     if (ui.drag) return;
@@ -238,7 +239,7 @@ export function startGame({ initialGame = null } = {}) {
     }
   }
   function toast(message) {
-    $("#toast").textContent = translateMessage(message);
+    $("#toast").innerHTML = resourceTextHTML(translateMessage(message));
     $("#toast").classList.add("visible");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(
@@ -448,10 +449,10 @@ export function startGame({ initialGame = null } = {}) {
     }
     pendingBuild = attempt;
     const missing = costText(payment.missing);
-    $("#prestige-warning").textContent =
-      t("app.missingBuyTheseResourcesFromTheBank", [missing, payment.gold]);
-    $("#prestige-dialog .confirm").textContent =
-      t("app.payGold", [payment.gold]);
+    $("#prestige-warning").innerHTML =
+      resourceTextHTML(t("app.missingBuyTheseResourcesFromTheBank", [missing, payment.gold]));
+    $("#prestige-dialog .confirm").innerHTML =
+      resourceTextHTML(t("app.payGold", [payment.gold]));
     $("#prestige-dialog").showModal();
   }
   function completeBuild(attempt) {
@@ -977,7 +978,7 @@ export function startGame({ initialGame = null } = {}) {
     clearTimeout(toastTimer);
     $('#toast').textContent = '';
     $('#toast').classList.remove('visible');
-    translateDocument();
+    translateDocument(document, resourceTextHTML);
     renderMapOptions();
     updateLanguageFlag();
     html('.rules-content', rulesView(game));

@@ -124,7 +124,7 @@ export function validateGame(game) {
           typeof cell.overlay.anchor === "string" &&
           typeof cell.overlay.role === "string" &&
           game.board[cell.overlay.anchor]?.building,
-        "tuile bâtiment sans entrée.",
+        "tuile bâtiment sans bâtiment de référence.",
       );
   }
   for (const player of game.players) {

@@ -1,4 +1,4 @@
-import { t, definitionText } from "../i18n.js";
+import { t, definitionText, getLanguage } from "../i18n.js";
 import { RESOURCE_ICONS, TERRAINS, BUILDINGS, buildingPattern, transformed } from "../engine.js";
 import { bounds } from "../geometry.js";
 
@@ -14,6 +14,23 @@ export const e = escapeHTML;
 export function iconHTML(path, className = "asset-icon") {
   const url = new URL(`../../${path}`, import.meta.url).href;
   return `<img class="${e(className)}" src="${e(url)}" alt="" aria-hidden="true">`;
+}
+// Format plain prose only, before it is inserted into HTML. Attributes and names
+// stay as text; in English, the conjunction "or" must never become a gold icon.
+export function resourceTextHTML(value) {
+  const aliases = getLanguage() === "fr"
+    ? { or: "gold", nourriture: "food", blé: "food", matériaux: "material", matériau: "material", bois: "material" }
+    : { gold: "gold", food: "food", wheat: "food", materials: "material", material: "material", wood: "material" };
+  const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])(${Object.keys(aliases).join("|")})(?![\\p{L}\\p{N}_])`, "giu");
+  const text = String(value ?? "");
+  let html = "", offset = 0;
+  for (const match of text.matchAll(pattern)) {
+    const id = aliases[match[0].toLowerCase()];
+    html += e(text.slice(offset, match.index));
+    html += `<span class="resource-symbol" role="img" aria-label="${e(t(`resources.${id}.name`))}" title="${e(t(`resources.${id}.name`))}">${iconHTML(RESOURCE_ICONS[id])}</span>`;
+    offset = match.index + match[0].length;
+  }
+  return html + e(text.slice(offset));
 }
 export function costHTML(cost) {
   return (

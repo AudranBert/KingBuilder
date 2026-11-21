@@ -7,7 +7,7 @@ import { dragFromCard, dragPreview, moveUnitTo, placementErrorText } from "../sr
 import { createUIState } from "../src/ui/state.js";
 
 test("le bandeau garde seulement la cause du blocage et préfixe les erreurs", () => {
-  assert.equal(placementErrorText("Moulin : terrain incompatible, il faut plaine ou champs à la place de montagne. Entrée sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine."),
+  assert.equal(placementErrorText("Moulin : terrain incompatible, il faut plaine ou champs à la place de montagne. Bâtiment sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine."),
     "Cannot place: requires plain or fields here.");
   assert.equal(placementErrorText("Le motif sort du plateau."), "Cannot place: the tile extends beyond the board.");
   assert.equal(placementErrorText("Ressources insuffisantes : il manque 2 bois (or insuffisant)."),
