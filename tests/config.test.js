@@ -86,7 +86,11 @@ test("configuration réelle : coûts, score et quota des casernes suivent les fi
  if(names[i]==="terrain-tiles")continue;
  if(names[i]==="missions"){
  const {missions,...settings}=input[i];
- const families=Map.groupBy(missions,m=>m.family);
+ const families=new Map();
+ for(const mission of missions){
+ if(!families.has(mission.family))families.set(mission.family,[]);
+ families.get(mission.family).push(mission);
+ }
  await writeFile(path.join(root,"config/missions/index.json"),JSON.stringify({...settings,files:[...families.keys()]}));
  for(const [family,entries] of families)await writeFile(path.join(root,"config/missions",family+".json"),JSON.stringify(entries));
  continue;
