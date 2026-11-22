@@ -1,7 +1,8 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import {prepareBuilding} from "./helpers.js";
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import { createGame, rerollMarket, rerollError, build, buildingPayment } from "../src/engine.js";
+import { rerollMarket, rerollError, build, buildingPayment } from "../src/engine.js";
 import {initializeMissions,settleMissions,missionTarget} from "../src/objectives.js";
 test("l’or remplace le prestige initial et les relances sans consommer d’action",()=>{
  const g=createGame(undefined, 'local', { boardSize: 13 }),p=g.players[0];assert.equal(g.players[1].resources.gold,p.resources.gold+1);assert.equal(p.prestige,undefined);

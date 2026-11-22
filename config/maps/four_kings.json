@@ -1,0 +1,159 @@
+{
+  "id": "four_kings",
+  "name": "4 kings",
+  "description": "Four kingdoms, five flags. Rivers and mountains flank the outer flags.",
+  "playerCount": 4,
+  "legend": {
+    "!": "plain",
+    "f": "forest",
+    "m": "mountain",
+    "r": "river"
+  },
+  "zones": [
+    {
+      "anchor": [
+        0.25,
+        0.25
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.75,
+        0.25
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.25,
+        0.75
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.75,
+        0.75
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.5833333333333334,
+        0.4166666666666667
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "f"
+      ]
+    },
+    {
+      "anchor": [
+        0.4166666666666667,
+        0.5833333333333334
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "f"
+      ]
+    },
+    {
+      "anchor": [
+        0.25,
+        0.25
+      ],
+      "offset": [
+        -1,
+        -1
+      ],
+      "rows": [
+        "r",
+        "r"
+      ]
+    },
+    {
+      "anchor": [
+        0.75,
+        0.75
+      ],
+      "offset": [
+        1,
+        0
+      ],
+      "rows": [
+        "r",
+        "r"
+      ]
+    },
+    {
+      "anchor": [
+        0.75,
+        0.25
+      ],
+      "offset": [
+        0,
+        -1
+      ],
+      "rows": [
+        "mm"
+      ]
+    },
+    {
+      "anchor": [
+        0.25,
+        0.75
+      ],
+      "offset": [
+        -1,
+        1
+      ],
+      "rows": [
+        "mm"
+      ]
+    }
+  ]
+}

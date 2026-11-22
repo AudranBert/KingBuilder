@@ -64,6 +64,10 @@ export class OnlineClient {
   }
   async connect(code, settings, nickname = '') {
     this.stop(); await this.configure();
+    if (!code && settings?.playerCount === 4) {
+      const health = await this.request("/health");
+      if (!health.supportedPlayerCounts?.includes(4)) throw Error(sourceMessage("four.backendUpdate"));
+    }
     this.accept(await this.request(code ? `/rooms/${code.toUpperCase()}/join` : '/rooms', code ? { nickname } : { settings, nickname }));
     this.poll();
   }
@@ -124,6 +128,10 @@ export class OnlineClient {
     if (this.busy) return;
     this.busy = true;
     try {
+      if (settings?.playerCount === 4 && this.session.game.players.length !== 4) {
+        const health = await this.request("/health");
+        if (!health.supportedPlayerCounts?.includes(4)) throw Error(sourceMessage("four.backendUpdate"));
+      }
       this.accept(await this.request(`/rooms/${this.session.code}/lobby`, { settings, start, revision: this.session.revision }));
     } finally { this.busy = false; }
   }

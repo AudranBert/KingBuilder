@@ -1,7 +1,8 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { harvestView } from "../src/ui/views.js";
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import { createGame, actor, selectUnit, move, explore, build, endTurn, produce, produceError, productionAmount, UNIT_DEFINITIONS, BUILDINGS, harvestPreview, totalScore } from "../src/engine.js";
+import { actor, selectUnit, move, explore, build, endTurn, produce, produceError, productionAmount, UNIT_DEFINITIONS, BUILDINGS, harvestPreview, totalScore } from "../src/engine.js";
 import {applyCommand} from "../src/commands.js";
 import {validateGame} from "../src/validation.js";
 const setup = () => createGame(() => .42, "solo", {openingTilesPerPlayer:0,missionsEnabled:false,boardSize:11});

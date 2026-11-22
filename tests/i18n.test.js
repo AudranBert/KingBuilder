@@ -1,10 +1,11 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import english from "../src/locales/en.js";
 import french from "../src/locales/fr.js";
 import { t, message, definitionText, registerDefinitions, translateMessage, getLanguage, setLanguage, restoreLanguage, translateDocument, kingdomName } from "../src/i18n.js";
-import { createGame, BUILDINGS } from "../src/engine.js";
+import { BUILDINGS } from "../src/engine.js";
 import { BUILDING_CONFIGURATION, TERRAIN_TILE_CONFIGURATION, MISSION_CONFIGURATION } from "../src/configuration.js";
 import { catalogueView, buildingDetailsView, playersView, rulesView, trainingView } from "../src/ui/views.js";
 import { e, resourceTextHTML } from "../src/ui/html.js";

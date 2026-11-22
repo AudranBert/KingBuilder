@@ -1,6 +1,6 @@
 import { t, definitionText, translateMessage, kingdomName } from "../i18n.js";
 import { iconHTML } from "./html.js";
-import { piece } from "./pieces.js";
+import { piece, playerColor } from "./pieces.js";
 import {
   RULES,
   TERRAINS,
@@ -194,7 +194,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
         button.setAttribute("aria-label", parts.join(", "));
         button.title = parts.join(" · ");
         let html = b
-          ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${b.owner === 1 ? "jade" : ""}" aria-hidden="true"></i>`
+          ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${playerColor(b.owner)}" aria-hidden="true"></i>`
           : bridge
             ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS.great_bridge.icon)}</span>`
           : displayTerrain === "field"
@@ -202,7 +202,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
             : cell
               ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[displayTerrain].icon)}</span>`
               : "";
-        if (cell?.flag) html += `<span class="control-flag ${cell.flag.owner === 0 ? "amber" : cell.flag.owner === 1 ? "jade" : "neutral"}" aria-hidden="true">⚑</span>`;
+        if (cell?.flag) html += `<span class="control-flag ${playerColor(cell.flag.owner)}" aria-hidden="true">⚑</span>`;
         if (b && BUILDINGS[b.type].garrison) html += `<span class="garrison-badge" title="${t("createBoard.fixedStrength", [BUILDINGS[b.type].garrison])}">♜</span>`;
         if (b?.type && BUILDINGS[b.type].produces) {
           const used = b.productionRound === g.round;
@@ -222,12 +222,12 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
                 u.moves > 0,
             ) || units.find((u) => !(u.type === "soldier" && u.acted) && !u.ended && u.moves > 0);
           if (units.length)
-            html += `<span class="military-piece ${kind === "worker" ? "mobile-worker-piece" : ""} ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind, owner)}${kind === "soldier" ? `<sup>${units.length}</sup>` : `<sup>${units.length > 1 ? units.length : units[0].id + 1}</sup>`}</span>`;
+            html += `<span class="military-piece ${kind === "worker" ? "mobile-worker-piece" : ""} ${playerColor(owner)} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind, owner)}${kind === "soldier" ? `<sup>${units.length}</sup>` : `<sup>${units.length > 1 ? units.length : units[0].id + 1}</sup>`}</span>`;
           }
         }
         const borders = territoryBorders(g, x, y);
         if (borders.length)
-          html += `<span class="territory-border ${(buildingAt(g,x,y)?.building.owner ?? cell.flag?.owner) === 1 ? "territory-jade" : "territory-gold"} ${borders.map(side => `border-${side}`).join(" ")}" aria-hidden="true"></span>`;
+          html += `<span class="territory-border ${"territory-" + playerColor(buildingAt(g,x,y)?.building.owner ?? cell.flag?.owner)} ${borders.map(side => `border-${side}`).join(" ")}" aria-hidden="true"></span>`;
         if (button.innerHTML !== html) button.innerHTML = html;
       }
     },

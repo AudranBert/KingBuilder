@@ -1,8 +1,9 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { startGame } from "../src/app.js";
-import { RULES, createGame } from "../src/engine.js";
+import { RULES } from "../src/engine.js";
 import { LANGUAGE_KEY } from "../src/i18n.js";
 import { createArmyTestGame } from "../src/test-scenarios.js";
 

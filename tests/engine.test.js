@@ -1,6 +1,7 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createGame,key,explore,move,placement,endTurn,build,RULES,score,movementPaths} from "../src/engine.js";
+import { key,explore,move,placement,endTurn,build,RULES,score,movementPaths } from "../src/engine.js";
 test("13×13, deux donjons, cinq drapeaux et marchés communs",()=>{
  const g=createGame(undefined, 'local', { boardSize: 13 }); assert.equal(g.boardSize,13);assert.equal(g.players[1].units[0].x,12);
  assert.equal(Object.keys(g.board).length,13);assert.equal(g.tileMarket.length,4);assert.equal(g.buildingMarket.length,5);

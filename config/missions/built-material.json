@@ -3,10 +3,10 @@
     "id": "built-material-1",
     "name": "Build 1 wood producer",
     "metric": "built",
-    "target": 1,
+    "target": 2,
     "producerResource": "material",
     "reward": {
-      "soldiers": 1
+      "food": 1
     },
     "family": "built-material",
     "difficulty": 1
@@ -18,7 +18,7 @@
     "target": 3,
     "producerResource": "material",
     "reward": {
-      "soldiers": 2
+      "soldiers": 1
     },
     "family": "built-material",
     "difficulty": 2
@@ -30,7 +30,7 @@
     "target": 5,
     "producerResource": "material",
     "reward": {
-      "soldiers": 3
+      "soldiers": 2
     },
     "family": "built-material",
     "difficulty": 3

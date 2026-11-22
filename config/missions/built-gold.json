@@ -6,7 +6,7 @@
     "target": 1,
     "producerResource": "gold",
     "reward": {
-      "soldiers": 1
+      "score": 1
     },
     "family": "built-gold",
     "difficulty": 1
@@ -18,7 +18,7 @@
     "target": 3,
     "producerResource": "gold",
     "reward": {
-      "soldiers": 2
+      "soldiers": 1
     },
     "family": "built-gold",
     "difficulty": 2
@@ -30,7 +30,7 @@
     "target": 5,
     "producerResource": "gold",
     "reward": {
-      "soldiers": 3
+      "soldiers": 2
     },
     "family": "built-gold",
     "difficulty": 3

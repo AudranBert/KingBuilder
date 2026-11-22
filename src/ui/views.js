@@ -1,11 +1,12 @@
 import { t, definitionText, translateMessage, kingdomName, getLanguage } from "../i18n.js";
 import { iconHTML, resourceTextHTML } from "./html.js";
-import { piece } from "./pieces.js";
+import { piece, playerColor } from "./pieces.js";
 import { CONFIG } from "../configuration.js";
 import { MAPS } from "../maps.js";
 import { hasSelectedUnit } from "./state.js";
 import {
   RULES,
+  playerOrder,
   kingdomBonus,
   createGame,
   GAME_DEFAULTS,
@@ -53,16 +54,17 @@ function mapsCatalogueView(size) {
     <div class="catalogue-filters"><label>${t("maps.previewSize")}<select data-catalogue-filter="mapSize">${[9, 11, 13].map(n => `<option value="${n}" ${n === boardSize ? 'selected' : ''}>${n} × ${n}</option>`).join('')}</select></label></div>
     <p class="map-preview-legend">${t("maps.previewLegend")}</p>
     <div class="catalogue-grid">${MAPS.map(map => {
-      const game = createGame(() => .5, 'local', { mapId: map.id, boardSize });
+      const size = map.playerCount ? 13 : boardSize;
+      const game = createGame(() => .5, 'local', { mapId: map.id, boardSize: size, playerCount: map.playerCount ?? 2 });
       const name = definitionText('maps', map);
       const flags = Object.values(game.board).filter(cell => cell.flag).length;
-      const cells = Array.from({ length: boardSize ** 2 }, (_, i) => {
-        const x = i % boardSize, y = Math.floor(i / boardSize), cell = game.board[key(x, y)];
+      const cells = Array.from({ length: size ** 2 }, (_, i) => {
+        const x = i % size, y = Math.floor(i / size), cell = game.board[key(x, y)];
         const symbol = cell?.flag ? '⚑' : cell?.building ? '♜' : '';
-        const color = cell?.building ? cell.building.owner === 0 ? '#a85b00' : '#156958' : '#483819';
+        const color = cell?.building ? ["#a85b00", "#156958", "#2864aa", "#af3545"][cell.building.owner] : '#483819';
         return `<rect x="${x * 20}" y="${y * 20}" width="19" height="19" rx="2" fill="${cell ? TERRAINS[cell.terrain].color : '#f1eadb'}"/>${symbol ? `<text x="${x * 20 + 9.5}" y="${y * 20 + 10}" text-anchor="middle" dominant-baseline="central" font-size="17" font-weight="bold" fill="${color}" stroke="#fff8e8" stroke-width=".65" paint-order="stroke">${symbol}</text>` : ''}`;
       }).join('');
-      return `<article class="catalogue-card" data-catalogue-map="${e(map.id)}"><h3>${e(name)}</h3><svg class="map-preview" viewBox="0 0 ${boardSize * 20} ${boardSize * 20}" role="img" aria-label="${e(t("maps.previewLabel", [name, boardSize, flags]))}">${cells}</svg><p>${resourceTextHTML(definitionText('maps', map, 'description'))}</p></article>`;
+      return `<article class="catalogue-card" data-catalogue-map="${e(map.id)}"><h3>${e(name)}</h3><svg class="map-preview" viewBox="0 0 ${size * 20} ${size * 20}" role="img" aria-label="${e(t("maps.previewLabel", [name, size, flags]))}">${cells}</svg><p>${resourceTextHTML(definitionText('maps', map, 'description'))}</p></article>`;
     }).join('')}</div></section>`;
 }
 
@@ -96,10 +98,11 @@ export function catalogueView({ tier = "all", tileSize = "all", terrain = "all",
 }
 
 export function playersView(g) {
-  return g.players
+  return playerOrder(g)
+    .map(i => ({ player: g.players[i], owner: i }))
     .map(
-      (p, i) =>
-        `<article class="player ${i === 1 ? "jade" : ""} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(kingdomName(p.name))}${g.active === i && !g.finished ? t("views.yourTurn") : ""}"><div class="crest" aria-hidden="true">${piece("worker", i)}</div><div class="player-name"><h2>${e(kingdomName(p.name))}</h2></div><div class="player-economy"><div class="resources">${Object.entries(
+      ({ player: p, owner: i }) =>
+        `<article class="player ${p.eliminated ? "eliminated" : ""} ${playerColor(i)} ${g.active === i && !g.finished ? "active" : ""}" aria-label="${e(kingdomName(p.name))}${g.active === i && !g.finished ? t("views.yourTurn") : ""}"><div class="crest" aria-hidden="true">${piece("worker", i)}</div><div class="player-name"><h2>${e(kingdomName(p.name))}${p.eliminated ? ` · ${t("four.eliminated")}` : ""}</h2><span class="active-turn-badge"${g.active === i && !g.finished ? "" : ' aria-hidden="true"'}>${t("players.playingNow")}</span></div><div class="player-economy"><div class="resources">${Object.entries(
           RESOURCE_DEFINITIONS,
         )
           .map(
@@ -120,7 +123,7 @@ export function trainingView(g, position, b, readOnly = false) {
       const unit = UNIT_DEFINITIONS[type],
         error = readOnly ? t("mode.inspectOnly") : translateMessage(trainError(g, x, y, type));
       const payment = costPayment(g,unit.cost);
-      return `<div class="training-option"><button class="train-unit secondary" data-action="train" data-type="${e(type)}" data-position="${position}" title="${e(error || t("views.recruitActiveNextTurn", [definitionText("units", unit).toLowerCase()]))}" ${error ? "disabled" : ""}>+1 ${iconHTML(unit.icon)}<small>${costHTML(payment.resources)}</small></button></div>`;
+      return `<div class="training-option"><button class="train-unit secondary" data-action="train" data-type="${e(type)}" data-position="${position}" title="${e(error || t("views.recruitActiveNextTurn", [definitionText("units", unit).toLowerCase()]))}" ${error ? "disabled" : ""}>+1 ${piece(type, g.active)}<small>${costHTML(payment.resources)}</small></button></div>`;
     })
     .join("");
 }
@@ -139,7 +142,7 @@ export function barracksView(g, ui = {}) {
 
 export function workersView(g, ui = {}) {
   return g.players[g.active].units.filter(u => u.type === "worker").map(w =>
-    `<button class="free-worker worker-status ${g.active === 1 ? "jade" : ""} ${g.selectedUnitId === w.id && hasSelectedUnit(g,ui) ? "selected" : ""}" data-worker-select="${w.id}" ${g.finished || g.opening || ui.mode === "inspect" ? "disabled" : ""} title="${e(t('worker.status',[w.id+1,w.moves,t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')]))}">${piece("worker", g.active)}<span>${w.id+1}</span><small>${w.moves} ${iconHTML('assets/textures/interface/boots.svg')} · ${t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')}</small></button>`
+    `<button class="free-worker worker-status ${playerColor(g.active)} ${g.selectedUnitId === w.id && hasSelectedUnit(g,ui) ? "selected" : ""}" data-worker-select="${w.id}" ${g.finished || g.opening || ui.mode === "inspect" ? "disabled" : ""} title="${e(t('worker.status',[w.id+1,w.moves,t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')]))}">${piece("worker", g.active)}<span>${w.id+1}</span><small>${w.moves} ${iconHTML('assets/textures/interface/boots.svg')} · ${t(w.acted || w.ended ? 'worker.actionUsed' : 'worker.actionReady')}</small></button>`
   ).join("");
 }
 export function harvestView() { return `<span>${t("production.explicit")}</span>`; }
@@ -221,7 +224,7 @@ export function selectionView(g, ui) {
   const selectedUnit = unitSelected ? actor(g) : null;
   const movesLeft = selectedUnit && !selectedUnit.ended && !(selectedUnit.type === "soldier" && selectedUnit.acted) ? Math.max(0, selectedUnit.moves) : 0;
   const armyControls = selectedUnit
-    ? `<span class="selected-unit-icon ${g.active === 1 ? 'jade' : ''}" role="img" aria-label="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}" title="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}">${piece(selectedUnit.type, selectedUnit.owner)}</span><span class="selected-unit-moves" title="${t('selectionView.movesRemaining', [movesLeft])}" aria-label="${t('selectionView.movesRemaining', [movesLeft])}"><b>${movesLeft}</b>${iconHTML('assets/textures/interface/boots.svg')}</span>${armyControlsView(g)}`
+    ? `<span class="selected-unit-icon ${playerColor(g.active)}" role="img" aria-label="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}" title="${e(definitionText('units', UNIT_DEFINITIONS[selectedUnit.type]))}">${piece(selectedUnit.type, g.active)}</span><span class="selected-unit-moves" title="${t('selectionView.movesRemaining', [movesLeft])}" aria-label="${t('selectionView.movesRemaining', [movesLeft])}"><b>${movesLeft}</b>${iconHTML('assets/textures/interface/boots.svg')}</span>${armyControlsView(g)}`
     : '';
   let productionControls = "";
   if (selectedUnit?.type === "worker" && !g.finished && ui.mode !== "inspect") {
@@ -288,9 +291,10 @@ export function rulesView(g) {
     rounds = g?.turnLimit ?? GAME_DEFAULTS.rounds,
     openingCount = g?.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer;
   return `<h3>${ruleText("rulesView.1TheGoal")}</h3>
-  <p>${ruleText("rulesView.conquerTheEnemyKeepWithASurviving", [rounds, RULES.points.flag, RULES.points.goldPerPoint])}</p>
+  <p>${g?.players.length === 4 ? ruleText("four.notice") : ruleText("rulesView.conquerTheEnemyKeepWithASurviving", [rounds, RULES.points.flag, RULES.points.goldPerPoint])}</p>
   <h3>${ruleText("rulesView.2SetUpTheBoard")}</h3>
   <p>${g?.mapId ? t(openingCount ? "maps.setupWithDraft" : "maps.setup", [size, openingCount]) : t(g?.missionsEnabled === false ? "rulesView.setupWithoutMissions" : "rulesView.onTheBoardEachPlayerPlacesSetup", [size, size, openingCount])}</p>
+  ${g?.mode === "solo" ? "" : `<p>${ruleText("setup.randomOrder")}</p>`}
   <h3>${ruleText("rulesView.3TakeYourTurn")}</h3>
   <p>${ruleText("rulesView.eachUnitHasMovesAlongSharedEdges", [UNIT_DEFINITIONS.worker.moves])}</p>
   <h3>${ruleText("rulesView.4ExploreAndBuild")}</h3>
@@ -301,7 +305,7 @@ export function rulesView(g) {
   <p>${ruleText("rulesView.rerollingTheMarketCostsGoldOncePer", [GOLD.rerollCost])}</p>
   <h3>${ruleText("rulesView.6FightAndConquer")}</h3>
   <p>${ruleText("rulesView.groupYourSoldiersOrChooseANumber")}</p>
-  <p>${ruleText("rulesView.withASurvivorOccupyAFlagTo")}</p>
+  <p>${g?.players.length === 4 ? ruleText("four.combat") : ruleText("rulesView.withASurvivorOccupyAFlagTo")}</p>
   <h3>${ruleText("rulesView.7MoveThePieces")}</h3>
   <p>${ruleText("rulesView.clickOrDragUnitsAndCardsR")}</p>`;
 }
@@ -325,7 +329,7 @@ export function missionsView(g) {
         return `<article class="mission-card" title="${t("missionsView.firstComeFirstServed", [e(definitionText("missions", m))])}${explanation} · ${e(missionRewardText(m.reward))}" aria-label="${e(definitionText("missions", m))}"><div><strong><span class="mission-stars" aria-label="${t("missionsView.difficultyOf", [m.difficulty, RULES.missionRules.maxDifficulty])}">${"★".repeat(m.difficulty)}</span>${summary}</strong><b class="mission-reward" aria-label="${e(missionRewardText(m.reward))}">${Object.entries(m.reward).map(([type, amount]) => `<span>+${amount} ${type === "score" ? "★" : iconHTML(type === "soldiers" ? UNIT_DEFINITIONS.soldier.icon : RESOURCE_DEFINITIONS[type].icon)}</span>`).join(" ")}</b></div><div class="mission-progress">${g.players
           .map((p, i) => {
             const progress = missionProgress(g, id, i), target = missionTarget(g, id, i);
-            return `<span class="${i === 1 ? "jade" : "amber"}" title="${target > m.target ? t("views.requiredContribution", [RULES.missionRules.requiredContribution]) : e(kingdomName(p.name))}" aria-label="${t("missionsView.of", [e(kingdomName(p.name)), progress, target])}">${Math.min(target, progress)}/${target}</span>`;
+            return `<span class="${playerColor(i)}" title="${target > m.target ? t("views.requiredContribution", [RULES.missionRules.requiredContribution]) : e(kingdomName(p.name))}" aria-label="${t("missionsView.of", [e(kingdomName(p.name)), progress, target])}">${Math.min(target, progress)}/${target}</span>`;
           })
           .join("")}</div></article>`;
       })

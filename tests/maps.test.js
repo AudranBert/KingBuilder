@@ -1,7 +1,8 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { MAPS, mapCells } from "../src/maps.js";
-import { createGame, gameSettings, startOpening, openingError, placeOpeningTile } from "../src/engine.js";
+import { gameSettings, startOpening, openingError, placeOpeningTile } from "../src/engine.js";
 import { validateGame } from "../src/validation.js";
 
 test("les cartes dispersées conservent leurs tuiles séparées des drapeaux symétriques", () => {
@@ -56,7 +57,7 @@ test("les cartes dispersées conservent leurs tuiles séparées des drapeaux sym
 });
 
 test("la draft optionnelle se termine sur chaque carte sans modifier ses cases initiales", () => {
-  for (const map of MAPS) for (const boardSize of [9, 11, 13]) for (const mode of ['solo', 'local']) for (const count of [1, 2]) {
+  for (const map of MAPS.filter(map => !map.playerCount)) for (const boardSize of [9, 11, 13]) for (const mode of ['solo', 'local']) for (const count of [1, 2]) {
     const game = createGame(() => .5, mode, { mapId: map.id, boardSize, openingTilesPerPlayer: count });
     const board = structuredClone(game.board);
     startOpening(game);
@@ -81,7 +82,7 @@ test("la draft optionnelle se termine sur chaque carte sans modifier ses cases i
 
 test("chaque carte fonctionne pour toutes les tailles, en solo et en duel", () => {
   assert.equal(new Set(MAPS.map(map => map.id)).size, MAPS.length);
-  for (const map of MAPS) for (let boardSize = 9; boardSize <= 13; boardSize += 2) {
+  for (const map of MAPS.filter(map => !map.playerCount)) for (let boardSize = 9; boardSize <= 13; boardSize += 2) {
     for (const mode of ['solo', 'local']) {
       const game = createGame(() => .5, mode, { mapId: map.id, boardSize });
       assert.equal(game.mapId, map.id);
@@ -102,12 +103,13 @@ test("chaque carte fonctionne pour toutes les tailles, en solo et en duel", () =
 test("le hasard choisit une carte du catalogue et sa disposition reste fixe", () => {
   assert.equal(gameSettings().mapId, 'base');
   const selected = new Set();
-  for (const value of MAPS.map((_, i) => (i + .5) / MAPS.length)) {
+  const regularMaps = MAPS.filter(map => !map.playerCount);
+  for (const value of regularMaps.map((_, i) => (i + .5) / regularMaps.length)) {
     const game = createGame(() => value, 'local', { mapId: 'random' });
     selected.add(game.mapId);
     assert.deepEqual(game.board, createGame(() => .3, 'local', { mapId: game.mapId }).board);
   }
-  assert.equal(selected.size, MAPS.length);
+  assert.equal(selected.size, regularMaps.length);
   assert.throws(() => gameSettings({ mapId: 'missing' }), /Carte inconnue/);
 });
 

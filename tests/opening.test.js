@@ -1,9 +1,8 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  createGame, startOpening, openingError, placeOpeningTile,
-  exploreError, buildError, moveError, endTurn, key,
-} from "../src/engine.js";
+import { startOpening, openingError, placeOpeningTile,
+  exploreError, buildError, moveError, endTurn, key } from "../src/engine.js";
 
 test("préparation commune : cinq offres, ordre J2 J1 J2 J1 et tour 1 intact", () => {
   const g = createGame(() => 0.42, "local", { mapId: null, boardSize: 13, openingTilesPerPlayer: 2 });

@@ -26,7 +26,7 @@ export function mapCells(map, size) {
 }
 
 export function chooseMap(id, rng) {
-  const map = id === "random" ? MAPS[Math.floor(rng() * MAPS.length)] : MAPS.find(map => map.id === id);
+  const map = id === "random" ? MAPS.filter(map => !map.playerCount)[Math.floor(rng() * MAPS.filter(map => !map.playerCount).length)] : MAPS.find(map => map.id === id);
   if (!map) throw Error("Carte inconnue.");
   return map;
 }

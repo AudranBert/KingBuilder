@@ -1,7 +1,9 @@
 import { Readable } from 'node:stream';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { Rooms } from '../backend/rooms.mjs';
+import { Rooms as RandomRooms } from '../backend/rooms.mjs';
+import { createFixedGame } from './helpers.js';
+class Rooms extends RandomRooms { constructor(options) { super({ ...options, gameFactory: createFixedGame }); } }
 import { createServer } from '../backend/server.mjs';
 import { GAME_DEFAULTS } from '../src/engine.js';
 
@@ -120,7 +122,7 @@ function request(server, url, { method = 'GET', headers = {}, body } = {}) {
 }
 
 test('API HTTP : création, invitation, reprise, validation et CORS', async () => {
-  const server = createServer({ origins: ['https://example.test'] });
+  const server = createServer({ rooms: new Rooms(), origins: ['https://example.test'] });
   const post = (path, body, token) => request(server, path, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(body) });
   const host = await (await post('/rooms', { settings })).json();
   const guest = await (await post(`/rooms/${host.code}/join`, {})).json();
@@ -143,7 +145,7 @@ test('HTTP transport : health endpoint over TCP', async t => {
     await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
     const response = await fetch(`http://127.0.0.1:${server.address().port}/health`);
     assert.equal(response.status, 200);
-    assert.deepEqual(await response.json(), { status: 'ok' });
+    assert.deepEqual(await response.json(), { status: 'ok', supportedPlayerCounts: [2, 4] });
   } catch (error) {
     if (['EACCES', 'EPERM'].includes(error.code ?? error.cause?.code)) {
       t.skip('This runner blocks local TCP connections; API request handling is tested in-process.');

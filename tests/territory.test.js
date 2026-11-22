@@ -1,6 +1,7 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, explore, key } from "../src/engine.js";
+import { explore, key } from "../src/engine.js";
 import { territoryBorders } from "../src/ui/board.js";
 test("la frontière entoure seulement les cases portant un bâtiment, même dans les anciens états", () => {
  const g = { players: [{}, {}], board: {

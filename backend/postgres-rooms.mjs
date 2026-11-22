@@ -45,7 +45,10 @@ export class PostgresRooms {
         [room.code, JSON.stringify(payload), new Date(room.updatedAt + rooms.ttlMs)]);
         if (room.game.finished) {
           const scores = room.game.players.map((_, i) => totalScore(room.game, i));
-          const winner = room.game.winner ?? (scores[0] === scores[1] ? null : scores[0] > scores[1] ? 0 : 1);
+          const leaders = scores.map((n, i) => !room.game.players[i].eliminated ? i : -1).filter(i => i >= 0);
+          const best = Math.max(...leaders.map(i => scores[i]));
+          const tied = leaders.filter(i => scores[i] === best);
+          const winner = room.game.winner ?? (tied.length === 1 ? tied[0] : null);
           await client.query('INSERT INTO kingbuilder_history (code, summary) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING',
             [room.code, JSON.stringify({ names: room.game.players.map(p => p.name), scores, winner })]);
         }

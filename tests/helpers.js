@@ -1,9 +1,18 @@
 import { rotatePoint } from "../src/geometry.js";
-import { createGame, patternAt, key, BUILDINGS } from "../src/engine.js";
+import { createGame as randomGame, patternAt, key, BUILDINGS } from "../src/engine.js";
+// Stable setup for rule/geometry tests; deck draws still use the supplied RNG.
+export function createFixedGame(rng = Math.random, mode = "local", settings = {}) {
+  const draws = mode === "solo" ? 0 : (settings?.playerCount ?? 2);
+  let call = 0;
+  return randomGame(() => {
+    const draw = call++;
+    return draw < draws - 1 ? .999999 : draw === draws - 1 ? 0 : rng();
+  }, mode, settings);
+}
 // Tests of geometric placement need an arena without preplaced objectives.
 export function createSandboxGame(rng, mode, settings = {}) {
   // Fixed coordinates in placement scenarios use a 13 × 13 arena.
-  const g=createGame(rng, mode, { boardSize: 13, ...settings });
+  const g=createFixedGame(rng, mode, { boardSize: 13, ...settings });
   for(const [pos,c] of Object.entries(g.board)) if(c.flag) delete g.board[pos];
   return g;
 }

@@ -56,7 +56,9 @@ export function definitionText(category, definition, field = "name") {
 
 export function kingdomName(name) {
   if (typeof name !== "string") return name;
-  for (const key of ["players.amber", "players.jade", "messages.amber"])
+  if (name === "Sapphire") return t("players.sapphire");
+  if (name === "Ruby") return t("players.ruby");
+  for (const key of ["players.amber", "players.jade", "players.sapphire", "players.ruby", "messages.amber"])
     if (name === english[key] || name.replaceAll("’", "'") === french[key].replaceAll("’", "'")) return t(key);
   return name;
 }

@@ -1,12 +1,11 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import {
-  GAME_DEFAULTS,
-  createGame,
+import { GAME_DEFAULTS,
+
   endTurn,
   gameSettings,
-  startOpening,
-} from "../src/engine.js";
+  startOpening } from "../src/engine.js";
 import { settleMissions } from "../src/objectives.js";
 import { validateGame } from "../src/validation.js";
 

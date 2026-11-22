@@ -54,6 +54,7 @@ export const RULES = {
   points: CONFIG.rules.scoring,
 };
 export const GAME_DEFAULTS = Object.freeze({
+  playerCount: 2,
   mapId: "base",
   rounds: RULES.rounds,
   openingTilesPerPlayer: 0,
@@ -64,14 +65,17 @@ export const GAME_DEFAULTS = Object.freeze({
 export function gameSettings(settings = {}) {
   const resources = { ...GAME_DEFAULTS.resources, ...(settings.resources || {}) };
   const result = {
-    mapId: settings.mapId === undefined ? GAME_DEFAULTS.mapId : settings.mapId,
+    playerCount: settings.playerCount ?? 2,
+    mapId: settings.mapId === undefined ? (settings.playerCount === 4 ? "four_kings" : GAME_DEFAULTS.mapId) : settings.mapId,
     rounds: settings.rounds ?? GAME_DEFAULTS.rounds,
     openingTilesPerPlayer:
       settings.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
-    boardSize: settings.boardSize ?? GAME_DEFAULTS.boardSize,
+    boardSize: settings.boardSize ?? (settings.playerCount === 4 ? 13 : GAME_DEFAULTS.boardSize),
     missionsEnabled: settings.missionsEnabled === undefined ? GAME_DEFAULTS.missionsEnabled : settings.missionsEnabled,
     resources,
   };
+  if (![2, 4].includes(result.playerCount)) throw Error("Invalid player count.");
+  if (result.playerCount === 4 && (result.boardSize !== 13 || result.mapId !== "four_kings")) throw Error("4 kings requires a 13 x 13 board and its dedicated map.");
   if (result.mapId !== null && result.mapId !== "random" && !MAPS.some(map => map.id === result.mapId))
     throw Error("Carte inconnue.");
   if (!Number.isInteger(result.rounds) || result.rounds < 20 || result.rounds > 40)
@@ -173,6 +177,13 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
   if (!["solo", "local"].includes(mode))
     throw new RuleError(ruleIssue("messages.gameModeUnavailable"));
   const options = gameSettings(settings ?? {}), size = options.boardSize;
+  const count = mode === "solo" ? 1 : options.playerCount;
+  const starts = count === 4 ? [{x:0,y:.5},{x:.5,y:0},{x:1,y:.5},{x:.5,y:1}] : RULES.players.map(p => p.start);
+  const seats = count === 1 ? starts.slice(0,1) : shuffle([...starts], rng);
+  const firstPlayer = count === 1 ? 0 : Math.floor(rng() * count);
+  const clockwise = seats.map((_, i) => i).sort((a, b) => starts.indexOf(seats[a]) - starts.indexOf(seats[b]));
+  const firstIndex = clockwise.indexOf(firstPlayer);
+  const turnOrder = [...clockwise.slice(firstIndex), ...clockwise.slice(0, firstIndex)];
   const tileDeck = shuffle(
     CONFIG.tiles.map((tile, id) => ({
       id,
@@ -200,18 +211,24 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
     initialFamilies.add(BUILDINGS[buildingDeck[index]].family || buildingDeck[index]);
     buildingMarket.push(...buildingDeck.splice(index, 1));
   }
-  const players = RULES.players
-    .slice(0, mode === "solo" ? 1 : RULES.players.length)
-    .map(p => ({
+  const definitions = options.playerCount === 4 ? [
+    { name: "Kingdom of Amber", start: {x:0,y:.5} },
+    { name: "Kingdom of Jade", start: {x:.5,y:0} },
+    { name: "Kingdom of Sapphire", start: {x:1,y:.5} },
+    { name: "Kingdom of Ruby", start: {x:.5,y:1} },
+  ] : RULES.players;
+  const players = definitions
+    .slice(0, mode === "solo" ? 1 : definitions.length)
+    .map((p, i) => ({
       name: p.name,
-      x: Math.min(size - 1, Math.floor(p.start.x * size)),
-      y: Math.min(size - 1, Math.floor(p.start.y * size)),
+      x: Math.min(size - 1, Math.floor(seats[i].x * size)),
+      y: Math.min(size - 1, Math.floor(seats[i].y * size)),
     }))
     .map((p, owner) => ({
       ...p,
       resources: {
         ...options.resources,
-        gold: options.resources.gold + (owner === 1 ? 1 : 0),
+        gold: options.resources.gold + (owner !== firstPlayer ? 1 : 0),
       },
       workers: RULES.startingWorkers,
       units: Array.from({ length: RULES.startingWorkers }, (_, id) => ({
@@ -293,7 +310,8 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
     tileMarket: tileDeck.splice(0, RULES.markets.terrainSize),
     buildingMarket,
     buildingReplacements: 0,
-    active: 0,
+    turnOrder,
+    active: firstPlayer,
     round: 1,
     moves: UNIT_DEFINITIONS.worker.moves,
     acted: false,
@@ -310,9 +328,17 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
   initializeMissions(game, shuffle(Object.keys(MISSIONS), rng));
   return game;
 }
-// Shared draft before round one: J2, J1, J2, J1.
+// Setup proceeds backwards from the last player; normal play follows the drawn order.
+export const playerOrder = g => g.turnOrder ?? g.players.map((_, i) => i);
+export function nextPlayer(g, owner = g.active, direction = 1) {
+  const order = playerOrder(g);
+  let index = order.indexOf(owner);
+  do { index = (index + direction + order.length) % order.length; } while (g.players[order[index]].eliminated);
+  return order[index];
+}
+export const firstRemainingPlayer = g => playerOrder(g).find(i => !g.players[i].eliminated);
 export function startOpening(g) {
-  if (g.opening || g.round !== 1 || g.active !== 0 || g.players.some(p => p.revealed))
+  if (g.opening || g.round !== 1 || g.active !== firstRemainingPlayer(g) || g.players.some(p => p.revealed))
     throw new RuleError(ruleIssue("messages.setupCanOnlyBeginBeforeTheGame"));
   const perPlayer = g.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
     totalPlacements = perPlayer * g.players.length;
@@ -329,7 +355,7 @@ export function startOpening(g) {
   const tiles = indexes.map(i => g.tileDeck[i]);
   for (const i of indexes.reverse()) g.tileDeck.splice(i, 1);
   g.opening = { tiles, step: 0, totalPlacements, perPlayer };
-  g.active = g.players.length === 2 ? 1 : 0;
+  g.active = nextPlayer(g, firstRemainingPlayer(g), -1);
   note(g, sourceMessage("messages.setupTuileToPlacePerPlayer", [perPlayer, perPlayer === 1 ? "" : "s"]));
 }
 export function openingIssue(g, index, x, y, rotation = 0) {
@@ -355,10 +381,10 @@ export function placeOpeningTile(g, index, x, y, rotation = 0) {
   if (g.opening.step === g.opening.totalPlacements) {
     g.tileDeck.push(...g.opening.tiles);
     g.opening = null;
-    g.active = 0;
+    g.active = firstRemainingPlayer(g);
     note(g, sourceMessage("messages.setupCompleteTheFirstTurnBegins"));
   } else {
-    g.active = g.players.length === 2 ? 1 - g.active : 0;
+    g.active = nextPlayer(g, g.active, -1);
   }
   return cells;
 }
@@ -415,14 +441,14 @@ export function selectUnit(g, id) {
 }
 export function pawns(g, owner) {
   const p = g.players[owner];
-  if (!p) return [];
+  if (!p || p.eliminated) return [];
   return p.units || [];
 }
 const enemyAt = (g, x, y) =>
-  pawns(g, 1 - g.active).some((p) => p.x === x && p.y === y);
+  g.players.some((_, owner) => owner !== g.active && pawns(g, owner).some(p => p.x === x && p.y === y));
 
 export function armyAt(g, owner, x, y) {
-  return g.players[owner]?.units.filter(u => u.type === "soldier" && u.x === x && u.y === y) || [];
+  return (g.players[owner]?.eliminated ? [] : g.players[owner]?.units)?.filter(u => u.type === "soldier" && u.x === x && u.y === y) || [];
 }
 export function selectedSoldiers(g) {
   const p = g.players[g.active], lead = p.units.find(u => u.id === g.selectedUnitId);
@@ -532,7 +558,10 @@ export function attack(g, x, y) {
     if (b && b.owner !== g.active) {
       recordConquest(g, g.active, `building:${key(x,y)}:${b.missionId || b.type}`);
       if (b.type === RULES.startingBuilding) {
-        g.finished = true; g.winner = g.active; g.victory = "conquest";
+        if (g.players.length === 4) {
+          eliminatePlayer(g, b.owner, "conquest");
+          b.owner = g.active; cell.owner = g.active;
+        } else { g.finished = true; g.winner = g.active; g.victory = "conquest"; }
       } else destroyBuilding(g,x,y);
     }
     for (let i=0;i<g.players.length;i++) if (i !== g.active) returnBuilders(g,i,x,y);
@@ -959,11 +988,21 @@ export function harvestPreview(g, owner = g.active) {
   for (const { preview } of automaticProductions(g, owner)) amounts[preview.resource] += preview.amount;
   return { amounts, inactive:[] };
 }
+export function eliminatePlayer(g, owner, victory = "resignation") {
+  const player = g.players[owner];
+  if (player.eliminated) return;
+  player.eliminated = true;
+  for (const unit of player.units) Object.assign(unit, player.home, { moves: 0, acted: true, ended: true });
+  const remaining = g.players.map((p, i) => p.eliminated ? -1 : i).filter(i => i >= 0);
+  if (remaining.length === 1) { g.finished = true; g.winner = remaining[0]; g.victory = victory; }
+}
 export function endTurn(g) {
   available(g);
   for (const { unit, preview } of automaticProductions(g)) grantProduction(g, unit, preview);
   awardMissions(g);
-  const lastPlayer = g.active === g.players.length - 1;
+  const nextActive = nextPlayer(g);
+  const order = playerOrder(g);
+  const lastPlayer = order.indexOf(nextActive) <= order.indexOf(g.active);
   if (lastPlayer && g.round >= (g.turnLimit ?? RULES.rounds)) {
     g.finished = true;
     note(
@@ -975,7 +1014,7 @@ export function endTurn(g) {
     return;
   }
   if (lastPlayer) g.round++;
-  g.active = (g.active + 1) % g.players.length;
+  g.active = nextActive;
   g.selectedUnitId = null;
   g.armySelection = null;
   g.moves = UNIT_DEFINITIONS.worker.moves + kingdomBonus(g,g.active,"movementBonus");
@@ -1035,6 +1074,7 @@ export function movementPaths(g) {
 }
 
 function awardMissions(g, owner = g.active) {
+  if (g.players[owner].eliminated) return;
   for (const id of settleMissions(g, owner))
     for (const [type, amount] of Object.entries(MISSIONS[id].reward))
       note(g, sourceMessage("messages.missionReward", [g.players[owner].name, MISSIONS[id].name,

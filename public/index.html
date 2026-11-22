@@ -52,9 +52,9 @@
         <button class="mode-card" data-game-mode="local">
           <span class="mode-icon" aria-hidden="true"><img src="assets/textures/interface/local.svg" alt="" /></span
           ><span
-            ><strong data-i18n="static.twoPlayersLocal"></strong
+            ><strong data-i18n="multiplayer.local"></strong
             ><small
-               data-i18n="static.twoPlayersOnTheSameScreen"></small
+               data-i18n="multiplayer.sameScreen"></small
             ></span
           ><span aria-hidden="true">→</span>
         </button>
@@ -77,6 +77,7 @@
     </header>
     <main aria-busy="true" hidden>
       <p id="online-status" role="status" hidden style="overflow-wrap:anywhere"></p>
+      <p id="experimental-status" class="experimental-notice" hidden data-i18n="four.notice"></p>
       <section id="players" class="players" aria-label="" data-i18n-aria-label="static.kingdoms"></section>
       <div class="game-layout">
         <div class="land-column">
@@ -174,6 +175,7 @@
       <div id="lobby-info" hidden><p id="lobby-players" role="status"></p><p><span data-i18n="static.code"></span><strong id="lobby-code"></strong></p><button id="lobby-copy-link" type="button" data-i18n="static.copyLink"></button> <button id="lobby-copy-code" type="button" data-i18n="static.copyCode"></button></div>
       <label id="setting-clock-row" class="setting-row" hidden for="setting-clock"><span><strong data-i18n="static.timeLimitPerTurn"></strong><small data-i18n="static.terrainSetupHasNoTimeLimit"></small></span><select id="setting-clock"><option value="0" data-i18n="clock.unlimited"></option><option value="30" data-i18n="clock.seconds30"></option><option value="60" data-i18n="clock.seconds60"></option><option value="90" data-i18n="clock.seconds90"></option><option value="120" data-i18n="clock.seconds120"></option><option value="150" data-i18n="clock.seconds150"></option><option value="180" data-i18n="clock.seconds180"></option></select></label>
       <div class="settings-list">
+        <div id="setting-players-row" class="setting-row"><span><strong data-i18n="multiplayer.playerCount"></strong><small id="setting-players-help"></small></span><div class="player-count-options" role="group" data-i18n-aria-label="multiplayer.playerCount"><button id="setting-two-players" type="button" aria-pressed="true" data-i18n="multiplayer.two"></button><button id="setting-four-players" type="button" aria-pressed="false" data-i18n="multiplayer.four"></button></div></div>
         <label class="setting-row mission-setting" for="setting-missions">
           <span><strong data-i18n="settings.missions"></strong></span>
           <input id="setting-missions" type="checkbox" role="switch" checked />

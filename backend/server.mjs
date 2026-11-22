@@ -22,7 +22,7 @@ export function createServer({ rooms = new Rooms(), origins = [], rateLimit = 30
       requests.set(ip, rate);
       if (++rate.count > rateLimit) throw new RoomError(429, ruleIssue("messages.tooManyRequestsTryAgainInA"));
       const url = new URL(req.url, 'http://localhost');
-      if (req.method === 'GET' && url.pathname === '/health') return reply(200, { status: 'ok' });
+      if (req.method === 'GET' && url.pathname === '/health') return reply(200, { status: 'ok', supportedPlayerCounts: [2, 4] });
       if (req.method === 'GET' && url.pathname === '/history') return reply(200, rooms.history ? await rooms.history() : { enabled: false, games: [] });
       const match = url.pathname.match(/^\/rooms(?:\/([A-Fa-f0-9]{10})(?:\/(join|commands|lobby|resign|profile))?)?$/);
       if (!match) throw new RoomError(404, ruleIssue("messages.unknownRoute"));

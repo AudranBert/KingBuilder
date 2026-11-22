@@ -1,7 +1,8 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { createGame } from "../src/engine.js";
+
 import { CONFIG, BUILDING_CONFIGURATION, TERRAIN_TILE_CONFIGURATION, MISSION_CONFIGURATION } from "../src/configuration.js";
 import { compileConfiguration } from "../src/config-schema.js";
 const definitions = await Promise.all(

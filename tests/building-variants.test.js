@@ -1,6 +1,7 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {BUILDINGS,createGame,patternAt,buildError,build,selectUnit} from '../src/engine.js';
+import { BUILDINGS,patternAt,buildError,build,selectUnit } from "../src/engine.js";
 import {rotatePoint} from '../src/geometry.js';
 
 function fixture(type,rotation=0) {

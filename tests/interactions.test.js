@@ -1,8 +1,9 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { prepareBuilding } from "./helpers.js";
 import { placementGuidance } from "../src/ui/interactions.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, key, selectUnit, endTurn, actor, moveUnitTo } from "../src/engine.js";
+import { key, selectUnit, endTurn, actor, moveUnitTo } from "../src/engine.js";
 import { dragFromCard, dragPreview, placementErrorText } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
 

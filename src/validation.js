@@ -58,9 +58,12 @@ export function validateGame(game) {
       (game.mode === "solo"
         ? game.players.length === 1
         : (game.mode === undefined || game.mode === "local") &&
-          game.players.length === 2),
+          [2, 4].includes(game.players.length)),
     "mode de jeu ou nombre de joueurs incorrect.",
   );
+  requireValid(game.turnOrder === undefined || (Array.isArray(game.turnOrder) &&
+    game.turnOrder.length === game.players.length && new Set(game.turnOrder).size === game.players.length &&
+    game.turnOrder.every(i => Number.isInteger(i) && i >= 0 && i < game.players.length)), "ordre des joueurs incorrect.");
   requireValid(
     Number.isInteger(game.active) &&
       game.active >= 0 &&
@@ -84,7 +87,7 @@ export function validateGame(game) {
     "chronique incorrecte.",
   );
   requireValid(record(game.board), "plateau absent.");
-  requireValid(game.victory === undefined || (game.victory === "conquest" && game.finished &&
+  requireValid(game.victory === undefined || (["conquest", "resignation"].includes(game.victory) && game.finished &&
     Number.isInteger(game.winner) && game.players[game.winner]), "victoire incorrecte.");
   for (const [position, cell] of Object.entries(game.board)) {
     const [x, y] = parseKey(position);

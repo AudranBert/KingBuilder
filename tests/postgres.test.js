@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { createFixedGame } from './helpers.js';
 import { PostgresRooms } from '../backend/postgres-rooms.mjs';
 import { GAME_DEFAULTS } from '../src/engine.js';
 
@@ -7,7 +8,7 @@ test('PostgreSQL : reprise, concurrence et rollback', { skip: !process.env.TEST_
   const { default: pg } = await import('pg');
   const pool = new pg.Pool({ connectionString: process.env.TEST_DATABASE_URL, max: 3 });
   t.after(() => pool.end());
-  const rooms = new PostgresRooms(pool);
+  const rooms = new PostgresRooms(pool, { gameFactory: createFixedGame });
   await rooms.initialize();
   const host = await rooms.create({ ...GAME_DEFAULTS, openingTilesPerPlayer: 0 });
   t.after(() => pool.query('DELETE FROM kingbuilder_rooms WHERE code = $1', [host.code]));

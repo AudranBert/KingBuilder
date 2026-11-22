@@ -1,6 +1,7 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, startOpening, moveUnitTo, endTurn } from "../src/engine.js";
+import { startOpening, moveUnitTo, endTurn } from "../src/engine.js";
 import { LocalSave, LOCAL_SAVE_KEY } from "../src/local-save.js";
 
 function memory() {

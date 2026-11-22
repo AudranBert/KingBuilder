@@ -3,10 +3,10 @@
     "id": "built-food-1",
     "name": "Build 1 food producer",
     "metric": "built",
-    "target": 1,
+    "target": 2,
     "producerResource": "food",
     "reward": {
-      "soldiers": 1
+      "material": 1
     },
     "family": "built-food",
     "difficulty": 1
@@ -18,7 +18,7 @@
     "target": 3,
     "producerResource": "food",
     "reward": {
-      "soldiers": 2
+      "soldiers": 1
     },
     "family": "built-food",
     "difficulty": 2
@@ -30,7 +30,7 @@
     "target": 5,
     "producerResource": "food",
     "reward": {
-      "soldiers": 3
+      "soldiers": 2
     },
     "family": "built-food",
     "difficulty": 3

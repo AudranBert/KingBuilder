@@ -816,3 +816,54 @@ main:has(.game-layout.opening) .trade-info,
 
 .mission-reward { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 8px; }
 .mission-reward > span { white-space: nowrap; }
+
+/* Four independent kingdoms (experimental). */
+.experimental-notice { margin: 16px 0 20px; padding: 16px 20px; border: 1px solid #ad792d; border-radius: 10px; background: #fff0cc; color: #654514; }
+.players.four-players { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.player.eliminated { opacity: .55; }
+.sapphire { --kingdom-color: #2864aa; }
+.ruby { --kingdom-color: #af3545; }
+.player.sapphire.active, .player.ruby.active { border-color: var(--kingdom-color); box-shadow: inset 0 3px var(--kingdom-color); }
+.sapphire .wood-piece { filter: drop-shadow(0 2px 1px #284e7b); }
+.ruby .wood-piece { filter: drop-shadow(0 2px 1px #793247); }
+.owner-dot.sapphire, .owner-dot.ruby { background: var(--kingdom-color); }
+.control-flag.sapphire, .control-flag.ruby, .mission-progress .sapphire, .mission-progress .ruby { color: var(--kingdom-color); }
+.territory-amber { border-color: #b76a13; }
+.territory-sapphire { border-color: #2864aa; }
+.territory-ruby { border-color: #af3545; }
+@media (max-width: 650px) { .players.four-players { grid-template-columns: 1fr; gap: 6px; } }
+
+/* The active kingdom stays identifiable beyond its accent color. */
+.players .player.amber { --kingdom-color: #925a17; --turn-background: #fff1d2; }
+.players .player.jade { --kingdom-color: #28634e; --turn-background: #e9f3e9; }
+.players .player.sapphire { --turn-background: #eaf2fc; }
+.players .player.ruby { --turn-background: #fcecef; }
+.players .player.active {
+  background: var(--turn-background);
+  border-color: var(--kingdom-color);
+  box-shadow: 0 0 0 2px var(--kingdom-color), inset 5px 0 var(--kingdom-color), 0 4px 0 #cab791;
+}
+.active-turn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  visibility: hidden;
+  white-space: nowrap;
+  padding: 4px 10px;
+  border-radius: 20px;
+  background: var(--kingdom-color);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.active-turn-badge::before { content: "▶"; font-size: 9px; }
+
+.players .player-name {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  gap: 8px;
+}
+.player.active .active-turn-badge { visibility: visible; }
