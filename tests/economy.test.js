@@ -15,9 +15,9 @@ test("relance : pas d’or, pioche insuffisante et fin de partie sans mutation",
 });
 test("missions : premier arrivé, récompense en or et montée de niveau",()=>{
  const g=createGame();g.missions={market:["explore-6"],deck:["explore-12","explore-20"],claimed:[],tiered:1};initializeMissions(g);
- const before=g.players[0].resources.gold;g.players[0].revealed=6;assert.deepEqual(settleMissions(g),["explore-6"]);
+ const before=g.players[0].resources.gold;g.players[0].revealed=8;assert.deepEqual(settleMissions(g),["explore-6"]);
  assert.equal(g.players[0].resources.gold,before+1);assert.deepEqual(g.missions.market,["explore-12"]);
- assert.deepEqual(settleMissions(g),[]);g.players[0].revealed=12;settleMissions(g);assert.deepEqual(g.missions.market,["explore-20"]);
+ assert.deepEqual(settleMissions(g),[]);g.players[0].revealed=16;settleMissions(g);assert.deepEqual(g.missions.market,["explore-20"]);
 });
 test("nouvelle mission déjà remplie : une contribution supplémentaire est nécessaire",()=>{
  const g=createGame();g.players[0].revealed=30;g.missions={market:["explore-6"],deck:["explore-12"],claimed:[],tiered:1};initializeMissions(g);
