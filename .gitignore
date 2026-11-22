@@ -3,3 +3,8 @@ dist/
 .DS_Store
 *.tar.gz
 .openai/*.tmp
+
+# Local previews and verification output
+artifacts/
+output/
+*-test-preview.jpg

@@ -1,0 +1,26 @@
+{
+  "marketSize": 3,
+  "initialDifficulty": 1,
+  "maxDifficulty": 3,
+  "requiredContribution": 1,
+  "files": [
+    "revealed-all",
+    "revealed-forest",
+    "revealed-plain",
+    "revealed-river",
+    "revealed-mountain",
+    "built-all",
+    "built-distinct",
+    "built-food",
+    "built-material",
+    "built-gold",
+    "produced-all",
+    "produced-food",
+    "produced-material",
+    "produced-gold",
+    "military",
+    "multipliers",
+    "conquests",
+    "landscaping"
+  ]
+}

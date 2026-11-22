@@ -2,8 +2,8 @@
   "units": [
     {
       "id": "soldier",
-      "name": "Soldat",
-      "icon": "assets/textures/units-soldier.svg",
+      "name": "Soldier",
+      "icon": "assets/textures/units/soldier.svg",
       "cost": {
         "food": 2
       },
@@ -11,28 +11,12 @@
       "recruitment": "building"
     },
     {
-      "id": "emissary",
-      "name": "Émissaire du roi",
-      "icon": "assets/textures/units-cavalry.svg",
-      "cost": {},
-      "moves": 3,
-      "recruitment": "building"
-    },
-    {
       "id": "worker",
-      "name": "Ouvrier",
-      "icon": "assets/textures/units-worker.svg",
-      "cost": {},
-      "moves": 0,
-      "recruitment": "house"
-    },
-    {
-      "id": "king",
-      "name": "Roi",
-      "icon": "assets/textures/units-king.svg",
+      "name": "Worker",
+      "icon": "assets/textures/units/worker.svg",
       "cost": {},
       "moves": 3,
-      "recruitment": "initial"
+      "recruitment": "house"
     }
   ]
 }

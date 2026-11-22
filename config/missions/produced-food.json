@@ -1,0 +1,38 @@
+[
+  {
+    "id": "produced-food-4",
+    "name": "Produce 5 food",
+    "metric": "produced",
+    "target": 5,
+    "resource": "food",
+    "reward": {
+      "material": 2
+    },
+    "family": "produced-food",
+    "difficulty": 1
+  },
+  {
+    "id": "produced-food-10",
+    "name": "Produce 10 food",
+    "metric": "produced",
+    "target": 10,
+    "resource": "food",
+    "reward": {
+      "material": 3
+    },
+    "family": "produced-food",
+    "difficulty": 2
+  },
+  {
+    "id": "produced-food-18",
+    "name": "Produce 20 food",
+    "metric": "produced",
+    "target": 20,
+    "resource": "food",
+    "reward": {
+      "material": 4
+    },
+    "family": "produced-food",
+    "difficulty": 3
+  }
+]

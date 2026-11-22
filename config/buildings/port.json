@@ -1,0 +1,71 @@
+[
+  {
+    "id": "port",
+    "name": "Harbor",
+    "icon": "assets/textures/buildings/port.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "1 gold with a worker, plus 1 per friendly market or fisher within two orthogonal steps. Bonuses stack.",
+    "pattern": "One plain with 3 river spaces in a line along one side.",
+    "weight": 2,
+    "layout": [
+      ".r",
+      "Br",
+      ".r"
+    ],
+    "production": 1,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "portBonus": true
+  },
+  {
+    "id": "port_square",
+    "name": "Harbor",
+    "icon": "assets/textures/buildings/port.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "1 gold with a worker, plus 1 per friendly market or fisher within two orthogonal steps. Bonuses stack.",
+    "pattern": "One plain building space beside a 2 × 2 river square.",
+    "weight": 1,
+    "layout": [
+      "Brr",
+      ".rr"
+    ],
+    "production": 1,
+    "family": "port",
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "portBonus": true
+  },
+  {
+    "id": "port_l",
+    "name": "Harbor",
+    "icon": "assets/textures/buildings/port.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "1 gold with a worker, plus 1 per friendly market or fisher within two orthogonal steps. Bonuses stack.",
+    "pattern": "One plain building space and three river spaces in a bend.",
+    "weight": 1,
+    "layout": [
+      "Brr",
+      "..r"
+    ],
+    "production": 1,
+    "family": "port",
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "portBonus": true
+  }
+]

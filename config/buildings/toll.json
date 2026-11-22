@@ -1,0 +1,57 @@
+[
+  {
+    "id": "toll",
+    "name": "Toll gate",
+    "tier": 3,
+    "description": "+1 gold per tier 1 producer within two orthogonal steps, with a worker. Build on plain, forest or a bridge.",
+    "icon": "assets/textures/buildings/toll.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": [
+      "plain",
+      "forest",
+      "river"
+    ],
+    "pattern": "An building space on plain, forest or a bridge exactly two spaces in a straight line from an existing building, excluding bridges and tunnels.",
+    "layout": [
+      "B",
+      ".",
+      "c"
+    ],
+    "weight": 2,
+    "points": 0,
+    "produces": "gold",
+    "production": 1,
+    "toll": true,
+    "traversable": true
+  },
+  {
+    "id": "toll_forest",
+    "name": "Toll gate",
+    "tier": 3,
+    "description": "+1 gold per tier 1 producer within two orthogonal steps, with a worker. Build on plain, forest or a bridge.",
+    "icon": "assets/textures/buildings/toll.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": [
+      "plain",
+      "forest",
+      "river"
+    ],
+    "pattern": "An building space on plain, forest or a bridge between two opposite spaces of any terrain except plain.",
+    "layout": [
+      "!p",
+      "B",
+      "!p"
+    ],
+    "weight": 1,
+    "points": 0,
+    "produces": "gold",
+    "production": 1,
+    "toll": true,
+    "traversable": true,
+    "family": "toll"
+  }
+]

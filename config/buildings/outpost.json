@@ -1,0 +1,25 @@
+[
+  {
+    "id": "outpost",
+    "name": "Tower",
+    "icon": "assets/textures/buildings/outpost.svg",
+    "cost": {
+      "material": 4,
+      "food": 1
+    },
+    "terrain": [
+      "plain",
+      "forest"
+    ],
+    "description": "Fixed strength 2 (no defensive bonus).",
+    "pattern": "One empty revealed plain or forest space.",
+    "layout": [
+      "B"
+    ],
+    "tier": 2,
+    "weight": 11,
+    "points": 1,
+    "garrison": 2,
+    "traversable": true
+  }
+]

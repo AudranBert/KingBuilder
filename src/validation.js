@@ -8,6 +8,8 @@ import {
 } from "./engine.js";
 import { inside, key, isRotation } from "./geometry.js";
 
+// Movement granted at turn start remains valid if its bonus building is lost.
+const maxMovementBonus = Math.max(0, ...Object.values(CONFIG.buildings).map(b => b.movementBonus || 0));
 const record = (value) =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const nonnegative = (value) => Number.isSafeInteger(value) && value >= 0;
@@ -40,9 +42,9 @@ function validateTiles(tiles) {
     );
   }
 }
-export function validateGame(game, { legacy = false } = {}) {
+export function validateGame(game) {
   requireValid(
-    record(game) && game.version === 5,
+    record(game) && game.version === 6,
     "version inconnue.",
   );
   const boardSize = game.boardSize ?? RULES.size,
@@ -58,9 +60,12 @@ export function validateGame(game, { legacy = false } = {}) {
       (game.mode === "solo"
         ? game.players.length === 1
         : (game.mode === undefined || game.mode === "local") &&
-          game.players.length === 2),
+          [2, 4].includes(game.players.length)),
     "mode de jeu ou nombre de joueurs incorrect.",
   );
+  requireValid(game.turnOrder === undefined || (Array.isArray(game.turnOrder) &&
+    game.turnOrder.length === game.players.length && new Set(game.turnOrder).size === game.players.length &&
+    game.turnOrder.every(i => Number.isInteger(i) && i >= 0 && i < game.players.length)), "ordre des joueurs incorrect.");
   requireValid(
     Number.isInteger(game.active) &&
       game.active >= 0 &&
@@ -72,8 +77,8 @@ export function validateGame(game, { legacy = false } = {}) {
   );
   requireValid(
     nonnegative(game.moves) &&
-      game.moves <= UNIT_DEFINITIONS.king.moves &&
-      ["acted", "recruited", "finished"].every(
+      game.moves <= UNIT_DEFINITIONS.worker.moves + maxMovementBonus &&
+      ["acted", "finished"].every(
         (k) => typeof game[k] === "boolean",
       ),
     "actions incorrectes.",
@@ -84,7 +89,7 @@ export function validateGame(game, { legacy = false } = {}) {
     "chronique incorrecte.",
   );
   requireValid(record(game.board), "plateau absent.");
-  requireValid(game.victory === undefined || (game.victory === "conquest" && game.finished &&
+  requireValid(game.victory === undefined || (["conquest", "resignation"].includes(game.victory) && game.finished &&
     Number.isInteger(game.winner) && game.players[game.winner]), "victoire incorrecte.");
   for (const [position, cell] of Object.entries(game.board)) {
     const [x, y] = parseKey(position);
@@ -109,11 +114,21 @@ export function validateGame(game, { legacy = false } = {}) {
         b.rotation === undefined || isRotation(b.rotation),
         "orientation incorrecte.",
       );
-      for (const field of ["trainingRound", "trainedCount"])
+      for (const field of ["trainingRound", "trainedCount", "productionRound"])
         requireValid(
           b[field] === undefined || nonnegative(b[field]),
           "quota de caserne incorrect.",
         );
+        requireValid(b.missionId === undefined || (typeof b.missionId === "string" && b.missionId.length <= 100),
+          "identifiant de construction incorrect.");
+      if (b.grantedWorkers !== undefined) {
+        requireValid(Array.isArray(b.grantedWorkers) &&
+          b.grantedWorkers.length === BUILDINGS[b.type].grantsWorker &&
+          new Set(b.grantedWorkers.map(link => `${link?.owner}:${link?.id}`)).size === b.grantedWorkers.length &&
+          b.grantedWorkers.every(link => record(link) && nonnegative(link.owner) && nonnegative(link.id) &&
+            game.players[link.owner]?.units.some(unit => unit.type === "worker" && unit.id === link.id)),
+        "ouvrier de maison incorrect.");
+      }
     }
     if (cell.flag !== undefined)
       requireValid(record(cell.flag) && (cell.flag.owner === null ||
@@ -124,13 +139,12 @@ export function validateGame(game, { legacy = false } = {}) {
           typeof cell.overlay.anchor === "string" &&
           typeof cell.overlay.role === "string" &&
           game.board[cell.overlay.anchor]?.building,
-        "tuile bâtiment sans entrée.",
+        "tuile bâtiment sans bâtiment de référence.",
       );
   }
   for (const player of game.players) {
     requireValid(record(player.home) && inside(player.home.x,player.home.y,boardSize) &&
       Boolean(game.board[key(player.home.x,player.home.y)]), "donjon d’origine incorrect.");
-    requireValid(nonnegative(player.kingSkip) && player.kingSkip <= 1, "retour du roi incorrect.");
     requireValid(nonnegative(player.nextUnitId), "compteur d’unités incorrect.");
     requireValid(
       record(player) &&
@@ -146,45 +160,28 @@ export function validateGame(game, { legacy = false } = {}) {
         nonnegative(player.revealed),
       "ressources ou population incorrectes.",
     );
-    if (!legacy || game.version === 5) {
+    requireValid(Array.isArray(player.units), "liste d’unités incorrecte.");
+    requireValid(player.units.filter(u => u.type === "worker").length === player.workers,
+      "population d’ouvriers incohérente.");
+    const ids = new Set();
+    for (const unit of player.units) {
       requireValid(
-        Array.isArray(player.workerAssignments) &&
-          player.workerAssignments.length === player.workers,
-        "population d’ouvriers incohérente.",
+        UNIT_DEFINITIONS[unit.type] &&
+        !["king", "emissary"].includes(unit.type) &&
+          nonnegative(unit.id) &&
+          !ids.has(unit.id) &&
+          inside(unit.x, unit.y, boardSize) &&
+          game.board[key(unit.x, unit.y)] &&
+          nonnegative(unit.moves) &&
+          unit.moves <= UNIT_DEFINITIONS[unit.type].moves + maxMovementBonus &&
+          (unit.skipTurns === undefined || nonnegative(unit.skipTurns) && unit.skipTurns <= 1) &&
+          typeof unit.acted === "boolean" &&
+          (unit.ended === undefined || typeof unit.ended === "boolean"),
+        "unité incorrecte.",
       );
-      const ids = new Set();
-      for (const w of player.workerAssignments) {
-        requireValid(
-          nonnegative(w.id) &&
-            !ids.has(w.id) &&
-            (w.building === null || typeof w.building === "string"),
-          "affectation incorrecte.",
-        );
-        ids.add(w.id);
-      }
+      ids.add(unit.id);
     }
-    if (player.units !== undefined) {
-      requireValid(Array.isArray(player.units), "liste d’unités incorrecte.");
-      const ids = new Set();
-      for (const unit of player.units) {
-        requireValid(
-          UNIT_DEFINITIONS[unit.type] &&
-          !["king", "worker"].includes(unit.type) &&
-            nonnegative(unit.id) &&
-            !ids.has(unit.id) &&
-            inside(unit.x, unit.y, boardSize) &&
-            game.board[key(unit.x, unit.y)] &&
-            nonnegative(unit.moves) &&
-            unit.moves <= UNIT_DEFINITIONS[unit.type].moves &&
-            (unit.skipTurns === undefined || nonnegative(unit.skipTurns) && unit.skipTurns <= 1) &&
-            typeof unit.acted === "boolean" &&
-            (unit.ended === undefined || typeof unit.ended === "boolean"),
-          "unité incorrecte.",
-        );
-        ids.add(unit.id);
-      }
-      requireValid(player.units.every(u=>u.id < player.nextUnitId), "compteur d’unités périmé.");
-    }
+    requireValid(player.units.every(u=>u.id < player.nextUnitId), "compteur d’unités périmé.");
   }
   requireValid(
     Array.isArray(game.tileMarket) &&
@@ -246,20 +243,25 @@ export function validateGame(game, { legacy = false } = {}) {
         new Set(ids).size === ids.length,
       "mission inconnue ou répétée.",
     );
-  } else requireValid(legacy, "missions absentes.");
+  } else requireValid(false, "missions absentes.");
   requireValid(
-    (legacy && game.rerollsUsed === undefined) || nonnegative(game.rerollsUsed),
+    nonnegative(game.rerollsUsed),
     "quota de relance incorrect.",
   );
-  requireValid(game.workerRecruitsUsed === undefined || nonnegative(game.workerRecruitsUsed), "quota de recrutement incorrect.");
   for (const p of game.players) {
     requireValid(nonnegative(p.resources.gold), "or incorrect.");
+      requireValid(p.missionScore === undefined || nonnegative(p.missionScore), "score de missions incorrect.");
     if (p.progress !== undefined) {
       requireValid(
         record(p.progress) &&
           record(p.progress.terrain) &&
           record(p.progress.built) &&
-          nonnegative(p.progress.recruited),
+            (p.progress.landscaping === undefined || nonnegative(p.progress.landscaping)) &&
+            (p.progress.conquests === undefined || (Array.isArray(p.progress.conquests) &&
+              p.progress.conquests.every(target => typeof target === "string" && target.length <= 150) &&
+              new Set(p.progress.conquests).size === p.progress.conquests.length)) &&
+          (p.progress.produced === undefined || (record(p.progress.produced) &&
+            Object.entries(p.progress.produced).every(([id, n]) => Object.hasOwn(p.resources, id) && nonnegative(n)))),
         "progression des missions incorrecte.",
       );
       for (const [field, defs] of [
@@ -272,7 +274,7 @@ export function validateGame(game, { legacy = false } = {}) {
           ),
           "compteur de mission incorrect.",
         );
-    } else requireValid(legacy, "progression absente.");
+    } else requireValid(false, "progression absente.");
   }
   validateTiles([
     ...game.tileMarket,
@@ -281,4 +283,3 @@ export function validateGame(game, { legacy = false } = {}) {
   requireValid(Array.isArray(game.tileDeck), "pioche de terrains absente.");
   return game;
 }
-

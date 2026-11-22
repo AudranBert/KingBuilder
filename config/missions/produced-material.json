@@ -1,0 +1,38 @@
+[
+  {
+    "id": "produced-material-4",
+    "name": "Produce 5 wood",
+    "metric": "produced",
+    "target": 5,
+    "resource": "material",
+    "reward": {
+      "food": 2
+    },
+    "family": "produced-material",
+    "difficulty": 1
+  },
+  {
+    "id": "produced-material-10",
+    "name": "Produce 10 wood",
+    "metric": "produced",
+    "target": 10,
+    "resource": "material",
+    "reward": {
+      "food": 3
+    },
+    "family": "produced-material",
+    "difficulty": 2
+  },
+  {
+    "id": "produced-material-18",
+    "name": "Produce 20 wood",
+    "metric": "produced",
+    "target": 20,
+    "resource": "material",
+    "reward": {
+      "food": 4
+    },
+    "family": "produced-material",
+    "difficulty": 3
+  }
+]

@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { OnlineClient, savedSession } from '../src/online.js';
+import { OnlineClient, savedSession, remainingTurnSeconds } from '../src/online.js';
 import { Rooms } from '../backend/rooms.mjs';
 import { GAME_DEFAULTS } from '../src/engine.js';
 
@@ -67,7 +67,7 @@ test('reprise : une partie terminée ou abandonnée ne peut plus être reprise',
   client.accept(host); // A stale local entry must also be rejected by server verification.
   assert.equal(await client.canResume(), false);
   assert.equal(savedSession(), null);
-  await assert.rejects(client.resume(), /inachevée/);
+  await assert.rejects(client.resume(), /unfinished/);
 });
 
 test('reprise : terminer une partie dans un onglet ne supprime pas celle d’un autre onglet', t => {
@@ -79,4 +79,75 @@ test('reprise : terminer une partie dans un onglet ne supprime pas celle d’un 
   rooms.get(host.code).game.finished = true;
   client.accept(rooms.read(host.code, host.token));
   assert.equal(savedSession().code, other.code);
+});
+
+
+test('HTTP client preserves structured rule errors for localized UI feedback', async t => {
+  const issue = { code: 'terrainMismatch', required: ['plain'], actual: 'river', building: 'farm' };
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ error: 'opaque message', issue }), { status: 400 }));
+  const client = new OnlineClient(() => {}, () => {}); client.url = 'https://game.example';
+  await assert.rejects(client.request('/command'), error => {
+    assert.deepEqual(error.issue, issue);
+    assert.equal(error.code, 'terrainMismatch');
+    assert.equal(error.status, 400);
+    return true;
+  });
+});
+
+test('stopped operations cannot restore sessions or release the lock of a newer operation', async t => {
+  const { client, host } = mount(t);
+  for (const method of ['send', 'lobby', 'profile', 'connect', 'resume', 'resign']) {
+    client.accept(host);
+    let resolve, requested;
+    const started = new Promise(r => { requested = r; });
+    client.request = () => { requested(); return new Promise(r => { resolve = r; }); };
+    const pending = client[method](method === 'send' ? { type: 'endTurn', args: [] } : undefined);
+    await started;
+    client.stop();
+    client.busy = true;
+    let updates = 0;
+    client.onState = () => updates++;
+    resolve(host);
+    await pending;
+    assert.equal(client.session, null, method);
+    assert.equal(updates, 0, method);
+    assert.equal(client.busy, true, method);
+    client.stop();
+  }
+});
+
+test('a stopped failed command does not trigger recovery for the old room', async t => {
+  const { client, host } = mount(t);
+  client.accept(host);
+  let reject, requests = 0;
+  client.request = () => { requests++; return new Promise((_, r) => { reject = r; }); };
+  const pending = client.send({ type: 'endTurn', args: [] });
+  client.stop();
+  reject(Error('offline'));
+  await pending;
+  assert.equal(requests, 1);
+  assert.equal(client.session, null);
+});
+
+test('HTTP failures distinguish invalid responses, timeouts and loss of connection', async t => {
+  const client = new OnlineClient(() => {}, () => {});
+  client.url = 'https://game.example';
+  for (const [reply, expected] of [
+    [() => new Response('<html>Unavailable</html>', { status: 503 }), /temporarily unavailable/],
+    [() => new Response('null'), /temporarily unavailable/],
+    [() => { throw new DOMException('aborted', 'AbortError'); }, /too long/],
+    [() => { throw TypeError('Failed to fetch'); }, /Internet connection/],
+  ]) {
+    t.mock.method(globalThis, 'fetch', async () => reply());
+    await assert.rejects(client.request('/rooms'), expected);
+  }
+});
+
+test('the countdown advances without polling, clamps at zero and resynchronizes', () => {
+  const session = { deadline: 90000, serverNow: 60000, receivedAt: 1000 };
+  assert.equal(remainingTurnSeconds(session, 1000), 30);
+  assert.equal(remainingTurnSeconds(session, 2000), 29);
+  assert.equal(remainingTurnSeconds(session, 15000), 16);
+  assert.equal(remainingTurnSeconds(session, 99000), 0);
+  assert.equal(remainingTurnSeconds({ ...session, serverNow: 80000, receivedAt: 15000 }, 16000), 9);
 });

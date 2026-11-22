@@ -1,6 +1,7 @@
-import { t, definitionText, translateMessage, kingdomName } from "../i18n.js";
+import { t, definitionText, kingdomName } from "../i18n.js";
+import { ruleIssueText } from "../rule-errors.js";
 import { iconHTML } from "./html.js";
-import { piece } from "./pieces.js";
+import { piece, playerColor } from "./pieces.js";
 import {
   RULES,
   TERRAINS,
@@ -11,6 +12,8 @@ import {
   movementPaths,
   attackPaths,
   buildingAt,
+  terrainAt,
+  bridgeAt,
   productionAmount,
 } from "../engine.js";
 import { key, inside } from "../geometry.js";
@@ -143,84 +146,70 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
       cell.classList.remove("preview-valid", "preview-invalid");
   }
   return {
-    render(g, ui) {
+    render(g, ui, guidance = placementGuidance(g, ui.drag || ui.placement)) {
       if (size !== (g.boardSize ?? RULES.size)) createCells(g.boardSize ?? RULES.size);
       element.setAttribute("aria-label", t("board.boardBySpaces", [size, size]));
-      const exhausted = (pawn) =>
-        g.finished ||
-        (pawn.type === "king"
-          ? pawn.owner === g.active && (g.kingEnded || g.acted || g.moves < 1)
-          : pawn.ended || pawn.acted || pawn.moves < 1);
-      const current = actor(g),
-        pawnIndex = new Map(),
-        workerIndex = new Map();
+      const exhausted = pawn => g.finished || pawn.ended || (pawn.type === "soldier" ? pawn.acted || pawn.moves < 1 : pawn.acted && pawn.moves < 1);
+      const current = actor(g), pawnIndex = new Map();
       for (let owner = 0; owner < g.players.length; owner++) {
-        for (const pawn of pawns(g, owner)) {
-          const position = key(pawn.x, pawn.y);
-          if (!pawnIndex.has(position)) pawnIndex.set(position, []);
-          pawnIndex.get(position).push({ ...pawn, owner });
+        for (const pawn of pawns(g,owner)) {
+          const position = key(pawn.x,pawn.y);
+          if (!pawnIndex.has(position)) pawnIndex.set(position,[]);
+          pawnIndex.get(position).push({...pawn,owner});
         }
-        for (const worker of g.players[owner].workerAssignments)
-          if (worker.building)
-            workerIndex.set(worker.building, { owner, id: worker.id });
       }
       const unitSelected = hasSelectedUnit(g, ui),
         currentKey = unitSelected ? key(current.x, current.y) : null,
         paths = unitSelected ? movementPaths(g) : new Map(),
-        targets = unitSelected ? attackPaths(g) : new Map(),
-        guidance = placementGuidance(g, ui.drag || ui.placement);
+        targets = unitSelected ? attackPaths(g, paths) : new Map();
       if (!cells.has(focusPosition)) focusPosition = key(current.x, current.y);
       for (const [position, button] of cells) {
         const x = +button.dataset.x,
           y = +button.dataset.y,
           cell = g.board[position],
           b = cell?.building,
+          displayTerrain = terrainAt(g,x,y),
+          bridge = bridgeAt(g,x,y),
           occupants = pawnIndex.get(position) || [];
         const near = !guidance.size && ui.mode === "move" && paths.has(position);
         const selected = ui.selected?.x === x && ui.selected?.y === y;
-        button.className = `cell ${cell ? `terrain-${cell.terrain}` : "unknown"} ${b || cell?.overlay ? "built-tile" : ""} ${cell?.overlay?.role === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "king") ? "king" : ""}`;
+        button.className = `cell ${cell ? `terrain-${displayTerrain}` : "unknown"} ${b ? "built-tile" : ""} ${displayTerrain === "field" ? "field" : ""} ${near ? "reachable" : ""} ${selected ? "selected" : ""} ${currentKey === position ? "active-pawn" : ""} ${occupants.some((p) => p.type === "worker") ? "king" : ""}`;
         if (!guidance.size && ui.mode === "move" && targets.has(position)) button.classList.add("combat-target");
-        button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[cell.terrain].texture}`, import.meta.url).href}")` : "";
-        button.style.backgroundColor = cell ? TERRAINS[cell.terrain].color : "";
-        button.style.color = cell ? TERRAINS[cell.terrain].foreground : "";
+        button.style.backgroundImage = cell ? `url("${new URL(`../../${TERRAINS[displayTerrain].texture}`, import.meta.url).href}")` : "";
+        button.style.backgroundColor = cell ? TERRAINS[displayTerrain].color : "";
+        button.style.color = cell ? TERRAINS[displayTerrain].foreground : "";
         button.tabIndex = position === focusPosition ? 0 : -1;
         button.setAttribute("aria-selected", String(selected));
         const parts = [
-          `${coordinates(x, y)} : ${cell ? definitionText("terrains", TERRAINS[cell.terrain]) : t("board.unexplored")}`,
+          `${coordinates(x, y)} : ${cell ? definitionText("terrains", TERRAINS[displayTerrain]) : t("board.unexplored")}`,
         ];
         if (cell?.flag) parts.push(t("board.flag", [cell.flag.owner === null ? t("board.neutral") : kingdomName(g.players[cell.flag.owner].name)]));
         if (b) parts.push(definitionText("buildings", BUILDINGS[b.type]), kingdomName(g.players[b.owner].name));
-        if (cell?.overlay?.role === "field") parts.push(t("board.field"));
         for (const pawn of occupants)
           parts.push(
-            `${pawn.type === "king" ? definitionText("units", UNIT_DEFINITIONS.king) : definitionText("units", UNIT_DEFINITIONS[pawn.type]) + " " + (pawn.id + 1)} · ${kingdomName(g.players[pawn.owner].name)}${exhausted(pawn) ? t("board.actionsComplete") : ""}`,
+            `${definitionText("units", UNIT_DEFINITIONS[pawn.type]) + " " + (pawn.id + 1)} · ${kingdomName(g.players[pawn.owner].name)}${exhausted(pawn) ? t("board.actionsComplete") : ""}`,
           );
-        if (workerIndex.has(position)) parts.push(t("board.assigned", [definitionText("units", UNIT_DEFINITIONS.worker)]));
         if (currentKey === position) parts.push(t("board.selectedUnit"));
-        if (guidance.has(position)) parts.push(translateMessage(guidance.get(position).error) || t("board.validPlacement"));
+        if (guidance.has(position)) parts.push(ruleIssueText(guidance.get(position).error, true) || t("board.validPlacement"));
         button.setAttribute("aria-label", parts.join(", "));
         button.title = parts.join(" · ");
         let html = b
-          ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${b.owner === 1 ? "jade" : ""}" aria-hidden="true"></i>`
-          : cell?.overlay?.role === "field"
+          ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS[b.type].icon)}</span><i class="owner-dot ${playerColor(b.owner)}" aria-hidden="true"></i>`
+          : bridge
+            ? `<span class="building-piece" aria-hidden="true">${iconHTML(BUILDINGS.great_bridge.icon)}</span>`
+          : displayTerrain === "field"
             ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS.field.icon)}</span>`
             : cell
-              ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[cell.terrain].icon)}</span>`
+              ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[displayTerrain].icon)}</span>`
               : "";
-        if (cell?.flag) html += `<span class="control-flag ${cell.flag.owner === 0 ? "amber" : cell.flag.owner === 1 ? "jade" : "neutral"}" aria-hidden="true">⚑</span>`;
-        if (b && BUILDINGS[b.type].garrison) html += `<span class="garrison-badge" title="${t("createBoard.fixedGarrison1Defense1")}">♜</span>`;
+        if (cell?.flag) html += `<span class="control-flag ${playerColor(cell.flag.owner)}" aria-hidden="true">⚑</span>`;
+        if (b && BUILDINGS[b.type].garrison) html += `<span class="garrison-badge" title="${t("createBoard.fixedStrength", [BUILDINGS[b.type].garrison])}">♜</span>`;
         if (b?.type && BUILDINGS[b.type].produces) {
-          const amount = productionAmount(g, x, y);
-          if (!amount) html += `<span class="inactive-producer" title="${t("createBoard.withoutNoProduction", [e(definitionText("units", UNIT_DEFINITIONS.worker).toLowerCase())])}" aria-label="${t("createBoard.withoutNoProduction", [e(definitionText("units", UNIT_DEFINITIONS.worker).toLowerCase())])}">!</span>`;
-          if (amount > BUILDINGS[b.type].production)
-            html += `<span class="boost" aria-hidden="true">×${amount / BUILDINGS[b.type].production}</span>`;
+          const used = b.productionRound === g.round;
+          html += `<span class="production-badge ${used ? 'used' : ''}" title="${e(t(used ? 'messages.productionUsed' : 'production.available'))}">${used ? '✓' : '+' + productionAmount(g,x,y)}</span>`;
         }
-        if (workerIndex.has(position))
-          html += `<span class="worker-piece ${workerIndex.get(position).owner === 1 ? "jade" : ""}" ${workerIndex.get(position).owner === g.active && !g.finished && ui.mode !== 'inspect' ? `data-worker-drag="${workerIndex.get(position).id}"` : ""} title="${t("createBoard.assigned", [e(definitionText("units", UNIT_DEFINITIONS.worker))])}">${piece("worker")}</span>`;
-        for (const pawn of occupants.filter((p) => p.type === "king"))
-          html += `<span class="king-piece ${pawn.owner === 1 ? "jade" : ""} ${exhausted(pawn) ? "exhausted" : ""}" ${pawn.owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && !g.acted && !g.kingEnded && g.moves > 0 ? `data-unit-drag=""` : ""} ${pawn.owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? 'data-unit-select=""' : ""} aria-hidden="true">${piece("king")}</span>`;
         for (let owner = 0; owner < g.players.length; owner++) {
-          for (const kind of ["soldier", "emissary"]) {
+          for (const kind of ["soldier", "worker"]) {
           const units = occupants.filter(
             (p) => p.owner === owner && p.type === kind,
           );
@@ -228,17 +217,17 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
             units.find(
               (u) =>
                 u.id === g.selectedUnitId &&
-                !u.acted &&
+                !(u.type === "soldier" && u.acted) &&
                 !u.ended &&
                 u.moves > 0,
-            ) || units.find((u) => !u.acted && !u.ended && u.moves > 0);
+            ) || units.find((u) => !(u.type === "soldier" && u.acted) && !u.ended && u.moves > 0);
           if (units.length)
-            html += `<span class="military-piece ${kind === "emissary" ? "emissary-piece" : ""} ${owner === 1 ? "jade" : ""} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind)}${kind === "soldier" ? `<sup>${units.length}</sup>` : ""}</span>`;
+            html += `<span class="military-piece ${kind === "worker" ? "mobile-worker-piece" : ""} ${playerColor(owner)} ${units.every(exhausted) ? "exhausted" : ""}" ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished && movable ? `data-unit-drag="${movable.id}"` : ""} ${owner === g.active && ui.mode !== "inspect" && !g.opening && !g.finished ? `data-unit-select="${(movable || units[0]).id}"` : ""} aria-hidden="true">${piece(kind, owner)}${kind === "soldier" ? `<sup>${units.length}</sup>` : `<sup>${units.length > 1 ? units.length : units[0].id + 1}</sup>`}</span>`;
           }
         }
         const borders = territoryBorders(g, x, y);
         if (borders.length)
-          html += `<span class="territory-border ${(buildingAt(g,x,y)?.building.owner ?? cell.flag?.owner) === 1 ? "territory-jade" : "territory-gold"} ${borders.map(side => `border-${side}`).join(" ")}" aria-hidden="true"></span>`;
+          html += `<span class="territory-border ${"territory-" + playerColor(buildingAt(g,x,y)?.building.owner ?? cell.flag?.owner)} ${borders.map(side => `border-${side}`).join(" ")}" aria-hidden="true"></span>`;
         if (button.innerHTML !== html) button.innerHTML = html;
       }
     },

@@ -1,0 +1,260 @@
+{
+  "id": "borderlands",
+  "name": "Borderlands",
+  "description": "5 flags and 4 preplaced terrain tiles.",
+  "legend": {
+    "P": "plain",
+    "F": "forest",
+    "M": "mountain",
+    "R": "river",
+    "!": "plain"
+  },
+  "zones": [
+    {
+      "anchor": [
+        0,
+        0
+      ],
+      "offset": [
+        0,
+        1
+      ],
+      "rows": [
+        "FF",
+        "P."
+      ]
+    },
+    {
+      "anchor": [
+        1,
+        1
+      ],
+      "offset": [
+        -1,
+        -2
+      ],
+      "rows": [
+        "PM",
+        "F."
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        0
+      ],
+      "offset": [
+        -2,
+        1
+      ],
+      "rows": [
+        "PFF"
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        1
+      ],
+      "offset": [
+        1,
+        -1
+      ],
+      "rows": [
+        "RR",
+        "P."
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        0,
+        -3
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        -2,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        0,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        2,
+        0
+      ],
+      "rows": [
+        "!"
+      ]
+    },
+    {
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "offset": [
+        0,
+        3
+      ],
+      "rows": [
+        "!"
+      ]
+    }
+  ],
+  "variants": {
+    "9": {
+      "zones": [
+        {
+          "anchor": [
+            0,
+            0
+          ],
+          "offset": [
+            0,
+            1
+          ],
+          "rows": [
+            "FF",
+            "P."
+          ]
+        },
+        {
+          "anchor": [
+            1,
+            1
+          ],
+          "offset": [
+            -1,
+            -2
+          ],
+          "rows": [
+            "PM",
+            "F."
+          ]
+        },
+        {
+          "anchor": [
+            0.5,
+            0
+          ],
+          "offset": [
+            -2,
+            2
+          ],
+          "rows": [
+            "PFF"
+          ]
+        },
+        {
+          "anchor": [
+            0.5,
+            1
+          ],
+          "offset": [
+            1,
+            -1
+          ],
+          "rows": [
+            "RR",
+            "P."
+          ]
+        },
+        {
+          "anchor": [
+            0.5,
+            0.5
+          ],
+          "offset": [
+            0,
+            -3
+          ],
+          "rows": [
+            "!"
+          ]
+        },
+        {
+          "anchor": [
+            0.5,
+            0.5
+          ],
+          "offset": [
+            -2,
+            0
+          ],
+          "rows": [
+            "!"
+          ]
+        },
+        {
+          "anchor": [
+            0.5,
+            0.5
+          ],
+          "offset": [
+            0,
+            0
+          ],
+          "rows": [
+            "!"
+          ]
+        },
+        {
+          "anchor": [
+            0.5,
+            0.5
+          ],
+          "offset": [
+            2,
+            0
+          ],
+          "rows": [
+            "!"
+          ]
+        },
+        {
+          "anchor": [
+            0.5,
+            0.5
+          ],
+          "offset": [
+            0,
+            3
+          ],
+          "rows": [
+            "!"
+          ]
+        }
+      ]
+    }
+  }
+}

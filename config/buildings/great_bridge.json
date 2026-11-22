@@ -1,0 +1,43 @@
+[
+  {
+    "id": "great_bridge",
+    "name": "Great bridge",
+    "tier": 3,
+    "description": "+6 score. Two water spaces connecting two required plain or forest banks.",
+    "icon": "assets/textures/buildings/bridge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "river",
+    "pattern": "Two water spaces in a line between two required plain or forest banks.",
+    "layout": [
+      "lBrl"
+    ],
+    "weight": 1,
+    "points": 6,
+    "traversable": true,
+    "greatBridge": true
+  },
+  {
+    "id": "great_bridge_bend",
+    "name": "Great bridge",
+    "tier": 3,
+    "description": "+6 score. Two water spaces connecting two required plain or forest banks.",
+    "icon": "assets/textures/buildings/bridge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "river",
+    "pattern": "Two connected water spaces with two offset, required plain or forest banks.",
+    "layout": [
+      "l.",
+      "Br",
+      ".l"
+    ],
+    "weight": 1,
+    "points": 6,
+    "traversable": true,
+    "greatBridge": true,
+    "family": "great_bridge"
+  }
+]

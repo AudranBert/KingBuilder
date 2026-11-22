@@ -1,0 +1,35 @@
+[
+  {
+    "id": "conquests-2",
+    "name": "Kill or capture 2 targets",
+    "metric": "conquests",
+    "target": 2,
+    "reward": {
+      "gold": 1
+    },
+    "family": "conquests",
+    "difficulty": 1
+  },
+  {
+    "id": "conquests-5",
+    "name": "Kill or capture 5 targets",
+    "metric": "conquests",
+    "target": 5,
+    "reward": {
+      "gold": 2
+    },
+    "family": "conquests",
+    "difficulty": 2
+  },
+  {
+    "id": "conquests-8",
+    "name": "Kill or capture 8 targets",
+    "metric": "conquests",
+    "target": 8,
+    "reward": {
+      "gold": 3
+    },
+    "family": "conquests",
+    "difficulty": 3
+  }
+]

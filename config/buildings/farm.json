@@ -1,0 +1,68 @@
+[
+  {
+    "id": "farm",
+    "name": "Farm",
+    "icon": "assets/textures/buildings/farm.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "Three plains in a line; building space at one end.",
+    "weight": 2,
+    "layout": [
+      "Bpp"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 0,
+    "traversable": true,
+    "createsFields": true
+  },
+  {
+    "id": "farm_z",
+    "name": "Farm",
+    "icon": "assets/textures/buildings/farm.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "Three plains in an L; building space at one end.",
+    "weight": 2,
+    "layout": [
+      "Bp",
+      ".p"
+    ],
+    "production": 2,
+    "family": "farm",
+    "tier": 1,
+    "points": 0,
+    "traversable": true,
+    "createsFields": true
+  },
+  {
+    "id": "farm_t",
+    "name": "Farm",
+    "icon": "assets/textures/buildings/farm.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "Three plains in a line; building space in the middle.",
+    "weight": 1,
+    "layout": [
+      "pBp"
+    ],
+    "production": 2,
+    "family": "farm",
+    "tier": 1,
+    "points": 0,
+    "traversable": true,
+    "createsFields": true
+  }
+]

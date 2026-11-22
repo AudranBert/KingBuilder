@@ -1,3 +1,4 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -5,6 +6,7 @@ import { startGame } from "../src/app.js";
 import { RULES } from "../src/engine.js";
 import { LANGUAGE_KEY } from "../src/i18n.js";
 import { createArmyTestGame } from "../src/test-scenarios.js";
+import { ruleIssue, ruleIssueText } from "../src/rule-errors.js";
 
 // Run the application event handlers with an in-memory DOM.
 function mount(t, initialGame = null) {
@@ -110,12 +112,16 @@ function mount(t, initialGame = null) {
       const card = { dataset: { tile: "0" }, hasAttribute: name => name === "data-tile", closest: selector => selector.startsWith("[data-building],[data-tile]") ? card : null };
       documentListeners.get("click")({ target: card });
     },
+    action(name) {
+      const button={dataset:{action:name},disabled:false,closest: selector => selector === '[data-action]' ? button : null};
+      documentListeners.get('click')({target:button});
+    },
     selectWorker() {
-      const worker = { dataset: { workerDrag: '0' }, closest: selector => selector === '[data-worker-drag]' ? worker : null };
+      const worker = { dataset: { workerSelect: '0' }, closest: selector => selector === '[data-worker-select]' ? worker : null };
       documentListeners.get('click')({ target: worker });
     },
     cells() { return nodes.get('#board').children.flatMap(row => row.children); },
-    king() { return this.cells().find(cell => cell.innerHTML.includes('king-piece')); },
+    king() { return this.cells().find(cell => cell.innerHTML.includes('mobile-worker-piece') && cell.innerHTML.includes('>1</sup>')) || this.cells().find(cell => cell.innerHTML.includes('mobile-worker-piece')); },
     cell(x, y) { return this.cells().find(cell => +cell.dataset.x === x && +cell.dataset.y === y); },
     clickCell(x, y, unitSelect) {
       const cell = this.cell(x, y);
@@ -140,6 +146,16 @@ function mount(t, initialGame = null) {
   };
 }
 
+test('placement errors are readable in board accessibility labels', t => {
+  const app = mount(t);
+  app.start('solo');
+  app.selectTile();
+  const labels = app.cells().map(cell => cell.getAttribute('aria-label'));
+  assert.ok(labels.every(label => !label.includes('[object Object]')));
+  const occupied = ruleIssueText(ruleIssue('messages.chooseAnUnexploredSpace'), true);
+  assert.ok(labels.some(label => label.includes(occupied)));
+});
+
 test("annulation : un déplacement peut être repris, puis le bouton se désactive", (t) => {
   const app = mount(t);
   app.start("solo");
@@ -157,11 +173,11 @@ test("clic droit : la sélection de tuile est effacée", (t) => {
   const app = mount(t);
   app.start("solo");
   app.selectTile();
-  assert.match(app.node("#placement-help").textContent, /case verte|Impossible :/);
+  assert.match(app.node("#placement-help").innerHTML, /case verte|Impossible :/);
   let prevented = false;
   app.node(".game-layout").dispatch("contextmenu", { preventDefault() { prevented = true; } });
   assert.equal(prevented, true);
-  assert.match(app.node("#placement-help").textContent, /Sélectionnez le roi/);
+  assert.match(app.node("#placement-help").innerHTML, /Sélectionnez un ouvrier/);
 });
 
 test("menu : lancement solo, retour et résultat après 25 tours", (t) => {
@@ -245,9 +261,9 @@ test("les commandes tactiles pivotent la sélection et permettent de l’annuler
   assert.equal(app.node("#rotate-placement").disabled, true);
   assert.equal(app.node("#cancel-placement").disabled, true);
   app.selectWorker();
-  assert.equal(app.node("#cancel-placement").disabled, false);
+  assert.equal(app.node("#cancel-placement").disabled, true);
   assert.equal(app.node("#rotate-placement").disabled, true);
-  assert.match(app.node("#placement-help").textContent, /affecter l’ouvrier/);
+  assert.match(app.node("#placement-help").innerHTML, /Choisissez une destination/);
 });
 
 test("langue : français par défaut, bascule immédiate et choix mémorisé", (t) => {
@@ -306,7 +322,7 @@ test('jeu : il faut choisir le roi avant de le déplacer ; inspection, annulatio
 
   app.clickCell(x, y);
   assert.match(app.king().className, /active-pawn/);
-  assert.match(app.node('#selection').innerHTML, /selected-unit-icon[^>]*role="img" aria-label="Roi"/);
+  assert.match(app.node('#selection').innerHTML, /selected-unit-icon[^>]*role="img" aria-label="Ouvrier"/);
   assert.match(app.node('#selection').innerHTML, /selected-unit-moves[^>]*Déplacements restants : 3/);
   assert.doesNotMatch(app.node('#selection').innerHTML, /data-army-stat|data-army-size/);
   assert.match(app.cell(x + 1, y).className, /reachable/);
@@ -336,21 +352,22 @@ test('une armée sans déplacement est grisée et un clic hors du pion la désé
   const app = mount(t, game);
   const { x, y } = player.home;
   assert.match(app.cell(x, y).innerHTML, /military-piece[^\"]*exhausted/);
-  app.clickCell(x, y, String(player.units[0].id));
+  app.clickCell(x, y, String(player.units.find(u=>u.type==='soldier').id));
   assert.match(app.node('#selection').innerHTML, /^<span class="selected-unit-icon/);
   assert.match(app.node('#selection').innerHTML, /selected-unit-moves[^>]*Déplacements restants : 0/);
-  assert.match(app.node('#selection').innerHTML, /icon-boots\.svg/);
+  assert.match(app.node('#selection').innerHTML, /boots\.svg/);
   assert.match(app.node('#selection').innerHTML, /selected-unit-icon/);
   assert.match(app.node('#selection').innerHTML, /data-army-stat="attack"/);
   app.clickCell(x, y);
   assert.match(app.node('#selection').innerHTML, /selected-building/);
   assert.doesNotMatch(app.node('#selection').innerHTML, /data-army-stat/);
   assert.doesNotMatch(app.cell(x, y).className, /active-pawn/);
-  app.clickCell(x, y, String(player.units[0].id));
+  app.clickCell(x, y, String(player.units.find(u=>u.type==='soldier').id));
   app.clickCell(x + 1, y);
   assert.doesNotMatch(app.node('#selection').innerHTML, /data-army-stat/);
+  app.clickCell(x, y, String(player.units.find(u=>u.type==='soldier').id));
+  player.units[0].moves=3;
   app.clickCell(x, y, String(player.units[0].id));
-  app.clickCell(x, y, '');
   assert.match(app.cell(x + 1, y).className, /reachable/);
 });
 
@@ -371,4 +388,39 @@ test('le réglage des missions retire réellement les objectifs et adapte les r�
   app.node('#settings-start').click();
   assert.equal(app.node('#missions').hidden, false);
   assert.match(app.node('#missions').innerHTML, /mission-card/);
+});
+
+
+test('ouvrier : produire gagne immédiatement et conserve les déplacements et la sélection', t => {
+  const game=createGame(() => .42,'solo',{openingTilesPerPlayer:0,missionsEnabled:false});
+  const app=mount(t,game);const x=+app.king().dataset.x,y=+app.king().dataset.y;
+  const food=game.players[0].resources.food;
+  app.clickCell(x,y);app.clickCell(x+1,y);
+  assert.match(app.node('#selection').innerHTML,/data-action="produce"/);
+  app.action('produce');
+  assert.equal(game.players[0].resources.food,food+1);
+  assert.match(app.node('#selection').innerHTML,/Action utilisée/);
+  assert.match(app.node('#selection').innerHTML,/Déplacements restants : 2/);
+  app.clickCell(x,y-1);assert.match(app.node('#selection').innerHTML,/Déplacements restants : 0/);
+});
+
+
+test('solo and local games do not write automatic saves', t => {
+  const values = new Map();
+  const before = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
+    getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key),
+  } });
+  t.after(() => before ? Object.defineProperty(globalThis, 'localStorage', before) : delete globalThis.localStorage);
+  const app = mount(t);
+  for (const mode of ['solo', 'local']) {
+    app.start(mode);
+    const x = +app.king().dataset.x, y = +app.king().dataset.y;
+    app.clickCell(x, y); app.clickCell(x + 1, y);
+    app.node('#undo-action').click();
+    app.node('#end-turn').click();
+    app.node('#menu-button').click();
+    assert.equal(values.has('kingbuilder.localGame'), false);
+    assert.equal(app.node('#local-resume'), undefined);
+  }
 });

@@ -378,3 +378,8 @@ body:has(#main-menu[hidden]) .players:has(> :only-child) {
 .map-setting select { max-width: 100%; padding: 8px 10px; font: inherit; border: 1px solid var(--line); border-radius: 6px; }
 .map-preview { display: block; width: 100%; max-width: 320px; height: auto; margin: 12px auto; }
 .map-preview-legend { color: var(--muted); font-size: 13px; }
+
+.player-count-options { display:flex; flex-wrap:wrap; gap:8px; }
+.player-count-options button { padding:9px 12px; }
+.player-count-options button[aria-pressed="true"] { background:#345f4c; color:#fff; border-color:#345f4c; }
+@media(max-width:540px) { #setting-players-row { grid-template-columns:1fr; } }

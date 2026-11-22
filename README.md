@@ -12,7 +12,7 @@ Node.js 20 ou supérieur suffit, sans installation de dépendances.
 npm start
 ```
 
-Ouvrir http://127.0.0.1:4173. Solo et Local multiplayer sont disponibles ; les modes bot et en ligne restent verrouillés. Avant chaque nouvelle partie, un menu permet de régler la durée, la préparation, les ressources initiales et la taille de la grille.
+Ouvrir http://127.0.0.1:4173. Solo et Local multiplayer sont disponibles ; le mode bot reste verrouillé. Le multijoueur en ligne permet de créer ou rejoindre un salon privé. Avant chaque nouvelle partie, un menu permet de régler la durée, la préparation, les ressources initiales et la taille de la grille.
 
 Une partie reste active tant que la page reste ouverte. Choisir un mode depuis le menu lance une nouvelle partie. Les réglages proposent aussi un interrupteur « Missions communes », activé par défaut : le désactiver retire les objectifs et leurs récompenses pour cette partie. En ligne, ce choix appartient à l’hôte.
 
@@ -20,30 +20,34 @@ Une partie reste active tant que la page reste ouverte. Choisir un mode depuis l
 
 Le drapeau du menu principal bascule entre le français et l’anglais à chaque clic. Le français est utilisé au premier lancement ; le choix est ensuite conservé dans le navigateur.
 
-Les textes sont regroupés dans `src/locales/fr.js` et `src/locales/en.js`, avec les mêmes clés dans les deux fichiers. Les vues utilisent `t(clé, paramètres)` ; les paramètres `{0}`, `{1}`, etc. peuvent être réordonnés selon la langue. Les traductions ne contiennent pas la mise en page HTML.
+L’anglais est la langue de référence des données et des messages du moteur. Les JSON de `config/` contiennent les noms, descriptions, motifs et intentions en anglais. Les traductions françaises sont regroupées dans `src/locales/fr.js`. Les textes généraux de l’interface ont leur référence anglaise dans `src/locales/en.js`. Les vues utilisent `t(clé, paramètres)` ; les paramètres `{0}`, `{1}`, etc. peuvent être réordonnés selon la langue. Les traductions ne contiennent pas la mise en page HTML.
 
-Les noms et descriptions du catalogue utilisent des clés fondées sur les identifiants de configuration, par exemple `buildings.house.name`. Les textes statiques déclarent leur clé avec `data-i18n` et les attributs accessibles avec `data-i18n-aria-label`, `data-i18n-title` ou `data-i18n-placeholder`. Pour ajouter ou modifier un texte, mettre à jour les deux fichiers de langue ; les tests vérifient la parité et la couverture du catalogue.
+Les noms et descriptions du catalogue utilisent des clés fondées sur les identifiants de configuration, par exemple `buildings.house.name`. Les textes statiques déclarent leur clé avec `data-i18n` et les attributs accessibles avec `data-i18n-aria-label`, `data-i18n-title` ou `data-i18n-placeholder`. Pour modifier un bâtiment, une mission, un terrain, une tuile ou une carte, éditer le texte anglais dans son JSON puis sa traduction dans `fr.js`. Les textes des JSON sont enregistrés automatiquement comme références anglaises : ne pas les recopier dans `en.js`. Une traduction française absente affiche le texte anglais du JSON. Pour les textes généraux de l’interface, modifier `en.js` et `fr.js`. Les tests vérifient les clés, les paramètres et la couverture des configurations. Le français reste la langue affichée par défaut.
+
+### Editing game content
+
+English is the source language. Edit names, descriptions, placement patterns and tile intents directly in `config/**/*.json`, then update the matching key in `src/locales/fr.js` (for example, `buildings.farm.name` or `maps.valley.description`). Do not duplicate JSON text in `src/locales/en.js`: it is registered automatically when the configuration loads. New content without a French translation falls back to its English JSON text. General UI messages live in `src/locales/en.js`, with French translations in `fr.js`; preserve their `{0}`, `{1}`, etc. placeholders. The display language defaults to French independently of the source language.
 
 ## Règles du duel
 
 ### Victoire
 
 - Occuper le donjon adverse avec au moins un soldat survivant donne une victoire immédiate.
-- Sinon, après le nombre de tours choisi (25 par défaut, de 20 à 40) pour chaque joueur, additionner les points des bâtiments, des drapeaux contrôlés et de l’or restant. Une égalité donne une victoire partagée.
-- Chaque bâtiment ordinaire rapporte 1 point ; un monument en rapporte 6 ; chaque drapeau vaut 4 points. Le donjon et le défrichement ne rapportent rien.
+- Sinon, après le nombre de tours choisi (25 par défaut, de 20 à 40) pour chaque joueur, additionner les points des bâtiments, des missions, des drapeaux contrôlés et de l’or restant. Une égalité donne une victoire partagée.
+- Les bâtiments de niveau 0 et 1 ne rapportent aucun point. Les autres bâtiments rapportent les points indiqués sur leur fiche ; chaque drapeau vaut 4 points. Le donjon et le défrichement ne rapportent rien.
 - Chaque paire de pièces d’or restant en stock rapporte 1 point. Les terrains révélés, les ouvriers, les soldats, la nourriture et les matériaux ne rapportent aucun point.
 
 ### Plateau et placement
 
-- Plateau de 11 × 11 par défaut, réglable de 7 × 7 à 15 × 15. Les cinq objectifs s’adaptent à la taille choisie.
-- Les rois commencent au milieu des bords opposés, chacun sur son donjon. Les trois cases directement voisines par un bord sont des plaines déjà révélées et sans propriétaire ; les diagonales restent inexplorées.
-- Avant le tour 1, chaque joueur place de 0 à 4 grandes tuiles terrain (2 par défaut), en commençant par J2 en local. Les offres sont communes et ne se renouvellent pas pendant cette préparation. Ces poses ne consomment ni tour ni action et ne remplissent pas les missions.
+- Plateau de 13 × 13 par défaut, réglable de 9 × 9 à 13 × 13 par tailles impaires. Les cinq objectifs s’adaptent à la taille choisie.
+- Les deux ouvriers de chaque joueur commencent au milieu des bords opposés, chacun sur son donjon. Les trois cases directement voisines par un bord sont des plaines déjà révélées et sans propriétaire ; les diagonales restent inexplorées.
+- Avant le tour 1, chaque joueur place de 0 à 2 grandes tuiles terrain (0 par défaut), en commençant par J2 en local. Les offres sont communes et ne se renouvellent pas pendant cette préparation. Ces poses ne consomment ni tour ni action et ne remplissent pas les missions.
 - Cinq drapeaux neutres sont préplacés et déjà révélés : un au centre, quatre autour du centre.
 - Les joueurs révèlent des tuiles de terrain depuis un marché commun de quatre offres. Les terrains restent utilisables par les deux joueurs.
 - Les empreintes des bâtiments et leurs terrains requis forment le puzzle. Tous les éléments du motif doivent être révélés et respecter les terrains. Les annexes compatibles peuvent se chevaucher ; seules les cases occupées par un bâtiment lui-même bloquent une autre construction. L’entrée doit être à une case maximum du bâtisseur, sans diagonale.
 - Le marché initial propose quatre familles différentes de bâtiments à une étoile. La maison appartient au niveau deux étoiles et arrive après le déblocage des bâtiments avancés.
 - Niveaux : 0 étoile pour défrichement, pont et tunnel ; 1 étoile pour les fermes, scieries, carrières, mines et pêcheurs ; 2 étoiles pour les ports et tous les autres bâtiments.
-- Les montagnes et les rivières sont infranchissables, sauf sur un tunnel, un pont ou une tour. Les joueurs doivent préserver leurs accès.
+- Les montagnes et les rivières sont infranchissables, sauf sur une case rendue praticable par un bâtiment (tunnel, pont, tour ou producteur). Les joueurs doivent préserver leurs accès.
 - Seuls les bâtiments, leurs annexes et les drapeaux contrôlés portent des contours de propriété. Les terrains explorés n’appartiennent à personne.
 
 ### Ressources et commerce
@@ -54,33 +58,65 @@ Les noms et descriptions du catalogue utilisent des clés fondées sur les ident
 | Matériaux | Scieries et carrières | Construction |
 | Or | Mines, ports et missions | Banque, bâtiments avancés et relances |
 
-Un producteur nécessite un ouvrier ; la récolte a lieu en fin de tour du propriétaire. Un moulin se construit sur une plaine ou un champ, à côté d’un champ allié ; il double la nourriture de cette ferme, sans cumul.
+Un ouvrier sur son bâtiment producteur peut utiliser son action Produire : il gagne immédiatement 2 ressources. Chaque bâtiment produit une seule fois par tour, quel que soit le nombre d’ouvriers. Un moulin voisin d’un champ allié ajoute +1 à la ferme, sans cumul. En fin de tour, chaque ouvrier qui a encore son action produit automatiquement sur sa case, dans la limite d’une production par bâtiment et par tour.
 
 À la construction ou au recrutement, les ressources manquantes peuvent être achetées à la banque. Chaque ressource coûte **2 ors + 1 par bâtiment adverse capable de la produire**, même sans ouvrier. Le paiement utilise d’abord les stocks disponibles. L’or lui-même ne s’achète pas. L’achat ne permet pas de stocker des ressources supplémentaires.
 
 La construction affiche un complément d’achat à confirmer. Le bouton de recrutement montre son coût réel, achat à la banque compris.
 
-Pour 1 or, le roi ou l’émissaire peut révéler une case voisine du terrain de son choix (plaine, forêt, montagne ou rivière). Cet achat consomme son action d’exploration et ne retire aucune tuile de la pioche.
+Pour 1 or, un ouvrier peut révéler une case voisine du terrain de son choix (plaine, forêt, montagne ou rivière). Cet achat consomme son action d’exploration et ne retire aucune tuile de la pioche.
 
-L’or remplace le prestige : les missions donnent de l’or ; renouveler les quatre offres d’un marché coûte 1 or, une fois par joueur et par tour. Les missions continuent à exiger une contribution après leur apparition, et montent de difficulté après leur attribution.
+L’or remplace le prestige ; les missions donnent des récompenses croisées ; renouveler les quatre offres d’un marché coûte 1 or, une fois par joueur et par tour. Les missions continuent à exiger une contribution après leur apparition, et montent de difficulté après leur attribution.
 
-Départ par défaut : un ouvrier disponible, 3 matériaux, 2 nourritures et 1 or. Chaque ressource peut être réglée de 0 à 10 avant la partie. Le second joueur reçoit toujours 1 or supplémentaire.
+Départ par défaut : deux ouvriers mobiles au donjon, 3 matériaux, 2 nourritures et 2 ors. Chaque ressource peut être réglée de 0 à 10 avant la partie. Le second joueur reçoit toujours 1 or supplémentaire.
+
+### Missions communes
+
+Les trois offres communes récompensent l’exploration, la construction, la construction de bâtiments différents (2 / 4 / 6 familles, variantes regroupées), la construction de producteurs de nourriture/bois/or, la production cumulée, la puissance militaire et les multiplicateurs possédés. Chaque famille a trois niveaux, avec une récompense fixe et visible : or, bois, blé, soldats ou points. Une nouvelle contribution après révélation reste nécessaire.
+
+La production manuelle et automatique compte, y compris sur terrain libre, même après dépense des ressources. Les stocks initiaux, achats et récompenses ne comptent pas. La puissance militaire additionne les soldats présents et la force fixe des tours et du donjon (2 chacun), sans bonus défensif : 1 donjon + 3 tours + 4 soldats = 12. Les multiplicateurs sont les moulins, scieries, églises et baraquements actuellement possédés, sans condition de voisinage. Les pertes et destructions réduisent les objectifs de possession, sans retirer les missions déjà gagnées.
+
+La mission « Conquête » compte 2 / 5 / 8 cibles : chaque soldat éliminé (en attaque ou en défense), ouvrier capturé, bâtiment adverse pris ou détruit et drapeau neutre ou adverse capturé vaut 1. Une même cible ne compte qu’une fois par joueur. Les garnisons ne comptent pas en plus du bâtiment ; un bâtiment reconstruit constitue une nouvelle cible.
+
+La mission « Aménager la nature » demande 2 / 4 / 6 aménagements parmi ponts, grands ponts, tunnels et défrichements. Toutes les variantes comptent. Chaque pose vaut 1, quelle que soit sa taille ; les captures ne sont pas des aménagements.
+
+Les ressources offertes ne sont pas comptabilisées comme production. Les soldats offerts apparaissent au donjon, sans mouvement ni action, et deviennent actifs au prochain tour de leur propriétaire. Ils contribuent immédiatement à la puissance militaire et peuvent défendre. Les points des missions sont acquis définitivement et figurent dans le score actuel et final.
+
+| Mission | Palier 1 | Palier 2 | Palier 3 |
+| --- | --- | --- | --- |
+| Produire de l’or | 1 point(s) | 2 point(s) | 3 point(s) |
+| Produire du bois | 2 blé | 3 blé | 4 blé |
+| Produire du blé | 2 bois | 3 bois | 4 bois |
+| Produire des ressources (total) | 1 point(s) | 2 point(s) | 3 point(s) |
+| Puissance militaire | 2 bois | 3 blé | 4 bois |
+| Éliminer / capturer | 1 or | 2 or | 3 or |
+| Aménager la nature | 1 or | 2 point(s) | 3 point(s) |
+| Construire des bâtiments | 1 blé + 1 bois | 2 blé + 2 bois | 3 blé + 3 bois |
+| Explorer (total) | 1 or | 2 or | 3 point(s) |
+| Explorer les forêts | 2 blé | 2 or | 3 point(s) |
+| Explorer les plaines | 2 bois | 2 or | 3 point(s) |
+| Explorer les montagnes | 1 or | 2 or | 3 point(s) |
+| Explorer les rivières | 2 bois | 3 blé | 3 point(s) |
+| Construire des producteurs de nourriture | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
+| Construire des producteurs de bois | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
+| Construire des producteurs d’or | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
+| Posséder des multiplicateurs | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
 
 ### Ouvriers et maisons
 
-Une maison coûte 2 nourritures et 2 matériaux. Elle ajoute immédiatement un ouvrier à la réserve, utilisable pour la récolte du même tour. Les ouvriers s’affectent et se réaffectent gratuitement à distance, avec un seul ouvrier par producteur. Il n’existe plus de capacité de population ni de recrutement séparé d’ouvriers.
+Une maison coûte 4 blés, 4 bois et 1 or. Elle ajoute un ouvrier sur sa case, grisé jusqu’au prochain tour du propriétaire. Il n’existe pas de recrutement séparé d’ouvriers.
 
-### Unités de développement
+### Développement et production
 
-Le roi dispose de 3 déplacements orthogonaux puis d’une action : explorer ou construire. Une action met fin à son activation.
+Chaque ouvrier dispose de 3 déplacements orthogonaux et d’une action : explorer, construire ou produire. Il peut se déplacer avant et après son action, sans dépasser ses 3 déplacements. Les ouvriers ne combattent pas.
 
-Une Chancellerie coûte 4 matériaux et 3 ors et fournit un émissaire du roi. Limite : une Chancellerie et un émissaire par joueur. Il dispose lui aussi de 3 déplacements puis d’une action de développement indépendante. Il ne combat pas et ne capture pas les drapeaux par déplacement.
+Produire sur une plaine libre donne 1 nourriture ; sur une forêt libre, 1 matériau. Sur son bâtiment producteur, seul le rendement indiqué du bâtiment s’applique. Les bâtiments passifs, les annexes et les drapeaux ne permettent pas la production de terrain libre.
 
-L’émissaire apparaît sur sa Chancellerie, grisé jusqu’au prochain tour.
+Le roi, l’émissaire et la Chancellerie ont été supprimés. Les états de partie des anciennes règles ne sont plus compatibles ; commencer une nouvelle partie.
 
 ### Casernes et armées
 
-- Une caserne coûte 1 nourriture et 2 matériaux et fournit un premier soldat gratuit.
+- Une caserne coûte 1 nourriture et 2 matériaux sans fournir de soldat gratuit.
 - Chaque caserne permet ensuite de recruter un soldat par tour pour 2 nourritures, éventuellement achetées à la banque.
 - Les nouvelles recrues apparaissent sur la case de leur caserne et sont grisées jusqu’au prochain tour.
 - Les soldats sur une même case forment une pile. Choisir un effectif permet de laisser les autres sur place ; déplacer une pile sur une autre permet de les réunir.
@@ -90,7 +126,7 @@ L’émissaire apparaît sur sa Chancellerie, grisé jusqu’au prochain tour.
 
 ### Combat
 
-**Attaque = effectif attaquant. Défense = effectif défenseur + 1. Le vainqueur conserve la différence.**
+**Attaque = effectif attaquant. Défense = force fixe du bâtiment + effectif défenseur ; ajouter +1 uniquement si des soldats défendent sans bâtiment ayant une force fixe. Le vainqueur conserve la différence.**
 
 | Attaque | Soldats défenseurs | Résultat |
 | --- | --- | --- |
@@ -105,22 +141,22 @@ Une cible vide n’a pas de bonus défensif. Les combats sont sans hasard. Cliqu
 
 Un soldat qui occupe un drapeau le capture. Sa couleur et ses points persistent après le départ de l’armée, jusqu’à une recapture.
 
-Une tour coûte 2 matériaux et peut être construit sur **toute case révélée sans bâtiment**, quel que soit le terrain, y compris sur une annexe compatible. Sa case devient praticable. Construire sur un drapeau en prend le contrôle ; le drapeau n’est pas un bâtiment et peut coexister avec la tour.
+Une tour coûte 4 bois et 1 blé et peut être construite sur **une plaine ou une forêt révélée sans bâtiment**, y compris sur une annexe compatible. Elle ne peut pas être construite sur montagne ou rivière. Sa case devient praticable. Construire sur un drapeau en prend le contrôle ; le drapeau n’est pas un bâtiment et peut coexister avec la tour.
 
-La tour et le donjon possèdent une garnison fixe de 1 soldat. Une armée alliée peut les renforcer. Appliquer le bonus défensif +1 une seule fois. La garnison est retirée en dernier et reste présente tant qu’aucun attaquant survivant n’occupe la case, même après une égalité des forces. Ainsi, 2 attaquants ne détruisent pas une tour isolée ; 3 la détruisent avec 1 survivant.
+La tour et le donjon possèdent une force fixe de 2, sans bonus défensif propre. Une armée alliée peut les renforcer : ajouter uniquement son effectif. Le bonus défensif de +1 des soldats s’applique uniquement sans bâtiment ayant une force fixe. Une tour avec un soldat défend donc à 3. La garnison est retirée en dernier et reste présente tant qu’aucun attaquant survivant n’occupe la case, même après une égalité des forces. Ainsi, 2 attaquants ne détruisent pas une tour isolée ; 3 la détruisent avec 1 survivant.
 
 ### Destruction et retour des bâtisseurs
 
-Occuper la case réelle d’un bâtiment adverse le détruit. Les terrains annexes ne sont pas des cibles militaires. Toute l’empreinte est libérée ; les terrains restent révélés et les champs reviennent à leur terrain sous-jacent. Les ouvriers affectés retournent à la réserve.
+Occuper la case réelle d’un bâtiment adverse le détruit. Les terrains annexes ne sont pas des cibles militaires. Toute l’empreinte est libérée ; les terrains restent révélés et les champs reviennent à leur terrain sous-jacent. Les ouvriers restent sur le plateau ; une occupation ennemie les renvoie au donjon.
 
-Détruire une maison ne supprime pas son ouvrier. Détruire une caserne ne supprime pas ses soldats déjà recrutés.
+Détruire une maison supprime l’ouvrier qu’elle a créé, où qu’il se trouve. Tous les bâtiments détruits reviennent en fin de pioche. Détruire une caserne ne supprime pas ses soldats déjà recrutés.
 
-Un roi pris retourne au donjon et ne peut pas agir pendant son prochain tour. L’émissaire retourne à sa Chancellerie, ou au donjon si elle a été détruite, avec la même indisponibilité. Occuper le donjon termine immédiatement la partie.
+Un ouvrier capturé retourne au donjon, grisé jusqu’à son prochain tour. Occuper le donjon termine immédiatement la partie.
 
 ## Commandes
 
 - Cliquer une carte affiche ses placements ; cliquer une case verte la pose. Le glisser-déposer reste disponible.
-- Le mode **Jouer** ne sélectionne aucune unité automatiquement : cliquer d’abord le roi ou une unité, puis sa destination. Le mode **Inspecter** affiche les informations des cases sans déplacer les pièces. Un changement de mode, Échap, un clic droit ou un nouveau tour retire la sélection.
+- Le mode **Jouer** ne sélectionne aucune unité automatiquement : cliquer d’abord un ouvrier ou un soldat, puis sa destination. Le mode **Inspecter** affiche les informations des cases sans déplacer les pièces. Un changement de mode, Échap, un clic droit ou un nouveau tour retire la sélection.
 - Pour une armée, l’épée indique la puissance du groupe sélectionné ; le bouclier indique la défense de sa case, avec tous les soldats présents, la garnison éventuelle et le bonus défensif. Le nombre de soldats reste affiché sur le pion du plateau.
 - Les quatre pictogrammes sous les tuiles de terrain permettent d’acheter une case précise pour 1 or.
 - Sur ordinateur, R ou la molette sur une carte fait pivoter la pièce ; Échap annule la sélection.
@@ -129,7 +165,7 @@ Un roi pris retourne au donjon et ne peut pas agir pendant son prochain tour. L�
 - Le clic droit efface la sélection. Le bouton ↶ annule une seule dernière action ; il se réactive après une nouvelle action et se vide au changement de tour.
 - Sélectionner une unité puis une case dorée la déplace. Sélectionner une cible rouge prépare un combat.
 - Pour une armée, le sélecteur **Effectif** choisit combien de pions partent ensemble.
-- Glisser un ouvrier de la réserve vers un producteur l’affecte ; le ramener à la réserve le libère.
+- Le panneau Ouvriers permet de sélectionner chaque ouvrier et affiche ses déplacements restants et son action. Le bouton Produire indique le gain sur sa case.
 - Les fiches ⓘ et les règles contiennent les explications ; les cartes privilégient les pictogrammes.
 
 ## Développement et configuration
@@ -140,6 +176,8 @@ npm run check:config
 npm run build
 ```
 
-`src/` contient le moteur et l’interface ; `config/` contient les règles et les catalogues ; `assets/textures/` contient les illustrations. Le build recopie les sources dans `dist/`, seul dossier à publier. Ne pas modifier `dist/` directement.
+Les valeurs par défaut du plateau, de la durée et des ressources viennent de `config/game-rules.json` et `config/resources.json`. Le menu et le moteur utilisent les mêmes réglages.
+
+`src/` contient le moteur et l’interface ; `config/` contient les règles et les catalogues ; `assets/textures/` contient les illustrations, classées dans `buildings/`, `resources/`, `units/`, `terrains/` et `interface/`. Les terrains distinguent les fichiers `*-texture.svg` du plateau et `*-icon.svg` des pictogrammes. Les futurs sons pourront être placés à côté, dans `assets/sounds/`. Le build recopie les sources dans `dist/`, seul dossier à publier. Ne pas modifier `dist/` directement.
 
 Le guide [config/README.md](config/README.md) décrit les champs configurables. Les coûts, le tarif de la banque et les points constituent une première base d’équilibrage.

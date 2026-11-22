@@ -1,11 +1,14 @@
+import { ruleIssueText } from "./rule-errors.js";
+import { missionRewardText } from "./mission-rewards.js";
 import { t, definitionText, translateMessage, kingdomName, getLanguage, setLanguage, restoreLanguage, translateDocument } from "./i18n.js";
 import { parseKey } from "./geometry.js";
 import { MAPS } from "./maps.js";
-import { OnlineClient } from './online.js';
+import { OnlineClient, remainingTurnSeconds } from './online.js';
 import { monitorServerHealth } from './server-health.js';
 import { installDrag } from "./ui/drag.js";
 import {
   RULES,
+  playerOrder,
   GAME_DEFAULTS,
   createGame,
   buyTerrain as localBuyTerrain,
@@ -15,10 +18,11 @@ import {
   MISSIONS,
   RESOURCE_DEFINITIONS,
   buildingPayment,
-  buildError,
+  buildIssue,
   rerollMarket as localRerollMarket,
-  rerollError,
+  rerollIssue,
   actor,
+  moveUnitTo as localMoveUnitTo,
   buildingAt,
   movementPaths,
   attackPaths,
@@ -26,21 +30,21 @@ import {
   pawns,
   explore as localExplore,
   build as localBuild,
-  assign as localAssign,
+  produce as localProduce,
   endTurn as localEndTurn,
   selectUnit,
-  assignWorker as localAssignWorker,
   trainUnit as localTrainUnit,
-  totalScore,
+  gameResults,
   key,
 } from "./engine.js";
-import { createUIState, hasSelectedUnit } from "./ui/state.js";
-import { dragFromCard, dragPreview, placementOrigin, moveUnitTo as localMoveUnitTo, placementGuidance, placementErrorText } from "./ui/interactions.js";
+import { createUIState, hasSelectedUnit, clearSelection } from "./ui/state.js";
+import { dragFromCard, dragPreview, placementOrigin, placementGuidance, placementErrorText } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
   e,
   costText,
+  resourceTextHTML,
   iconHTML,
   terrainDiagram,
   buildingDiagram,
@@ -60,12 +64,11 @@ import {
   catalogueView,
   harvestView,
   harvestGains,
-  tradeView,
 } from "./ui/views.js";
 
 export function startGame({ initialGame = null } = {}) {
   restoreLanguage();
-  translateDocument();
+  translateDocument(document, resourceTextHTML);
   const $ = (selector) => document.querySelector(selector),
     ui = createUIState(),
     markup = new WeakMap();
@@ -73,21 +76,31 @@ export function startGame({ initialGame = null } = {}) {
     toastTimer;
   let undoState = null;
   let pendingBuild = null;
+  let nextPlayerCount = 2;
   let nextMode = "local",
     nextSettings = structuredClone(GAME_DEFAULTS);
   let inMenu = true;
   let unitCellClick = null;
   let announcedTurn = null;
+  function resetSelection({ unit = true, gameSelection = true } = {}) {
+    drag.cancel();
+    unitCellClick = null;
+    clearSelection(gameSelection ? game : null, ui, { unit });
+  }
   function announceTurn() {
     if (inMenu || game.finished || game.mode === 'solo') return;
     const turn = `${game.onlineCode || 'local'}:${game.round}:${game.active}:${game.opening?.step ?? 'play'}`;
     if (announcedTurn === turn) return;
     announcedTurn = turn;
     if (online.session && game.active !== online.session.player) return;
-    toast(online.session ? t("app.yourTurn") : t("app.turnForTheKingdom", [game.active === 0 ? t("app.ofAmber") : t("app.ofJade")]));
+    toast(online.session ? t("app.yourTurn") : t("four.turn", [kingdomName(game.players[game.active].name)]));
   }
   let queuedCommand = null;
+  let guidance = new Map();
+  let clockTimer;
+  let connectionError = null;
   const online = new OnlineClient(result => {
+    connectionError = null;
     const changed = result.code !== game.onlineCode || result.revision !== game.onlineRevision;
     if (changed) {
       const selected = game.selectedUnitId, army = game.armySelection;
@@ -100,6 +113,7 @@ export function startGame({ initialGame = null } = {}) {
       game.onlineRevision = result.revision;
       game.onlineCode = result.code;
       undoState = null; pendingBuild = null;
+      resetSelection({ gameSelection: false });
       Object.assign(ui, createUIState());
       if (sameTurn && selection) ui.unitSelection = selection;
     }
@@ -107,29 +121,34 @@ export function startGame({ initialGame = null } = {}) {
     if (changed && game.finished && !inMenu) showResults();
     if (!result.started) showLobby(result, changed);
     else if (inMenu) { $('#game-settings-dialog').close(); enterGame(); }
-  }, error => { $('#online-status').textContent = t("app.connectionInterruptedRetrying", [translateMessage(error.message)]); });
+  }, error => { connectionError = error; updateOnlineStatus(); });
   function showLobby(session, syncSettings = true) {
     inMenu = true;
+    const countChanged = nextPlayerCount !== session.game.players.length;
+    nextPlayerCount = session.game.players.length;
+    updatePlayerCountControls();
+    renderMapOptions();
     $('#lobby-info').hidden = false;
-    $('#settings-title').textContent = session.joined ? t("app.gameReady") : t("app.waitingForTheSecondPlayer");
+    $('#settings-title').textContent = session.game.players.length === 4 ? t("four.lobby", [session.seats.filter(Boolean).length]) : session.joined ? t("app.gameReady") : t("app.waitingForTheSecondPlayer");
     $('#setting-clock-row').hidden = false;
     $('#setting-clock').disabled = session.player !== 0;
     $('#setting-missions').disabled = session.player !== 0;
     $('#setting-map').disabled = session.player !== 0;
-    if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-map').value = session.settings.mapId ?? GAME_DEFAULTS.mapId;
+    if (syncSettings && (countChanged || session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-map').value = session.settings.mapId ?? GAME_DEFAULTS.mapId;
     updateMapDescription();
-    if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-clock').value = session.settings.turnSeconds ?? 0;
-    if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-missions').checked = session.settings.missionsEnabled ?? GAME_DEFAULTS.missionsEnabled;
-    $('#settings-mode').textContent = session.player === 0 ? t("app.youAreTheHost") : t("app.guest");
+    if (syncSettings && (countChanged || session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-clock').value = session.settings.turnSeconds ?? 0;
+    if (syncSettings && (countChanged || session.player !== 0 || !$('#game-settings-dialog').open)) $('#setting-missions').checked = session.settings.missionsEnabled ?? GAME_DEFAULTS.missionsEnabled;
+    $('#settings-mode').textContent = (session.player === 0 ? t("app.youAreTheHost") : t("app.guest")) + (session.game.players.length === 4 ? ' · ' + t('four.experimental') : '');
     $('#lobby-code').textContent = session.code;
-    $('#lobby-players').textContent = t("app.amber", [kingdomName(session.game.players[0].name), session.joined ? kingdomName(session.game.players[1].name) + ' (Jade)' : t("app.waitingForTheSecondPlayer2")]);
+    $('#lobby-players').textContent = playerOrder(session.game).map((i, rank) => { const p = session.game.players[i]; const side = p.home.x === 0 ? "players.left" : p.home.x === session.game.boardSize - 1 ? "players.right" : p.home.y === 0 ? "players.top" : "players.bottom"; return `${rank + 1}. ${kingdomName(p.name)} (${t(side)})${session.seats?.[i] === false ? " · " + t("four.waiting") : ""}`; }).join(" / ");
     $('#settings-start').hidden = true;
     $('#lobby-start').hidden = session.player !== 0;
     $('#lobby-start').disabled = !session.joined || online.busy;
     for (const [name, [selector]] of Object.entries(settingInputs)) {
       $(selector).disabled = session.player !== 0;
-      if (syncSettings && (session.player !== 0 || !$('#game-settings-dialog').open)) $(selector).value = session.settings.resources[name] ?? session.settings[name] ?? GAME_DEFAULTS[name];
+      if (syncSettings && (countChanged || session.player !== 0 || !$('#game-settings-dialog').open)) $(selector).value = session.settings.resources[name] ?? session.settings[name] ?? GAME_DEFAULTS[name];
     }
+    if (session.game.players.length === 4) { $("#setting-board").disabled = true; $("#setting-map").disabled = true; }
     updateSettingLabels();
     if (!$('#game-settings-dialog').open) $('#game-settings-dialog').showModal();
   }
@@ -143,15 +162,16 @@ export function startGame({ initialGame = null } = {}) {
   };
   const buyTerrain = mutation('buyTerrain', localBuyTerrain), placeOpeningTile = mutation('placeOpeningTile', localPlaceOpeningTile),
     rerollMarket = mutation('rerollMarket', localRerollMarket), explore = mutation('explore', localExplore),
-    build = mutation('build', localBuild), assign = mutation('assign', localAssign), endTurn = mutation('endTurn', localEndTurn),
-    assignWorker = mutation('assignWorker', localAssignWorker), trainUnit = mutation('trainUnit', localTrainUnit),
+    build = mutation('build', localBuild), produce = mutation('produce', localProduce), endTurn = mutation('endTurn', localEndTurn),
+    trainUnit = mutation('trainUnit', localTrainUnit),
     moveUnitTo = mutation('moveUnitTo', localMoveUnitTo);
   function showMenu() {
     refreshHistory();
     clearTimeout(toastTimer);
     $('#toast').classList.remove('visible');
     announcedTurn = null;
-    drag.cancel();
+    resetSelection();
+    clearTimeout(clockTimer);
     inMenu = true;
     $("#main-menu").hidden = false;
     $("header").hidden = true;
@@ -172,7 +192,7 @@ export function startGame({ initialGame = null } = {}) {
       const result = await client.request('/history');
       $('#game-history').hidden = !result.enabled;
       html('#history-list', result.games.length ? result.games.map(item =>
-        `<div class="history-row"><span>${e(item.names[0])} <strong>${e(item.scores[0])}</strong></span><span class="history-versus">${t("refreshHistory.versus")}</span><span>${e(item.names[1])} <strong>${e(item.scores[1])}</strong></span><span class="history-winner">${item.winner === null ? t("app.draw") : `♛ ${e(item.names[item.winner])}`}</span></div>`
+        `<div class="history-row">${item.names.map((name, i) => `<span>${e(name)} <strong>${e(item.scores[i])}</strong></span>`).join("")}<span class="history-winner">${item.winner === null ? t("app.draw") : `♛ ${e(item.names[item.winner])}`}</span></div>`
       ).join('') : `<p>${t("refreshHistory.noCompletedGamesYet")}</p>`);
     } catch { $('#game-history').hidden = true; }
   }
@@ -197,35 +217,34 @@ export function startGame({ initialGame = null } = {}) {
     $("#mirror-placement").setAttribute("aria-pressed", String((choice?.kind === "building" ? ui.buildingRotation : ui.rotation) >= 4));
     $("#cancel-placement").disabled = !choice;
     if (!choice) {
-      $("#placement-help").textContent = game.opening
+      $("#placement-help").innerHTML = resourceTextHTML(game.opening
         ? t("app.chooseATerrainTile")
         : !hasSelectedUnit(game, ui) ? t("placement.selectUnitFirst")
-        : mobile ? t("placement.touchGuide") : t("placement.chooseDestination");
+        : mobile ? t("placement.touchGuide") : t("placement.chooseDestination"));
       return;
     }
     if (result?.error) {
-      $("#placement-help").textContent = translateMessage(placementErrorText(result.error));
+      $("#placement-help").innerHTML = resourceTextHTML(placementErrorText(result.error, true));
       return;
     }
     if (result && ui.drag) {
-      $("#placement-help").textContent = t("app.releaseToPlace");
+      $("#placement-help").innerHTML = resourceTextHTML(t("app.releaseToPlace"));
       return;
     }
     if (["terrain", "building", "single-terrain"].includes(choice.kind)) {
-      const options = [...placementGuidance(game, choice).values()];
+      const options = [...guidance.values()];
       if (!options.some(option => !option.error)) {
-        const reasons = new Set(options.map(option => option.error));
-        $("#placement-help").textContent = reasons.size === 1
-          ? translateMessage(placementErrorText(options[0].error))
-          : t("app.cannotPlaceHereRotateOrChooseAnother");
+        const reasons = new Set(options.map(option => JSON.stringify(option.error)));
+        $("#placement-help").innerHTML = resourceTextHTML(reasons.size === 1
+          ? placementErrorText(options[0].error, true)
+          : t("app.cannotPlaceHereRotateOrChooseAnother"));
         return;
       }
     }
     const action = mobile ? t("app.tap") : t("app.click");
-    const instruction = choice.kind === "worker" ? t("app.oneOfYourProductionBuildingsToAssign")
-      : choice.kind === "unit" ? t("app.aReachableSpaceToMoveTheUnit")
+    const instruction = choice.kind === "unit" ? t("app.aReachableSpaceToMoveTheUnit")
       : t("app.aGreenSpaceToPlace", [choice.kind === "building" ? t("app.theBuilding") : choice.kind === "single-terrain" ? t("app.theTerrain") : t("app.theTerrainTile")]);
-    $("#placement-help").textContent = `${action} ${instruction}`;
+    $("#placement-help").innerHTML = resourceTextHTML(`${action} ${instruction}`);
   }
   function previewPlacement(pos) {
     if (ui.drag) return;
@@ -240,8 +259,11 @@ export function startGame({ initialGame = null } = {}) {
       markup.set(node, value);
     }
   }
+  function toastError(error) {
+    toast(error.issue ? ruleIssueText(error.issue, true) : error.message);
+  }
   function toast(message) {
-    $("#toast").textContent = translateMessage(message);
+    $("#toast").innerHTML = resourceTextHTML(translateMessage(message));
     $("#toast").classList.add("visible");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(
@@ -258,7 +280,7 @@ export function startGame({ initialGame = null } = {}) {
       action();
       if (queuedCommand) {
         const command = queuedCommand;
-        online.send(command).then(() => { if (game.finished) showResults(); }).catch(error => toast(error.message)).finally(render);
+        online.send(command).then(() => { if (game.finished) showResults(); }).catch(error => toastError(error)).finally(render);
         render();
         return true;
       }
@@ -272,7 +294,7 @@ export function startGame({ initialGame = null } = {}) {
           won
             .map(
               (c) =>
-                t("app.gold", [definitionText("missions", MISSIONS[c.id]), MISSIONS[c.id].reward.gold]),
+                t("app.missionReward", [definitionText("missions", MISSIONS[c.id]), missionRewardText(MISSIONS[c.id].reward)]),
             )
             .join(" · "),
         );
@@ -283,23 +305,36 @@ export function startGame({ initialGame = null } = {}) {
         game = before;
         render();
       }
-      toast(error.message);
+      toastError(error);
       return false;
     }
+  }
+  function updateOnlineStatus() {
+    const session = online.session;
+    if (!session) return;
+    const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
+    let text = connectionError
+      ? t("app.connectionInterruptedRetrying", [translateMessage(connectionError.message)])
+      : t("app.gameYouInvitation", [session.code, kingdomName(game.players[session.player].name), !session.joined ? t("app.waitingForAnOpponent") : online.busy ? t("app.sendingMove") : game.active === session.player ? t("app.yourTurn") : t("app.opponentSTurn"), invite.href]);
+    if (session.deadline && !game.finished) text += t("app.timeLeftS", [remainingTurnSeconds(session)]);
+    $('#online-status').textContent = text;
+  }
+  function tickClock() {
+    if (!online.session?.deadline || game.finished || inMenu) return;
+    updateOnlineStatus();
+    clockTimer = setTimeout(tickClock, 1000);
   }
   function render() {
     if (ui.unitSelection && !hasSelectedUnit(game, ui)) ui.unitSelection = null;
     announceTurn();
     const session = online.session;
+    $("#experimental-status").hidden = game.players.length !== 4;
+    $("#players").classList.toggle("four-players", game.players.length === 4);
     $('#online-status').hidden = !session;
-    if (session) {
-      const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
-      $('#online-status').textContent = t("app.gameYouInvitation", [session.code, kingdomName(game.players[session.player].name), !session.joined ? t("app.waitingForAnOpponent") : online.busy ? t("app.sendingMove") : game.active === session.player ? t("app.yourTurn") : t("app.opponentSTurn"), invite.href]);
-      if (session.deadline && !game.finished) $('#online-status').textContent += t("app.timeLeftS", [Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))]);
-      $('#menu-button').textContent = game.finished ? t("app.mainMenu") : t("app.leaveGame");
-    } else {
-      $('#menu-button').textContent = t("app.mainMenu");
-    }
+    updateOnlineStatus();
+    clearTimeout(clockTimer);
+    if (session?.deadline && !game.finished && !inMenu) clockTimer = setTimeout(tickClock, 1000);
+    $('#menu-button').textContent = session && !game.finished ? t("app.leaveGame") : t("app.mainMenu");
     const opening = game.opening;
     $(".game-layout").classList.toggle("opening", Boolean(opening));
     $("#opening-status").hidden = !opening;
@@ -313,11 +348,11 @@ export function startGame({ initialGame = null } = {}) {
     $("#tile-market").style.setProperty("--terrain-columns", opening ? 3 : RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
-        error = session ? session.rerollErrors[kind] : rerollError(game, kind);
+        error = session ? session.rerollErrors[kind] : rerollIssue(game, kind);
       button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
       button.disabled = Boolean(error) || ui.mode === 'inspect';
       button.title =
-        translateMessage(error) || t("app.replaceOffersForGold", [GOLD.rerollCost]);
+        ruleIssueText(error, true) || t("app.replaceOffersForGold", [GOLD.rerollCost]);
     }
     html("#barracks-list", barracksView(game, ui));
     html("#worker-list", workersView(game, ui));
@@ -326,14 +361,15 @@ export function startGame({ initialGame = null } = {}) {
     html("#building-market", buildingMarketView(game, ui));
     html("#selection", selectionView(game, ui));
     html("#harvest", harvestView(game));
+    guidance = placementGuidance(game, ui.drag || ui.placement);
     placementHelp();
-    html("#trade-info", tradeView(game));
     $("#end-turn").disabled = Boolean(opening);
+    const automaticGains = harvestGains(game);
     $("#end-turn").innerHTML = opening
       ? t("app.placeATerrainTile")
       : game.finished
       ? t("app.viewResults")
-      : `<strong>${t("render.endTurn")}</strong><small>${harvestGains(game)}</small>`;
+      : `<strong>${t("render.endTurn")}</strong>${automaticGains !== t("production.noAutomatic") ? `<small>${automaticGains}</small>` : ""}`;
     $("#round").innerHTML = opening
       ? `0 <small>/ ${game.turnLimit}</small>`
       : `${String(game.round).padStart(2, "0")} <small>/ ${game.turnLimit}</small>`;
@@ -356,7 +392,7 @@ export function startGame({ initialGame = null } = {}) {
       );
       button.classList.toggle("selected", button.dataset.mode === ui.mode);
     }
-    board.render(game, ui);
+    board.render(game, ui, guidance);
     board.preview(dragPreview(game, ui.drag, ui.drag?.position));
   }
   function chooseUnit(id) {
@@ -378,8 +414,7 @@ export function startGame({ initialGame = null } = {}) {
       ({ x, y } = placementOrigin(game, d, { x, y }));
       if (d.kind === "building") requestBuild({ x, y }, d.index, d.rotation);
       else act(() => {
-        if (d.kind === "worker") assignWorker(game, d.id, x, y);
-        else if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
+        if (d.kind === "single-terrain") buyTerrain(game, d.terrain, x, y);
         else if (game.opening) placeOpeningTile(game, d.index, x, y, d.rotation);
         else explore(game, d.index, x, y, d.rotation);
         ui.placement = null;
@@ -393,7 +428,7 @@ export function startGame({ initialGame = null } = {}) {
     }
     if (hasSelectedUnit(game, ui)) {
       const unit = actor(game);
-      if (unit.acted || unit.ended || unit.moves < 1) {
+      if (unit.ended || (unit.type === "soldier" && (unit.acted || unit.moves < 1 && !attackPaths(game).has(key(x,y))))) {
         ui.unitSelection = null;
         if (unit.x === x && unit.y === y) {
           ui.selected = { x, y };
@@ -411,7 +446,7 @@ export function startGame({ initialGame = null } = {}) {
       render();
       return;
     }
-    if (own.length && !game.finished && !game.opening && ui.mode !== "inspect" && !(hasSelectedUnit(game, ui) && actor(game).type === "soldier" && movementPaths(game).has(key(x,y)))) {
+    if (own.length && !game.finished && !game.opening && ui.mode !== "inspect" && !(hasSelectedUnit(game, ui) && movementPaths(game).has(key(x,y)))) {
       chooseUnit((hasSelectedUnit(game, ui) ? own.find((p) => p.id !== game.selectedUnitId) || own[0] : own[0]).id);
       unitCellClick = { game, owner: game.active, x, y, id: game.selectedUnitId };
       return;
@@ -426,11 +461,11 @@ export function startGame({ initialGame = null } = {}) {
     else render();
   }
   function requestBuild(pos, index, rotation) {
-    const error = buildError(game, index, pos.x, pos.y, rotation, {
+    const error = buildIssue(game, index, pos.x, pos.y, rotation, {
       allowGold: true,
     });
     if (error) {
-      toast(error);
+      toast(ruleIssueText(error, true));
       return;
     }
     const payment = buildingPayment(game, index);
@@ -452,10 +487,10 @@ export function startGame({ initialGame = null } = {}) {
     }
     pendingBuild = attempt;
     const missing = costText(payment.missing);
-    $("#prestige-warning").textContent =
-      t("app.missingBuyTheseResourcesFromTheBank", [missing, payment.gold]);
-    $("#prestige-dialog .confirm").textContent =
-      t("app.payGold", [payment.gold]);
+    $("#prestige-warning").innerHTML =
+      resourceTextHTML(t("app.missingBuyTheseResourcesFromTheBank", [missing, payment.gold]));
+    $("#prestige-dialog .confirm").innerHTML =
+      resourceTextHTML(t("app.payGold", [payment.gold]));
     $("#prestige-dialog").showModal();
   }
   function completeBuild(attempt) {
@@ -532,18 +567,17 @@ export function startGame({ initialGame = null } = {}) {
     rotate(kind, event.deltaY < 0 ? -1 : 1);
   }, { passive: false });
   function showResults() {
-    const a = totalScore(game, 0),
-      b = game.players.length > 1 ? totalScore(game, 1) : 0;
+    const { scores, leaders } = gameResults(game);
     $("#winner").textContent =
       game.victory === 'resignation'
         ? t("app.winsByResignation", [kingdomName(game.players[game.winner].name)])
         : game.victory === "conquest"
         ? t("app.conquersTheKeepAndWinsTheGame", [kingdomName(game.players[game.winner].name)])
         : game.mode === "solo"
-        ? t("app.yourKingdomPoints", [a])
-        : a === b
-          ? t("app.twoCrownsASharedVictory")
-          : t("app.wins", [kingdomName(game.players[a > b ? 0 : 1].name)]);
+        ? t("app.yourKingdomPoints", [scores[0]])
+        : leaders.length > 1
+          ? t("four.draw", [leaders.map(i => kingdomName(game.players[i].name)).join(" / ")])
+          : t("app.wins", [kingdomName(game.players[leaders[0]].name)]);
     html("#results", `<div class="result-grid">${resultsView(game)}</div>`);
     if (!$("#result-dialog").open) $("#result-dialog").showModal();
   }
@@ -570,27 +604,12 @@ export function startGame({ initialGame = null } = {}) {
       $("#building-details-dialog").showModal();
       return;
     }
-    const worker = event.target.closest('[data-worker-drag]');
-    if (worker && !game.finished && ui.mode !== 'inspect') {
-      ui.placement = { kind: 'worker', id: Number(worker.dataset.workerDrag) };
-      ui.selected = null;
-      render();
-      return;
-    }
-    if (ui.placement?.kind === 'worker' && event.target.closest('[data-worker-reserve]')) {
-      act(() => {
-        assignWorker(game, ui.placement.id, null, null);
-        ui.placement = null;
-      });
-      return;
-    }
+    const workerSelect = event.target.closest('[data-worker-select]');
+    if (workerSelect && !workerSelect.disabled) { chooseUnit(Number(workerSelect.dataset.workerSelect)); return; }
     const mode = event.target.closest("[data-mode]");
     if (mode) {
+      resetSelection();
       ui.mode = mode.dataset.mode;
-      ui.unitSelection = null;
-      game.selectedUnitId = null;
-      game.armySelection = null;
-      ui.placement = null;
       render();
       return;
     }
@@ -608,8 +627,9 @@ export function startGame({ initialGame = null } = {}) {
         if (!hasSelectedUnit(game, ui)) return;
         act(() => moveUnitTo(game, ui.selected.x, ui.selected.y));
         break;
-      case "assign":
-        act(() => assign(game, ...position));
+      case "produce":
+        if (!hasSelectedUnit(game, ui)) return;
+        act(() => produce(game));
         break;
       case "train":
         act(() => trainUnit(game, ...position, button.dataset.type), {
@@ -625,8 +645,7 @@ export function startGame({ initialGame = null } = {}) {
   $("#mirror-placement").addEventListener("click", () => mirror());
   $("#rotate-placement").addEventListener("click", () => rotate());
   $("#cancel-placement").addEventListener("click", () => {
-    drag.cancel();
-    ui.placement = null;
+    resetSelection({ unit: false });
     render();
     board.preview(null);
   });
@@ -641,9 +660,7 @@ export function startGame({ initialGame = null } = {}) {
     game = undoState;
     undoState = null;
     pendingBuild = null;
-    ui.selected = null;
-    ui.placement = null;
-    ui.drag = null;
+    resetSelection();
     if ($("#result-dialog").open) $("#result-dialog").close();
     render();
     toast(t("app.lastActionUndone"));
@@ -656,8 +673,7 @@ export function startGame({ initialGame = null } = {}) {
     }
     act(() => {
       endTurn(game);
-      ui.selected = null;
-      ui.placement = null;
+      resetSelection();
     }, { undoable: false, clearUndo: true });
     if (game.finished) showResults();
   });
@@ -678,7 +694,7 @@ export function startGame({ initialGame = null } = {}) {
       try {
         if (!game.finished && online.session.started) await online.resign();
         else online.stop();
-      } catch (error) { toast(error.message); return; }
+      } catch (error) { toastError(error); return; }
     }
     showMenu();
   });
@@ -734,17 +750,55 @@ export function startGame({ initialGame = null } = {}) {
     $('#settings-start').hidden = false;
     $('#settings-start').textContent = t("app.startGame");
     for (const [, [selector]] of Object.entries(settingInputs)) $(selector).disabled = false;
+    nextPlayerCount = 2;
     nextMode = mode;
-    $("#settings-mode").textContent = mode === "solo" ? t("app.soloGame") : mode === 'online' ? t("app.onlineGame") : t("app.localGame");
+    $("#setting-board").value = nextPlayerCount === 4 ? 13 : GAME_DEFAULTS.boardSize;
+    renderMapOptions();
+    $("#setting-map").value = nextPlayerCount === 4 ? "four_kings" : GAME_DEFAULTS.mapId;
+    $("#setting-board").disabled = nextPlayerCount === 4;
+    $("#setting-map").disabled = nextPlayerCount === 4;
+    updateMapDescription(); updateSettingLabels();
+    updatePlayerCountControls();
+    $("#settings-mode").textContent = nextPlayerCount === 4 ? t("four.experimental") : mode === "solo" ? t("app.soloGame") : mode === 'online' ? t("app.onlineGame") : t("app.localGame");
     $("#game-settings-dialog").showModal();
   }
   for (const button of document.querySelectorAll("[data-game-mode]"))
     button.addEventListener("click", () =>
       requestNewGame(button.dataset.gameMode),
     );
+  function updatePlayerCountControls() {
+    const session = online.session;
+    $('#setting-players-row').hidden = !session && nextMode === 'solo';
+    $('#setting-two-players').setAttribute('aria-pressed', String(nextPlayerCount === 2));
+    $('#setting-four-players').setAttribute('aria-pressed', String(nextPlayerCount === 4));
+    const readOnly = Boolean(session && session.player !== 0);
+    $('#setting-two-players').disabled = readOnly || Boolean(session?.seats?.slice(2).some(Boolean));
+    $('#setting-four-players').disabled = readOnly;
+    $('#setting-players-help').textContent = nextPlayerCount === 4 ? t('four.experimental') : '';
+  }
+  async function changePlayerCount(count) {
+    if (online.busy || nextPlayerCount === count) return;
+    clearTimeout(lobbySaveTimer);
+    nextPlayerCount = count;
+    renderMapOptions();
+    $('#setting-map').value = count === 4 ? 'four_kings' : GAME_DEFAULTS.mapId;
+    $('#setting-board').value = count === 4 ? 13 : GAME_DEFAULTS.boardSize;
+    $('#setting-map').disabled = count === 4;
+    $('#setting-board').disabled = count === 4;
+    updateMapDescription(); updateSettingLabels(); updatePlayerCountControls();
+    if (online.session) {
+      $('#setting-two-players').disabled = true;
+      $('#setting-four-players').disabled = true;
+      try { await online.lobby(collectSettings()); }
+      catch (error) { showLobby(online.session, true); toastError(error); }
+      finally { updatePlayerCountControls(); }
+    }
+  }
+  $('#setting-two-players').addEventListener('click', () => changePlayerCount(2));
+  $('#setting-four-players').addEventListener('click', () => changePlayerCount(4));
   function beginNewGame() {
     if (nextMode === 'online') {
-      online.connect(null, nextSettings).catch(error => toast(error.message));
+      online.connect(null, nextSettings).catch(error => toastError(error));
       return;
     }
     const created = act(
@@ -794,11 +848,11 @@ export function startGame({ initialGame = null } = {}) {
   let lobbySaveTimer;
   function updateMapDescription() {
     const map = MAPS.find(map => map.id === $('#setting-map').value);
-    $('#setting-map-description').textContent = map ? map.description[getLanguage()] : t('maps.randomHelp');
+    $('#setting-map-description').textContent = map ? definitionText('maps', map, 'description') : t('maps.randomHelp');
   }
   function renderMapOptions() {
     const current = $('#setting-map').value || GAME_DEFAULTS.mapId;
-    html('#setting-map', `<option value="random">${e(t('maps.random'))}</option>${MAPS.map(map => `<option value="${e(map.id)}">${e(map.name[getLanguage()])}</option>`).join('')}`);
+    html('#setting-map', `<option value="random">${e(t('maps.random'))}</option>${MAPS.filter(map => map.playerCount ? nextPlayerCount === 4 : nextPlayerCount !== 4).map(map => `<option value="${e(map.id)}">${e(definitionText('maps', map))}</option>`).join('')}`);
     $('#setting-map').value = current;
     updateMapDescription();
   }
@@ -824,6 +878,7 @@ export function startGame({ initialGame = null } = {}) {
   $('#game-settings-dialog').addEventListener('cancel', () => { if (online.session && !online.session.started) online.stop(); });
   function collectSettings() {
     nextSettings = {
+      playerCount: nextPlayerCount,
       turnSeconds: Number($('#setting-clock').value || 0),
       rounds: Number($("#setting-rounds").value),
       mapId: $('#setting-map').value,
@@ -840,7 +895,7 @@ export function startGame({ initialGame = null } = {}) {
   }
   $("#settings-start").addEventListener("click", () => {
     collectSettings();
-    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast(t("app.settingsSaved"))).catch(error => toast(error.message));
+    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast(t("app.settingsSaved"))).catch(error => toastError(error));
     else beginNewGame();
   });
   $(".close-results").addEventListener("click", () =>
@@ -854,12 +909,7 @@ export function startGame({ initialGame = null } = {}) {
     )
       return;
     if (event.key === "Escape") {
-      drag.cancel();
-      ui.selected = null;
-      ui.placement = null;
-      ui.unitSelection = null;
-      game.selectedUnitId = null;
-      game.armySelection = null;
+      resetSelection();
       render();
       event.preventDefault();
     }
@@ -876,13 +926,7 @@ export function startGame({ initialGame = null } = {}) {
   });
   $(".game-layout").addEventListener("contextmenu", event => {
     event.preventDefault();
-    drag.cancel();
-    ui.selected = null;
-    ui.placement = null;
-    ui.drag = null;
-    ui.unitSelection = null;
-    game.selectedUnitId = null;
-    game.armySelection = null;
+    resetSelection();
     render();
   });
   const drag = installDrag({
@@ -913,18 +957,13 @@ export function startGame({ initialGame = null } = {}) {
         return buildingDiagram(game.buildingMarket[d.index], d.rotation);
       if (d.kind === "single-terrain")
         return terrainDiagram({ cells: [{ x: 0, y: 0, terrain: d.terrain }] });
-      return piece(d.kind === "worker" ? "worker" : actor(game).type);
+      return piece(actor(game).type, game.active);
     },
     drop(pos) {
       const d = ui.drag;
-      if (!pos.workerReserve) pos = placementOrigin(game, d, pos);
+      pos = placementOrigin(game, d, pos);
       ui.drag = null;
-      if (pos.workerReserve) {
-        if (d.kind === "worker")
-          act(() => assignWorker(game, d.id, null, null));
-      } else if (d.kind === "unit") act(() => moveUnitTo(game, pos.x, pos.y));
-      else if (d.kind === "worker")
-        act(() => assignWorker(game, d.id, pos.x, pos.y));
+      if (d.kind === "unit") act(() => moveUnitTo(game, pos.x, pos.y));
       else if (d.kind === "terrain")
         act(() => game.opening
           ? placeOpeningTile(game, d.index, pos.x, pos.y, d.rotation)
@@ -941,10 +980,11 @@ export function startGame({ initialGame = null } = {}) {
   html(".rules-content", rulesView(game));
   $('#online-create').addEventListener('click', () => {
     $('#online-dialog').close();
-    online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toast(error.message));
+    online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toastError(error));
   });
   let stopHealthCheck, resumeCheck = 0;
   function openOnlineDialog() {
+    $('#online-create').textContent = t('static.createGame');
     $('#online-dialog').showModal();
     $('#online-resume').disabled = true;
     stopHealthCheck?.();
@@ -966,11 +1006,11 @@ export function startGame({ initialGame = null } = {}) {
     });
   }
   $('#online-dialog').addEventListener('close', () => { resumeCheck++; stopHealthCheck?.(); });
-  $('#online-menu').addEventListener('click', openOnlineDialog);
+  $('#online-menu').addEventListener('click', () => { nextPlayerCount = 2; openOnlineDialog(); });
   $('#online-close').addEventListener('click', () => $('#online-dialog').close());
   $('#lobby-start').addEventListener('click', () => {
     clearTimeout(lobbySaveTimer);
-    online.lobby(collectSettings(), true).catch(error => toast(error.message));
+    online.lobby(collectSettings(), true).catch(error => toastError(error));
   });
   for (const [id, link] of [['lobby-copy-link', true], ['lobby-copy-code', false]]) $( '#' + id).addEventListener('click', async () => {
     try {
@@ -983,12 +1023,12 @@ export function startGame({ initialGame = null } = {}) {
     const code = $('#online-code').value.trim().toUpperCase();
     if (!/^[A-F0-9]{10}$/.test(code)) return toast(t("app.enterA10CharacterGameCode"));
     $('#online-dialog').close();
-    online.connect(code, undefined, $('#nickname').value).catch(error => toast(error.message));
+    online.connect(code, undefined, $('#nickname').value).catch(error => toastError(error));
   });
-  $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toast(error.message)); });
+  $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toastError(error)); });
   if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); openOnlineDialog(); }
   function updateLanguageFlag() {
-    $('#language-flag').src = new URL(`../assets/identity/flag-${getLanguage()}.svg`, import.meta.url).href;
+    $('#language-flag').src = new URL(`../assets/textures/interface/flag-${getLanguage()}.svg`, import.meta.url).href;
     $('#language-toggle').setAttribute('aria-label', t('language.switch'));
   }
   updateLanguageFlag();
@@ -997,7 +1037,7 @@ export function startGame({ initialGame = null } = {}) {
     clearTimeout(toastTimer);
     $('#toast').textContent = '';
     $('#toast').classList.remove('visible');
-    translateDocument();
+    translateDocument(document, resourceTextHTML);
     renderMapOptions();
     updateLanguageFlag();
     html('.rules-content', rulesView(game));

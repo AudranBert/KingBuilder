@@ -1,13 +1,7 @@
 {
   "id": "base",
-  "name": {
-    "fr": "Nouveau monde",
-    "en": "New lands"
-  },
-  "description": {
-    "fr": "Plateau simple avec 5 drapeaux.",
-    "en": "A simple board with 5 flags."
-  },
+  "name": "New lands",
+  "description": "A simple board with 5 flags.",
   "legend": {
     "!": "plain"
   },

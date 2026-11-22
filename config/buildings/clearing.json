@@ -1,0 +1,21 @@
+[
+  {
+    "id": "clearing",
+    "name": "Clearing",
+    "icon": "assets/textures/buildings/clearing.svg",
+    "cost": {},
+    "terrain": "forest",
+    "description": "+2 materials; forest → plain.",
+    "pattern": "One empty forest. An action without a permanent building.",
+    "weight": 8,
+    "layout": [
+      "B"
+    ],
+    "transformTo": "plain",
+    "onBuildGain": {
+      "material": 2
+    },
+    "tier": 0,
+    "points": 0
+  }
+]

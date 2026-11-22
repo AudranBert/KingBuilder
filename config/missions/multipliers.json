@@ -1,0 +1,35 @@
+[
+  {
+    "id": "multipliers-1",
+    "name": "Own 1 multiplier building",
+    "metric": "multipliers",
+    "target": 1,
+    "reward": {
+      "soldiers": 1
+    },
+    "family": "multipliers",
+    "difficulty": 1
+  },
+  {
+    "id": "multipliers-2",
+    "name": "Own 2 multiplier buildings",
+    "metric": "multipliers",
+    "target": 2,
+    "reward": {
+      "soldiers": 2
+    },
+    "family": "multipliers",
+    "difficulty": 2
+  },
+  {
+    "id": "multipliers-3",
+    "name": "Own 3 multiplier buildings",
+    "metric": "multipliers",
+    "target": 3,
+    "reward": {
+      "soldiers": 3
+    },
+    "family": "multipliers",
+    "difficulty": 3
+  }
+]

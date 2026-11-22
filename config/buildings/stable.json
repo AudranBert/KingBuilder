@@ -1,0 +1,40 @@
+[
+  {
+    "id": "stable",
+    "name": "Stable",
+    "tier": 3,
+    "description": "+1 movement point to your units. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/stable.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Three plains in a line: stable and paddock.",
+    "layout": [
+      "Bpp"
+    ],
+    "weight": 1,
+    "points": 0,
+    "movementBonus": 1
+  },
+  {
+    "id": "stable_forest",
+    "name": "Stable",
+    "tier": 3,
+    "description": "+1 movement point to your units. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/stable.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Three spaces in an L: two plains and one water space.",
+    "layout": [
+      "Br",
+      "p."
+    ],
+    "weight": 1,
+    "points": 0,
+    "movementBonus": 1,
+    "family": "stable"
+  }
+]

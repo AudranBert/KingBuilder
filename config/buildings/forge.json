@@ -1,0 +1,40 @@
+[
+  {
+    "id": "forge",
+    "name": "Forge",
+    "tier": 3,
+    "description": "+1 combat strength to your armies. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/forge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "One plain forge and two mountains in a line.",
+    "layout": [
+      "Bmm"
+    ],
+    "weight": 1,
+    "points": 0,
+    "combatBonus": 1
+  },
+  {
+    "id": "forge_forest",
+    "name": "Forge",
+    "tier": 3,
+    "description": "+1 combat strength to your armies. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/forge.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "One plain forge and two forests in an L.",
+    "layout": [
+      "Bf",
+      ".f"
+    ],
+    "weight": 1,
+    "points": 0,
+    "combatBonus": 1,
+    "family": "forge"
+  }
+]

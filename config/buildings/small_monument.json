@@ -1,0 +1,37 @@
+[
+  {
+    "id": "small_monument",
+    "name": "Small monument",
+    "tier": 2,
+    "description": "+2 score.",
+    "icon": "assets/textures/buildings/monument.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "pattern": "One plain building space and one mountain.",
+    "layout": [
+      "Bm"
+    ],
+    "weight": 2,
+    "points": 2
+  },
+  {
+    "id": "small_monument_forest",
+    "name": "Small monument",
+    "tier": 2,
+    "description": "+2 score.",
+    "icon": "assets/textures/buildings/monument.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "pattern": "One plain building space and one water space.",
+    "layout": [
+      "Br"
+    ],
+    "weight": 2,
+    "points": 2,
+    "family": "small_monument"
+  }
+]

@@ -1,0 +1,49 @@
+[
+  {
+    "id": "wood_mill",
+    "name": "Sawmill",
+    "tier": 2,
+    "description": "+1 wood to logging camps within two orthogonal steps. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/wood-mill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "pattern": "One plain for the sawmill and one forest for timber.",
+    "layout": [
+      "Bf"
+    ],
+    "weight": 1,
+    "points": 0,
+    "boost": {
+      "target": "sawmill",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    }
+  },
+  {
+    "id": "wood_mill_forest",
+    "name": "Sawmill",
+    "tier": 2,
+    "description": "+1 wood to logging camps within two orthogonal steps. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/wood-mill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "forest",
+    "pattern": "Two forests: a sawmill and a timber reserve.",
+    "layout": [
+      "Bf"
+    ],
+    "weight": 1,
+    "points": 0,
+    "boost": {
+      "target": "sawmill",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "family": "wood_mill"
+  }
+]

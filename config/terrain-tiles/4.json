@@ -1,0 +1,194 @@
+{
+  "shapes": [
+    {
+      "id": "zigzag4",
+      "name": "Z of 4",
+      "weight": 1,
+      "pattern": [
+        "xx.",
+        ".xx"
+      ]
+    },
+    {
+      "id": "square4",
+      "name": "Square of 4",
+      "weight": 1,
+      "pattern": [
+        "xx",
+        "xx"
+      ]
+    },
+    {
+      "id": "corner4",
+      "name": "L of 4",
+      "weight": 1,
+      "pattern": [
+        "x..",
+        "xxx"
+      ]
+    },
+    {
+      "id": "t4",
+      "name": "T of 4",
+      "weight": 1,
+      "pattern": [
+        ".x.",
+        "xxx"
+      ]
+    },
+    {
+      "id": "line4",
+      "name": "Line of 4",
+      "weight": 1,
+      "pattern": [
+        "xxxx"
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "zigzag4-1",
+      "name": "Offset meadows",
+      "shapeId": "zigzag4",
+      "pattern": [
+        "PP.",
+        ".PP"
+      ],
+      "intent": "Connect two areas"
+    },
+    {
+      "id": "square4-1",
+      "name": "Square grove",
+      "shapeId": "square4",
+      "pattern": [
+        "FF",
+        "FF"
+      ],
+      "intent": "Compact forest for sawmills"
+    },
+    {
+      "id": "corner4-1",
+      "name": "Angled foothill",
+      "shapeId": "corner4",
+      "pattern": [
+        "P..",
+        "PMF"
+      ],
+      "intent": "Mountain, forest and plain access"
+    },
+    {
+      "id": "t4-1",
+      "name": "T-shaped riverbank",
+      "shapeId": "t4",
+      "pattern": [
+        ".P.",
+        "RRP"
+      ],
+      "intent": "Two connected water spaces and two access points"
+    },
+    {
+      "id": "line4-1",
+      "name": "Accessible vein",
+      "shapeId": "line4",
+      "pattern": [
+        "PMMM"
+      ],
+      "intent": "Complete mine pattern"
+    },
+    {
+      "id": "corner4-2",
+      "name": "Angled mountain range",
+      "shapeId": "corner4",
+      "pattern": [
+        "P..",
+        "MMM"
+      ],
+      "intent": "Extend a mountain range"
+    },
+    {
+      "id": "line4-2",
+      "name": "Long river",
+      "shapeId": "line4",
+      "pattern": [
+        "RRRR"
+      ],
+      "intent": "Long obstacle to cross or bank to develop"
+    },
+    {
+      "id": "corner4-3",
+      "name": "Angled woodland",
+      "shapeId": "corner4",
+      "pattern": [
+        "F..",
+        "FFP"
+      ],
+      "intent": "Access to a continuous forest"
+    },
+    {
+      "id": "line4-3",
+      "name": "Long forest edge",
+      "shapeId": "line4",
+      "pattern": [
+        "PFFF"
+      ],
+      "intent": "Continuous forest with access"
+    },
+    {
+      "id": "corner4-4",
+      "name": "River bend",
+      "shapeId": "corner4",
+      "pattern": [
+        "R..",
+        "RRP"
+      ],
+      "intent": "Bend and buildable bank"
+    },
+    {
+      "id": "line4-4",
+      "name": "Estuary",
+      "shapeId": "line4",
+      "pattern": [
+        "PRRR"
+      ],
+      "intent": "Three water spaces in a line with access"
+    },
+    {
+      "id": "zigzag4-5",
+      "name": "Riverside forest edge",
+      "shapeId": "zigzag4",
+      "pattern": [
+        "FP.",
+        ".PR"
+      ],
+      "intent": "Build between forest and water"
+    },
+    {
+      "id": "square4-5",
+      "name": "Forest border",
+      "shapeId": "square4",
+      "pattern": [
+        "PF",
+        "PF"
+      ],
+      "intent": "Line up sawmills and houses"
+    },
+    {
+      "id": "line4-5",
+      "name": "Shared bank",
+      "shapeId": "line4",
+      "pattern": [
+        "RRPP"
+      ],
+      "intent": "Prepare a harbor or bridge"
+    },
+    {
+      "id": "line4-6",
+      "name": "Woodland corridor",
+      "shapeId": "line4",
+      "pattern": [
+        "FPPF"
+      ],
+      "intent": "Two plains between two resources"
+    }
+  ]
+}

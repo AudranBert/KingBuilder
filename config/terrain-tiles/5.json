@@ -1,0 +1,247 @@
+{
+  "shapes": [
+    {
+      "id": "cross5",
+      "name": "Cross of 5",
+      "weight": 1,
+      "pattern": [
+        ".x.",
+        "xxx",
+        ".x."
+      ]
+    },
+    {
+      "id": "u5",
+      "name": "U of 5",
+      "weight": 1,
+      "pattern": [
+        "x.x",
+        "xxx"
+      ]
+    },
+    {
+      "id": "stairs5",
+      "name": "Staircase of 5",
+      "weight": 1,
+      "pattern": [
+        "xx.",
+        ".xx",
+        "..x"
+      ]
+    },
+    {
+      "id": "offset5",
+      "name": "Offset block of 5",
+      "weight": 1,
+      "pattern": [
+        ".xx.",
+        ".xxx"
+      ]
+    },
+    {
+      "id": "t5",
+      "name": "T of 5",
+      "weight": 1,
+      "pattern": [
+        "xxx",
+        ".x.",
+        ".x."
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "cross5-1",
+      "name": "Farmland",
+      "shapeId": "cross5",
+      "pattern": [
+        ".P.",
+        "PPP",
+        ".P."
+      ],
+      "intent": "Complete farm pattern"
+    },
+    {
+      "id": "u5-1",
+      "name": "U-shaped meadow",
+      "shapeId": "u5",
+      "pattern": [
+        "P.P",
+        "PPP"
+      ],
+      "intent": "Surround an empty space"
+    },
+    {
+      "id": "stairs5-1",
+      "name": "Stepped forest edge",
+      "shapeId": "stairs5",
+      "pattern": [
+        "FF.",
+        ".FP",
+        "..P"
+      ],
+      "intent": "Continuous forest and two access points"
+    },
+    {
+      "id": "offset5-1",
+      "name": "Tiered meadow",
+      "shapeId": "offset5",
+      "pattern": [
+        ".PP.",
+        ".PPP"
+      ],
+      "intent": "Develop fields"
+    },
+    {
+      "id": "t5-1",
+      "name": "T-shaped meadow",
+      "shapeId": "t5",
+      "pattern": [
+        "PPP",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Partial farm and access"
+    },
+    {
+      "id": "stairs5-2",
+      "name": "Stepped meander",
+      "shapeId": "stairs5",
+      "pattern": [
+        "RR.",
+        ".RP",
+        "..P"
+      ],
+      "intent": "Continuous river and habitable bank"
+    },
+    {
+      "id": "t5-2",
+      "name": "Natural quay",
+      "shapeId": "t5",
+      "pattern": [
+        "RRR",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Complete harbor pattern with access"
+    },
+    {
+      "id": "stairs5-3",
+      "name": "Stepped ridge",
+      "shapeId": "stairs5",
+      "pattern": [
+        "MF.",
+        ".PP",
+        "..P"
+      ],
+      "intent": "Mountain, forest and stepped access"
+    },
+    {
+      "id": "t5-3",
+      "name": "Headland",
+      "shapeId": "t5",
+      "pattern": [
+        "MMM",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Three mountains in a line with access"
+    },
+    {
+      "id": "line2-4",
+      "name": "Open ford",
+      "shapeId": "cross5",
+      "pattern": [
+        ".R.",
+        "PRP",
+        ".P."
+      ],
+      "intent": "River bordered by three plains"
+    },
+    {
+      "id": "cross5-4",
+      "name": "Crossing river",
+      "shapeId": "cross5",
+      "pattern": [
+        ".R.",
+        "PRP",
+        ".R."
+      ],
+      "intent": "Three water spaces in a line and two banks"
+    },
+    {
+      "id": "u5-4",
+      "name": "Rocky crown",
+      "shapeId": "u5",
+      "pattern": [
+        "P.P",
+        "MMM"
+      ],
+      "intent": "Three mountains in a line and two access points"
+    },
+    {
+      "id": "stairs5-4",
+      "name": "Stepped forest",
+      "shapeId": "stairs5",
+      "pattern": [
+        "FF.",
+        ".FF",
+        "..F"
+      ],
+      "intent": "Continuous five-space forest to go around or harvest"
+    },
+    {
+      "id": "offset5-4",
+      "name": "Tiered mountain range",
+      "shapeId": "offset5",
+      "pattern": [
+        ".MF.",
+        ".MPP"
+      ],
+      "intent": "Stone with two access points"
+    },
+    {
+      "id": "t5-4",
+      "name": "Pathside woodland",
+      "shapeId": "t5",
+      "pattern": [
+        "FFF",
+        ".P.",
+        ".P."
+      ],
+      "intent": "Forest in a line and buildable path"
+    },
+    {
+      "id": "cross5-5",
+      "name": "Forest-edge crossing",
+      "shapeId": "cross5",
+      "pattern": [
+        ".F.",
+        "PPP",
+        ".F."
+      ],
+      "intent": "Buildable corridor between two woodlands"
+    },
+    {
+      "id": "stairs5-5",
+      "name": "Waterside woodland",
+      "shapeId": "stairs5",
+      "pattern": [
+        "PF.",
+        ".FR",
+        "..R"
+      ],
+      "intent": "Continuous forest and river"
+    },
+    {
+      "id": "offset5-5",
+      "name": "Narrow bank",
+      "shapeId": "offset5",
+      "pattern": [
+        ".PR.",
+        ".PRR"
+      ],
+      "intent": "Plain alongside a river"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "id": "explore-6",
+    "name": "Reveal 8 spaces",
+    "metric": "revealed",
+    "target": 8,
+    "reward": {
+      "gold": 1
+    },
+    "family": "revealed-all",
+    "difficulty": 1
+  },
+  {
+    "id": "explore-12",
+    "name": "Reveal 16 spaces",
+    "metric": "revealed",
+    "target": 16,
+    "reward": {
+      "gold": 2
+    },
+    "family": "revealed-all",
+    "difficulty": 2
+  },
+  {
+    "id": "explore-20",
+    "name": "Reveal 24 spaces",
+    "metric": "revealed",
+    "target": 24,
+    "reward": {
+      "score": 3
+    },
+    "family": "revealed-all",
+    "difficulty": 3
+  }
+]

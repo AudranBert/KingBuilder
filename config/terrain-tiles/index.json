@@ -1,0 +1,15 @@
+{
+  "deckSize": 48,
+  "legend": {
+    "P": "plain",
+    "F": "forest",
+    "M": "mountain",
+    "R": "river"
+  },
+  "files": [
+    "2",
+    "3",
+    "4",
+    "5"
+  ]
+}

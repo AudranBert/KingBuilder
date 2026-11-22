@@ -1,0 +1,66 @@
+[
+  {
+    "id": "mine",
+    "name": "Mine",
+    "icon": "assets/textures/buildings/mine.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 gold per turn with a worker.",
+    "pattern": "One plain building space followed by three mountains in a line.",
+    "weight": 2,
+    "layout": [
+      "Bmmm"
+    ],
+    "production": 1,
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "mine_square",
+    "name": "Mine",
+    "icon": "assets/textures/buildings/mine.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 gold per turn with a worker.",
+    "pattern": "A square of four spaces: one plain building space and three mountains.",
+    "weight": 2,
+    "layout": [
+      "Bm",
+      "mm"
+    ],
+    "production": 1,
+    "family": "mine",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "mine_l",
+    "name": "Mine",
+    "icon": "assets/textures/buildings/mine.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "plain",
+    "produces": "gold",
+    "description": "+1 gold per turn with a worker.",
+    "pattern": "Four spaces in an L: one plain building space and three mountains.",
+    "weight": 1,
+    "layout": [
+      "Bmm",
+      "..m"
+    ],
+    "production": 1,
+    "family": "mine",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  }
+]

@@ -1,0 +1,65 @@
+[
+  {
+    "id": "quarry",
+    "name": "Quarry",
+    "icon": "assets/textures/buildings/quarry.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "material",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "One plain building space between two mountains in a line.",
+    "weight": 2,
+    "layout": [
+      "mBm"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "quarry_mountain",
+    "name": "Quarry",
+    "icon": "assets/textures/buildings/quarry.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "material",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "One plain building space followed by two mountains in a line.",
+    "weight": 2,
+    "layout": [
+      "Bmm"
+    ],
+    "production": 2,
+    "family": "quarry",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "quarry_ridge",
+    "name": "Quarry",
+    "icon": "assets/textures/buildings/quarry.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "mountain",
+    "produces": "material",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three mountains in an L; building space at one end.",
+    "weight": 1,
+    "layout": [
+      "Bm",
+      ".m"
+    ],
+    "production": 2,
+    "family": "quarry",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  }
+]

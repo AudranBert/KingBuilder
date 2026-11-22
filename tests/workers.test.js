@@ -1,27 +1,113 @@
+import { createFixedGame as createGame } from "./helpers.js";
+import { harvestView } from "../src/ui/views.js";
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {createGame,assignWorker,workerAssignmentError,harvestPreview,endTurn,recruit,recruitError,build} from "../src/engine.js";
-function setup(){const g=createGame();g.board["3,3"]={terrain:"plain",building:{type:"farm",owner:0}};g.board["9,9"]={terrain:"forest",building:{type:"sawmill",owner:0}};return g;}
-test("ouvrier initial libre, sans position et sans recrutement séparé",()=>{
- const g=setup();assert.deepEqual(g.players[0].workerAssignments,[{id:0,building:null}]);
- assert.match(recruitError(g),/maison/);const before=structuredClone(g);assert.throws(()=>recruit(g));assert.deepEqual(g,before);
+import { actor, selectUnit, move, explore, build, endTurn, produce, produceError, productionAmount, UNIT_DEFINITIONS, BUILDINGS, harvestPreview, totalScore } from "../src/engine.js";
+import {applyCommand} from "../src/commands.js";
+import {validateGame} from "../src/validation.js";
+const setup = () => createGame(() => .42, "solo", {openingTilesPerPlayer:0,missionsEnabled:false,boardSize:11});
+
+test("deux ouvriers mobiles au donjon, sans roi, émissaire ou Chancellerie",()=>{
+ const g=setup(),p=g.players[0];assert.equal(p.workers,2);assert.equal(p.units.length,2);
+ for(const u of p.units){assert.equal(u.type,"worker");assert.equal(u.moves,3);assert.equal(u.acted,false);assert.deepEqual([u.x,u.y],[p.home.x,p.home.y]);}
+ assert.deepEqual(Object.keys(UNIT_DEFINITIONS).sort(),["soldier","worker"]);assert.equal(BUILDINGS.chancellery,undefined);
+ assert.ok(!g.buildingDeck.includes("chancellery"));validateGame(g);
 });
-test("affectation lointaine et réaffectation gratuites, même après l’action du roi",()=>{
- const g=setup(),resources={...g.players[0].resources};g.acted=true;assignWorker(g,0,3,3);assignWorker(g,0,9,9);
- assert.deepEqual(g.players[0].resources,resources);assert.equal(g.moves,3);assert.equal(g.players[0].workerAssignments[0].building,"9,9");
- assert.equal(harvestPreview(g).amounts.food,0);assert.equal(harvestPreview(g).amounts.material,1);
+
+test("production libre immédiate puis déplacement, une action par ouvrier",()=>{
+ const g=setup(),p=g.players[0],before={...p.resources};move(g,1,5);produce(g);
+ assert.equal(p.resources.food,before.food+1);assert.equal(actor(g).moves,2);assert.equal(actor(g).acted,true);
+ assert.throws(()=>produce(g),/action/);g.board["2,5"]={terrain:"forest"};move(g,2,5);assert.equal(actor(g).moves,1);
+ selectUnit(g,1);move(g,1,5);move(g,2,5);produce(g);assert.equal(p.resources.material,before.material+1);
+ assert.equal(actor(g).moves,1);validateGame(g);
 });
-test("seule l’affectation finale produit ; libérer ne récolte rien",()=>{
- const g=setup();assignWorker(g,0,3,3);assignWorker(g,0,9,9);const before={...g.players[0].resources};
- endTurn(g);assert.equal(g.players[0].resources.food,before.food);assert.equal(g.players[0].resources.material,before.material+1);
- endTurn(g);assignWorker(g,0,null,null);assert.equal(harvestPreview(g).amounts.material,0);
+
+test("explorer garde les déplacements mais interdit de produire ou construire ensuite",()=>{
+ const g=setup();move(g,1,5);g.tileMarket[0]={cells:[{x:0,y:0,terrain:"plain"}]};explore(g,0,2,5);
+ assert.equal(actor(g).moves,2);move(g,2,5);assert.equal(actor(g).moves,1);assert.throws(()=>produce(g),/action/);
+ g.buildingMarket[0]="house";assert.throws(()=>build(g,0,2,5),/action/);
 });
-test("un ouvrier par producteur, pas d’affectation aux bâtiments passifs ou adverses",()=>{
- const g=setup();g.players[0].workerAssignments.push({id:1,building:null});g.players[0].workers=2;
- assignWorker(g,0,3,3);assert.ok(workerAssignmentError(g,1,3,3));
- assert.ok(workerAssignmentError(g,1,0,6));assert.ok(workerAssignmentError(g,1,12,6));assert.ok(workerAssignmentError(g,1,4,4));
+
+test("bâtiment : deux ressources, une production partagée par tour et aucun second gain automatique",()=>{
+ const g=setup(),p=g.players[0];g.board["1,5"]={terrain:"plain",building:{type:"farm",owner:0}};
+ move(g,1,5);const before=p.resources.food;produce(g);assert.equal(p.resources.food,before+2);
+ selectUnit(g,1);move(g,1,5);const snapshot=structuredClone(g);assert.match(produceError(g),/already produced/);assert.throws(()=>produce(g));assert.deepEqual(g,snapshot);
+ endTurn(g);assert.equal(p.resources.food,before+2);assert.equal(produceError(g),null);produce(g);assert.equal(p.resources.food,before+4);
 });
-test("maison : l’ouvrier arrive après une construction et produit dès ce tour",()=>{
- const g=setup();g.board["1,6"]={terrain:"plain"};g.buildingMarket[0]="house";build(g,0,1,6);
- assignWorker(g,1,3,3);assert.equal(harvestPreview(g).amounts.food,1);assert.equal(g.acted,true);
+
+test("maison : coût 4 blés, 4 bois et 1 or, recrue sur place active seulement au tour suivant",()=>{
+ const g=setup(),p=g.players[0];p.resources={food:4,material:4,gold:1};g.buildingMarket[0]="house";
+ g.board['2,5']={terrain:'plain',building:{type:'house',owner:0}};
+ build(g,0,1,5);const recruit=p.units[2];assert.deepEqual(p.resources,{food:0,material:0,gold:0});
+ assert.equal(p.workers,3);assert.deepEqual([recruit.x,recruit.y],[1,5]);assert.ok(recruit.ended);assert.equal(actor(g).moves,3);
+ selectUnit(g,recruit.id);assert.throws(()=>produce(g));assert.throws(()=>move(g,0,5));endTurn(g);
+ assert.equal(recruit.ended,false);assert.equal(recruit.moves,3);validateGame(g);
+});
+
+test("construction puis déplacement autorisé ; produire reste une action distincte",()=>{
+ const g=setup();g.board["1,5"]={terrain:"forest"};g.buildingMarket[0]="clearing";
+ build(g,0,1,5);assert.equal(actor(g).moves,3);move(g,1,5);assert.equal(actor(g).moves,2);assert.throws(()=>produce(g));
+});
+
+test("un bâtiment passif, un drapeau ou un bâtiment adverse ne produit pas",()=>{
+ for(const cell of [{terrain:"plain",building:{type:"house",owner:0}},{terrain:"forest",building:{type:"sawmill",owner:1}},{terrain:"plain",flag:{owner:0}},{terrain:"mountain"}]){
+ const g=setup();g.board["1,5"]=cell;Object.assign(g.players[0].units[0],{x:1,y:5});const before=structuredClone(g);assert.throws(()=>produce(g));assert.deepEqual(g,before);}
+});
+
+test("moulin : bonus de un non cumulable et propriétaire respecté",()=>{
+ const g=setup();g.board["3,3"]={terrain:"plain",building:{type:"farm",owner:0}};
+ g.board["4,3"]={terrain:"plain"};
+ for(const pos of ["4,4","4,2"])g.board[pos]={terrain:"plain",building:{type:"mill",owner:0}};
+ assert.equal(productionAmount(g,3,3),3);g.board["3,3"].building.owner=1;assert.equal(productionAmount(g,3,3),2);
+});
+
+test("commande produire autoritaire, refus atomique et anciennes affectations bloquées",()=>{
+ const g=setup();move(g,1,5);const next=applyCommand(g,{type:"produce",unit:0,args:[]});assert.equal(next.players[0].resources.food,g.players[0].resources.food+1);
+ const snapshot=structuredClone(next);assert.throws(()=>applyCommand(next,{type:"produce",unit:0,args:[]}));assert.deepEqual(next,snapshot);
+ assert.throws(()=>applyCommand(g,{type:"assignWorker",unit:0,args:[0,9,9]}));validateGame(next);
+});
+
+test("les parties des anciennes règles sont refusées explicitement",()=>{
+ const g=setup();g.version=5;assert.throws(()=>validateGame(g),/version inconnue/);
+});
+
+test("fin de tour : production des actions disponibles, même sans déplacement ni sélection",()=>{
+ const g=setup(),p=g.players[0];Object.assign(p.units[0],{x:1,y:5,moves:0});Object.assign(p.units[1],{x:2,y:5});g.board["2,5"]={terrain:"forest"};
+ const before={...p.resources},snapshot=structuredClone(g);assert.deepEqual(harvestPreview(g).amounts,{material:1,food:1,gold:0});assert.deepEqual(g,snapshot);
+ endTurn(g);assert.equal(p.resources.food,before.food+1);assert.equal(p.resources.material,before.material+1);validateGame(g);
+});
+
+test("fin de tour : une seule production par bâtiment, moulin compris",()=>{
+ const g=setup(),p=g.players[0];g.board["3,3"]={terrain:"plain",building:{type:"farm",owner:0}};
+ g.board["4,3"]={terrain:"field",overlay:{anchor:"3,3",role:"field",owner:0}};g.board["4,4"]={terrain:"plain",building:{type:"mill",owner:0}};
+ for(const u of p.units)Object.assign(u,{x:3,y:3});const before=p.resources.food;assert.equal(harvestPreview(g).amounts.food,3);
+ endTurn(g);assert.equal(p.resources.food,before+3);assert.equal(g.board["3,3"].building.productionRound,1);
+ assert.equal(harvestPreview(g).amounts.food,3);endTurn(g);assert.equal(p.resources.food,before+6);
+});
+
+test("fin de tour : un ouvrier qui a exploré ou construit ne produit pas",()=>{
+ const g=setup(),p=g.players[0];Object.assign(p.units[0],{x:1,y:5});g.tileMarket[0]={cells:[{x:0,y:0,terrain:"plain"}]};explore(g,0,2,5);
+ selectUnit(g,1);g.board["0,4"]={terrain:"forest"};g.buildingMarket[0]="clearing";build(g,0,0,4);
+ const before={...p.resources};assert.deepEqual(harvestPreview(g).amounts,{material:0,food:0,gold:0});endTurn(g);assert.deepEqual(p.resources,before);
+});
+
+test("fin de tour : une recrue inactive ne produit pas, ni un soldat",()=>{
+ const g=setup(),p=g.players[0];Object.assign(p.units[0],{x:1,y:5,acted:true});Object.assign(p.units[1],{x:1,y:5,ended:true});
+ p.units.push({id:p.nextUnitId++,type:"soldier",x:1,y:5,moves:3,acted:false,ended:false});const before={...p.resources};
+ endTurn(g);assert.deepEqual(p.resources,before);
+});
+
+test("fin de tour : pas de production sur bâtiment passif, adverse ou terrain invalide",()=>{
+ for(const cell of [{terrain:"plain",building:{type:"house",owner:0}},{terrain:"forest",building:{type:"sawmill",owner:1}},{terrain:"plain",flag:{owner:0}},{terrain:"mountain"}]){
+  const g=setup(),p=g.players[0];g.board["1,5"]=cell;Object.assign(p.units[0],{x:1,y:5});const before={...p.resources};endTurn(g);assert.deepEqual(p.resources,before);
+ }
+});
+
+test("dernière fin de tour : production via commande avant score, sans toucher à l’état source",()=>{
+ const g=setup(),p=g.players[0];g.round=25;g.board["1,5"]={terrain:"plain",building:{type:"mine",owner:0}};Object.assign(p.units[0],{x:1,y:5});p.resources.gold=0;
+ const before=structuredClone(g),next=applyCommand(g,{type:"endTurn",unit:1,args:[]});assert.deepEqual(g,before);assert.equal(next.players[0].resources.gold,1);assert.equal(next.finished,true);assert.equal(totalScore(next,0),0);assert.equal(harvestPreview(next).amounts.gold,0);
+});
+
+test("les ouvriers restés au donjon ne produisent pas et l’interface décrit l’action", () => {
+ const g=createGame(),before={...g.players[0].resources};assert.match(harvestView(g),/action/);endTurn(g);assert.deepEqual(g.players[0].resources,before);
 });

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "build-2",
+    "name": "Build 3 buildings",
+    "metric": "built",
+    "target": 3,
+    "reward": {
+      "food": 1,
+      "material": 1
+    },
+    "family": "built-all",
+    "difficulty": 1
+  },
+  {
+    "id": "build-4",
+    "name": "Build 6 buildings",
+    "metric": "built",
+    "target": 6,
+    "reward": {
+      "food": 2,
+      "material": 2
+    },
+    "family": "built-all",
+    "difficulty": 2
+  },
+  {
+    "id": "built-all-6",
+    "name": "Build 9 buildings",
+    "metric": "built",
+    "target": 9,
+    "reward": {
+      "food": 3,
+      "material": 3
+    },
+    "family": "built-all",
+    "difficulty": 3
+  }
+]

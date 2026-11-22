@@ -1,13 +1,7 @@
 {
   "id": "valley",
-  "name": {
-    "fr": "La vallée",
-    "en": "The valley"
-  },
-  "description": {
-    "fr": "5 drapeaux et des montagnes qui créent des zones stratégiques.",
-    "en": "5 flags and mountains creating strategic areas."
-  },
+  "name": "The valley",
+  "description": "5 flags and mountains creating strategic areas.",
   "legend": {
     "P": "plain",
     "F": "forest",

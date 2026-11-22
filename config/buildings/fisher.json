@@ -1,0 +1,65 @@
+[
+  {
+    "id": "fisher",
+    "name": "Fisher",
+    "icon": "assets/textures/buildings/fisher.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "river",
+    "produces": "food",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "Three water spaces in a line; building space in the middle.",
+    "weight": 2,
+    "layout": [
+      "rBr"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "fisher_bank",
+    "name": "Fisher",
+    "icon": "assets/textures/buildings/fisher.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "One plain building space followed by two water spaces in a line.",
+    "weight": 2,
+    "layout": [
+      "Brr"
+    ],
+    "production": 2,
+    "family": "fisher",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "fisher_corner",
+    "name": "Fisher",
+    "icon": "assets/textures/buildings/fisher.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+2 wheat per turn with a worker.",
+    "pattern": "One plain building space and two water spaces in an L.",
+    "weight": 1,
+    "layout": [
+      "rr",
+      ".B"
+    ],
+    "production": 2,
+    "family": "fisher",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  }
+]

@@ -314,3 +314,16 @@ button {
     box-sizing: border-box;
   }
 }
+
+.free-worker.worker-status { display:flex; flex-wrap:wrap; align-items:center; gap:4px; width:100%; min-width:90px; height:auto; padding:8px; color:var(--ink); background:#faf6e9; border:1px solid #cdbc93; }
+.free-worker.worker-status small { width:100%; font-size:11px; color:var(--ink); }
+.worker-status small .asset-icon { width:14px; height:14px; vertical-align:-3px; }
+.worker-status.selected { outline:3px solid #b7802f; }
+.production-controls { display:inline-flex; flex-wrap:nowrap; align-items:center; gap:12px; margin:0; white-space:nowrap; }
+.action-status { font-size:inherit; line-height:inherit; }
+.production-controls button { display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+.production-badge { position:absolute; right:2px; top:2px; background:#fff7df; color:#345d30; border-radius:5px; padding:1px 4px; font-size:11px; z-index:4; }
+.production-badge.used { color:#777; background:#ddd; }
+.mobile-worker-piece sup { font-size:10px; }
+
+#worker-list:has(.worker-status) { align-content:flex-start; min-height:120px; }

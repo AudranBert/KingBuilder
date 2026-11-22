@@ -1,0 +1,83 @@
+[
+  {
+    "id": "mill",
+    "name": "Mill",
+    "icon": "assets/textures/buildings/mill.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": [
+      "plain",
+      "field"
+    ],
+    "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
+    "pattern": "A plain or field building space beside an existing field.",
+    "weight": 1,
+    "layout": [
+      "Bw"
+    ],
+    "boost": {
+      "target": "farm",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "tier": 2,
+    "points": 1
+  },
+  {
+    "id": "mill_line",
+    "name": "Mill",
+    "icon": "assets/textures/buildings/mill.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": [
+      "plain",
+      "field"
+    ],
+    "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
+    "pattern": "A plain or field building space beside an existing building, excluding bridges and tunnels.",
+    "weight": 1,
+    "layout": [
+      "Bc"
+    ],
+    "boost": {
+      "target": "farm",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "family": "mill",
+    "tier": 2,
+    "points": 1
+  },
+  {
+    "id": "mill_l",
+    "name": "Mill",
+    "icon": "assets/textures/buildings/mill.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": [
+      "plain",
+      "field"
+    ],
+    "description": "+1 wheat to farms within two orthogonal steps. No worker required; does not stack.",
+    "pattern": "A plain or field building space and two courtyard plains in an L.",
+    "weight": 1,
+    "layout": [
+      "Bp",
+      ".p"
+    ],
+    "boost": {
+      "target": "farm",
+      "range": "radius2",
+      "owned": true,
+      "bonus": 1
+    },
+    "family": "mill",
+    "tier": 2,
+    "points": 1
+  }
+]

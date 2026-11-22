@@ -1,0 +1,64 @@
+[
+  {
+    "id": "house",
+    "name": "House",
+    "icon": "assets/textures/buildings/house.svg",
+    "cost": {
+      "food": 4,
+      "material": 4,
+      "gold": 1
+    },
+    "terrain": "plain",
+    "description": "+1 worker, active next turn. This worker disappears if the house is destroyed.",
+    "pattern": "One plain next to an existing building, excluding bridges and tunnels.",
+    "weight": 3,
+    "layout": [
+      "Bc"
+    ],
+    "tier": 2,
+    "points": 1,
+    "grantsWorker": 1
+  },
+  {
+    "id": "house_water",
+    "name": "House",
+    "icon": "assets/textures/buildings/house.svg",
+    "cost": {
+      "food": 4,
+      "material": 4,
+      "gold": 1
+    },
+    "terrain": "plain",
+    "description": "+1 worker, active next turn. This worker disappears if the house is destroyed.",
+    "pattern": "One plain next to water.",
+    "weight": 2,
+    "layout": [
+      "Br"
+    ],
+    "tier": 2,
+    "points": 1,
+    "grantsWorker": 1,
+    "family": "house"
+  },
+  {
+    "id": "house_forest",
+    "name": "House",
+    "icon": "assets/textures/buildings/house.svg",
+    "cost": {
+      "food": 4,
+      "material": 4,
+      "gold": 1
+    },
+    "terrain": "plain",
+    "description": "+1 worker, active next turn. This worker disappears if the house is destroyed.",
+    "pattern": "One plain next to a forest.",
+    "weight": 2,
+    "layout": [
+      "Bf"
+    ],
+    "tier": 2,
+    "points": 1,
+    "grantsWorker": 1,
+    "family": "house"
+  }
+]

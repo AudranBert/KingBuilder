@@ -1,0 +1,40 @@
+[
+  {
+    "id": "church",
+    "name": "Church",
+    "tier": 3,
+    "description": "Double the score of monuments within two orthogonal steps. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/church.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "One plain exactly two spaces in a straight line from an existing building, excluding bridges and tunnels.",
+    "layout": [
+      "B.c"
+    ],
+    "weight": 1,
+    "points": 0,
+    "monumentMultiplier": 2
+  },
+  {
+    "id": "church_mountain",
+    "name": "Church",
+    "tier": 3,
+    "description": "Double the score of monuments within two orthogonal steps. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/church.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Two plains and one mountain in an L.",
+    "layout": [
+      "Bm",
+      ".p"
+    ],
+    "weight": 1,
+    "points": 0,
+    "monumentMultiplier": 2,
+    "family": "church"
+  }
+]

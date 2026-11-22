@@ -1,0 +1,46 @@
+[
+  {
+    "id": "dry_dock",
+    "name": "Dry dock",
+    "tier": 3,
+    "description": "Your units can move on water. No worker required.",
+    "icon": "assets/textures/buildings/dry-dock.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "One plain shipyard and two water spaces in a line.",
+    "layout": [
+      "Brr"
+    ],
+    "weight": 1,
+    "points": 0,
+    "waterMovement": true,
+    "adjacentOn": [
+      "river"
+    ]
+  },
+  {
+    "id": "dry_dock_forest",
+    "name": "Dry dock",
+    "tier": 3,
+    "description": "Your units can move on water. No worker required.",
+    "icon": "assets/textures/buildings/dry-dock.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "forest",
+    "pattern": "One forest shipyard and two water spaces in an L.",
+    "layout": [
+      "Br",
+      ".r"
+    ],
+    "weight": 1,
+    "points": 0,
+    "waterMovement": true,
+    "adjacentOn": [
+      "river"
+    ],
+    "family": "dry_dock"
+  }
+]

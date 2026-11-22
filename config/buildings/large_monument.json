@@ -1,0 +1,40 @@
+[
+  {
+    "id": "large_monument",
+    "name": "Large monument",
+    "tier": 3,
+    "description": "+7 score.",
+    "icon": "assets/textures/buildings/monument.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Five spaces in a block: two plains, one water space and two mountains.",
+    "layout": [
+      "pBr",
+      ".mm"
+    ],
+    "weight": 1,
+    "points": 7
+  },
+  {
+    "id": "large_monument_l",
+    "name": "Large monument",
+    "tier": 3,
+    "description": "+7 score.",
+    "icon": "assets/textures/buildings/monument.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "Six spaces in a staircase: three plains and three forests.",
+    "layout": [
+      "Bpf",
+      "pf.",
+      "f.."
+    ],
+    "weight": 1,
+    "points": 7,
+    "family": "large_monument"
+  }
+]

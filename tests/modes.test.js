@@ -1,6 +1,7 @@
+import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, endTurn, RULES, moveError } from "../src/engine.js";
+import { endTurn, RULES, moveError } from "../src/engine.js";
 import { validateGame } from "../src/validation.js";
 import { playersView, missionsView, resultsView } from "../src/ui/views.js";
 

@@ -100,15 +100,14 @@ test("un clic ne déclenche aucun placement ; glisser dépose une seule fois et 
     doc.fire("pointerup");
     assert.deepEqual(calls, ["begin", { x: 2, y: 6 }, "end"]);
     calls.length = 0;
-    hit = { closest: (s) => (s === "[data-worker-reserve]" ? {} : null) };
+    hit = null;
     root.fire("pointerdown", { target: card });
     doc.fire("pointermove", { clientX: 30 });
     doc.fire("pointerup");
     assert.deepEqual(calls, [
       "begin",
       null,
-      ["drop", { workerReserve: true }],
-      "end",
+            "end",
     ]);
   } finally {
     globalThis.document = oldDoc;

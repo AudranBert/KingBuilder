@@ -1,0 +1,47 @@
+[
+  {
+    "id": "barracks",
+    "name": "Barracks",
+    "icon": "assets/textures/buildings/barracks.svg",
+    "weight": 4,
+    "cost": {
+      "food": 1,
+      "material": 2
+    },
+    "terrain": "plain",
+    "layout": [
+      "Bc"
+    ],
+    "description": "Recruit one soldier for two wheat, once per turn. No worker required.",
+    "pattern": "A plain building space beside an existing building, excluding bridges and tunnels.",
+    "trains": [
+      "soldier"
+    ],
+    "trainingLimit": 1,
+    "tier": 2,
+    "points": 1
+  },
+  {
+    "id": "barracks_forest",
+    "name": "Barracks",
+    "icon": "assets/textures/buildings/barracks.svg",
+    "weight": 3,
+    "cost": {
+      "food": 1,
+      "material": 2
+    },
+    "terrain": "forest",
+    "layout": [
+      "Bp"
+    ],
+    "description": "Recruit one soldier for two wheat, once per turn. No worker required.",
+    "pattern": "One forest for the barracks and one plain for the courtyard.",
+    "trains": [
+      "soldier"
+    ],
+    "trainingLimit": 1,
+    "tier": 2,
+    "points": 1,
+    "family": "barracks"
+  }
+]

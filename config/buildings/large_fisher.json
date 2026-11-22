@@ -1,0 +1,52 @@
+[
+  {
+    "id": "large_fisher",
+    "name": "Large fishing hut",
+    "icon": "assets/textures/buildings/fisher.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": [
+      "plain",
+      "river"
+    ],
+    "produces": "food",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five spaces: a plain or water building space and four water spaces in a block.",
+    "weight": 1,
+    "layout": [
+      "Brr",
+      ".rr"
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "fisher"
+  },
+  {
+    "id": "large_fisher_line",
+    "name": "Large fishing hut",
+    "icon": "assets/textures/buildings/fisher.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": [
+      "plain",
+      "river"
+    ],
+    "produces": "food",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five spaces in a line: a plain or water building space, three water spaces, then one plain.",
+    "weight": 1,
+    "layout": [
+      "Brrrp"
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "fisher",
+    "family": "large_fisher"
+  }
+]

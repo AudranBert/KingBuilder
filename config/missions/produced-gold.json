@@ -1,0 +1,38 @@
+[
+  {
+    "id": "produced-gold-3",
+    "name": "Produce 5 gold",
+    "metric": "produced",
+    "target": 5,
+    "resource": "gold",
+    "reward": {
+      "score": 1
+    },
+    "family": "produced-gold",
+    "difficulty": 1
+  },
+  {
+    "id": "produced-gold-6",
+    "name": "Produce 10 gold",
+    "metric": "produced",
+    "target": 10,
+    "resource": "gold",
+    "reward": {
+      "score": 2
+    },
+    "family": "produced-gold",
+    "difficulty": 2
+  },
+  {
+    "id": "produced-gold-10",
+    "name": "Produce 20 gold",
+    "metric": "produced",
+    "target": 20,
+    "resource": "gold",
+    "reward": {
+      "score": 3
+    },
+    "family": "produced-gold",
+    "difficulty": 3
+  }
+]

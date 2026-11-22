@@ -1,0 +1,18 @@
+[
+  {
+    "id": "castle",
+    "name": "Keep",
+    "icon": "assets/textures/buildings/castle.svg",
+    "cost": {},
+    "terrain": "plain",
+    "description": "Fixed strength 2 (no defensive bonus); losing your keep means defeat.",
+    "pattern": "One plain space.",
+    "constructible": false,
+    "layout": [
+      "B"
+    ],
+    "tier": 2,
+    "points": 0,
+    "garrison": 2
+  }
+]

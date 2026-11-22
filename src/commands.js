@@ -1,11 +1,10 @@
-import { message as sourceMessage } from "./i18n.js";
+import { ruleIssue, RuleError } from "./rule-errors.js";
 import * as engine from './engine.js';
-import { moveUnitTo } from './ui/interactions.js';
 
 const actions = Object.freeze({
-  moveUnitTo, explore: engine.explore, build: engine.build,
+  moveUnitTo: engine.moveUnitTo, explore: engine.explore, build: engine.build,
   buyTerrain: engine.buyTerrain, placeOpeningTile: engine.placeOpeningTile,
-  assign: engine.assign, assignWorker: engine.assignWorker,
+  produce: engine.produce,
   trainUnit: engine.trainUnit, rerollMarket: engine.rerollMarket,
   endTurn: engine.endTurn,
 });
@@ -13,7 +12,7 @@ const actions = Object.freeze({
 // Both clients and servers use this protocol. Never accept a client game state.
 export function applyCommand(state, command) {
   if (!command || !Object.hasOwn(actions, command.type) || !Array.isArray(command.args) || command.args.length > 6)
-    throw Error(sourceMessage("messages.unknownCommand"));
+    throw new RuleError(ruleIssue("messages.unknownCommand"));
   const game = structuredClone(state);
   if (!game.opening && !game.finished) {
     engine.selectUnit(game, command.unit ?? null);

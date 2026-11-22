@@ -1,0 +1,35 @@
+[
+  {
+    "id": "produced-all-6",
+    "name": "Produce 8 resources",
+    "metric": "produced",
+    "target": 8,
+    "reward": {
+      "score": 1
+    },
+    "family": "produced-all",
+    "difficulty": 1
+  },
+  {
+    "id": "produced-all-14",
+    "name": "Produce 16 resources",
+    "metric": "produced",
+    "target": 16,
+    "reward": {
+      "score": 2
+    },
+    "family": "produced-all",
+    "difficulty": 2
+  },
+  {
+    "id": "produced-all-24",
+    "name": "Produce 25 resources",
+    "metric": "produced",
+    "target": 25,
+    "reward": {
+      "score": 3
+    },
+    "family": "produced-all",
+    "difficulty": 3
+  }
+]

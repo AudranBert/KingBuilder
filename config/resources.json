@@ -2,22 +2,22 @@
   "resources": [
     {
       "id": "material",
-      "name": "Matériaux",
-      "icon": "assets/textures/resources-wood.svg",
+      "name": "Materials",
+      "icon": "assets/textures/resources/wood.svg",
       "startingAmount": 3,
       "points": 0
     },
     {
       "id": "food",
-      "name": "Nourriture",
-      "icon": "assets/textures/resources-wheat.svg",
+      "name": "Food",
+      "icon": "assets/textures/resources/wheat.svg",
       "startingAmount": 2,
       "points": 0
     },
     {
       "id": "gold",
-      "name": "Or",
-      "icon": "assets/textures/resources-gold.svg",
+      "name": "Gold",
+      "icon": "assets/textures/resources/gold.svg",
       "startingAmount": 2,
       "points": 0
     }

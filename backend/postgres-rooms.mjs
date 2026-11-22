@@ -1,5 +1,6 @@
+import { ruleIssue } from "../src/rule-errors.js";
 import { Rooms, RoomError } from './rooms.mjs';
-import { totalScore } from '../src/engine.js';
+import { gameResults } from '../src/engine.js';
 
 // Each operation loads a room into the existing rules service. Row locks make
 // validation + mutation + persistence atomic, including across server instances.
@@ -27,10 +28,10 @@ export class PostgresRooms {
         await client.query('SELECT pg_advisory_xact_lock(7429031)');
         await client.query('DELETE FROM kingbuilder_rooms WHERE expires_at <= now()');
         const count = await client.query('SELECT count(*)::integer AS count FROM kingbuilder_rooms');
-        if (count.rows[0].count >= rooms.maxRooms) throw new RoomError(503, 'Serveur complet. Réessayez plus tard.');
+        if (count.rows[0].count >= rooms.maxRooms) throw new RoomError(503, ruleIssue("messages.serverFullTryAgainLater"));
       } else {
         const result = await client.query('SELECT payload FROM kingbuilder_rooms WHERE code = $1 AND expires_at > now() FOR UPDATE', [code.toUpperCase()]);
-        if (!result.rows.length) throw new RoomError(404, 'Partie introuvable ou expirée.');
+        if (!result.rows.length) throw new RoomError(404, ruleIssue("messages.gameNotFoundOrExpired"));
         const room = result.rows[0].payload;
         room.receipts = new Map(room.receipts);
         rooms.rooms.set(room.code, room);
@@ -43,8 +44,7 @@ export class PostgresRooms {
           ON CONFLICT (code) DO UPDATE SET payload = EXCLUDED.payload, expires_at = EXCLUDED.expires_at`,
         [room.code, JSON.stringify(payload), new Date(room.updatedAt + rooms.ttlMs)]);
         if (room.game.finished) {
-          const scores = room.game.players.map((_, i) => totalScore(room.game, i));
-          const winner = room.game.winner ?? (scores[0] === scores[1] ? null : scores[0] > scores[1] ? 0 : 1);
+          const { scores, winner } = gameResults(room.game);
           await client.query('INSERT INTO kingbuilder_history (code, summary) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING',
             [room.code, JSON.stringify({ names: room.game.players.map(p => p.name), scores, winner })]);
         }

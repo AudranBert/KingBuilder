@@ -1,31 +1,54 @@
-import { message as sourceMessage } from "./i18n.js";
 import { CONFIG } from "./configuration.js";
-export const GOLD = CONFIG.rules.gold;
+import { spawnUnit } from "./units.js";
 export const MISSIONS = CONFIG.missions;
 export function emptyProgress() {
-  return { terrain: {}, built: {}, recruited: 0 };
+  return { terrain: {}, built: {}, produced: {}, conquests: [], landscaping: 0 };
 }
 export function missionProgress(g, id, owner = g.active) {
   const m = MISSIONS[id],
     p = g.players[owner];
   if (!m) return 0;
+  if (m.metric === "conquests") return p.progress.conquests?.length || 0;
+  if (m.metric === "landscaping") return p.progress.landscaping || 0;
   if (m.metric === "revealed")
     return m.terrain ? p.progress.terrain[m.terrain] || 0 : p.revealed;
+  if (m.metric === "built-distinct")
+    return new Set(Object.entries(p.progress.built)
+      .filter(([, count]) => count > 0)
+      .map(([type]) => CONFIG.buildings[type]?.family || type)).size;
   if (m.metric === "built")
-    return m.building
+    return m.producerResource
+      ? Object.entries(p.progress.built).reduce((total, [type, count]) =>
+          total + (CONFIG.buildings[type]?.produces === m.producerResource ? count : 0), 0)
+      : m.building
       ? Object.entries(p.progress.built).reduce(
           (total, [type, count]) => total +
-            ((CONFIG.buildings[type]?.family || type) === m.building ? count : 0), 0)
+            ((CONFIG.buildings[type]?.productionFamily || CONFIG.buildings[type]?.family || type) === m.building ? count : 0), 0)
       : Object.values(p.progress.built).reduce((a, b) => a + b, 0);
-  if (m.metric === "recruited") return p.progress.recruited;
-  if (m.metric === "resources")
+  if (m.metric === "multipliers")
+    return Object.values(g.board).filter(c => c.building?.owner === owner &&
+      isMultiplier(CONFIG.buildings[c.building.type])).length;
+  if (m.metric === "military") return militaryPower(g, owner);
+  if (m.metric === "produced")
     return m.resource
-      ? p.resources[m.resource] || 0
+      ? p.progress.produced?.[m.resource] || 0
       : Object.keys(CONFIG.resources).reduce(
-          (n, id) => n + (p.resources[id] || 0),
+          (n, id) => n + (p.progress.produced?.[id] || 0),
           0,
         );
   return 0;
+}
+export function isMultiplier(building) {
+  return Boolean(building?.boost || building?.monumentMultiplier || building?.trainingBoost);
+}
+export function recordConquest(g, owner, target) {
+  const targets = g.players[owner].progress.conquests ??= [];
+  if (!targets.includes(target)) targets.push(target);
+}
+export function militaryPower(g, owner = g.active) {
+  return g.players[owner].units.filter(u => u.type === "soldier").length +
+    Object.values(g.board).reduce((total, c) => total +
+      (c.building?.owner === owner ? CONFIG.buildings[c.building.type]?.garrison || 0 : 0), 0);
 }
 export function missionTarget(g, id, owner = g.active) {
   const baseline = g.missions.baselines?.[id]?.[owner];
@@ -37,29 +60,6 @@ function revealMission(g, id) {
 }
 export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
   g.rerollsUsed ??= 0;
-  for (const [owner, p] of g.players.entries()) {
-    if (!p.progress) {
-      p.progress = emptyProgress();
-      // Historic terrain before transformations is unavailable in older states.
-      const spawn = CONFIG.rules.players[owner].start;
-      const startKey = `${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.x * CONFIG.rules.boardSize))},${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.y * CONFIG.rules.boardSize))}`;
-      for (const [position, c] of Object.entries(g.board)) {
-        if (
-          c.owner === owner &&
-          position !== startKey &&
-          c.overlay?.anchor !== startKey
-        )
-          p.progress.terrain[c.terrain] =
-            (p.progress.terrain[c.terrain] || 0) + 1;
-        if (c.building?.owner === owner)
-          p.progress.built[c.building.type] =
-            (p.progress.built[c.building.type] || 0) + 1;
-      }
-      const start = CONFIG.startingBuilding;
-      p.progress.built[start] = Math.max(0, (p.progress.built[start] || 0) - 1);
-      p.progress.recruited = Math.max(0, p.workers - CONFIG.rules.startingWorkers);
-    }
-  }
   if (g.missionsEnabled === false) {
     g.missions = { market: [], deck: [], claimed: [], tiered: 1, baselines: {} };
     return;
@@ -76,15 +76,6 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
       else i++;
     }
     g.missions = { market, deck, claimed: [], tiered: 1 };
-  } else if (g.missions.tiered === undefined) {
-    // Preserve offers, ownership and rewards in existing states; add new variants once.
-    const known = new Set([
-      ...g.missions.market,
-      ...g.missions.deck,
-      ...g.missions.claimed.map((c) => c.id),
-    ]);
-    for (const id of missionOrder) if (!known.has(id)) g.missions.deck.push(id);
-    g.missions.tiered = 1;
   }
   for (const id of g.missions.market)
     if (!g.missions.baselines?.[id]) revealMission(g, id);
@@ -100,7 +91,13 @@ export function settleMissions(g, owner = g.active) {
       i++;
       continue;
     }
-    g.players[owner].resources.gold += m.reward.gold;
+    const player = g.players[owner];
+    for (const [type, amount] of Object.entries(m.reward)) {
+      if (type === "score") player.missionScore = (player.missionScore || 0) + amount;
+      else if (type === "soldiers") {
+        for (let n = 0; n < amount; n++) spawnUnit(g, player.home.x, player.home.y, "soldier", owner);
+      } else player.resources[type] += amount;
+    }
     g.missions.claimed.push({ id, owner, round: g.round });
     won.push(id);
     g.missions.market.splice(i, 1);
@@ -117,57 +114,4 @@ export function settleMissions(g, owner = g.active) {
     i = 0;
   }
   return won;
-}
-export function buildingPayment(g, index) {
-  const cost = CONFIG.buildings[g.buildingMarket[index]]?.cost;
-  if (!cost) return null;
-  return costPayment(g, cost);
-}
-export function tradePrice(g, resource) {
-  if (resource === "gold") return null;
-  const producers = Object.values(g.board).filter(c =>
-    c.building && c.building.owner !== g.active && CONFIG.buildings[c.building.type]?.produces === resource).length;
-  return CONFIG.rules.trade.basePrice + producers * CONFIG.rules.trade.producerSurcharge;
-}
-export function costPayment(g, cost) {
-  const p = g.players[g.active],
-    resources = {},
-    missing = {};
-  let gold = cost.gold || 0;
-  for (const [id, n] of Object.entries(cost)) {
-    if (id === "gold") continue;
-    const held = p.resources[id] ?? 0;
-    if (!Number.isSafeInteger(held) || held < 0) return null;
-    resources[id] = Math.min(n, held);
-    if (n > held) {
-      missing[id] = n - held;
-      gold += (n - held) * tradePrice(g, id);
-    }
-  }
-  const purchaseGold = gold - (cost.gold || 0);
-  resources.gold = gold;
-  return {
-    resources,
-    missing,
-    gold: purchaseGold,
-    totalGold: gold,
-    affordable: Number.isSafeInteger(p.resources.gold) && p.resources.gold >= gold,
-  };
-}
-export function rerollError(g, kind) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
-  if (!["terrain", "building"].includes(kind)) return sourceMessage("messages.unknownMarket");
-  if (g.rerollsUsed >= GOLD.rerollLimitPerTurn)
-    return sourceMessage("messages.rerollAlreadyUsedThisTurn");
-  if (g.players[g.active].resources.gold < GOLD.rerollCost)
-    return sourceMessage("messages.notEnoughGold");
-  const market = kind === "terrain" ? g.tileMarket : g.buildingMarket,
-    deck = kind === "terrain" ? g.tileDeck : g.buildingDeck;
-  if (!market.length || deck.length < market.length)
-    return sourceMessage("messages.theDeckDoesNotHaveEnoughNew");
-  if (kind === "building" && (g.buildingReplacements ?? CONFIG.rules.markets.advancedFromReplacement) + 1 < CONFIG.rules.markets.advancedFromReplacement &&
-      deck.filter((id) => CONFIG.buildings[id].tier <= CONFIG.rules.markets.initialMaxTier).length < market.length)
-    return sourceMessage("messages.theDeckDoesNotHaveEnoughOffers", [CONFIG.rules.markets.initialMaxTier]);
-  return null;
 }

@@ -1,0 +1,41 @@
+{
+  "shapes": [
+    {
+      "id": "line2",
+      "name": "Line of 2",
+      "weight": 1,
+      "pattern": [
+        "xx"
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "line2-1",
+      "name": "Small woodland",
+      "shapeId": "line2",
+      "pattern": [
+        "FF"
+      ],
+      "intent": "Small forest reserve"
+    },
+    {
+      "id": "line2-2",
+      "name": "Forest edge",
+      "shapeId": "line2",
+      "pattern": [
+        "PF"
+      ],
+      "intent": "Woodland and housing"
+    },
+    {
+      "id": "line2-3",
+      "name": "Open plain",
+      "shapeId": "line2",
+      "pattern": [
+        "PP"
+      ],
+      "intent": "Two plains for building"
+    }
+  ]
+}

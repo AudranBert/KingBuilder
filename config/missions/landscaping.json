@@ -1,0 +1,35 @@
+[
+  {
+    "id": "landscaping-2",
+    "name": "Landscape nature 2 times",
+    "metric": "landscaping",
+    "target": 2,
+    "reward": {
+      "gold": 1
+    },
+    "family": "landscaping",
+    "difficulty": 1
+  },
+  {
+    "id": "landscaping-4",
+    "name": "Landscape nature 4 times",
+    "metric": "landscaping",
+    "target": 4,
+    "reward": {
+      "score": 2
+    },
+    "family": "landscaping",
+    "difficulty": 2
+  },
+  {
+    "id": "landscaping-6",
+    "name": "Landscape nature 6 times",
+    "metric": "landscaping",
+    "target": 6,
+    "reward": {
+      "score": 3
+    },
+    "family": "landscaping",
+    "difficulty": 3
+  }
+]

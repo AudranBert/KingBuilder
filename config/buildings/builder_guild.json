@@ -1,0 +1,40 @@
+[
+  {
+    "id": "builder_guild",
+    "name": "Builders guild",
+    "tier": 3,
+    "description": "Buildings cost one less wood. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/builder-guild.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "One plain guild and two forests in a line.",
+    "layout": [
+      "Bff"
+    ],
+    "weight": 1,
+    "points": 0,
+    "buildingDiscount": 1
+  },
+  {
+    "id": "builder_guild_mountain",
+    "name": "Builders guild",
+    "tier": 3,
+    "description": "Buildings cost one less wood. No worker required; does not stack.",
+    "icon": "assets/textures/buildings/builder-guild.svg",
+    "cost": {
+      "material": 4
+    },
+    "terrain": "plain",
+    "pattern": "One plain guild and two mountains in an L.",
+    "layout": [
+      "Bm",
+      ".m"
+    ],
+    "weight": 1,
+    "points": 0,
+    "buildingDiscount": 1,
+    "family": "builder_guild"
+  }
+]

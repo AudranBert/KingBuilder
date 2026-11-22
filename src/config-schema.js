@@ -1,4 +1,9 @@
 const forbidden = ["__proto__", "prototype", "constructor"];
+// One fixed alphabet for every building pattern; c means an existing building.
+const buildingTerrains = {
+  p: ['plain'], f: ['forest'], m: ['mountain'], r: ['river'],
+  w: ['field'], l: ['plain','forest'],
+};
 const fail = (path, message) => {
   throw new Error(`Configuration invalide : ${path} — ${message}`);
 };
@@ -53,7 +58,7 @@ function connected(cells) {
   }
   return visited.size === cells.length;
 }
-function diagram(rows, symbols, path) {
+function diagram(rows, symbols, path, negation = false) {
   if (
     !Array.isArray(rows) ||
     !rows.length ||
@@ -62,7 +67,7 @@ function diagram(rows, symbols, path) {
     fail(path, "liste de lignes non vides attendue.");
   const cells = [];
   rows.forEach((row, y) =>
-    [...row].forEach((symbol, x) => {
+    (negation ? row.match(/!.|./gu) : [...row]).forEach((symbol, x) => {
       if (symbol === ".") return;
       if (!symbols.includes(symbol)) fail(path, `symbole inconnu : ${symbol}.`);
       cells.push({ x, y, symbol });
@@ -70,7 +75,7 @@ function diagram(rows, symbols, path) {
   );
   if (!cells.length)
     fail(path, "une tuile doit contenir au moins une case occupée.");
-  if (!connected(cells))
+  if (!negation && !connected(cells))
     fail(path, "toutes les cases doivent être reliées par un bord.");
   return cells;
 }
@@ -101,7 +106,7 @@ function weighted(items, path, deckSize) {
   return pool;
 }
 function range(v, path) {
-  if (!["edge", "touching"].includes(v))
+  if (!["edge", "touching", "radius2"].includes(v))
     fail(path, "utilisez edge (bords) ou touching (bords et coins).");
 }
 export function compileConfiguration(
@@ -196,13 +201,13 @@ export function compileConfiguration(
       `game-rules.json.gold.${field}`,
       field.endsWith("StartingAmount") || field === "startingAmount" ? 0 : 1,
     );
-  object(tileConfig, "terrain-tiles.json");
-  object(buildingConfig, "buildings.json");
+  object(tileConfig, "terrain-tiles");
+  object(buildingConfig, "buildings");
   object(resourceConfig, "resources.json");
   object(unitConfig, "units.json");
   if (Object.hasOwn(buildingConfig, "units"))
     fail(
-      "buildings.json.units",
+      "buildings.units",
       "les unités doivent être définies uniquement dans units.json.",
     );
   tileConfig = structuredClone(tileConfig);
@@ -227,51 +232,49 @@ export function compileConfiguration(
   const units = unitConfig.units.length
     ? index(unitConfig.units, "units.json.units")
     : {};
-  for (const id of ["king", "worker"])
+  for (const id of ["worker"])
     if (!units[id]) fail(`units.json.units.${id}`, "définition obligatoire.");
   for (const unit of Object.values(units)) {
     const path = `units.json.units.${unit.id}`;
     label(unit.icon, `${path}.icon`);
     costs(unit.cost, resources, `${path}.cost`);
-    integer(unit.moves, `${path}.moves`, unit.id === "worker" ? 0 : 1);
-    if (unit.id === "worker" && unit.moves !== 0)
-      fail(`${path}.moves`, "les ouvriers s’affectent sans déplacement : 0 requis.");
+    integer(unit.moves, `${path}.moves`, 1);
     const expected = unit.id === "king" ? "initial" : unit.id === "worker" ? "house" : "building";
     if (unit.recruitment !== expected)
       fail(`${path}.recruitment`, `utilisez ${expected} pour cette unité.`);
     if (unit.recruitment === "initial" && Object.keys(unit.cost).length)
       fail(`${path}.cost`, "une unité fournie au départ doit avoir un coût vide.");
   }
-  const shapes = index(tileConfig.shapes, "terrain-tiles.json.shapes");
+  const shapes = index(tileConfig.shapes, "terrain-tiles.shapes");
   for (const shape of Object.values(shapes))
     shape.cells = diagram(
       shape.pattern,
       ["x"],
-      `terrain-tiles.json.${shape.id}.pattern`,
+      `terrain-tiles.${shape.id}.pattern`,
     ).map(({ x, y }) => ({ x, y }));
-  integer(tileConfig.deckSize, "terrain-tiles.json.deckSize", 1);
+  integer(tileConfig.deckSize, "terrain-tiles/index.json.deckSize", 1);
   for (const shape of Object.values(shapes))
-    integer(shape.weight, `terrain-tiles.json.${shape.id}.weight`, 1);
-  object(tileConfig.legend, "terrain-tiles.json.legend");
+    integer(shape.weight, `terrain-tiles.${shape.id}.weight`, 1);
+  object(tileConfig.legend, "terrain-tiles/index.json.legend");
   for (const [symbol, terrain] of Object.entries(tileConfig.legend)) {
     if (symbol.length !== 1 || symbol === ".")
       fail(
-        "terrain-tiles.json.legend",
+        "terrain-tiles/index.json.legend",
         "symboles d’une lettre, hors point, attendus.",
       );
     if (!terrainDefinitions[terrain])
-      fail("terrain-tiles.json.legend", `terrain inconnu : ${terrain}.`);
+      fail("terrain-tiles/index.json.legend", `terrain inconnu : ${terrain}.`);
   }
   const tiles = Object.values(
-    index(tileConfig.tiles, "terrain-tiles.json.tiles"),
+    index(tileConfig.tiles, "terrain-tiles.tiles"),
   );
   if (tiles.length !== tileConfig.deckSize)
     fail(
-      "terrain-tiles.json.deckSize",
+      "terrain-tiles/index.json.deckSize",
       "la taille de pioche doit correspondre au nombre de tuiles définies.",
     );
   for (const tile of tiles) {
-    const path = `terrain-tiles.json.tiles.${tile.id}`;
+    const path = `terrain-tiles.tiles.${tile.id}`;
     const shape = shapes[tile.shapeId];
     if (!shape) fail(path, "forme inconnue.");
     const cells = diagram(
@@ -293,16 +296,19 @@ export function compileConfiguration(
     }));
     if (tile.intent !== undefined) label(tile.intent, `${path}.intent`);
   }
-  const buildings = index(buildingConfig.buildings, "buildings.json.buildings");
+  const buildings = index(buildingConfig.buildings, "buildings/*.json");
   for (const b of Object.values(buildings)) {
-    const path = `buildings.json.${b.id}`;
-    for (const field of ["points", "garrison", "grantsWorker"])
+    const path = `buildings.${b.id}`;
+    for (const field of ["points", "garrison", "grantsWorker", "tradeDiscount", "buildingDiscount", "movementBonus", "combatBonus", "trainingBoost", "monumentMultiplier"])
       if (b[field] !== undefined) integer(b[field], `${path}.${field}`);
+    for (const field of ["waterMovement", "remoteTerrain", "portBonus", "toll", "greatBridge", "createsFields"])
+      if (b[field] !== undefined && typeof b[field] !== 'boolean') fail(path, `${field} doit être un booléen.`);
     if (b.unique !== undefined && typeof b.unique !== "boolean") fail(path, "unique doit être un booléen.");
     if (b.onBuildUnit !== undefined && !units[b.onBuildUnit]) fail(path, "unité initiale inconnue.");
     label(b.icon, `${path}.icon`);
     label(b.description, `${path}.description`);
     label(b.pattern, `${path}.pattern`);
+    if (typeof b.terrain === 'string') b.terrain = [b.terrain];
     terrainList(b.terrain, `${path}.terrain`);
     costs(b.cost, resources, `${path}.cost`);
     b.tier ??= 1;
@@ -311,40 +317,38 @@ export function compileConfiguration(
       fail(path, "constructible doit être un booléen.");
     if (b.onBuildGain !== undefined)
       costs(b.onBuildGain, resources, `${path}.onBuildGain`);
-    object(b.legend, `${path}.legend`);
-    for (const [symbol, part] of Object.entries(b.legend)) {
-      if ([...symbol].length !== 1 || [".", "B"].includes(symbol))
-        fail(
-          path,
-          "chaque symbole de légende doit être un caractère différent de B et du point.",
-        );
-      object(part, path);
-      terrainList(part.terrain, `${path}.legend.${symbol}.terrain`);
-      identifier(part.role, `${path}.legend.${symbol}.role`);
-      if (part.transformTo !== undefined && !terrainIds.includes(part.transformTo)) fail(path, "terrain transformTo inconnu.");
-      if (part.role === "building")
-        fail(path, "le rôle building est réservé à B.");
-    }
+    if (b.legend !== undefined || b.adjacency !== undefined)
+      fail(path, "utilisez les symboles fixes du layout, sans legend ni adjacency.");
+    if (Array.isArray(b.layout))
+      b.layout = b.layout.map(row => typeof row === 'string' ? row.replaceAll('b','B') : row);
     const cells = diagram(
         b.layout,
-        ["B", ...Object.keys(b.legend)],
+        ['B','c',...Object.keys(buildingTerrains),
+          ...Object.keys(buildingTerrains).filter(s => buildingTerrains[s].length === 1).map(s => `!${s}`)],
         `${path}.layout`,
+        true,
       ),
       anchors = cells.filter((c) => c.symbol === "B");
     if (anchors.length !== 1)
-      fail(path, "le motif doit contenir exactement une entrée B.");
+      fail(path, "le motif doit contenir exactement une case bâtiment B.");
     const origin = anchors[0];
     b.cells = cells.map((c) => ({
       x: c.x - origin.x,
       y: c.y - origin.y,
-      ...(c.symbol === "B"
-        ? { terrain: b.terrain, role: "building" }
-        : b.legend[c.symbol]),
+      symbol: c.symbol,
+      terrain: c.symbol === 'B' ? b.terrain
+        : c.symbol === 'c' ? terrainIds
+        : c.symbol.startsWith('!') ? terrainIds.filter(id => id !== buildingTerrains[c.symbol.slice(1)][0])
+        : buildingTerrains[c.symbol],
+      ...(c.symbol.startsWith('!') ? {excludedTerrain:buildingTerrains[c.symbol.slice(1)][0]} : {}),
     }));
     if (b.produces !== undefined) {
       if (!Object.hasOwn(resources, b.produces))
         fail(path, `ressource produite inconnue : ${b.produces}.`);
       integer(b.production, `${path}.production`, 1);
+      if (b.productionFamily !== undefined &&
+          (!buildings[b.productionFamily]?.produces || buildings[b.productionFamily].produces !== b.produces))
+        fail(path, "productionFamily doit viser un producteur de la même ressource.");
     } else if (b.production !== undefined)
       fail(path, "production exige une ressource produces.");
     if (b.trains !== undefined) {
@@ -372,27 +376,11 @@ export function compileConfiguration(
         path,
         "transformTo exige un terrain connu et une action d’une case, sans production, logement ni bonus.",
       );
-    if (b.adjacency !== undefined) {
-      if (!Array.isArray(b.adjacency))
-        fail(path, "adjacency doit être une liste.");
-      for (const rule of b.adjacency) {
-        object(rule, path);
-        range(rule.range, path);
-        if (typeof rule.owned !== "boolean")
-          fail(path, "owned doit être un booléen.");
-        if (Boolean(rule.building) === Boolean(rule.role))
-          fail(path, "une condition doit viser soit building, soit role.");
-        if (rule.building && !Object.hasOwn(buildings, rule.building))
-          fail(path, `bâtiment voisin inconnu : ${rule.building}.`);
-        if (rule.role) identifier(rule.role, path);
-        if (rule.terrain !== undefined && !terrainIds.includes(rule.terrain)) fail(path, "terrain voisin inconnu.");
-      }
-    }
     if (b.boost) {
       object(b.boost, path);
       if (!buildings[b.boost.target]?.produces)
         fail(path, "boost.target doit viser un bâtiment de production.");
-      integer(b.boost.multiplier, `${path}.boost.multiplier`, 2);
+      integer(b.boost.bonus, `${path}.boost.bonus`, 1);
       range(b.boost.range, path);
       if (typeof b.boost.owned !== "boolean")
         fail(path, "boost.owned doit être un booléen.");
@@ -400,33 +388,33 @@ export function compileConfiguration(
   }
   const buildingPool = weighted(
     Object.fromEntries(Object.entries(buildings).filter(([, b]) => b.constructible !== false)),
-    "buildings.json",
+    "buildings",
     buildingConfig.deckSize,
   );
-  if (!buildingPool.length) fail("buildings.json", "la pioche doit contenir un bâtiment constructible.");
+  if (!buildingPool.length) fail("buildings", "la pioche doit contenir un bâtiment constructible.");
   if (new Set(buildingPool.filter(id => buildings[id].tier === gameConfig.markets.initialMaxTier)
     .map(id => buildings[id].family || id)).size < gameConfig.markets.buildingSize)
-    fail("buildings.json", "pas assez de familles différentes du niveau initial.");
+    fail("buildings", "pas assez de familles différentes du niveau initial.");
   if (tileConfig.deckSize < gameConfig.markets.terrainSize)
     fail("game-rules.json.markets.terrainSize", "le marché dépasse la pioche.");
   for (const b of Object.values(buildings)) {
     if (b.family !== undefined && (!buildings[b.family] || buildings[b.family].family))
-      fail(`buildings.json.${b.id}.family`, "référencez un bâtiment de base connu.");
+      fail(`buildings.${b.id}.family`, "référencez un bâtiment de base connu.");
   }
   if (buildingConfig.maxFamilyCopies !== undefined) {
-    integer(buildingConfig.maxFamilyCopies, "buildings.json.maxFamilyCopies", 1);
+    integer(buildingConfig.maxFamilyCopies, "buildings/index.json.maxFamilyCopies", 1);
     const counts = {};
     for (let i = 0; i < buildingConfig.deckSize; i++) {
       const id = buildingPool[i % buildingPool.length];
       const family = buildings[id].family || id;
       counts[family] = (counts[family] || 0) + 1;
       if (counts[family] > buildingConfig.maxFamilyCopies)
-        fail(`buildings.json.${family}`, "la famille dépasse maxFamilyCopies, variantes comprises.");
+        fail(`buildings.${family}`, "la famille dépasse maxFamilyCopies, variantes comprises.");
     }
   }
   if (!buildings[buildingConfig.startingBuilding]?.garrison)
     fail(
-      "buildings.json.startingBuilding",
+      "buildings/index.json.startingBuilding",
       "choisissez un bâtiment doté d’une garnison.",
     );
   const start = buildings[buildingConfig.startingBuilding];
@@ -435,23 +423,23 @@ export function compileConfiguration(
     !start.traversable
   )
     fail(
-      "buildings.json.startingBuilding",
-      "le terrain d’entrée doit être praticable par le roi.",
+      "buildings/index.json.startingBuilding",
+      "le terrain du bâtiment de départ doit être praticable par un ouvrier.",
     );
-  object(missionConfig, "missions.json");
-  integer(missionConfig.marketSize, "missions.json.marketSize", 1);
-  integer(missionConfig.initialDifficulty, "missions.json.initialDifficulty", 1);
-  integer(missionConfig.maxDifficulty, "missions.json.maxDifficulty", missionConfig.initialDifficulty);
-  integer(missionConfig.requiredContribution, "missions.json.requiredContribution");
+  object(missionConfig, "missions");
+  integer(missionConfig.marketSize, "missions/index.json.marketSize", 1);
+  integer(missionConfig.initialDifficulty, "missions/index.json.initialDifficulty", 1);
+  integer(missionConfig.maxDifficulty, "missions/index.json.maxDifficulty", missionConfig.initialDifficulty);
+  integer(missionConfig.requiredContribution, "missions/index.json.requiredContribution");
   const missions = index(
     structuredClone(missionConfig.missions),
-    "missions.json.missions",
+    "missions/*.json",
   );
   if (Object.values(missions).filter(m => m.difficulty === missionConfig.initialDifficulty).length < missionConfig.marketSize)
-    fail("missions.json.missions", "pas assez de missions du niveau initial.");
+    fail("missions/*.json", "pas assez de missions du niveau initial.");
   for (const m of Object.values(missions)) {
-    const path = `missions.json.${m.id}`;
-    if (!["revealed", "built", "recruited", "resources"].includes(m.metric))
+    const path = `missions.${m.id}`;
+    if (!["revealed", "built", "built-distinct", "produced", "multipliers", "military", "conquests", "landscaping"].includes(m.metric))
       fail(path, "objectif inconnu.");
     identifier(m.family, `${path}.family`);
     integer(m.difficulty, `${path}.difficulty`, 1);
@@ -459,13 +447,17 @@ export function compileConfiguration(
       fail(path, "la difficulté dépasse maxDifficulty.");
     integer(m.target, `${path}.target`, 1);
     object(m.reward, `${path}.reward`);
-    integer(m.reward.gold, `${path}.reward.gold`, 1);
-    if (Object.keys(m.reward).some((k) => k !== "gold"))
-      fail(path, "seule une récompense en or est prise en charge.");
+    if (!Object.keys(m.reward).length) fail(path, "récompense vide.");
+    for (const [type, amount] of Object.entries(m.reward)) {
+      if (!["gold", "material", "food", "soldiers", "score"].includes(type))
+        fail(path, "récompense inconnue.");
+      integer(amount, `${path}.reward.${type}`, 1);
+    }
     for (const [field, metric, definitions] of [
       ["terrain", "revealed", terrainDefinitions],
       ["building", "built", buildings],
-      ["resource", "resources", resources],
+      ["resource", "produced", resources],
+      ["producerResource", "built", resources],
     ])
       if (
         m[field] !== undefined &&
@@ -485,27 +477,27 @@ export function compileConfiguration(
       variants.some((m, i) => m.difficulty !== i + 1)
     )
       fail(
-        `missions.json.${family}`,
+        `missions.${family}`,
         "chaque objectif doit avoir une version par niveau jusqu’à maxDifficulty.",
       );
     const objective = (m) =>
-      JSON.stringify([m.metric, m.terrain, m.building, m.resource]);
+      JSON.stringify([m.metric, m.terrain, m.building, m.resource, m.producerResource]);
     if (variants.some((m) => objective(m) !== objective(variants[0])))
       fail(
-        `missions.json.${family}`,
+        `missions.${family}`,
         "les niveaux doivent concerner le même objectif.",
       );
     if (
       variants.some((m, i) => i > 0 && m.target <= variants[i - 1].target)
     )
       fail(
-        `missions.json.${family}`,
+        `missions.${family}`,
         "les seuils doivent augmenter avec la difficulté.",
       );
   }
   if ([...families.values()].length < missionConfig.marketSize)
     fail(
-      "missions.json.missions",
+      "missions/*.json",
       "pas assez d’objectifs distincts pour le marché.",
     );
   return {

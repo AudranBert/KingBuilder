@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <defs>
+    <clipPath id="mountain-band"><path d="M0 0h65L0 65Z"/></clipPath>
+    <clipPath id="forest-band"><path d="M65 0h15v15L15 80H0V65Z"/></clipPath>
+    <clipPath id="river-band"><path d="M80 15v65H15Z"/></clipPath>
+  </defs>
+  <g clip-path="url(#mountain-band)">
+    <path d="M0 0h80v80H0Z" fill="#a6ada1"/>
+    <path d="M-5 47 19 5l24 42Z" fill="#858d86"/>
+    <path d="m19 5-9 16 9-4 7 6 4-5Z" fill="#e8e4d4"/>
+    <path d="m18 48 24-49 27 49Z" fill="#687b78"/>
+    <path d="m42-1-10 20 10-5 7 7 4-8Z" fill="#ede9d6"/>
+  </g>
+  <g clip-path="url(#forest-band)">
+    <path d="M0 0h80v80H0Z" fill="#9db77e"/>
+    <g fill="#795b3d"><path d="M16 55h4v16h-4ZM38 33h4v16h-4ZM60 11h4v16h-4Z"/></g>
+    <g fill="#315c41">
+      <path d="M18 44c-9-1-13 6-10 12-6 7 0 14 10 12 10 2 16-6 10-12 3-6-1-13-10-12Z"/>
+      <path d="M40 22c-9-1-13 6-10 12-6 7 0 14 10 12 10 2 16-6 10-12 3-6-1-13-10-12Z"/>
+      <path d="M62 0c-9-1-13 6-10 12-6 7 0 14 10 12 10 2 16-6 10-12 3-6-1-13-10-12Z"/>
+    </g>
+    <path d="M16 47c-6 0-8 5-5 9-3 4-2 7 3 8 0-6 7-7 5-11 2-3 0-6-3-6ZM38 25c-6 0-8 5-5 9-3 4-2 7 3 8 0-6 7-7 5-11 2-3 0-6-3-6ZM60 3c-6 0-8 5-5 9-3 4-2 7 3 8 0-6 7-7 5-11 2-3 0-6-3-6Z" fill="#739650"/>
+  </g>
+  <g clip-path="url(#river-band)">
+    <path d="M0 0h80v80H0Z" fill="#8abbbd"/>
+    <path d="M0 42q15-9 32 0t32 0t32 0M0 59q15-9 32 0t32 0t32 0M0 76q15-9 32 0t32 0t32 0" fill="none" stroke="#cce4d8" stroke-width="3"/>
+    <path d="M0 49q15-9 32 0t32 0t32 0M0 66q15-9 32 0t32 0t32 0" fill="none" stroke="#659baf" stroke-width="1.5"/>
+  </g>
+  <path d="M0 65 65 0M15 80 80 15" fill="none" stroke="#eee0b5" stroke-width="2"/>
+</svg>

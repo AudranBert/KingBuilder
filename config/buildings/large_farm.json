@@ -1,0 +1,50 @@
+[
+  {
+    "id": "large_farm",
+    "name": "Large farm",
+    "icon": "assets/textures/buildings/farm.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five plains in a cross; building space in the middle.",
+    "weight": 1,
+    "layout": [
+      ".p.",
+      "pBp",
+      ".p."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "farm",
+    "createsFields": true
+  },
+  {
+    "id": "large_farm_line",
+    "name": "Large farm",
+    "icon": "assets/textures/buildings/farm.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "plain",
+    "produces": "food",
+    "description": "+3 wheat per turn with a worker.",
+    "pattern": "Five plains in an L; building space at the corner.",
+    "weight": 1,
+    "layout": [
+      "Bppp",
+      "p..."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "farm",
+    "family": "large_farm",
+    "createsFields": true
+  }
+]

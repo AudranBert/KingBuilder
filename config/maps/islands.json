@@ -1,13 +1,7 @@
 {
   "id": "islands",
-  "name": {
-    "fr": "Îlot",
-    "en": "Islet"
-  },
-  "description": {
-    "fr": "3 drapeaux dont 1 sur l’îlot central.",
-    "en": "3 flags, including 1 on the central islet."
-  },
+  "name": "Islet",
+  "description": "3 flags, including 1 on the central islet.",
   "legend": {
     "P": "plain",
     "F": "forest",

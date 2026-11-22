@@ -1,0 +1,20 @@
+[
+  {
+    "id": "bridge",
+    "name": "Bridge",
+    "icon": "assets/textures/buildings/bridge.svg",
+    "cost": {
+      "material": 2
+    },
+    "terrain": "river",
+    "description": "Passage.",
+    "pattern": "One river space.",
+    "weight": 5,
+    "layout": [
+      "B"
+    ],
+    "traversable": true,
+    "tier": 0,
+    "points": 0
+  }
+]

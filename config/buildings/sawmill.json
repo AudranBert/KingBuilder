@@ -1,0 +1,65 @@
+[
+  {
+    "id": "sawmill",
+    "name": "Logging camp",
+    "icon": "assets/textures/buildings/sawmill.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three forests in a line; building space at one end.",
+    "weight": 2,
+    "layout": [
+      "Bff"
+    ],
+    "production": 2,
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "sawmill_cross",
+    "name": "Logging camp",
+    "icon": "assets/textures/buildings/sawmill.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three forests in a line; building space in the middle.",
+    "weight": 2,
+    "layout": [
+      "fBf"
+    ],
+    "production": 2,
+    "family": "sawmill",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  },
+  {
+    "id": "sawmill_l",
+    "name": "Logging camp",
+    "icon": "assets/textures/buildings/sawmill.svg",
+    "cost": {
+      "material": 1
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+2 wood per turn with a worker.",
+    "pattern": "Three forests in an L; building space at one end.",
+    "weight": 1,
+    "layout": [
+      "Bf",
+      ".f"
+    ],
+    "production": 2,
+    "family": "sawmill",
+    "tier": 1,
+    "points": 0,
+    "traversable": true
+  }
+]

@@ -1,0 +1,38 @@
+[
+  {
+    "id": "built-distinct-2",
+    "name": "Build 2 different buildings",
+    "metric": "built-distinct",
+    "target": 2,
+    "reward": {
+      "food": 1,
+      "material": 1
+    },
+    "family": "built-distinct",
+    "difficulty": 1
+  },
+  {
+    "id": "built-distinct-4",
+    "name": "Build 4 different buildings",
+    "metric": "built-distinct",
+    "target": 4,
+    "reward": {
+      "food": 2,
+      "material": 2
+    },
+    "family": "built-distinct",
+    "difficulty": 2
+  },
+  {
+    "id": "built-distinct-6",
+    "name": "Build 6 different buildings",
+    "metric": "built-distinct",
+    "target": 6,
+    "reward": {
+      "food": 3,
+      "material": 3
+    },
+    "family": "built-distinct",
+    "difficulty": 3
+  }
+]

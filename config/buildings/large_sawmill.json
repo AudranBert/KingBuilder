@@ -1,0 +1,49 @@
+[
+  {
+    "id": "large_sawmill",
+    "name": "Large logging camp",
+    "icon": "assets/textures/buildings/sawmill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+3 wood per turn with a worker.",
+    "pattern": "Five forests in an extended block; building space at a corner.",
+    "weight": 1,
+    "layout": [
+      "Bf",
+      "ff",
+      "f."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "sawmill"
+  },
+  {
+    "id": "large_sawmill_t",
+    "name": "Large logging camp",
+    "icon": "assets/textures/buildings/sawmill.svg",
+    "cost": {
+      "material": 3
+    },
+    "terrain": "forest",
+    "produces": "material",
+    "description": "+3 wood per turn with a worker.",
+    "pattern": "Five forests in a T.",
+    "weight": 1,
+    "layout": [
+      "fBf",
+      ".f.",
+      ".f."
+    ],
+    "production": 3,
+    "tier": 2,
+    "points": 1,
+    "traversable": true,
+    "productionFamily": "sawmill",
+    "family": "large_sawmill"
+  }
+]

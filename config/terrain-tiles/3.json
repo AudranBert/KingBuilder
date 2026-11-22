@@ -1,0 +1,136 @@
+{
+  "shapes": [
+    {
+      "id": "line3",
+      "name": "Line of 3",
+      "weight": 1,
+      "pattern": [
+        "xxx"
+      ]
+    },
+    {
+      "id": "corner3",
+      "name": "L of 3",
+      "weight": 1,
+      "pattern": [
+        "xx",
+        "x."
+      ]
+    }
+  ],
+  "tiles": [
+    {
+      "id": "line3-1",
+      "name": "Rocky ridge",
+      "shapeId": "line3",
+      "pattern": [
+        "MMM"
+      ],
+      "intent": "Three mountains in a line to connect to a plain"
+    },
+    {
+      "id": "corner3-1",
+      "name": "Bent woodland",
+      "shapeId": "corner3",
+      "pattern": [
+        "FF",
+        "F."
+      ],
+      "intent": "Continuous forest to harvest"
+    },
+    {
+      "id": "line3-2",
+      "name": "Edge woodland",
+      "shapeId": "line3",
+      "pattern": [
+        "PFF"
+      ],
+      "intent": "Wood production"
+    },
+    {
+      "id": "corner3-2",
+      "name": "Grove",
+      "shapeId": "corner3",
+      "pattern": [
+        "FF",
+        "P."
+      ],
+      "intent": "Woodland and access"
+    },
+    {
+      "id": "line3-3",
+      "name": "Foothill",
+      "shapeId": "line3",
+      "pattern": [
+        "PMF"
+      ],
+      "intent": "Access to a mountain and a forest"
+    },
+    {
+      "id": "corner3-3",
+      "name": "Meander",
+      "shapeId": "corner3",
+      "pattern": [
+        "RR",
+        "P."
+      ],
+      "intent": "Prepare a bridge or harbor"
+    },
+    {
+      "id": "cross5-3",
+      "name": "Narrow pass",
+      "shapeId": "line3",
+      "pattern": [
+        "PPM"
+      ],
+      "intent": "Short mountain access"
+    },
+    {
+      "id": "u5-3",
+      "name": "Small meander",
+      "shapeId": "corner3",
+      "pattern": [
+        "RR",
+        "R."
+      ],
+      "intent": "Compact river bend"
+    },
+    {
+      "id": "offset5-3",
+      "name": "Water channel",
+      "shapeId": "line3",
+      "pattern": [
+        "RRR"
+      ],
+      "intent": "Three water spaces in a line"
+    },
+    {
+      "id": "line3-4",
+      "name": "River branch",
+      "shapeId": "line3",
+      "pattern": [
+        "PRR"
+      ],
+      "intent": "Access and obstacle"
+    },
+    {
+      "id": "corner3-4",
+      "name": "Rocky spur",
+      "shapeId": "corner3",
+      "pattern": [
+        "MP",
+        "P."
+      ],
+      "intent": "Stone and access"
+    },
+    {
+      "id": "line3-5",
+      "name": "Wooded bank",
+      "shapeId": "line3",
+      "pattern": [
+        "FRF"
+      ],
+      "intent": "Choose a bank to harvest"
+    }
+  ]
+}
