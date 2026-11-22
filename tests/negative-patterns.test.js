@@ -1,10 +1,11 @@
+import { buildError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {compileConfiguration} from '../src/config-schema.js';
 import {BUILDING_CONFIGURATION,TERRAIN_TILE_CONFIGURATION,MISSION_CONFIGURATION} from '../src/configuration.js';
-import { BUILDINGS,patternAt,buildError,build,selectUnit } from "../src/engine.js";
+import { BUILDINGS, patternAt, build, selectUnit } from "../src/engine.js";
 
 const originals=await Promise.all(['terrain-tiles','buildings','resources','units','game-rules','terrains','missions']
   .map(async name=>name==='missions'?MISSION_CONFIGURATION:name==='terrain-tiles'?TERRAIN_TILE_CONFIGURATION:name==='buildings'?BUILDING_CONFIGURATION:JSON.parse(await readFile(new URL(`../config/${name}.json`,import.meta.url),'utf8'))));

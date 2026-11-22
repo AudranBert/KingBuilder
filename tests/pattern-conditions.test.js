@@ -1,8 +1,8 @@
+import { buildError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import { build, buildError, buildingAt, terrainAt, bridgeAt, selectUnit,
-  move, produce, productionPreview, endTurn } from "../src/engine.js";
+import { build, buildingAt, terrainAt, bridgeAt, selectUnit, move, produce, productionPreview, endTurn } from "../src/engine.js";
 import {catalogueView} from '../src/ui/views.js';
 
 function setup(){

@@ -1,4 +1,5 @@
-import { t, definitionText, translateMessage, kingdomName } from "../i18n.js";
+import { t, definitionText, kingdomName } from "../i18n.js";
+import { ruleIssueText } from "../rule-errors.js";
 import { iconHTML } from "./html.js";
 import { piece, playerColor } from "./pieces.js";
 import {
@@ -145,7 +146,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
       cell.classList.remove("preview-valid", "preview-invalid");
   }
   return {
-    render(g, ui) {
+    render(g, ui, guidance = placementGuidance(g, ui.drag || ui.placement)) {
       if (size !== (g.boardSize ?? RULES.size)) createCells(g.boardSize ?? RULES.size);
       element.setAttribute("aria-label", t("board.boardBySpaces", [size, size]));
       const exhausted = pawn => g.finished || pawn.ended || (pawn.type === "soldier" ? pawn.acted || pawn.moves < 1 : pawn.acted && pawn.moves < 1);
@@ -160,8 +161,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
       const unitSelected = hasSelectedUnit(g, ui),
         currentKey = unitSelected ? key(current.x, current.y) : null,
         paths = unitSelected ? movementPaths(g) : new Map(),
-        targets = unitSelected ? attackPaths(g) : new Map(),
-        guidance = placementGuidance(g, ui.drag || ui.placement);
+        targets = unitSelected ? attackPaths(g, paths) : new Map();
       if (!cells.has(focusPosition)) focusPosition = key(current.x, current.y);
       for (const [position, button] of cells) {
         const x = +button.dataset.x,
@@ -190,7 +190,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
             `${definitionText("units", UNIT_DEFINITIONS[pawn.type]) + " " + (pawn.id + 1)} · ${kingdomName(g.players[pawn.owner].name)}${exhausted(pawn) ? t("board.actionsComplete") : ""}`,
           );
         if (currentKey === position) parts.push(t("board.selectedUnit"));
-        if (guidance.has(position)) parts.push(translateMessage(guidance.get(position).error) || t("board.validPlacement"));
+        if (guidance.has(position)) parts.push(ruleIssueText(guidance.get(position).error, true) || t("board.validPlacement"));
         button.setAttribute("aria-label", parts.join(", "));
         button.title = parts.join(" · ");
         let html = b

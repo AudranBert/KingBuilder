@@ -1,7 +1,8 @@
+import { buyTerrainError, buildError } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createSandboxGame } from "./helpers.js";
-import { BUILDINGS, buyTerrain, buyTerrainError, build, buildError, key, productionAmount, score, totalScore } from "../src/engine.js";
+import { BUILDINGS, buyTerrain, build, key, productionAmount, score, totalScore } from "../src/engine.js";
 
 
 test("une case de terrain au choix coûte 1 or et termine l’action", () => {

@@ -1,6 +1,6 @@
 import { ruleIssue } from "../src/rule-errors.js";
 import { Rooms, RoomError } from './rooms.mjs';
-import { totalScore } from '../src/engine.js';
+import { gameResults } from '../src/engine.js';
 
 // Each operation loads a room into the existing rules service. Row locks make
 // validation + mutation + persistence atomic, including across server instances.
@@ -44,11 +44,7 @@ export class PostgresRooms {
           ON CONFLICT (code) DO UPDATE SET payload = EXCLUDED.payload, expires_at = EXCLUDED.expires_at`,
         [room.code, JSON.stringify(payload), new Date(room.updatedAt + rooms.ttlMs)]);
         if (room.game.finished) {
-          const scores = room.game.players.map((_, i) => totalScore(room.game, i));
-          const leaders = scores.map((n, i) => !room.game.players[i].eliminated ? i : -1).filter(i => i >= 0);
-          const best = Math.max(...leaders.map(i => scores[i]));
-          const tied = leaders.filter(i => scores[i] === best);
-          const winner = room.game.winner ?? (tied.length === 1 ? tied[0] : null);
+          const { scores, winner } = gameResults(room.game);
           await client.query('INSERT INTO kingbuilder_history (code, summary) VALUES ($1, $2) ON CONFLICT (code) DO NOTHING',
             [room.code, JSON.stringify({ names: room.game.players.map(p => p.name), scores, winner })]);
         }

@@ -1,8 +1,8 @@
+import { buildError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { BUILDINGS,  patternAt, build, buildError, selectUnit,
-  move, moveError, movementPaths, produce, productionAmount, productionPreview, endTurn } from "../src/engine.js";
+import { BUILDINGS, patternAt, build, selectUnit, move, moveError, movementPaths, produce, productionAmount, productionPreview, endTurn } from "../src/engine.js";
 
 test('les grandes fermes et camps reçoivent les bonus sans les cumuler', () => {
   const g = createGame(() => 0.5, 'solo');

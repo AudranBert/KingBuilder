@@ -1,5 +1,8 @@
 // Shared message keys; parameters use {0}, {1}, etc.
 export default {
+  "network.serverUnavailable": "Le serveur est temporairement indisponible. Réessayez dans un instant.",
+  "network.timeout": "Le serveur met trop de temps à répondre. Vérifiez votre connexion puis réessayez.",
+  "network.connectionLost": "Impossible de joindre le serveur. Vérifiez votre connexion Internet.",
 "multiplayer.local": "Multijoueur local",
 "multiplayer.sameScreen": "2 ou 4 joueurs sur le même écran",
 "multiplayer.playerCount": "Nombre de joueurs",

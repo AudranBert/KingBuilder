@@ -1,3 +1,4 @@
+import { KINGDOMS } from "./players.js";
 import { ruleIssue, ruleIssueText, RuleError } from "./rule-errors.js";
 import { message as sourceMessage } from "./i18n.js";
 import { spawnUnit } from "./units.js";
@@ -178,7 +179,7 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
     throw new RuleError(ruleIssue("messages.gameModeUnavailable"));
   const options = gameSettings(settings ?? {}), size = options.boardSize;
   const count = mode === "solo" ? 1 : options.playerCount;
-  const starts = count === 4 ? [{x:0,y:.5},{x:.5,y:0},{x:1,y:.5},{x:.5,y:1}] : RULES.players.map(p => p.start);
+  const starts = count === 4 ? KINGDOMS.map(p => p.start) : RULES.players.map(p => p.start);
   const seats = count === 1 ? starts.slice(0,1) : shuffle([...starts], rng);
   const firstPlayer = count === 1 ? 0 : Math.floor(rng() * count);
   const clockwise = seats.map((_, i) => i).sort((a, b) => starts.indexOf(seats[a]) - starts.indexOf(seats[b]));
@@ -211,12 +212,7 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
     initialFamilies.add(BUILDINGS[buildingDeck[index]].family || buildingDeck[index]);
     buildingMarket.push(...buildingDeck.splice(index, 1));
   }
-  const definitions = options.playerCount === 4 ? [
-    { name: "Kingdom of Amber", start: {x:0,y:.5} },
-    { name: "Kingdom of Jade", start: {x:.5,y:0} },
-    { name: "Kingdom of Sapphire", start: {x:1,y:.5} },
-    { name: "Kingdom of Ruby", start: {x:.5,y:1} },
-  ] : RULES.players;
+  const definitions = options.playerCount === 4 ? KINGDOMS : RULES.players;
   const players = definitions
     .slice(0, mode === "solo" ? 1 : definitions.length)
     .map((p, i) => ({
@@ -238,7 +234,6 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
       revealed: 0,
       nextUnitId: RULES.startingWorkers,
       home: { x: p.x, y: p.y },
-      kingSkip: 0,
       progress: emptyProgress(),
     }));
   const board = {};
@@ -316,8 +311,6 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
     moves: UNIT_DEFINITIONS.worker.moves,
     acted: false,
     selectedUnitId: null,
-    recruited: false,
-    workerRecruitsUsed: 0,
     finished: false,
     log: [
       mode === "solo"
@@ -365,12 +358,6 @@ export function openingIssue(g, index, x, y, rotation = 0) {
   return tilePlacement(g, g.opening.tiles[index], x, y, rotation)
     ? null : ruleIssue("messages.thePatternMustFitOnEmptySpaces");
 }
-// Text adapter for existing views and integrations; rules use structured issues.
-export function openingError(...args) {
-  const issue = openingIssue(...args);
-  return issue ? ruleIssueText(issue) : null;
-}
-
 export function placeOpeningTile(g, index, x, y, rotation = 0) {
   const error = openingIssue(g, index, x, y, rotation);
   if (error) throw new RuleError(error);
@@ -398,6 +385,14 @@ export function score(g, i) {
 }
 export const totalScore = (g, i) =>
   Object.values(score(g, i)).reduce((a, b) => a + b, 0);
+// Shared by the results screen and persisted multiplayer history.
+export function gameResults(g) {
+  const scores = g.players.map((_, i) => totalScore(g, i));
+  const eligible = g.players.flatMap((p, i) => p.eliminated ? [] : [i]);
+  const best = Math.max(...eligible.map(i => scores[i]));
+  const leaders = eligible.filter(i => scores[i] === best);
+  return { scores, leaders, winner: g.winner ?? (leaders.length === 1 ? leaders[0] : null) };
+}
 export function walkable(cell) {
   return (
     cell &&
@@ -419,9 +414,10 @@ export function actor(g) {
     ? p.units.find(u => u.id === g.selectedUnitId)
     : p.units.find(u => u.type === "worker");
   if (!unit) throw new RuleError(ruleIssue("messages.unknownUnit"));
+  const soldiers = unit.type === "soldier" ? selectedSoldiers(g) : [];
   return {
     ...unit,
-    ...(unit.type === "soldier" ? { count: selectedSoldiers(g).length, moves: Math.min(...selectedSoldiers(g).map(u => u.moves)), acted: selectedSoldiers(g).some(u => u.acted || u.ended) } : {}),
+    ...(unit.type === "soldier" ? { count: soldiers.length, moves: Math.min(...soldiers.map(u => u.moves)), acted: soldiers.some(u => u.acted || u.ended) } : {}),
     name: UNIT_DEFINITIONS[unit.type].name + " " + (unit.id + 1),
     icon: UNIT_DEFINITIONS[unit.type].icon,
   };
@@ -505,12 +501,6 @@ export function attackIssue(g, x, y) {
   if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return ruleIssue("messages.thereIsNoEnemyTargetOrNeutral");
   return null;
 }
-// Text adapter for existing views and integrations; rules use structured issues.
-export function attackError(...args) {
-  const issue = attackIssue(...args);
-  return issue ? ruleIssueText(issue) : null;
-}
-
 export function destroyBuilding(g, x, y) {
   // Only the actual building cell is a military target, never an auxiliary tile.
   const position = key(x,y), cell = g.board[position], b = cell?.building;
@@ -583,10 +573,10 @@ function captureFlag(g, x, y) {
 }
 // Targets accessible within the unit's remaining movement steps. The final occupation
 // is an action, not an additional movement point, and cannot be chained.
-export function attackPaths(g) {
+export function attackPaths(g, movement = null) {
   const paths = new Map(), unit = actor(g);
   if (g.finished || g.opening || unit.type !== "soldier" || unit.acted || unit.ended) return paths;
-  const origins = [[key(unit.x,unit.y),[]],...movementPaths(g)];
+  const origins = [[key(unit.x,unit.y),[]],...(movement ?? movementPaths(g))];
   for (const [position,path] of origins) {
     const [x,y] = parseKey(position);
     for (const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) {
@@ -694,12 +684,6 @@ export function exploreIssue(g, index, x, y, rotation = 0, anchor = 0) {
     return ruleIssue("messages.oneSpaceOfTheTileMustBe", [RULES.placement.explorationContactDistance]);
   return null;
 }
-// Text adapter for existing views and integrations; rules use structured issues.
-export function exploreError(...args) {
-  const issue = exploreIssue(...args);
-  return issue ? ruleIssueText(issue) : null;
-}
-
 export function explore(g, index, x, y, rotation = 0, anchor = 0) {
   const error = exploreIssue(g, index, x, y, rotation, anchor);
   if (error) throw new RuleError(error);
@@ -734,12 +718,6 @@ export function buyTerrainIssue(g, terrain, x, y) {
     return ruleIssue("messages.requiresGold", [(kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost)]);
   return null;
 }
-// Text adapter for existing views and integrations; rules use structured issues.
-export function buyTerrainError(...args) {
-  const issue = buyTerrainIssue(...args);
-  return issue ? ruleIssueText(issue) : null;
-}
-
 export function buyTerrain(g, terrain, x, y) {
   const error = buyTerrainIssue(g, terrain, x, y);
   if (error) throw new RuleError(error);
@@ -816,12 +794,6 @@ export function buildIssue(
   }
   return null;
 }
-// Text adapter for existing views and integrations; rules use structured issues.
-export function buildError(...args) {
-  const issue = buildIssue(...args);
-  return issue ? ruleIssueText(issue) : null;
-}
-
 export function build(
   g,
   index,
@@ -921,7 +893,6 @@ function addWorker(g, x, y) {
   const p = g.players[g.active];
   const unit = spawnUnit(g, x, y, "worker");
   p.workers++;
-  p.progress.recruited++;
   return unit;
 }
 export function productionPreview(g, unit = actor(g), owner = g.active) {
@@ -1019,14 +990,7 @@ export function endTurn(g) {
   g.armySelection = null;
   g.moves = UNIT_DEFINITIONS.worker.moves + kingdomBonus(g,g.active,"movementBonus");
   g.acted = false;
-  g.recruited = false;
-  g.workerRecruitsUsed = 0;
   g.rerollsUsed = 0;
-  const next = g.players[g.active];
-  if (next.kingSkip > 0) {
-    next.kingSkip--;
-    g.moves = 0; g.acted = true;
-  }
   g.players[g.active].units.forEach((u) => {
     if (u.skipTurns > 0) {
       u.skipTurns--; u.moves = 0; u.acted = true; u.ended = true;
@@ -1113,8 +1077,9 @@ export function rerollMarket(g, kind) {
 export function moveUnitTo(g, x, y) {
   const unit = actor(g);
   if (unit.x === x && unit.y === y) return;
-  const combat = attackPaths(g).get(key(x,y));
-  const path = combat || movementPaths(g).get(key(x, y));
+  const movement = movementPaths(g);
+  const combat = attackPaths(g, movement).get(key(x,y));
+  const path = combat || movement.get(key(x, y));
   if (!path) throw new RuleError(ruleIssue("messages.thisSpaceIsUnreachableForThisUnit"));
   for (const step of path) move(g, step.x, step.y);
   if (combat) attack(g,x,y);

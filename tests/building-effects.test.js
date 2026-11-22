@@ -1,7 +1,8 @@
+import { buildError, buyTerrainError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import { productionAmount, score, trainingCapacity, buildError, build, endTurn, moveError, buyTerrainError, BUILDINGS } from "../src/engine.js";
+import { productionAmount, score, trainingCapacity, build, endTurn, moveError, BUILDINGS } from "../src/engine.js";
 import {buildingPayment, tradePrice} from '../src/economy.js';
 function setup(){const g=createGame(()=>0.5,'solo');g.board={};g.players[0].resources={food:20,material:20,gold:20};g.players[0].units.forEach(u=>Object.assign(u,{x:4,y:4,acted:false,ended:false}));return g;}
 function put(g,x,y,type){g.board[`${x},${y}`]={terrain:'plain',building:{type,owner:0}};}

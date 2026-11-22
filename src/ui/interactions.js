@@ -64,12 +64,13 @@ export function dragPreview(g, drag, pos) {
   if (!drag || !pos) return null;
   const { x, y } = placementOrigin(g, drag, pos);
   if (drag.kind === "unit") {
-    const combat = attackPaths(g).get(key(x,y));
+    const movement = movementPaths(g);
+    const combat = attackPaths(g, movement).get(key(x,y));
     if (combat) {
       const preview = combatPreview(g,x,y);
       return { cells: [...combat,pos], error: null, combat: preview };
     }
-    const path = movementPaths(g).get(key(x, y));
+    const path = movement.get(key(x, y));
     return {
       cells: path || [pos],
       error: path ? null : ruleIssue("messages.thisSpaceIsUnreachable"),

@@ -1,7 +1,9 @@
+import { gameResults } from "../src/engine.js";
+import { openingError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { startOpening, openingError, placeOpeningTile, endTurn, movementPaths, attackPaths, attack, pawns } from "../src/engine.js";
+import { startOpening, placeOpeningTile, endTurn, movementPaths, attackPaths, attack, pawns } from "../src/engine.js";
 import { validateGame } from '../src/validation.js';
 import { Rooms as RandomRooms } from '../backend/rooms.mjs';
 class Rooms extends RandomRooms { constructor(options) { super({ ...options, gameFactory: createGame }); } }
@@ -88,4 +90,19 @@ test('online: resignation during opening removes future picks without blocking s
   }
   assert.equal(room.game.active,0); assert.equal(room.game.round,1);
   assert.deepEqual(room.game.players.map(p=>p.name),['Amber','Jade','Sapphire','Ruby']);
+});
+
+test('shared results handle ties, eliminated leaders and victory overrides', () => {
+  const g = createGame(() => .42, 'local', { playerCount: 4 });
+  g.finished = true;
+  g.board = {};
+  for (const p of g.players) { p.resources.gold = 0; p.missionScore = 3; }
+  assert.deepEqual(gameResults(g), { scores: [3, 3, 3, 3], leaders: [0, 1, 2, 3], winner: null });
+  g.players[0].missionScore = 10;
+  g.players[0].eliminated = true;
+  g.players[1].missionScore = 5;
+  assert.deepEqual(gameResults(g), { scores: [10, 5, 3, 3], leaders: [1], winner: 1 });
+  g.winner = 2;
+  g.victory = 'conquest';
+  assert.equal(gameResults(g).winner, 2);
 });

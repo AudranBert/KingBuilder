@@ -1,7 +1,8 @@
+import { openingError } from "./helpers.js";
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createGame, playerOrder, nextPlayer, endTurn, startOpening, openingError, placeOpeningTile, eliminatePlayer } from '../src/engine.js';
+import { createGame, playerOrder, nextPlayer, endTurn, startOpening, placeOpeningTile, eliminatePlayer } from '../src/engine.js';
 import { validateGame } from '../src/validation.js';
 import { Rooms } from '../backend/rooms.mjs';
 import { piece } from '../src/ui/pieces.js';

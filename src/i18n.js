@@ -33,7 +33,7 @@ function formatMessage(targetLanguage, key, values = []) {
 
 // Rules emit English source messages independently of the display language.
 export function message(key, values = []) {
-  return (english[key] ?? key).replace(/\{(\d+)\}/g, (placeholder, index) => index < values.length ? String(values[index] ?? "") : placeholder);
+  return formatMessage("en", key, values);
 }
 
 // Configuration owns English definition text; only translations live in fr.js.
@@ -90,10 +90,6 @@ function getTranslationIndex() {
 
 export function translateMessage(value, depth = 0) {
   return translateTo(language, value, depth);
-}
-
-export function sourceText(value) {
-  return translateTo("en", value, 0);
 }
 
 function translateTo(targetLanguage, value, depth) {

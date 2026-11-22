@@ -1,3 +1,4 @@
+import { KINGDOMS } from "../src/players.js";
 import { ruleIssue, RuleError } from "../src/rule-errors.js";
 import { randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { createGame, startOpening, rerollIssue, GAME_DEFAULTS, endTurn, eliminatePlayer, nextPlayer, firstRemainingPlayer } from '../src/engine.js';
@@ -37,7 +38,7 @@ export class Rooms {
     this.rooms.set(code, room);
     room.started = false;
     room.nicknames = game.players.map((_, i) => i === 0 ? nickname.trim() : '');
-    game.players.forEach((p, i) => { p.name = room.nicknames[i] || ['Amber', 'Jade', 'Sapphire', 'Ruby'][i]; });
+    game.players.forEach((p, i) => { p.name = room.nicknames[i] || KINGDOMS[i].nickname; });
     room.settings = structuredClone(settings ?? GAME_DEFAULTS);
     return { ...this.view(room, 0), token: room.tokens[0] };
   }
@@ -55,7 +56,7 @@ export class Rooms {
     room.nicknames ??= ['', ''];
     const player = room.tokens.findIndex(token => !token);
     room.nicknames[player] = nickname.trim();
-    room.game.players[player].name = nickname.trim() || ['Amber', 'Jade', 'Sapphire', 'Ruby'][player];
+    room.game.players[player].name = nickname.trim() || KINGDOMS[player].nickname;
     room.tokens[player] = randomBytes(32).toString('hex'); room.joined = room.tokens.every(Boolean); room.updatedAt = Date.now(); if (room.game.players.length === 4) room.revision++;
     return { ...this.view(room, player), token: room.tokens[player] };
   }
@@ -105,7 +106,7 @@ export class Rooms {
     if (!Number.isInteger(seconds) || (seconds !== 0 && (seconds < 30 || seconds > 180))) throw new RoomError(400, ruleIssue("messages.invalidTurnTimeLimit"));
     const game = this.gameFactory(() => randomInt(0x100000000) / 0x100000000, 'local', settings);
     startOpening(game);
-    game.players.forEach((p, i) => { p.name = room.nicknames?.[i] || ['Amber', 'Jade', 'Sapphire', 'Ruby'][i]; });
+    game.players.forEach((p, i) => { p.name = room.nicknames?.[i] || KINGDOMS[i].nickname; });
     room.tokens = Array.from({ length: game.players.length }, (_, i) => room.tokens[i] ?? null);
     room.nicknames = Array.from({ length: game.players.length }, (_, i) => room.nicknames?.[i] ?? "");
     room.joined = room.tokens.every(Boolean);
@@ -145,7 +146,7 @@ export class Rooms {
     this.validateNickname(request.nickname);
     room.nicknames ??= ['', ''];
     room.nicknames[player] = request.nickname.trim();
-    room.game.players[player].name = room.nicknames[player] || ['Amber', 'Jade', 'Sapphire', 'Ruby'][player];
+    room.game.players[player].name = room.nicknames[player] || KINGDOMS[player].nickname;
     room.revision++; room.updatedAt = Date.now();
     return this.view(room, player);
   }

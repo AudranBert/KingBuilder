@@ -3,7 +3,7 @@ import { missionRewardText } from "./mission-rewards.js";
 import { t, definitionText, translateMessage, kingdomName, getLanguage, setLanguage, restoreLanguage, translateDocument } from "./i18n.js";
 import { parseKey } from "./geometry.js";
 import { MAPS } from "./maps.js";
-import { OnlineClient } from './online.js';
+import { OnlineClient, remainingTurnSeconds } from './online.js';
 import { monitorServerHealth } from './server-health.js';
 import { installDrag } from "./ui/drag.js";
 import {
@@ -34,10 +34,10 @@ import {
   endTurn as localEndTurn,
   selectUnit,
   trainUnit as localTrainUnit,
-  totalScore,
+  gameResults,
   key,
 } from "./engine.js";
-import { createUIState, hasSelectedUnit } from "./ui/state.js";
+import { createUIState, hasSelectedUnit, clearSelection } from "./ui/state.js";
 import { dragFromCard, dragPreview, placementOrigin, placementGuidance, placementErrorText } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
@@ -82,6 +82,11 @@ export function startGame({ initialGame = null } = {}) {
   let inMenu = true;
   let unitCellClick = null;
   let announcedTurn = null;
+  function resetSelection({ unit = true, gameSelection = true } = {}) {
+    drag.cancel();
+    unitCellClick = null;
+    clearSelection(gameSelection ? game : null, ui, { unit });
+  }
   function announceTurn() {
     if (inMenu || game.finished || game.mode === 'solo') return;
     const turn = `${game.onlineCode || 'local'}:${game.round}:${game.active}:${game.opening?.step ?? 'play'}`;
@@ -91,7 +96,11 @@ export function startGame({ initialGame = null } = {}) {
     toast(online.session ? t("app.yourTurn") : t("four.turn", [kingdomName(game.players[game.active].name)]));
   }
   let queuedCommand = null;
+  let guidance = new Map();
+  let clockTimer;
+  let connectionError = null;
   const online = new OnlineClient(result => {
+    connectionError = null;
     const changed = result.code !== game.onlineCode || result.revision !== game.onlineRevision;
     if (changed) {
       const selected = game.selectedUnitId, army = game.armySelection;
@@ -104,6 +113,7 @@ export function startGame({ initialGame = null } = {}) {
       game.onlineRevision = result.revision;
       game.onlineCode = result.code;
       undoState = null; pendingBuild = null;
+      resetSelection({ gameSelection: false });
       Object.assign(ui, createUIState());
       if (sameTurn && selection) ui.unitSelection = selection;
     }
@@ -111,7 +121,7 @@ export function startGame({ initialGame = null } = {}) {
     if (changed && game.finished && !inMenu) showResults();
     if (!result.started) showLobby(result, changed);
     else if (inMenu) { $('#game-settings-dialog').close(); enterGame(); }
-  }, error => { $('#online-status').textContent = t("app.connectionInterruptedRetrying", [translateMessage(error.message)]); });
+  }, error => { connectionError = error; updateOnlineStatus(); });
   function showLobby(session, syncSettings = true) {
     inMenu = true;
     const countChanged = nextPlayerCount !== session.game.players.length;
@@ -160,7 +170,8 @@ export function startGame({ initialGame = null } = {}) {
     clearTimeout(toastTimer);
     $('#toast').classList.remove('visible');
     announcedTurn = null;
-    drag.cancel();
+    resetSelection();
+    clearTimeout(clockTimer);
     inMenu = true;
     $("#main-menu").hidden = false;
     $("header").hidden = true;
@@ -221,7 +232,7 @@ export function startGame({ initialGame = null } = {}) {
       return;
     }
     if (["terrain", "building", "single-terrain"].includes(choice.kind)) {
-      const options = [...placementGuidance(game, choice).values()];
+      const options = [...guidance.values()];
       if (!options.some(option => !option.error)) {
         const reasons = new Set(options.map(option => JSON.stringify(option.error)));
         $("#placement-help").innerHTML = resourceTextHTML(reasons.size === 1
@@ -298,6 +309,21 @@ export function startGame({ initialGame = null } = {}) {
       return false;
     }
   }
+  function updateOnlineStatus() {
+    const session = online.session;
+    if (!session) return;
+    const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
+    let text = connectionError
+      ? t("app.connectionInterruptedRetrying", [translateMessage(connectionError.message)])
+      : t("app.gameYouInvitation", [session.code, kingdomName(game.players[session.player].name), !session.joined ? t("app.waitingForAnOpponent") : online.busy ? t("app.sendingMove") : game.active === session.player ? t("app.yourTurn") : t("app.opponentSTurn"), invite.href]);
+    if (session.deadline && !game.finished) text += t("app.timeLeftS", [remainingTurnSeconds(session)]);
+    $('#online-status').textContent = text;
+  }
+  function tickClock() {
+    if (!online.session?.deadline || game.finished || inMenu) return;
+    updateOnlineStatus();
+    clockTimer = setTimeout(tickClock, 1000);
+  }
   function render() {
     if (ui.unitSelection && !hasSelectedUnit(game, ui)) ui.unitSelection = null;
     announceTurn();
@@ -305,14 +331,10 @@ export function startGame({ initialGame = null } = {}) {
     $("#experimental-status").hidden = game.players.length !== 4;
     $("#players").classList.toggle("four-players", game.players.length === 4);
     $('#online-status').hidden = !session;
-    if (session) {
-      const invite = new URL(globalThis.location.href); invite.hash = `join=${session.code}`;
-      $('#online-status').textContent = t("app.gameYouInvitation", [session.code, kingdomName(game.players[session.player].name), !session.joined ? t("app.waitingForAnOpponent") : online.busy ? t("app.sendingMove") : game.active === session.player ? t("app.yourTurn") : t("app.opponentSTurn"), invite.href]);
-      if (session.deadline && !game.finished) $('#online-status').textContent += t("app.timeLeftS", [Math.max(0, Math.ceil((session.deadline - session.serverNow) / 1000))]);
-      $('#menu-button').textContent = game.finished ? t("app.mainMenu") : t("app.leaveGame");
-    } else {
-      $('#menu-button').textContent = t("app.mainMenu");
-    }
+    updateOnlineStatus();
+    clearTimeout(clockTimer);
+    if (session?.deadline && !game.finished && !inMenu) clockTimer = setTimeout(tickClock, 1000);
+    $('#menu-button').textContent = session && !game.finished ? t("app.leaveGame") : t("app.mainMenu");
     const opening = game.opening;
     $(".game-layout").classList.toggle("opening", Boolean(opening));
     $("#opening-status").hidden = !opening;
@@ -339,6 +361,7 @@ export function startGame({ initialGame = null } = {}) {
     html("#building-market", buildingMarketView(game, ui));
     html("#selection", selectionView(game, ui));
     html("#harvest", harvestView(game));
+    guidance = placementGuidance(game, ui.drag || ui.placement);
     placementHelp();
     $("#end-turn").disabled = Boolean(opening);
     const automaticGains = harvestGains(game);
@@ -369,7 +392,7 @@ export function startGame({ initialGame = null } = {}) {
       );
       button.classList.toggle("selected", button.dataset.mode === ui.mode);
     }
-    board.render(game, ui);
+    board.render(game, ui, guidance);
     board.preview(dragPreview(game, ui.drag, ui.drag?.position));
   }
   function chooseUnit(id) {
@@ -544,17 +567,14 @@ export function startGame({ initialGame = null } = {}) {
     rotate(kind, event.deltaY < 0 ? -1 : 1);
   }, { passive: false });
   function showResults() {
-    const eligible = game.players.map((p, i) => p.eliminated ? -1 : i).filter(i => i >= 0);
-    const best = Math.max(...eligible.map(i => totalScore(game, i)));
-    const leaders = eligible.filter(i => totalScore(game, i) === best);
-    const a = totalScore(game, 0);
+    const { scores, leaders } = gameResults(game);
     $("#winner").textContent =
       game.victory === 'resignation'
         ? t("app.winsByResignation", [kingdomName(game.players[game.winner].name)])
         : game.victory === "conquest"
         ? t("app.conquersTheKeepAndWinsTheGame", [kingdomName(game.players[game.winner].name)])
         : game.mode === "solo"
-        ? t("app.yourKingdomPoints", [a])
+        ? t("app.yourKingdomPoints", [scores[0]])
         : leaders.length > 1
           ? t("four.draw", [leaders.map(i => kingdomName(game.players[i].name)).join(" / ")])
           : t("app.wins", [kingdomName(game.players[leaders[0]].name)]);
@@ -588,11 +608,8 @@ export function startGame({ initialGame = null } = {}) {
     if (workerSelect && !workerSelect.disabled) { chooseUnit(Number(workerSelect.dataset.workerSelect)); return; }
     const mode = event.target.closest("[data-mode]");
     if (mode) {
+      resetSelection();
       ui.mode = mode.dataset.mode;
-      ui.unitSelection = null;
-      game.selectedUnitId = null;
-      game.armySelection = null;
-      ui.placement = null;
       render();
       return;
     }
@@ -628,8 +645,7 @@ export function startGame({ initialGame = null } = {}) {
   $("#mirror-placement").addEventListener("click", () => mirror());
   $("#rotate-placement").addEventListener("click", () => rotate());
   $("#cancel-placement").addEventListener("click", () => {
-    drag.cancel();
-    ui.placement = null;
+    resetSelection({ unit: false });
     render();
     board.preview(null);
   });
@@ -644,9 +660,7 @@ export function startGame({ initialGame = null } = {}) {
     game = undoState;
     undoState = null;
     pendingBuild = null;
-    ui.selected = null;
-    ui.placement = null;
-    ui.drag = null;
+    resetSelection();
     if ($("#result-dialog").open) $("#result-dialog").close();
     render();
     toast(t("app.lastActionUndone"));
@@ -659,8 +673,7 @@ export function startGame({ initialGame = null } = {}) {
     }
     act(() => {
       endTurn(game);
-      ui.selected = null;
-      ui.placement = null;
+      resetSelection();
     }, { undoable: false, clearUndo: true });
     if (game.finished) showResults();
   });
@@ -896,12 +909,7 @@ export function startGame({ initialGame = null } = {}) {
     )
       return;
     if (event.key === "Escape") {
-      drag.cancel();
-      ui.selected = null;
-      ui.placement = null;
-      ui.unitSelection = null;
-      game.selectedUnitId = null;
-      game.armySelection = null;
+      resetSelection();
       render();
       event.preventDefault();
     }
@@ -918,13 +926,7 @@ export function startGame({ initialGame = null } = {}) {
   });
   $(".game-layout").addEventListener("contextmenu", event => {
     event.preventDefault();
-    drag.cancel();
-    ui.selected = null;
-    ui.placement = null;
-    ui.drag = null;
-    ui.unitSelection = null;
-    game.selectedUnitId = null;
-    game.armySelection = null;
+    resetSelection();
     render();
   });
   const drag = installDrag({

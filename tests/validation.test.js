@@ -1,7 +1,8 @@
+import { buildError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { key, move, placement, transformed, build, buildError } from "../src/engine.js";
+import { key, move, placement, transformed, build } from "../src/engine.js";
 import { validateGame } from "../src/validation.js";
 import { dragPreview } from "../src/ui/interactions.js";
 import { escapeHTML } from "../src/ui/html.js";

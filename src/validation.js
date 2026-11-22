@@ -8,6 +8,8 @@ import {
 } from "./engine.js";
 import { inside, key, isRotation } from "./geometry.js";
 
+// Movement granted at turn start remains valid if its bonus building is lost.
+const maxMovementBonus = Math.max(0, ...Object.values(CONFIG.buildings).map(b => b.movementBonus || 0));
 const record = (value) =>
   value !== null && typeof value === "object" && !Array.isArray(value);
 const nonnegative = (value) => Number.isSafeInteger(value) && value >= 0;
@@ -75,8 +77,8 @@ export function validateGame(game) {
   );
   requireValid(
     nonnegative(game.moves) &&
-      game.moves <= UNIT_DEFINITIONS.worker.moves &&
-      ["acted", "recruited", "finished"].every(
+      game.moves <= UNIT_DEFINITIONS.worker.moves + maxMovementBonus &&
+      ["acted", "finished"].every(
         (k) => typeof game[k] === "boolean",
       ),
     "actions incorrectes.",
@@ -143,7 +145,6 @@ export function validateGame(game) {
   for (const player of game.players) {
     requireValid(record(player.home) && inside(player.home.x,player.home.y,boardSize) &&
       Boolean(game.board[key(player.home.x,player.home.y)]), "donjon d’origine incorrect.");
-    requireValid(nonnegative(player.kingSkip) && player.kingSkip <= 1, "retour du roi incorrect.");
     requireValid(nonnegative(player.nextUnitId), "compteur d’unités incorrect.");
     requireValid(
       record(player) &&
@@ -172,7 +173,7 @@ export function validateGame(game) {
           inside(unit.x, unit.y, boardSize) &&
           game.board[key(unit.x, unit.y)] &&
           nonnegative(unit.moves) &&
-          unit.moves <= UNIT_DEFINITIONS[unit.type].moves &&
+          unit.moves <= UNIT_DEFINITIONS[unit.type].moves + maxMovementBonus &&
           (unit.skipTurns === undefined || nonnegative(unit.skipTurns) && unit.skipTurns <= 1) &&
           typeof unit.acted === "boolean" &&
           (unit.ended === undefined || typeof unit.ended === "boolean"),
@@ -247,7 +248,6 @@ export function validateGame(game) {
     nonnegative(game.rerollsUsed),
     "quota de relance incorrect.",
   );
-  requireValid(game.workerRecruitsUsed === undefined || nonnegative(game.workerRecruitsUsed), "quota de recrutement incorrect.");
   for (const p of game.players) {
     requireValid(nonnegative(p.resources.gold), "or incorrect.");
       requireValid(p.missionScore === undefined || nonnegative(p.missionScore), "score de missions incorrect.");
@@ -261,8 +261,7 @@ export function validateGame(game) {
               p.progress.conquests.every(target => typeof target === "string" && target.length <= 150) &&
               new Set(p.progress.conquests).size === p.progress.conquests.length)) &&
           (p.progress.produced === undefined || (record(p.progress.produced) &&
-            Object.entries(p.progress.produced).every(([id, n]) => Object.hasOwn(p.resources, id) && nonnegative(n)))) &&
-          nonnegative(p.progress.recruited),
+            Object.entries(p.progress.produced).every(([id, n]) => Object.hasOwn(p.resources, id) && nonnegative(n)))),
         "progression des missions incorrecte.",
       );
       for (const [field, defs] of [

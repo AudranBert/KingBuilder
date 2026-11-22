@@ -1,8 +1,9 @@
+import { openingError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { MAPS, mapCells } from "../src/maps.js";
-import { gameSettings, startOpening, openingError, placeOpeningTile } from "../src/engine.js";
+import { gameSettings, startOpening, placeOpeningTile } from "../src/engine.js";
 import { validateGame } from "../src/validation.js";
 
 test("les cartes dispersées conservent leurs tuiles séparées des drapeaux symétriques", () => {

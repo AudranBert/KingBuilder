@@ -30,3 +30,16 @@ export function prepareBuilding(game, type, x, y, rotation = 0) {
     game.board[key(x + offset.x, y + offset.y)] = { terrain: "mountain" };
   }
 }
+
+// Text assertions use this adapter; production code consumes structured issues.
+import { openingIssue, attackIssue, exploreIssue, buyTerrainIssue, buildIssue } from "../src/engine.js";
+import { ruleIssueText } from "../src/rule-errors.js";
+const errorText = check => (...args) => {
+  const issue = check(...args);
+  return issue ? ruleIssueText(issue) : null;
+};
+export const openingError = errorText(openingIssue);
+export const attackError = errorText(attackIssue);
+export const exploreError = errorText(exploreIssue);
+export const buyTerrainError = errorText(buyTerrainIssue);
+export const buildError = errorText(buildIssue);

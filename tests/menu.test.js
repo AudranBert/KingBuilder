@@ -6,6 +6,7 @@ import { startGame } from "../src/app.js";
 import { RULES } from "../src/engine.js";
 import { LANGUAGE_KEY } from "../src/i18n.js";
 import { createArmyTestGame } from "../src/test-scenarios.js";
+import { ruleIssue, ruleIssueText } from "../src/rule-errors.js";
 
 // Run the application event handlers with an in-memory DOM.
 function mount(t, initialGame = null) {
@@ -144,6 +145,16 @@ function mount(t, initialGame = null) {
     },
   };
 }
+
+test('placement errors are readable in board accessibility labels', t => {
+  const app = mount(t);
+  app.start('solo');
+  app.selectTile();
+  const labels = app.cells().map(cell => cell.getAttribute('aria-label'));
+  assert.ok(labels.every(label => !label.includes('[object Object]')));
+  const occupied = ruleIssueText(ruleIssue('messages.chooseAnUnexploredSpace'), true);
+  assert.ok(labels.some(label => label.includes(occupied)));
+});
 
 test("annulation : un déplacement peut être repris, puis le bouton se désactive", (t) => {
   const app = mount(t);

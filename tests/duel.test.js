@@ -1,8 +1,9 @@
+import { attackError, exploreError, buildError } from "./helpers.js";
 import { createFixedGame as createGame } from "./helpers.js";
 import { prepareBuilding as revealPattern } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { RULES, BUILDINGS, UNIT_DEFINITIONS, key, actor, selectUnit, selectArmy, selectedSoldiers, armyAt, attack, attackError, combatPreview, attackPaths, defenseAt, move, exploreError, buildError, build, patternAt, trainUnit, trainError, endTurn, score, totalScore, destroyBuilding } from "../src/engine.js";
+import { RULES, BUILDINGS, UNIT_DEFINITIONS, key, actor, selectUnit, selectArmy, selectedSoldiers, armyAt, attack, combatPreview, attackPaths, defenseAt, move, build, patternAt, trainUnit, trainError, endTurn, score, totalScore, destroyBuilding } from "../src/engine.js";
 import { costPayment, tradePrice } from "../src/economy.js";
 import { missionProgress, initializeMissions } from "../src/objectives.js";
 import { moveUnitTo } from "../src/engine.js";

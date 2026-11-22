@@ -9,6 +9,22 @@ function memory() {
   return { getItem: k => data.get(k) ?? null, setItem: (k, v) => data.set(k, v), removeItem: k => data.delete(k) };
 }
 
+test('movement bonuses survive saving and restoring, including loss of the bonus building', () => {
+  const storage = memory(), save = new LocalSave(() => storage);
+  const game = createGame(() => .42, 'solo');
+  game.board['5,5'] = { terrain: 'plain', building: { type: 'stable', owner: 0 } };
+  endTurn(game);
+  assert.equal(game.players[0].units[0].moves, 4);
+  for (const withStable of [true, false]) {
+    if (!withStable) delete game.board['5,5'];
+    save.save(game);
+    assert.deepEqual(new LocalSave(() => storage).resume(), game);
+  }
+  game.players[0].units[0].moves = 5;
+  save.save(game);
+  assert.equal(new LocalSave(() => storage).resume(), null);
+});
+
 test("local save restores full games, including setup, decks and the next turn", () => {
   for (const mode of ["local", "solo"]) {
     const storage = memory(), save = new LocalSave(() => storage);

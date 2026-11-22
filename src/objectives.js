@@ -1,9 +1,8 @@
-import { message as sourceMessage } from "./i18n.js";
 import { CONFIG } from "./configuration.js";
 import { spawnUnit } from "./units.js";
 export const MISSIONS = CONFIG.missions;
 export function emptyProgress() {
-  return { terrain: {}, built: {}, recruited: 0, produced: {}, conquests: [], landscaping: 0 };
+  return { terrain: {}, built: {}, produced: {}, conquests: [], landscaping: 0 };
 }
 export function missionProgress(g, id, owner = g.active) {
   const m = MISSIONS[id],
@@ -61,29 +60,6 @@ function revealMission(g, id) {
 }
 export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
   g.rerollsUsed ??= 0;
-  for (const [owner, p] of g.players.entries()) {
-    if (!p.progress) {
-      p.progress = emptyProgress();
-      // Historic terrain before transformations is unavailable in older states.
-      const spawn = CONFIG.rules.players[owner].start;
-      const startKey = `${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.x * CONFIG.rules.boardSize))},${Math.min(CONFIG.rules.boardSize - 1, Math.floor(spawn.y * CONFIG.rules.boardSize))}`;
-      for (const [position, c] of Object.entries(g.board)) {
-        if (
-          c.owner === owner &&
-          position !== startKey &&
-          c.overlay?.anchor !== startKey
-        )
-          p.progress.terrain[c.terrain] =
-            (p.progress.terrain[c.terrain] || 0) + 1;
-        if (c.building?.owner === owner)
-          p.progress.built[c.building.type] =
-            (p.progress.built[c.building.type] || 0) + 1;
-      }
-      const start = CONFIG.startingBuilding;
-      p.progress.built[start] = Math.max(0, (p.progress.built[start] || 0) - 1);
-      p.progress.recruited = Math.max(0, p.workers - CONFIG.rules.startingWorkers);
-    }
-  }
   if (g.missionsEnabled === false) {
     g.missions = { market: [], deck: [], claimed: [], tiered: 1, baselines: {} };
     return;
@@ -100,17 +76,7 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
       else i++;
     }
     g.missions = { market, deck, claimed: [], tiered: 1 };
-  } else if (g.missions.tiered === undefined) {
-    // Preserve offers, ownership and rewards in existing states; add new variants once.
-    const known = new Set([
-      ...g.missions.market,
-      ...g.missions.deck,
-      ...g.missions.claimed.map((c) => c.id),
-    ]);
-    for (const id of missionOrder) if (!known.has(id)) g.missions.deck.push(id);
-    g.missions.tiered = 1;
   }
-  for (const p of g.players) p.progress.produced ??= {};
   for (const id of g.missions.market)
     if (!g.missions.baselines?.[id]) revealMission(g, id);
 }

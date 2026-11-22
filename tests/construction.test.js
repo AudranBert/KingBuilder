@@ -1,7 +1,8 @@
+import { buildError } from "./helpers.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createSandboxGame, prepareBuilding } from "./helpers.js";
-import { BUILDINGS, build, buildError, key, endTurn, score, patternAt } from "../src/engine.js";
+import { BUILDINGS, build, key, endTurn, score, patternAt } from "../src/engine.js";
 import { rotatePoint } from "../src/geometry.js";
 import { dragPreview, placementGuidance, placementOrigin } from "../src/ui/interactions.js";
 import { applyCommand } from "../src/commands.js";
