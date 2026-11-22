@@ -1,0 +1,35 @@
+[
+  {
+    "id": "military-4",
+    "name": "Have 4 total military strength",
+    "metric": "military",
+    "target": 4,
+    "reward": {
+      "material": 2
+    },
+    "family": "military",
+    "difficulty": 1
+  },
+  {
+    "id": "military-7",
+    "name": "Have 7 total military strength",
+    "metric": "military",
+    "target": 7,
+    "reward": {
+      "food": 3
+    },
+    "family": "military",
+    "difficulty": 2
+  },
+  {
+    "id": "military-10",
+    "name": "Have 10 total military strength",
+    "metric": "military",
+    "target": 10,
+    "reward": {
+      "material": 4
+    },
+    "family": "military",
+    "difficulty": 3
+  }
+]

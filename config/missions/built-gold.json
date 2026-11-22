@@ -1,0 +1,38 @@
+[
+  {
+    "id": "built-gold-1",
+    "name": "Build 1 gold producer",
+    "metric": "built",
+    "target": 1,
+    "producerResource": "gold",
+    "reward": {
+      "soldiers": 1
+    },
+    "family": "built-gold",
+    "difficulty": 1
+  },
+  {
+    "id": "built-gold-2",
+    "name": "Build 3 gold producers",
+    "metric": "built",
+    "target": 3,
+    "producerResource": "gold",
+    "reward": {
+      "soldiers": 2
+    },
+    "family": "built-gold",
+    "difficulty": 2
+  },
+  {
+    "id": "built-gold-3",
+    "name": "Build 5 gold producers",
+    "metric": "built",
+    "target": 5,
+    "producerResource": "gold",
+    "reward": {
+      "soldiers": 3
+    },
+    "family": "built-gold",
+    "difficulty": 3
+  }
+]

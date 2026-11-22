@@ -1,36 +1,36 @@
 [
   {
     "id": "plain-3",
-    "name": "Reveal 3 plains",
+    "name": "Reveal 6 plains",
     "metric": "revealed",
-    "target": 3,
+    "target": 6,
     "terrain": "plain",
     "reward": {
-      "gold": 1
+      "material": 2
     },
     "family": "revealed-plain",
     "difficulty": 1
   },
   {
     "id": "plain-6",
-    "name": "Reveal 6 plains",
+    "name": "Reveal 12 plains",
     "metric": "revealed",
-    "target": 6,
+    "target": 12,
     "terrain": "plain",
     "reward": {
-      "gold": 1
+      "gold": 2
     },
     "family": "revealed-plain",
     "difficulty": 2
   },
   {
     "id": "revealed-plain-9",
-    "name": "Reveal 9 plains",
+    "name": "Reveal 20 plains",
     "metric": "revealed",
-    "target": 9,
+    "target": 20,
     "terrain": "plain",
     "reward": {
-      "gold": 1
+      "score": 3
     },
     "family": "revealed-plain",
     "difficulty": 3

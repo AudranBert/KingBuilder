@@ -1,36 +1,36 @@
 [
   {
     "id": "river-3",
-    "name": "Reveal 3 rivers",
+    "name": "Reveal 5 rivers",
     "metric": "revealed",
-    "target": 3,
+    "target": 5,
     "terrain": "river",
     "reward": {
-      "gold": 1
+      "material": 2
     },
     "family": "revealed-river",
     "difficulty": 1
   },
   {
     "id": "river-6",
-    "name": "Reveal 6 rivers",
+    "name": "Reveal 10 rivers",
     "metric": "revealed",
-    "target": 6,
+    "target": 10,
     "terrain": "river",
     "reward": {
-      "gold": 1
+      "food": 3
     },
     "family": "revealed-river",
     "difficulty": 2
   },
   {
     "id": "revealed-river-9",
-    "name": "Reveal 9 rivers",
+    "name": "Reveal 16 rivers",
     "metric": "revealed",
-    "target": 9,
+    "target": 16,
     "terrain": "river",
     "reward": {
-      "gold": 1
+      "score": 3
     },
     "family": "revealed-river",
     "difficulty": 3

@@ -5,7 +5,8 @@
     "metric": "built",
     "target": 2,
     "reward": {
-      "gold": 1
+      "food": 1,
+      "material": 1
     },
     "family": "built-all",
     "difficulty": 1
@@ -16,7 +17,8 @@
     "metric": "built",
     "target": 4,
     "reward": {
-      "gold": 1
+      "food": 2,
+      "material": 2
     },
     "family": "built-all",
     "difficulty": 2
@@ -27,7 +29,8 @@
     "metric": "built",
     "target": 6,
     "reward": {
-      "gold": 1
+      "food": 3,
+      "material": 3
     },
     "family": "built-all",
     "difficulty": 3

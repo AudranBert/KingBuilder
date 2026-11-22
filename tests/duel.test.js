@@ -3,6 +3,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { createGame, RULES, BUILDINGS, UNIT_DEFINITIONS, key, actor, selectUnit, selectArmy, selectedSoldiers, armyAt, attack, attackError, combatPreview, attackPaths, defenseAt, move, exploreError, buildError, build, patternAt, trainUnit, trainError, endTurn, score, totalScore, destroyBuilding } from "../src/engine.js";
 import { costPayment, tradePrice } from "../src/objectives.js";
+import { missionProgress, initializeMissions } from "../src/objectives.js";
 import { moveUnitTo } from "../src/ui/interactions.js";
 import { validateGame } from "../src/validation.js";
 import { applyCommand } from "../src/commands.js";
@@ -29,6 +30,51 @@ function prepareBuilding(g,type,x=2,y=2) {
   g.players[0].resources={material:50,food:50,gold:50};
   g.buildingMarket[0]=type;
 }
+
+test("conquête : victimes en attaque et en défense, bâtiment et drapeau sans compter la garnison", () => {
+  const g = game();
+  g.missions = { tiered: 1, market: ["conquests-2"], deck: [], claimed: [] };
+  initializeMissions(g);
+  g.board["3,2"].building = { type: "outpost", owner: 1 };
+  g.board["3,2"].flag = { owner: 1 };
+  soldiers(g, 1, 1, 3, 2);
+  Object.assign(g.players[1].units[0], { x: 3, y: 2 });
+  selectUnit(g, soldiers(g, 0, 4, 2, 2)[0].id);
+  attack(g, 3, 2);
+  assert.equal(missionProgress(g, "conquests-8", 0), 4);
+  assert.equal(missionProgress(g, "conquests-8", 1), 3);
+  assert.equal(g.missions.claimed[0].id, "conquests-2");
+  validateGame(structuredClone(g));
+});
+
+test("conquête : une défense peut gagner la mission sans occupation de la cible", () => {
+  const g = game();
+  g.missions = { tiered: 1, market: ["conquests-2"], deck: [], claimed: [] };
+  initializeMissions(g);
+  soldiers(g, 1, 3, 3, 2);
+  selectUnit(g, soldiers(g, 0, 2, 2, 2)[0].id);
+  attack(g, 3, 2);
+  assert.equal(g.missions.claimed[0].owner, 1);
+  assert.equal(missionProgress(g, "conquests-8", 1), 2);
+  assert.equal(missionProgress(g, "conquests-8", 0), 1);
+});
+
+test("conquête : captures par ouvrier et recaptures sans récompense répétée", () => {
+  const g = game(), worker = g.players[0].units[0];
+  g.missions = { tiered: 1, market: ["conquests-8"], deck: [], claimed: [] };
+  initializeMissions(g);
+  Object.assign(worker, { x: 2, y: 2 }); selectUnit(g, worker.id);
+  g.board["3,2"] = { terrain: "plain", flag: { owner: null }, building: { type: "farm", owner: 1 } };
+  move(g, 3, 2);
+  assert.equal(missionProgress(g, "conquests-8"), 2);
+  move(g, 2, 2);
+  g.board["3,2"].building.owner = 1; g.board["3,2"].flag.owner = 1;
+  move(g, 3, 2);
+  assert.equal(missionProgress(g, "conquests-8"), 2);
+  const invalid = structuredClone(g);
+  invalid.players[0].progress.conquests.push(invalid.players[0].progress.conquests[0]);
+  assert.throws(() => validateGame(invalid), /progression/);
+});
 
 test("caserne : recrutement payant par tour et arrivée grisée, sans soldat offert",()=>{
   const g=game();prepareBuilding(g,"barracks");
@@ -77,11 +123,32 @@ test("tour : tous les terrains révélés libres, avec ou sans drapeau",()=>{
   build(g,0,2,2);assert.equal(g.board["2,2"].flag.owner,0);
 });
 
-test("garnison renforcée : un seul bonus défensif et garnison retirée en dernier",()=>{
+test("garnison renforcée : aucun bonus défensif et garnison retirée en dernier",()=>{
   const g=game();g.board["3,2"].building={type:"outpost",owner:1};
   soldiers(g,1,5,3,2);const units=soldiers(g,0,5,2,2);selectUnit(g,units[0].id);
   assert.equal(combatPreview(g,3,2).defense,7);attack(g,3,2);
-  assert.equal(armyAt(g,1,3,2).length,1);assert.ok(g.board["3,2"].building);
+  assert.equal(armyAt(g,1,3,2).length,0);assert.ok(g.board["3,2"].building);
+});
+
+test("le bonus des soldats ne se cumule pas avec la force fixe d'une tour ou du donjon", () => {
+  for (const type of ["outpost", "castle"]) {
+    const g = game();
+    g.board["3,2"].building = { type, owner: 1 };
+    assert.deepEqual(defenseAt(g, 1, 3, 2), { defenders: 0, garrison: 2, bonus: 0, defense: 2 });
+    soldiers(g, 1, 1, 3, 2);
+    assert.deepEqual(defenseAt(g, 1, 3, 2), { defenders: 1, garrison: 2, bonus: 0, defense: 3 });
+    const units = soldiers(g, 0, 4, 2, 2);
+    selectUnit(g, units[0].id);
+    assert.equal(combatPreview(g, 3, 2).defense, 3);
+    attack(g, 3, 2);
+    assert.equal(armyAt(g, 0, 3, 2).length, 1);
+    assert.equal(armyAt(g, 1, 3, 2).length, 0);
+  }
+  const g = game();
+  soldiers(g, 0, 1, 3, 2);
+  assert.equal(defenseAt(g, 0, 3, 2).defense, 2);
+  g.board["3,2"].building = { type: "farm", owner: 0 };
+  assert.equal(defenseAt(g, 0, 3, 2).defense, 2);
 });
 
 test("donjon : une égalité conserve le donjon ; une occupation termine immédiatement",()=>{
@@ -98,6 +165,7 @@ test("donjon : une égalité conserve le donjon ; une occupation termine immédi
 test("drapeaux : capture persistante, recapture et score sans garnison obligatoire",()=>{
   const g=game();g.board["3,2"].flag={owner:null};
   let u=soldiers(g,0,1,2,2)[0];selectUnit(g,u.id);attack(g,3,2);
+  assert.equal(missionProgress(g, "conquests-8", 0), 1);
   endTurn(g);endTurn(g);selectUnit(g,u.id);move(g,4,2);
   assert.equal(g.board["3,2"].flag.owner,0);assert.equal(score(g,0).flags,RULES.points.flag);
   endTurn(g);u=soldiers(g,1,1,3,3)[0];selectUnit(g,u.id);attack(g,3,2);
@@ -110,6 +178,7 @@ test("les ouvriers capturent les drapeaux libres en passant, sauf présence adve
     Object.assign(worker,{x:2,y:2,moves:3,acted:false,ended:false});selectUnit(g,worker.id);
     g.board['3,2'].flag={owner};
     move(g,3,2);assert.equal(g.board['3,2'].flag.owner,0);
+    assert.equal(missionProgress(g, "conquests-8"), owner === 0 ? 0 : 1);
     assert.equal(score(g,0).flags,RULES.points.flag);
     move(g,2,2);worker.moves=2;g.board['3,2'].flag.owner=owner;moveUnitTo(g,4,2);
     assert.deepEqual({x:worker.x,y:worker.y},{x:4,y:2});

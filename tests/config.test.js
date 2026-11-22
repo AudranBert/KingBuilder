@@ -65,8 +65,10 @@ test("les cinq drapeaux, le commerce et les valeurs de score sont validés",()=>
  const input=configs();change(input);assert.throws(()=>compileConfiguration(...input),/Configuration invalide/);}
 });
 
-test("missions : or uniquement, familles complètes et seuils croissants",()=>{
+test("missions : récompenses valides, familles complètes et seuils croissants",()=>{
  for(const change of [c=>c[6].missions[0].reward={prestige:1},c=>c[6].missions[0].reward.gold=0,
+ c=>c[6].missions[0].reward={},c=>c[6].missions[0].reward={soldiers:-1},
+ c=>c[6].missions[0].reward={score:1.5},c=>c[6].missions[0].reward={food:1,material:0},
  c=>c[6].missions.pop(),c=>c[6].missions[1].target=1,c=>c[6].missions[0].resource="missing"]){
  const input=configs();change(input);assert.throws(()=>compileConfiguration(...input),/missions/);}
 });

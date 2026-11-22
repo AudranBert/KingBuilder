@@ -13,7 +13,7 @@
       "river",
       "field"
     ],
-    "description": "Garrison 1.",
+    "description": "Fixed strength 2 (no defensive bonus).",
     "pattern": "One empty revealed space.",
     "layout": [
       "B"
@@ -21,7 +21,7 @@
     "tier": 2,
     "weight": 11,
     "points": 1,
-    "garrison": 1,
+    "garrison": 2,
     "traversable": true
   }
 ]

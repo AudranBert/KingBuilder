@@ -33,6 +33,7 @@ import {
   defenseAt,
 } from "../engine.js";
 import { costPayment, tradePrice } from "../objectives.js";
+import { missionRewardText } from "../mission-rewards.js";
 import { key, parseKey } from "../geometry.js";
 import {
   e,
@@ -184,7 +185,7 @@ export function buildingMarketView(g, ui) {
 }
 function buildingDescription(b) {
   const description = definitionText("buildings", b, "description");
-  return b.garrison ? `${description} ${t("building.defense", [b.garrison + 1, b.garrison, 1])}` : description;
+  return b.garrison ? `${description} ${t("building.defense", [b.garrison, b.garrison, 0])}` : description;
 }
 function buildingEffectHTML(b) {
   const label = buildingDescription(b);
@@ -195,7 +196,7 @@ function buildingEffectHTML(b) {
   else if (b.boost) effect = `+${b.boost.bonus || 1} ${iconHTML(RESOURCE_DEFINITIONS[BUILDINGS[b.boost.target].produces].icon)}`;
   else if (b.trains) effect = `${iconHTML(UNIT_DEFINITIONS[b.trains[0]].icon)} · +${b.trainingLimit} / ${iconHTML("assets/textures/interface/hourglass.svg")}`;
   else if (b.onBuildUnit) effect = `+1 ${iconHTML(UNIT_DEFINITIONS[b.onBuildUnit].icon)} · max. 1`;
-  else if (b.garrison) effect = `${iconHTML("assets/textures/interface/shield.svg")} ${b.garrison + 1}`;
+  else if (b.garrison) effect = `${iconHTML("assets/textures/interface/shield.svg")} ${b.garrison}`;
   else if (b.transformTo) effect = `${iconHTML(TERRAINS.forest.icon)} → ${iconHTML(TERRAINS[b.transformTo].icon)} · +${b.onBuildGain.material} ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}`;
   else if (b.traversable) effect = `${iconHTML(TERRAINS[b.terrain[0]].icon)} → ↔`;
   else if (b.id === "monument") effect = `★ ${b.points}`;
@@ -239,7 +240,7 @@ export function selectionView(g, ui) {
   if (g.finished || ui.mode === 'inspect') return html;
   if (unitSelected && attackPaths(g).has(key(pos.x,pos.y))) {
     const r = combatPreview(g,pos.x,pos.y);
-    html += `<div class="combat-summary"><strong title="${t("selectionView.attackDefense")}">${iconHTML("assets/textures/interface/attack.svg")} ${r.attack} · ${iconHTML("assets/textures/interface/shield.svg")} ${r.defense}</strong><span title="${t("selectionView.survivingSoldiersAttackerDefender")}">→ ${iconHTML("assets/textures/units/soldier.svg")} ${r.attackerSurvivors} / ${Math.max(0,r.defenderSurvivors-r.garrison)}${r.garrison ? ` · ${iconHTML("assets/textures/interface/shield.svg")} ${r.attackerSurvivors ? "0" : "1"}` : ""}</span><button data-action="attack" class="primary">${cell?.flag && !r.defense ? t("views.capture") : t("views.attack")}</button></div>`;
+    html += `<div class="combat-summary"><strong title="${t("selectionView.attackDefense")}">${iconHTML("assets/textures/interface/attack.svg")} ${r.attack} · ${iconHTML("assets/textures/interface/shield.svg")} ${r.defense}</strong><span title="${t("selectionView.survivingSoldiersAttackerDefender")}">→ ${iconHTML("assets/textures/units/soldier.svg")} ${r.attackerSurvivors} / ${Math.max(0,r.defenderSurvivors-r.garrison)}${r.garrison ? ` · ${iconHTML("assets/textures/interface/shield.svg")} ${r.attackerSurvivors ? 0 : r.garrison}` : ""}</span><button data-action="attack" class="primary">${cell?.flag && !r.defense ? t("views.capture") : t("views.attack")}</button></div>`;
   }
   if (b?.owner === g.active && BUILDINGS[b.type].trains)
     html += trainingView(g, key(site.x, site.y), b);
@@ -262,7 +263,7 @@ export function resultsView(g) {
         )
           .map(
             ([id, n]) =>
-              `<p><span>${{ flags: t("views.flags"), buildings: t("views.buildings"), gold: resourceTextHTML(t("views.gold1", [RULES.points.goldPerPoint])) }[id]}</span><strong>${n}</strong></p>`,
+              `<p><span>${{ missions: t("resultsView.missionPoints"), flags: t("views.flags"), buildings: t("views.buildings"), gold: resourceTextHTML(t("views.gold1", [RULES.points.goldPerPoint])) }[id]}</span><strong>${n}</strong></p>`,
           )
           .join(
             "",
@@ -311,16 +312,17 @@ export function missionsView(g) {
     g.missions.market
       .map((id) => {
         const m = MISSIONS[id];
-        const symbol = m.metric === "built" ? iconHTML(BUILDINGS[m.building]?.icon || "assets/textures/buildings/house.svg")
+        const resource = m.producerResource || m.resource;
+        const symbol = resource ? iconHTML(RESOURCE_DEFINITIONS[resource].icon)
           : m.metric === "revealed" ? iconHTML(TERRAINS[m.terrain]?.icon || "assets/textures/interface/terrain.svg")
-          : m.metric === "recruited" ? iconHTML(UNIT_DEFINITIONS.worker.icon)
-          : m.resource ? iconHTML(RESOURCE_DEFINITIONS[m.resource].icon) : "";
-        const label = {built:t("views.build"),revealed:t("views.explore"),recruited:t("views.recruit"),resources:t("views.stock")}[m.metric];
-        const summary = m.metric === "resources" && !m.resource
-          ? t("missionsView.totalResources", [m.target])
-          : `${label} ${symbol} ${m.target}`;
-        const explanation = m.metric === "resources" && !m.resource ? ` · ${t("missionsView.totalResourcesExplanation")}` : '';
-        return `<article class="mission-card" title="${t("missionsView.firstComeFirstServed", [e(definitionText("missions", m))])}${explanation}" aria-label="${e(definitionText("missions", m))}"><div><strong><span class="mission-stars" aria-label="${t("missionsView.difficultyOf", [m.difficulty, RULES.missionRules.maxDifficulty])}">${"★".repeat(m.difficulty)}</span>${summary}</strong><b>+${m.reward.gold} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}</b></div><div class="mission-progress">${g.players
+          : ["military", "conquests"].includes(m.metric) ? iconHTML("assets/textures/interface/sword.svg")
+          : m.metric === "landscaping" ? iconHTML(BUILDINGS.bridge.icon)
+          : m.metric === "multipliers" ? iconHTML(BUILDINGS.mill.icon)
+          : m.metric === "built" ? iconHTML(BUILDINGS.house.icon) : "";
+        const summary = symbol + " " + e(definitionText("missions", m));
+        const explanationKey = {conquests:"missionsView.conquestsExplanation", landscaping:"missionsView.landscapingExplanation", produced:"missionsView.productionExplanation", military:"missionsView.militaryExplanation", multipliers:"missionsView.multipliersExplanation"}[m.metric];
+        const explanation = explanationKey ? " · " + t(explanationKey) : "";
+        return `<article class="mission-card" title="${t("missionsView.firstComeFirstServed", [e(definitionText("missions", m))])}${explanation} · ${e(missionRewardText(m.reward))}" aria-label="${e(definitionText("missions", m))}"><div><strong><span class="mission-stars" aria-label="${t("missionsView.difficultyOf", [m.difficulty, RULES.missionRules.maxDifficulty])}">${"★".repeat(m.difficulty)}</span>${summary}</strong><b class="mission-reward" aria-label="${e(missionRewardText(m.reward))}">${Object.entries(m.reward).map(([type, amount]) => `<span>+${amount} ${type === "score" ? "★" : iconHTML(type === "soldiers" ? UNIT_DEFINITIONS.soldier.icon : RESOURCE_DEFINITIONS[type].icon)}</span>`).join(" ")}</b></div><div class="mission-progress">${g.players
           .map((p, i) => {
             const progress = missionProgress(g, id, i), target = missionTarget(g, id, i);
             return `<span class="${i === 1 ? "jade" : "amber"}" title="${target > m.target ? t("views.requiredContribution", [RULES.missionRules.requiredContribution]) : e(kingdomName(p.name))}" aria-label="${t("missionsView.of", [e(kingdomName(p.name)), progress, target])}">${Math.min(target, progress)}/${target}</span>`;

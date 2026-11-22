@@ -114,6 +114,8 @@ export function validateGame(game) {
           b[field] === undefined || nonnegative(b[field]),
           "quota de caserne incorrect.",
         );
+        requireValid(b.missionId === undefined || (typeof b.missionId === "string" && b.missionId.length <= 100),
+          "identifiant de construction incorrect.");
     }
     if (cell.flag !== undefined)
       requireValid(record(cell.flag) && (cell.flag.owner === null ||
@@ -237,11 +239,18 @@ export function validateGame(game) {
   requireValid(game.workerRecruitsUsed === undefined || nonnegative(game.workerRecruitsUsed), "quota de recrutement incorrect.");
   for (const p of game.players) {
     requireValid(nonnegative(p.resources.gold), "or incorrect.");
+      requireValid(p.missionScore === undefined || nonnegative(p.missionScore), "score de missions incorrect.");
     if (p.progress !== undefined) {
       requireValid(
         record(p.progress) &&
           record(p.progress.terrain) &&
           record(p.progress.built) &&
+            (p.progress.landscaping === undefined || nonnegative(p.progress.landscaping)) &&
+            (p.progress.conquests === undefined || (Array.isArray(p.progress.conquests) &&
+              p.progress.conquests.every(target => typeof target === "string" && target.length <= 150) &&
+              new Set(p.progress.conquests).size === p.progress.conquests.length)) &&
+          (p.progress.produced === undefined || (record(p.progress.produced) &&
+            Object.entries(p.progress.produced).every(([id, n]) => Object.hasOwn(p.resources, id) && nonnegative(n)))) &&
           nonnegative(p.progress.recruited),
         "progression des missions incorrecte.",
       );

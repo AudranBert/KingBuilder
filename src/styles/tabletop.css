@@ -813,3 +813,6 @@ main:has(.game-layout.opening) .trade-info,
   transform: rotate(-45deg);
   pointer-events: none;
 }
+
+.mission-reward { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px 8px; }
+.mission-reward > span { white-space: nowrap; }

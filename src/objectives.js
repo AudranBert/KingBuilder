@@ -1,31 +1,52 @@
 import { message as sourceMessage } from "./i18n.js";
 import { CONFIG } from "./configuration.js";
+import { spawnUnit } from "./units.js";
 export const GOLD = CONFIG.rules.gold;
 export const MISSIONS = CONFIG.missions;
 export function emptyProgress() {
-  return { terrain: {}, built: {}, recruited: 0 };
+  return { terrain: {}, built: {}, recruited: 0, produced: {}, conquests: [], landscaping: 0 };
 }
 export function missionProgress(g, id, owner = g.active) {
   const m = MISSIONS[id],
     p = g.players[owner];
   if (!m) return 0;
+  if (m.metric === "conquests") return p.progress.conquests?.length || 0;
+  if (m.metric === "landscaping") return p.progress.landscaping || 0;
   if (m.metric === "revealed")
     return m.terrain ? p.progress.terrain[m.terrain] || 0 : p.revealed;
   if (m.metric === "built")
-    return m.building
+    return m.producerResource
+      ? Object.entries(p.progress.built).reduce((total, [type, count]) =>
+          total + (CONFIG.buildings[type]?.produces === m.producerResource ? count : 0), 0)
+      : m.building
       ? Object.entries(p.progress.built).reduce(
           (total, [type, count]) => total +
             ((CONFIG.buildings[type]?.productionFamily || CONFIG.buildings[type]?.family || type) === m.building ? count : 0), 0)
       : Object.values(p.progress.built).reduce((a, b) => a + b, 0);
-  if (m.metric === "recruited") return p.progress.recruited;
-  if (m.metric === "resources")
+  if (m.metric === "multipliers")
+    return Object.values(g.board).filter(c => c.building?.owner === owner &&
+      isMultiplier(CONFIG.buildings[c.building.type])).length;
+  if (m.metric === "military") return militaryPower(g, owner);
+  if (m.metric === "produced")
     return m.resource
-      ? p.resources[m.resource] || 0
+      ? p.progress.produced?.[m.resource] || 0
       : Object.keys(CONFIG.resources).reduce(
-          (n, id) => n + (p.resources[id] || 0),
+          (n, id) => n + (p.progress.produced?.[id] || 0),
           0,
         );
   return 0;
+}
+export function isMultiplier(building) {
+  return Boolean(building?.boost || building?.monumentMultiplier || building?.trainingBoost);
+}
+export function recordConquest(g, owner, target) {
+  const targets = g.players[owner].progress.conquests ??= [];
+  if (!targets.includes(target)) targets.push(target);
+}
+export function militaryPower(g, owner = g.active) {
+  return g.players[owner].units.filter(u => u.type === "soldier").length +
+    Object.values(g.board).reduce((total, c) => total +
+      (c.building?.owner === owner ? CONFIG.buildings[c.building.type]?.garrison || 0 : 0), 0);
 }
 export function missionTarget(g, id, owner = g.active) {
   const baseline = g.missions.baselines?.[id]?.[owner];
@@ -86,6 +107,7 @@ export function initializeMissions(g, missionOrder = Object.keys(MISSIONS)) {
     for (const id of missionOrder) if (!known.has(id)) g.missions.deck.push(id);
     g.missions.tiered = 1;
   }
+  for (const p of g.players) p.progress.produced ??= {};
   for (const id of g.missions.market)
     if (!g.missions.baselines?.[id]) revealMission(g, id);
 }
@@ -100,7 +122,13 @@ export function settleMissions(g, owner = g.active) {
       i++;
       continue;
     }
-    g.players[owner].resources.gold += m.reward.gold;
+    const player = g.players[owner];
+    for (const [type, amount] of Object.entries(m.reward)) {
+      if (type === "score") player.missionScore = (player.missionScore || 0) + amount;
+      else if (type === "soldiers") {
+        for (let n = 0; n < amount; n++) spawnUnit(g, player.home.x, player.home.y, "soldier", owner);
+      } else player.resources[type] += amount;
+    }
     g.missions.claimed.push({ id, owner, round: g.round });
     won.push(id);
     g.missions.market.splice(i, 1);

@@ -1,9 +1,9 @@
 [
   {
     "id": "mountain-3",
-    "name": "Reveal 3 mountains",
+    "name": "Reveal 5 mountains",
     "metric": "revealed",
-    "target": 3,
+    "target": 5,
     "terrain": "mountain",
     "reward": {
       "gold": 1
@@ -13,24 +13,24 @@
   },
   {
     "id": "mountain-6",
-    "name": "Reveal 6 mountains",
+    "name": "Reveal 10 mountains",
     "metric": "revealed",
-    "target": 6,
+    "target": 10,
     "terrain": "mountain",
     "reward": {
-      "gold": 1
+      "gold": 2
     },
     "family": "revealed-mountain",
     "difficulty": 2
   },
   {
     "id": "revealed-mountain-9",
-    "name": "Reveal 9 mountains",
+    "name": "Reveal 16 mountains",
     "metric": "revealed",
-    "target": 9,
+    "target": 16,
     "terrain": "mountain",
     "reward": {
-      "gold": 1
+      "score": 3
     },
     "family": "revealed-mountain",
     "difficulty": 3

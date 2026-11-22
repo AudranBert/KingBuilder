@@ -1,36 +1,36 @@
 [
   {
     "id": "forest-3",
-    "name": "Reveal 3 forests",
+    "name": "Reveal 5 forests",
     "metric": "revealed",
-    "target": 3,
+    "target": 5,
     "terrain": "forest",
     "reward": {
-      "gold": 1
+      "food": 2
     },
     "family": "revealed-forest",
     "difficulty": 1
   },
   {
     "id": "forest-6",
-    "name": "Reveal 6 forests",
+    "name": "Reveal 10 forests",
     "metric": "revealed",
-    "target": 6,
+    "target": 10,
     "terrain": "forest",
     "reward": {
-      "gold": 1
+      "gold": 2
     },
     "family": "revealed-forest",
     "difficulty": 2
   },
   {
     "id": "revealed-forest-9",
-    "name": "Reveal 9 forests",
+    "name": "Reveal 16 forests",
     "metric": "revealed",
-    "target": 9,
+    "target": 16,
     "terrain": "forest",
     "reward": {
-      "gold": 1
+      "score": 3
     },
     "family": "revealed-forest",
     "difficulty": 3

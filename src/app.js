@@ -1,3 +1,4 @@
+import { missionRewardText } from "./mission-rewards.js";
 import { t, definitionText, translateMessage, kingdomName, getLanguage, setLanguage, restoreLanguage, translateDocument } from "./i18n.js";
 import { parseKey } from "./geometry.js";
 import { MAPS } from "./maps.js";
@@ -270,7 +271,7 @@ export function startGame({ initialGame = null } = {}) {
           won
             .map(
               (c) =>
-                t("app.gold", [definitionText("missions", MISSIONS[c.id]), MISSIONS[c.id].reward.gold]),
+                t("app.missionReward", [definitionText("missions", MISSIONS[c.id]), missionRewardText(MISSIONS[c.id].reward)]),
             )
             .join(" · "),
         );

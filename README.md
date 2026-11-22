@@ -33,7 +33,7 @@ English is the source language. Edit names, descriptions, placement patterns and
 ### Victoire
 
 - Occuper le donjon adverse avec au moins un soldat survivant donne une victoire immédiate.
-- Sinon, après le nombre de tours choisi (25 par défaut, de 20 à 40) pour chaque joueur, additionner les points des bâtiments, des drapeaux contrôlés et de l’or restant. Une égalité donne une victoire partagée.
+- Sinon, après le nombre de tours choisi (25 par défaut, de 20 à 40) pour chaque joueur, additionner les points des bâtiments, des missions, des drapeaux contrôlés et de l’or restant. Une égalité donne une victoire partagée.
 - Chaque bâtiment ordinaire rapporte 1 point ; un monument en rapporte 4 ; chaque drapeau vaut 4 points. Le donjon et le défrichement ne rapportent rien.
 - Chaque paire de pièces d’or restant en stock rapporte 1 point. Les terrains révélés, les ouvriers, les soldats, la nourriture et les matériaux ne rapportent aucun point.
 
@@ -66,9 +66,41 @@ La construction affiche un complément d’achat à confirmer. Le bouton de recr
 
 Pour 1 or, un ouvrier peut révéler une case voisine du terrain de son choix (plaine, forêt, montagne ou rivière). Cet achat consomme son action d’exploration et ne retire aucune tuile de la pioche.
 
-L’or remplace le prestige : les missions donnent de l’or ; renouveler les quatre offres d’un marché coûte 1 or, une fois par joueur et par tour. Les missions continuent à exiger une contribution après leur apparition, et montent de difficulté après leur attribution.
+L’or remplace le prestige ; les missions donnent des récompenses croisées ; renouveler les quatre offres d’un marché coûte 1 or, une fois par joueur et par tour. Les missions continuent à exiger une contribution après leur apparition, et montent de difficulté après leur attribution.
 
 Départ par défaut : deux ouvriers mobiles au donjon, 3 matériaux, 2 nourritures et 2 ors. Chaque ressource peut être réglée de 0 à 10 avant la partie. Le second joueur reçoit toujours 1 or supplémentaire.
+
+### Missions communes
+
+Les trois offres communes récompensent l’exploration, la construction, la construction de producteurs de nourriture/bois/or, la production cumulée, la puissance militaire et les multiplicateurs possédés. Chaque famille a trois niveaux, avec une récompense fixe et visible : or, bois, blé, soldats ou points. Une nouvelle contribution après révélation reste nécessaire.
+
+La production manuelle et automatique compte, y compris sur terrain libre, même après dépense des ressources. Les stocks initiaux, achats et récompenses ne comptent pas. La puissance militaire additionne les soldats présents et la force fixe des tours et du donjon (2 chacun), sans bonus défensif : 1 donjon + 3 tours + 4 soldats = 12. Les multiplicateurs sont les moulins, scieries, églises et baraquements actuellement possédés, sans condition de voisinage. Les pertes et destructions réduisent les objectifs de possession, sans retirer les missions déjà gagnées.
+
+La mission « Conquête » compte 2 / 5 / 8 cibles : chaque soldat éliminé (en attaque ou en défense), ouvrier capturé, bâtiment adverse pris ou détruit et drapeau neutre ou adverse capturé vaut 1. Une même cible ne compte qu’une fois par joueur. Les garnisons ne comptent pas en plus du bâtiment ; un bâtiment reconstruit constitue une nouvelle cible.
+
+La mission « Aménager la nature » demande 2 / 4 / 6 aménagements parmi ponts, grands ponts, tunnels et défrichements. Toutes les variantes comptent. Chaque pose vaut 1, quelle que soit sa taille ; les captures ne sont pas des aménagements.
+
+Les ressources offertes ne sont pas comptabilisées comme production. Les soldats offerts apparaissent au donjon, sans mouvement ni action, et deviennent actifs au prochain tour de leur propriétaire. Ils contribuent immédiatement à la puissance militaire et peuvent défendre. Les points des missions sont acquis définitivement et figurent dans le score actuel et final.
+
+| Mission | Palier 1 | Palier 2 | Palier 3 |
+| --- | --- | --- | --- |
+| Produire de l’or | 1 point(s) | 2 point(s) | 3 point(s) |
+| Produire du bois | 2 blé | 3 blé | 4 blé |
+| Produire du blé | 2 bois | 3 bois | 4 bois |
+| Produire des ressources (total) | 1 point(s) | 2 point(s) | 3 point(s) |
+| Puissance militaire | 2 bois | 3 blé | 4 bois |
+| Éliminer / capturer | 1 or | 2 or | 3 or |
+| Aménager la nature | 1 or | 2 point(s) | 3 point(s) |
+| Construire des bâtiments | 1 blé + 1 bois | 2 blé + 2 bois | 3 blé + 3 bois |
+| Explorer (total) | 1 or | 2 or | 3 point(s) |
+| Explorer les forêts | 2 blé | 2 or | 3 point(s) |
+| Explorer les plaines | 2 bois | 2 or | 3 point(s) |
+| Explorer les montagnes | 1 or | 2 or | 3 point(s) |
+| Explorer les rivières | 2 bois | 3 blé | 3 point(s) |
+| Construire des producteurs de nourriture | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
+| Construire des producteurs de bois | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
+| Construire des producteurs d’or | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
+| Posséder des multiplicateurs | 1 soldat(s) | 2 soldat(s) | 3 soldat(s) |
 
 ### Ouvriers et maisons
 
@@ -94,7 +126,7 @@ Le roi, l’émissaire et la Chancellerie ont été supprimés. Les états de pa
 
 ### Combat
 
-**Attaque = effectif attaquant. Défense = effectif défenseur + 1. Le vainqueur conserve la différence.**
+**Attaque = effectif attaquant. Défense = force fixe du bâtiment + effectif défenseur ; ajouter +1 uniquement si des soldats défendent sans bâtiment ayant une force fixe. Le vainqueur conserve la différence.**
 
 | Attaque | Soldats défenseurs | Résultat |
 | --- | --- | --- |
@@ -111,7 +143,7 @@ Un soldat qui occupe un drapeau le capture. Sa couleur et ses points persistent 
 
 Une tour coûte 2 matériaux et peut être construit sur **toute case révélée sans bâtiment**, quel que soit le terrain, y compris sur une annexe compatible. Sa case devient praticable. Construire sur un drapeau en prend le contrôle ; le drapeau n’est pas un bâtiment et peut coexister avec la tour.
 
-La tour et le donjon possèdent une garnison fixe de 1 soldat. Une armée alliée peut les renforcer. Appliquer le bonus défensif +1 une seule fois. La garnison est retirée en dernier et reste présente tant qu’aucun attaquant survivant n’occupe la case, même après une égalité des forces. Ainsi, 2 attaquants ne détruisent pas une tour isolée ; 3 la détruisent avec 1 survivant.
+La tour et le donjon possèdent une force fixe de 2, sans bonus défensif propre. Une armée alliée peut les renforcer : ajouter uniquement son effectif. Le bonus défensif de +1 des soldats s’applique uniquement sans bâtiment ayant une force fixe. Une tour avec un soldat défend donc à 3. La garnison est retirée en dernier et reste présente tant qu’aucun attaquant survivant n’occupe la case, même après une égalité des forces. Ainsi, 2 attaquants ne détruisent pas une tour isolée ; 3 la détruisent avec 1 survivant.
 
 ### Destruction et retour des bâtisseurs
 

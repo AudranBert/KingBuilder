@@ -10,15 +10,16 @@
     "revealed-river",
     "revealed-mountain",
     "built-all",
-    "built-sawmill",
-    "built-farm",
-    "built-port",
-    "built-mine",
-    "recruited-all",
-    "resources-all",
-    "resources-wood",
-    "resources-stone",
-    "resources-iron",
-    "resources-wheat"
+    "built-food",
+    "built-material",
+    "built-gold",
+    "produced-all",
+    "produced-food",
+    "produced-material",
+    "produced-gold",
+    "military",
+    "multipliers",
+    "conquests",
+    "landscaping"
   ]
 }

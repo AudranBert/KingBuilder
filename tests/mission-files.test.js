@@ -16,12 +16,12 @@ test("chaque catégorie regroupe ses trois niveaux dans un fichier indexé", asy
     const group = JSON.parse(await readFile(new URL(`${family}.json`, directory), "utf8"));
     assert.deepEqual(group.map(m => m.difficulty), [1, 2, 3]);
     assert.ok(group.every(m => m.family === family));
-    assert.ok(group.every(m => ["metric", "terrain", "building", "resource"].every(key => m[key] === group[0][key])));
+    assert.ok(group.every(m => ["metric", "terrain", "building", "resource", "producerResource"].every(key => m[key] === group[0][key])));
     assert.ok(group[0].target < group[1].target && group[1].target < group[2].target);
     missions.push(...group);
   }
   assert.deepEqual(MISSION_CONFIGURATION.missions, missions);
-  assert.deepEqual(missions.filter(m => m.family === "revealed-mountain").map(m => m.target), [3, 6, 9]);
+  assert.deepEqual(missions.filter(m => m.family === "revealed-mountain").map(m => m.target), [5, 10, 16]);
 });
 
 test("le chargement refuse un index invalide, un fichier absent et une mission dans la mauvaise catégorie", async () => {

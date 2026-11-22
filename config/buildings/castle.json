@@ -5,7 +5,7 @@
     "icon": "assets/textures/buildings/castle.svg",
     "cost": {},
     "terrain": "plain",
-    "description": "Garrison 1; losing your keep means defeat.",
+    "description": "Fixed strength 2 (no defensive bonus); losing your keep means defeat.",
     "pattern": "One plain space.",
     "constructible": false,
     "layout": [
@@ -13,6 +13,6 @@
     ],
     "tier": 2,
     "points": 0,
-    "garrison": 1
+    "garrison": 2
   }
 ]

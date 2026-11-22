@@ -1,9 +1,9 @@
 [
   {
     "id": "explore-6",
-    "name": "Reveal 6 spaces",
+    "name": "Reveal 8 spaces",
     "metric": "revealed",
-    "target": 6,
+    "target": 8,
     "reward": {
       "gold": 1
     },
@@ -12,22 +12,22 @@
   },
   {
     "id": "explore-12",
-    "name": "Reveal 12 spaces",
+    "name": "Reveal 16 spaces",
     "metric": "revealed",
-    "target": 12,
+    "target": 16,
     "reward": {
-      "gold": 1
+      "gold": 2
     },
     "family": "revealed-all",
     "difficulty": 2
   },
   {
     "id": "explore-20",
-    "name": "Reveal 20 spaces",
+    "name": "Reveal 24 spaces",
     "metric": "revealed",
-    "target": 20,
+    "target": 24,
     "reward": {
-      "gold": 1
+      "score": 3
     },
     "family": "revealed-all",
     "difficulty": 3

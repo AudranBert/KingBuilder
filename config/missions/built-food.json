@@ -1,0 +1,38 @@
+[
+  {
+    "id": "built-food-1",
+    "name": "Build 1 food producer",
+    "metric": "built",
+    "target": 1,
+    "producerResource": "food",
+    "reward": {
+      "soldiers": 1
+    },
+    "family": "built-food",
+    "difficulty": 1
+  },
+  {
+    "id": "built-food-2",
+    "name": "Build 3 food producers",
+    "metric": "built",
+    "target": 3,
+    "producerResource": "food",
+    "reward": {
+      "soldiers": 2
+    },
+    "family": "built-food",
+    "difficulty": 2
+  },
+  {
+    "id": "built-food-3",
+    "name": "Build 5 food producers",
+    "metric": "built",
+    "target": 5,
+    "producerResource": "food",
+    "reward": {
+      "soldiers": 3
+    },
+    "family": "built-food",
+    "difficulty": 3
+  }
+]

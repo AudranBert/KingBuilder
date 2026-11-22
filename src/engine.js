@@ -1,4 +1,6 @@
 import { message as sourceMessage } from "./i18n.js";
+import { spawnUnit } from "./units.js";
+import { missionRewardText } from "./mission-rewards.js";
 import { MAPS, chooseMap, mapCells } from "./maps.js";
 import {
   GOLD,
@@ -6,6 +8,7 @@ import {
   emptyProgress,
   initializeMissions,
   settleMissions,
+  recordConquest,
   buildingPayment,
   costPayment,
   rerollError,
@@ -362,6 +365,7 @@ export function score(g, i) {
   return {
     buildings: Object.entries(g.board).reduce((n,[k,c])=>{if(c.building?.owner!==i)return n;const b=BUILDINGS[c.building.type], [x,y]=parseKey(k);const multiplier=['monument','small_monument','large_monument'].includes(b.family||b.id) && nearbyBuildings(g,i,x,y).some(v=>BUILDINGS[v.building.type].monumentMultiplier)?2:1;return n+(b.points??RULES.points.building)*multiplier;},0),
     flags: Object.values(g.board).filter(c => c.flag?.owner === i).length * RULES.points.flag,
+      ...((g.players[i].missionScore || 0) > 0 ? { missions: g.players[i].missionScore } : {}),
     ...(g.finished ? { gold: Math.floor(g.players[i].resources.gold / RULES.points.goldPerPoint) } : {}),
   };
 }
@@ -450,7 +454,7 @@ export function defenseAt(g, owner, x, y) {
   const defenders = armyAt(g, owner, x, y).length;
   const building = g.board[key(x, y)]?.building;
   const garrison = building?.owner === owner ? BUILDINGS[building.type]?.garrison || 0 : 0;
-  const bonus = defenders + garrison > 0 ? 1 + kingdomBonus(g,owner,"combatBonus") : 0;
+  const bonus = defenders > 0 && garrison === 0 ? 1 + kingdomBonus(g,owner,"combatBonus") : 0;
   return { defenders, garrison, bonus, defense: defenders + garrison + bonus };
 }
 export function combatPreview(g, x, y) {
@@ -486,6 +490,7 @@ function returnBuilders(g, owner, x, y) {
   if (!p) return;
   for (const unit of p.units) {
     if (unit.type !== "worker" || unit.x !== x || unit.y !== y) continue;
+    recordConquest(g, g.active, `unit:${owner}:${unit.id}`);
     Object.assign(unit, p.home, { moves:0, acted:true, ended:true, skipTurns:0 });
     note(g, sourceMessage("messages.workerReturns", [p.name]));
   }
@@ -501,25 +506,37 @@ export function attack(g, x, y) {
     // The permanent garrison is removed last and persists until actual occupation.
     const survivors = Math.max(0,result.defenderSurvivors-result.garrison);
     const lost = new Set(army.slice(survivors).map(u => u.id));
+    for (const id of lost) recordConquest(g, g.active, `unit:${defenderOwner}:${id}`);
     g.players[defenderOwner].units = g.players[defenderOwner].units.filter(u => !lost.has(u.id));
   }
   const survivors = attackers.slice(0,result.attackerSurvivors), lost = new Set(attackers.slice(result.attackerSurvivors).map(u => u.id));
+  if (defenderOwner >= 0)
+    for (const id of lost) recordConquest(g, defenderOwner, `unit:${g.active}:${id}`);
   for (const u of attackers) Object.assign(u,{moves:0,acted:true,ended:true});
   p.units = p.units.filter(u => !lost.has(u.id));
   if (survivors.length) {
     if (b && b.owner !== g.active) {
+      recordConquest(g, g.active, `building:${key(x,y)}:${b.missionId || b.type}`);
       if (b.type === RULES.startingBuilding) {
         g.finished = true; g.winner = g.active; g.victory = "conquest";
       } else destroyBuilding(g,x,y);
     }
     for (let i=0;i<g.players.length;i++) if (i !== g.active) returnBuilders(g,i,x,y);
     for (const u of survivors) Object.assign(u,{x,y});
-    if (cell.flag) cell.flag.owner = g.active;
+    if (cell.flag) captureFlag(g, x, y);
   }
   g.selectedUnitId = survivors[0]?.id ?? null;
   g.armySelection = survivors.length ? survivors.map(u => u.id) : null;
   note(g, sourceMessage("messages.combatVersusSurvivingAttackerS", [result.attack, result.defense, survivors.length, g.victory === "conquest" ? sourceMessage("messages.keepConqueredImmediateVictory") : ""]));
+  awardMissions(g);
+  if (defenderOwner >= 0) awardMissions(g, defenderOwner);
   return result;
+}
+function captureFlag(g, x, y) {
+  const flag = g.board[key(x,y)]?.flag;
+  if (!flag || flag.owner === g.active) return;
+  recordConquest(g, g.active, `flag:${key(x,y)}`);
+  flag.owner = g.active;
 }
 // Targets accessible within the unit's remaining movement steps. The final occupation
 // is an action, not an additional movement point, and cannot be chained.
@@ -564,10 +581,14 @@ export function move(g, x, y) {
     updateActor(g, { x, y, moves: actor(g).moves - 1 });
     if (actor(g).type === "worker") {
       const cell = g.board[key(x, y)];
-      if (cell.building) cell.building.owner = g.active;
-      if (cell.flag) cell.flag.owner = g.active;
+      if (cell.building && cell.building.owner !== g.active) {
+        recordConquest(g, g.active, `building:${key(x,y)}:${cell.building.missionId || cell.building.type}`);
+        cell.building.owner = g.active;
+      }
+      if (cell.flag) captureFlag(g, x, y);
     }
   }
+  awardMissions(g);
   return "moved";
 }
 export function transformed(tile, rotation = 0, anchor = 0) {
@@ -761,9 +782,12 @@ export function build(
   if (b.transformTo) g.board[key(x, y)].terrain = b.transformTo;
   else {
     g.board[key(x, y)].building = { type, owner: g.active, rotation };
-    if (type === "outpost" && g.board[key(x,y)].flag) g.board[key(x,y)].flag.owner = g.active;
+    if (type === "outpost" && g.board[key(x,y)].flag) captureFlag(g, x, y);
     p.progress.built[type] = (p.progress.built[type] || 0) + 1;
+    g.board[key(x,y)].building.missionId = `${g.active}:${type}:${p.progress.built[type]}`;
   }
+  if (["bridge", "great_bridge", "tunnel", "clearing"].includes(b.family || type))
+    p.progress.landscaping = (p.progress.landscaping || 0) + 1;
   if (b.grantsWorker) {
     for (let n = 0; n < b.grantsWorker; n++) addWorker(g, x, y);
   }
@@ -821,13 +845,6 @@ function addWorker(g, x, y) {
   p.workers++;
   p.progress.recruited++;
 }
-function spawnUnit(g, x, y, type) {
-  const p = g.players[g.active];
-  p.nextUnitId = Math.max(p.nextUnitId || 0, ...p.units.map(u => u.id + 1));
-  const unit = { id: p.nextUnitId++, type, x, y, home: {x,y}, moves: 0, acted: true, ended: true, skipTurns: 0 };
-  p.units.push(unit);
-  return unit;
-}
 export function productionPreview(g, unit = actor(g), owner = g.active) {
   const cell = g.board[key(unit.x,unit.y)];
   const b = cell?.building, definition = BUILDINGS[b?.type];
@@ -856,6 +873,8 @@ export function produce(g) {
 function grantProduction(g, unit, preview) {
   const p = g.players[g.active];
   p.resources[preview.resource] += preview.amount;
+  p.progress.produced ??= {};
+  p.progress.produced[preview.resource] = (p.progress.produced[preview.resource] || 0) + preview.amount;
   if (preview.building) preview.building.productionRound = g.round;
   Object.assign(p.units.find(u => u.id === unit.id), { acted:true });
   note(g,sourceMessage("messages.produces",[p.name,preview.amount,RESOURCES[preview.resource].toLowerCase()]));
@@ -959,12 +978,11 @@ export function movementPaths(g) {
   return paths;
 }
 
-function awardMissions(g) {
-  for (const id of settleMissions(g))
-    note(
-      g,
-      sourceMessage("messages.gold", [g.players[g.active].name, MISSIONS[id].name, MISSIONS[id].reward.gold]),
-    );
+function awardMissions(g, owner = g.active) {
+  for (const id of settleMissions(g, owner))
+    for (const [type, amount] of Object.entries(MISSIONS[id].reward))
+      note(g, sourceMessage("messages.missionReward", [g.players[owner].name, MISSIONS[id].name,
+        missionRewardText({ [type]: amount }, sourceMessage)]));
 }
 function drawBuildingOffers(g, count) {
   g.buildingReplacements = (g.buildingReplacements ?? RULES.markets.advancedFromReplacement) + 1;

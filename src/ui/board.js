@@ -203,7 +203,7 @@ export function createBoard(element, scrollElement, onCell, onPreview = () => {}
               ? `<span class="terrain-symbol" aria-hidden="true">${iconHTML(TERRAINS[displayTerrain].icon)}</span>`
               : "";
         if (cell?.flag) html += `<span class="control-flag ${cell.flag.owner === 0 ? "amber" : cell.flag.owner === 1 ? "jade" : "neutral"}" aria-hidden="true">⚑</span>`;
-        if (b && BUILDINGS[b.type].garrison) html += `<span class="garrison-badge" title="${t("createBoard.fixedGarrison1Defense1")}">♜</span>`;
+        if (b && BUILDINGS[b.type].garrison) html += `<span class="garrison-badge" title="${t("createBoard.fixedStrength", [BUILDINGS[b.type].garrison])}">♜</span>`;
         if (b?.type && BUILDINGS[b.type].produces) {
           const used = b.productionRound === g.round;
           html += `<span class="production-badge ${used ? 'used' : ''}" title="${e(t(used ? 'messages.productionUsed' : 'production.available'))}">${used ? '✓' : '+' + productionAmount(g,x,y)}</span>`;

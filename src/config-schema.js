@@ -439,7 +439,7 @@ export function compileConfiguration(
     fail("missions/*.json", "pas assez de missions du niveau initial.");
   for (const m of Object.values(missions)) {
     const path = `missions.${m.id}`;
-    if (!["revealed", "built", "recruited", "resources"].includes(m.metric))
+    if (!["revealed", "built", "produced", "multipliers", "military", "conquests", "landscaping"].includes(m.metric))
       fail(path, "objectif inconnu.");
     identifier(m.family, `${path}.family`);
     integer(m.difficulty, `${path}.difficulty`, 1);
@@ -447,13 +447,17 @@ export function compileConfiguration(
       fail(path, "la difficulté dépasse maxDifficulty.");
     integer(m.target, `${path}.target`, 1);
     object(m.reward, `${path}.reward`);
-    integer(m.reward.gold, `${path}.reward.gold`, 1);
-    if (Object.keys(m.reward).some((k) => k !== "gold"))
-      fail(path, "seule une récompense en or est prise en charge.");
+    if (!Object.keys(m.reward).length) fail(path, "récompense vide.");
+    for (const [type, amount] of Object.entries(m.reward)) {
+      if (!["gold", "material", "food", "soldiers", "score"].includes(type))
+        fail(path, "récompense inconnue.");
+      integer(amount, `${path}.reward.${type}`, 1);
+    }
     for (const [field, metric, definitions] of [
       ["terrain", "revealed", terrainDefinitions],
       ["building", "built", buildings],
-      ["resource", "resources", resources],
+      ["resource", "produced", resources],
+      ["producerResource", "built", resources],
     ])
       if (
         m[field] !== undefined &&
@@ -477,7 +481,7 @@ export function compileConfiguration(
         "chaque objectif doit avoir une version par niveau jusqu’à maxDifficulty.",
       );
     const objective = (m) =>
-      JSON.stringify([m.metric, m.terrain, m.building, m.resource]);
+      JSON.stringify([m.metric, m.terrain, m.building, m.resource, m.producerResource]);
     if (variants.some((m) => objective(m) !== objective(variants[0])))
       fail(
         `missions.${family}`,
