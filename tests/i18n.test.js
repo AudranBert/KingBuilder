@@ -116,7 +116,7 @@ test("l’anglais traduit l’interface sans modifier la partie ni les pseudos",
     assert.equal(t("app.amber", [e("Maison <King>"), 1]), "Maison &lt;King&gt; (Amber) · 1");
     assert.equal(t("app.amber", ["Maison {1}", 7]), "Maison {1} (Amber) · 7");
     assert.equal(kingdomName("Maison"), "Maison");
-    assert.match(catalogueView(), /Recruit one soldier for one <span[^>]*aria-label="Food"[^>]*>.*wheat\.svg.*once per turn/);
+    assert.match(catalogueView(), /Recruit one soldier for two <span[^>]*aria-label="Food"[^>]*>.*wheat\.svg.*once per turn/);
     assert.match(catalogueView(), /losing your keep means defeat/);
     assert.match(buildingDetailsView("house"), /House/);
     assert.match(rulesView(game), /7\. Move the pieces/);

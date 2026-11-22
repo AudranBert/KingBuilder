@@ -439,7 +439,7 @@ export function compileConfiguration(
     fail("missions/*.json", "pas assez de missions du niveau initial.");
   for (const m of Object.values(missions)) {
     const path = `missions.${m.id}`;
-    if (!["revealed", "built", "produced", "multipliers", "military", "conquests", "landscaping"].includes(m.metric))
+    if (!["revealed", "built", "built-distinct", "produced", "multipliers", "military", "conquests", "landscaping"].includes(m.metric))
       fail(path, "objectif inconnu.");
     identifier(m.family, `${path}.family`);
     integer(m.difficulty, `${path}.difficulty`, 1);

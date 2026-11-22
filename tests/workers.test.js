@@ -34,8 +34,8 @@ test("bâtiment : deux ressources, une production partagée par tour et aucun se
  endTurn(g);assert.equal(p.resources.food,before+2);assert.equal(produceError(g),null);produce(g);assert.equal(p.resources.food,before+4);
 });
 
-test("maison : coût 3 et 3, recrue sur place active seulement au tour suivant",()=>{
- const g=setup(),p=g.players[0];p.resources={food:3,material:3,gold:0};g.buildingMarket[0]="house";
+test("maison : coût 4 blés, 4 bois et 1 or, recrue sur place active seulement au tour suivant",()=>{
+ const g=setup(),p=g.players[0];p.resources={food:4,material:4,gold:1};g.buildingMarket[0]="house";
  g.board['2,5']={terrain:'plain',building:{type:'house',owner:0}};
  build(g,0,1,5);const recruit=p.units[2];assert.deepEqual(p.resources,{food:0,material:0,gold:0});
  assert.equal(p.workers,3);assert.deepEqual([recruit.x,recruit.y],[1,5]);assert.ok(recruit.ended);assert.equal(actor(g).moves,3);
@@ -104,7 +104,7 @@ test("fin de tour : pas de production sur bâtiment passif, adverse ou terrain i
 
 test("dernière fin de tour : production via commande avant score, sans toucher à l’état source",()=>{
  const g=setup(),p=g.players[0];g.round=25;g.board["1,5"]={terrain:"plain",building:{type:"mine",owner:0}};Object.assign(p.units[0],{x:1,y:5});p.resources.gold=0;
- const before=structuredClone(g),next=applyCommand(g,{type:"endTurn",unit:1,args:[]});assert.deepEqual(g,before);assert.equal(next.players[0].resources.gold,1);assert.equal(next.finished,true);assert.equal(totalScore(next,0),1);assert.equal(harvestPreview(next).amounts.gold,0);
+ const before=structuredClone(g),next=applyCommand(g,{type:"endTurn",unit:1,args:[]});assert.deepEqual(g,before);assert.equal(next.players[0].resources.gold,1);assert.equal(next.finished,true);assert.equal(totalScore(next,0),0);assert.equal(harvestPreview(next).amounts.gold,0);
 });
 
 test("les ouvriers restés au donjon ne produisent pas et l’interface décrit l’action", () => {

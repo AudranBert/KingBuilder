@@ -16,7 +16,7 @@
     ],
     "production": 1,
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true
   },
   {
@@ -38,7 +38,7 @@
     "production": 1,
     "family": "mine",
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true
   },
   {
@@ -60,7 +60,7 @@
     "production": 1,
     "family": "mine",
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true
   }
 ]

@@ -52,6 +52,6 @@ test("le décompte ajoute un point par paire d’or restante", () => {
   g.finished = true;
   assert.equal(score(g, 0).gold, 2);
   assert.equal(totalScore(g, 0), 2);
-  assert.equal(BUILDINGS.house.cost.food, 3);
-  assert.equal(BUILDINGS.house.cost.material, 3);
+  assert.equal(BUILDINGS.house.cost.food, 4);
+  assert.equal(BUILDINGS.house.cost.material, 4);
 });

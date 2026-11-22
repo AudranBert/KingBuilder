@@ -19,6 +19,29 @@ function farmMission() {
   return g;
 }
 
+test("constructions totales et différentes : variantes regroupées, historique conservé et contribution nouvelle", () => {
+  const g = createGame(), p = g.players[0];
+  p.progress.built = { farm: 4, farm_t: 1 };
+  assert.equal(missionProgress(g, "build-4"), 5);
+  assert.equal(missionProgress(g, "built-distinct-4"), 1);
+  g.missions = { tiered: 1, market: ["built-distinct-2", "build-4"], deck: [], claimed: [] };
+  initializeMissions(g);
+  p.progress.built.farm_t++;
+  assert.deepEqual(settleMissions(g), ["build-4"]);
+  p.progress.built.sawmill = 1;
+  assert.deepEqual(settleMissions(g), ["built-distinct-2"]);
+  g.board["4,4"] = { terrain: "forest", building: { type: "sawmill", owner: 0 } };
+  destroyBuilding(g, 4, 4);
+  assert.equal(missionProgress(g, "built-distinct-4"), 2);
+  g.missions = { tiered: 1, market: ["built-distinct-2"], deck: [], claimed: [] };
+  initializeMissions(g);
+  assert.equal(missionTarget(g, "built-distinct-2"), 3);
+  p.progress.built.sawmill_l = 1;
+  assert.deepEqual(settleMissions(g), []);
+  p.progress.built.mine = 1;
+  assert.deepEqual(settleMissions(g), ["built-distinct-2"]);
+});
+
 test("aménager : ponts, grands ponts et variantes, tunnels et défrichements comptent une fois par pose", () => {
   const types = Object.values(BUILDINGS).filter(b => ["bridge", "great_bridge", "tunnel", "clearing"].includes(b.family || b.id));
   for (const { id: type } of types) {
@@ -49,7 +72,7 @@ test("deux fermes déjà construites exigent une troisième et les contributions
   endTurn(g);
   assert.deepEqual(settleMissions(g), []);
   endTurn(g);
-  g.players[0].resources.food=3;
+  g.players[0].resources={food:4,material:4,gold:1};
   g.buildingMarket[0] = "house";
   prepareBuilding(g, "house", 1, 6);
   build(g, 0, 1, 6);

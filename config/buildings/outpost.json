@@ -4,17 +4,15 @@
     "name": "Tower",
     "icon": "assets/textures/buildings/outpost.svg",
     "cost": {
-      "material": 2
+      "material": 4,
+      "food": 1
     },
     "terrain": [
       "plain",
-      "forest",
-      "mountain",
-      "river",
-      "field"
+      "forest"
     ],
     "description": "Fixed strength 2 (no defensive bonus).",
-    "pattern": "One empty revealed space.",
+    "pattern": "One empty revealed plain or forest space.",
     "layout": [
       "B"
     ],

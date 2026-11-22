@@ -110,14 +110,19 @@ test("garnison : égalité sans destruction, occupation avec un survivant pour d
   assert.equal(armyAt(g,0,3,2).length,1);
 });
 
-test("tour : tous les terrains révélés libres, avec ou sans drapeau",()=>{
-  for (const terrain of ["plain","forest","mountain","river","field"]) {
+test("tour : plaines et forêts uniquement, avec ou sans drapeau",()=>{
+  for (const terrain of ["plain","forest"]) {
     const g=game();prepareBuilding(g,"outpost");g.board["2,2"].terrain=terrain;
     assert.equal(buildError(g,0,2,2),null);build(g,0,2,2);
     assert.equal(g.board["2,2"].building.type,"outpost");
     assert.equal(g.board["2,2"].terrain,terrain);
     endTurn(g);endTurn(g);g.buildingMarket[0]="outpost";
     assert.match(buildError(g,0,2,2),/overlaps/);
+  }
+  for (const terrain of ["mountain", "river", "field"]) {
+    const blocked=game();prepareBuilding(blocked,"outpost");blocked.board["2,2"].terrain=terrain;
+    const before=structuredClone(blocked);assert.match(buildError(blocked,0,2,2),/incompatible terrain/);
+    assert.throws(()=>build(blocked,0,2,2));assert.deepEqual(blocked,before);
   }
   const g=game();prepareBuilding(g,"outpost");g.board["2,2"].flag={owner:null};
   build(g,0,2,2);assert.equal(g.board["2,2"].flag.owner,0);
@@ -240,9 +245,14 @@ test("destruction : seulement la case du bâtiment, empreinte libérée et ouvri
   assert.equal(g.players[0].workers,2);
 });
 
-test("une maison détruite ne supprime pas son ouvrier et une caserne ses soldats",()=>{
+test("une maison détruite supprime son ouvrier, une caserne conserve ses soldats",()=>{
   const g=game();prepareBuilding(g,"house");build(g,0,2,2);
-  const workers=g.players[0].workers;destroyBuilding(g,2,2);assert.equal(g.players[0].workers,workers);
+  const workers=g.players[0].workers, worker=g.players[0].units.at(-1);
+  Object.assign(worker,{x:4,y:2});
+  destroyBuilding(g,2,2);assert.equal(g.players[0].workers,workers-1);
+  assert.ok(!g.players[0].units.some(u=>u.id===worker.id));
+  assert.equal(g.buildingDeck.at(-1),"house");
+  const snapshot=structuredClone(g);destroyBuilding(g,2,2);assert.deepEqual(g,snapshot);
   g.board["3,2"].building={type:"barracks",owner:0};soldiers(g,0,3,4,2);
   destroyBuilding(g,3,2);assert.equal(g.players[0].units.filter(u=>u.type==="soldier").length,3);
 });
@@ -252,6 +262,36 @@ test("ouvrier capturé : retour au donjon et activation au prochain tour",()=>{
  selectUnit(g,soldiers(g,0,1,2,2)[0].id);attack(g,3,2);
  assert.deepEqual([worker.x,worker.y],[g.players[1].home.x,g.players[1].home.y]);assert.ok(worker.ended);
  endTurn(g);assert.equal(worker.ended,false);assert.equal(worker.moves,3);
+});
+
+test("maisons : le lien survit à une capture et à la sérialisation sans toucher les autres ouvriers", () => {
+  const g=game();
+  prepareBuilding(g,"house");build(g,0,2,2);
+  const firstWorker=g.players[0].units.at(-1).id;
+  endTurn(g);endTurn(g);
+  prepareBuilding(g,"house_water",4,2);build(g,0,4,2);
+  const otherWorker=g.players[0].units.at(-1).id;
+  g.board["2,2"].building.owner=1;
+  const restored=JSON.parse(JSON.stringify(g));
+  restored.active=0;restored.selectedUnitId=firstWorker;
+  destroyBuilding(restored,2,2);
+  assert.equal(restored.selectedUnitId,null);
+  assert.equal(restored.players[0].workers,3);
+  assert.equal(restored.players[1].workers,2);
+  assert.ok(restored.players[0].units.some(u=>u.id===otherWorker));
+  assert.ok(!restored.players[0].units.some(u=>u.id===firstWorker));
+  assert.deepEqual(restored.buildingDeck.slice(-1),["house"]);
+  validateGame(restored);
+});
+
+test("destruction : chaque bâtiment revient en fin de pioche avec sa variante exacte", () => {
+  for (const type of ["outpost", "barracks_forest", "house_water", "bridge", "tunnel", "farm_t"]) {
+    const g=game(), deck=[...g.buildingDeck];
+    g.board["3,2"].building={type,owner:1};
+    destroyBuilding(g,3,2);
+    assert.deepEqual(g.buildingDeck,[...deck,type]);
+    assert.equal(g.board["3,2"].building,undefined);
+  }
 });
 
 test("plusieurs ouvriers capturés reviennent ensemble au donjon",()=>{
@@ -333,10 +373,10 @@ test("commerce : prix par producteur adverse, aucune influence des affectations"
 });
 
 test("achat à la construction : confirmation exacte, paiement atomique et or non achetable",()=>{
-  const g=game();prepareBuilding(g,"house");g.players[0].resources={material:0,food:1,gold:10};
+  const g=game();prepareBuilding(g,"house");g.players[0].resources={material:0,food:1,gold:15};
   const before=structuredClone(g);
   assert.throws(()=>build(g,0,2,2,0,{allowGold:true,expectedGold:1}),/changed/);
-  assert.deepEqual(g,before);build(g,0,2,2,0,{allowGold:true,expectedGold:10});
+  assert.deepEqual(g,before);build(g,0,2,2,0,{allowGold:true,expectedGold:14});
   assert.deepEqual(g.players[0].resources,{material:0,food:0,gold:0});
   assert.equal(costPayment(g,{gold:1}).affordable,false);
 });
@@ -344,7 +384,7 @@ test("achat à la construction : confirmation exacte, paiement atomique et or no
 test("recrutement avec achat à la banque et quota indépendant de la construction",()=>{
   const g=game();prepareBuilding(g,"barracks");build(g,0,2,2);
   g.players[0].resources={material:0,food:0,gold:4};trainUnit(g,2,2,"soldier");
-  assert.equal(g.players[0].resources.gold,2);assert.equal(g.players[0].units.filter(u=>u.type==="soldier").length,1);
+  assert.equal(g.players[0].resources.gold,0);assert.equal(g.players[0].units.filter(u=>u.type==="soldier").length,1);
 });
 
 test("décompte : bâtiments à points et drapeaux après 50 tours individuels",()=>{

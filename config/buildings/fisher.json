@@ -16,7 +16,7 @@
     ],
     "production": 2,
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true
   },
   {
@@ -37,7 +37,7 @@
     "production": 2,
     "family": "fisher",
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true
   },
   {
@@ -59,7 +59,7 @@
     "production": 2,
     "family": "fisher",
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true
   }
 ]

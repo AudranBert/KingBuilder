@@ -25,9 +25,9 @@ test("nouvelle mission déjà remplie : une contribution supplémentaire est né
  g.players[0].revealed++;settleMissions(g);assert.equal(missionTarget(g,"explore-12"),32);assert.equal(g.missions.claimed.length,1);
 });
 test("paiement : les ressources disponibles sont utilisées avant l’achat et prix actualisé",()=>{
- const g=createGame();g.missions.market=[];prepareBuilding(g,"house",1,6);g.buildingMarket[0]="house";g.players[0].resources={food:1,material:0,gold:13};
- const payment=buildingPayment(g,0);assert.equal(payment.gold,10);
+ const g=createGame();g.missions.market=[];prepareBuilding(g,"house",1,6);g.buildingMarket[0]="house";g.players[0].resources={food:1,material:0,gold:19};
+ const payment=buildingPayment(g,0);assert.equal(payment.gold,14);
  g.board["9,9"]={terrain:"forest",building:{type:"sawmill",owner:1}};
- const before=structuredClone(g);assert.throws(()=>build(g,0,1,6,0,{allowGold:true,expectedGold:10}));assert.deepEqual(g,before);
- build(g,0,1,6,0,{allowGold:true,expectedGold:13});assert.equal(g.players[0].resources.gold,0);
+ const before=structuredClone(g);assert.throws(()=>build(g,0,1,6,0,{allowGold:true,expectedGold:14}));assert.deepEqual(g,before);
+ build(g,0,1,6,0,{allowGold:true,expectedGold:18});assert.equal(g.players[0].resources.gold,0);
 });

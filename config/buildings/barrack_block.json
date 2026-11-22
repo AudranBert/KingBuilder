@@ -3,15 +3,16 @@
     "id": "barrack_block",
     "name": "Barrack block",
     "tier": 3,
-    "description": "Barracks within two orthogonal steps can recruit two soldiers per turn, for one wheat each. No worker required.",
+    "description": "Barracks within two orthogonal steps can recruit two soldiers per turn, for two wheat each. No worker required.",
     "icon": "assets/textures/buildings/barrack-block.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "Three plains in a line: barrack block and courtyard.",
+    "pattern": "Three plains in an L: barrack block and courtyard.",
     "layout": [
-      "Bpp"
+      "Bp",
+      "p."
     ],
     "weight": 1,
     "points": 0,
@@ -21,16 +22,15 @@
     "id": "barrack_block_forest",
     "name": "Barrack block",
     "tier": 3,
-    "description": "Barracks within two orthogonal steps can recruit two soldiers per turn, for one wheat each. No worker required.",
+    "description": "Barracks within two orthogonal steps can recruit two soldiers per turn, for two wheat each. No worker required.",
     "icon": "assets/textures/buildings/barrack-block.svg",
     "cost": {
       "material": 4
     },
     "terrain": "plain",
-    "pattern": "One plain and two forests in an L.",
+    "pattern": "One plain and one space of any terrain in a line, separated by one space outside the pattern.",
     "layout": [
-      "Bf",
-      ".f"
+      "B.c"
     ],
     "weight": 1,
     "points": 0,

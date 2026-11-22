@@ -318,9 +318,9 @@ export function missionsView(g) {
           : ["military", "conquests"].includes(m.metric) ? iconHTML("assets/textures/interface/sword.svg")
           : m.metric === "landscaping" ? iconHTML(BUILDINGS.bridge.icon)
           : m.metric === "multipliers" ? iconHTML(BUILDINGS.mill.icon)
-          : m.metric === "built" ? iconHTML(BUILDINGS.house.icon) : "";
+          : ["built", "built-distinct"].includes(m.metric) ? iconHTML(BUILDINGS.house.icon) : "";
         const summary = symbol + " " + e(definitionText("missions", m));
-        const explanationKey = {conquests:"missionsView.conquestsExplanation", landscaping:"missionsView.landscapingExplanation", produced:"missionsView.productionExplanation", military:"missionsView.militaryExplanation", multipliers:"missionsView.multipliersExplanation"}[m.metric];
+        const explanationKey = {"built-distinct":"missionsView.distinctExplanation", conquests:"missionsView.conquestsExplanation", landscaping:"missionsView.landscapingExplanation", produced:"missionsView.productionExplanation", military:"missionsView.militaryExplanation", multipliers:"missionsView.multipliersExplanation"}[m.metric];
         const explanation = explanationKey ? " · " + t(explanationKey) : "";
         return `<article class="mission-card" title="${t("missionsView.firstComeFirstServed", [e(definitionText("missions", m))])}${explanation} · ${e(missionRewardText(m.reward))}" aria-label="${e(definitionText("missions", m))}"><div><strong><span class="mission-stars" aria-label="${t("missionsView.difficultyOf", [m.difficulty, RULES.missionRules.maxDifficulty])}">${"★".repeat(m.difficulty)}</span>${summary}</strong><b class="mission-reward" aria-label="${e(missionRewardText(m.reward))}">${Object.entries(m.reward).map(([type, amount]) => `<span>+${amount} ${type === "score" ? "★" : iconHTML(type === "soldiers" ? UNIT_DEFINITIONS.soldier.icon : RESOURCE_DEFINITIONS[type].icon)}</span>`).join(" ")}</b></div><div class="mission-progress">${g.players
           .map((p, i) => {

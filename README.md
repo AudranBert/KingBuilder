@@ -34,7 +34,7 @@ English is the source language. Edit names, descriptions, placement patterns and
 
 - Occuper le donjon adverse avec au moins un soldat survivant donne une victoire immédiate.
 - Sinon, après le nombre de tours choisi (25 par défaut, de 20 à 40) pour chaque joueur, additionner les points des bâtiments, des missions, des drapeaux contrôlés et de l’or restant. Une égalité donne une victoire partagée.
-- Chaque bâtiment ordinaire rapporte 1 point ; un monument en rapporte 4 ; chaque drapeau vaut 4 points. Le donjon et le défrichement ne rapportent rien.
+- Les bâtiments de niveau 0 et 1 ne rapportent aucun point. Les autres bâtiments rapportent les points indiqués sur leur fiche ; chaque drapeau vaut 4 points. Le donjon et le défrichement ne rapportent rien.
 - Chaque paire de pièces d’or restant en stock rapporte 1 point. Les terrains révélés, les ouvriers, les soldats, la nourriture et les matériaux ne rapportent aucun point.
 
 ### Plateau et placement
@@ -72,7 +72,7 @@ Départ par défaut : deux ouvriers mobiles au donjon, 3 matériaux, 2 nourritur
 
 ### Missions communes
 
-Les trois offres communes récompensent l’exploration, la construction, la construction de producteurs de nourriture/bois/or, la production cumulée, la puissance militaire et les multiplicateurs possédés. Chaque famille a trois niveaux, avec une récompense fixe et visible : or, bois, blé, soldats ou points. Une nouvelle contribution après révélation reste nécessaire.
+Les trois offres communes récompensent l’exploration, la construction, la construction de bâtiments différents (2 / 4 / 6 familles, variantes regroupées), la construction de producteurs de nourriture/bois/or, la production cumulée, la puissance militaire et les multiplicateurs possédés. Chaque famille a trois niveaux, avec une récompense fixe et visible : or, bois, blé, soldats ou points. Une nouvelle contribution après révélation reste nécessaire.
 
 La production manuelle et automatique compte, y compris sur terrain libre, même après dépense des ressources. Les stocks initiaux, achats et récompenses ne comptent pas. La puissance militaire additionne les soldats présents et la force fixe des tours et du donjon (2 chacun), sans bonus défensif : 1 donjon + 3 tours + 4 soldats = 12. Les multiplicateurs sont les moulins, scieries, églises et baraquements actuellement possédés, sans condition de voisinage. Les pertes et destructions réduisent les objectifs de possession, sans retirer les missions déjà gagnées.
 
@@ -104,7 +104,7 @@ Les ressources offertes ne sont pas comptabilisées comme production. Les soldat
 
 ### Ouvriers et maisons
 
-Une maison coûte 3 nourritures et 3 matériaux. Elle ajoute un ouvrier sur sa case, grisé jusqu’au prochain tour du propriétaire. Il n’existe pas de recrutement séparé d’ouvriers.
+Une maison coûte 4 blés, 4 bois et 1 or. Elle ajoute un ouvrier sur sa case, grisé jusqu’au prochain tour du propriétaire. Il n’existe pas de recrutement séparé d’ouvriers.
 
 ### Développement et production
 
@@ -117,7 +117,7 @@ Le roi, l’émissaire et la Chancellerie ont été supprimés. Les états de pa
 ### Casernes et armées
 
 - Une caserne coûte 1 nourriture et 2 matériaux sans fournir de soldat gratuit.
-- Chaque caserne permet ensuite de recruter un soldat par tour pour 1 nourriture, éventuellement achetées à la banque.
+- Chaque caserne permet ensuite de recruter un soldat par tour pour 2 nourritures, éventuellement achetées à la banque.
 - Les nouvelles recrues apparaissent sur la case de leur caserne et sont grisées jusqu’au prochain tour.
 - Les soldats sur une même case forment une pile. Choisir un effectif permet de laisser les autres sur place ; déplacer une pile sur une autre permet de les réunir.
 - Chaque pion conserve son budget et son état d’activation. Les recrues ou soldats épuisés ne repartent pas avec une pile disponible. Une pile utilise le budget minimal des soldats sélectionnés.
@@ -141,7 +141,7 @@ Une cible vide n’a pas de bonus défensif. Les combats sont sans hasard. Cliqu
 
 Un soldat qui occupe un drapeau le capture. Sa couleur et ses points persistent après le départ de l’armée, jusqu’à une recapture.
 
-Une tour coûte 2 matériaux et peut être construit sur **toute case révélée sans bâtiment**, quel que soit le terrain, y compris sur une annexe compatible. Sa case devient praticable. Construire sur un drapeau en prend le contrôle ; le drapeau n’est pas un bâtiment et peut coexister avec la tour.
+Une tour coûte 4 bois et 1 blé et peut être construite sur **une plaine ou une forêt révélée sans bâtiment**, y compris sur une annexe compatible. Elle ne peut pas être construite sur montagne ou rivière. Sa case devient praticable. Construire sur un drapeau en prend le contrôle ; le drapeau n’est pas un bâtiment et peut coexister avec la tour.
 
 La tour et le donjon possèdent une force fixe de 2, sans bonus défensif propre. Une armée alliée peut les renforcer : ajouter uniquement son effectif. Le bonus défensif de +1 des soldats s’applique uniquement sans bâtiment ayant une force fixe. Une tour avec un soldat défend donc à 3. La garnison est retirée en dernier et reste présente tant qu’aucun attaquant survivant n’occupe la case, même après une égalité des forces. Ainsi, 2 attaquants ne détruisent pas une tour isolée ; 3 la détruisent avec 1 survivant.
 
@@ -149,7 +149,7 @@ La tour et le donjon possèdent une force fixe de 2, sans bonus défensif propre
 
 Occuper la case réelle d’un bâtiment adverse le détruit. Les terrains annexes ne sont pas des cibles militaires. Toute l’empreinte est libérée ; les terrains restent révélés et les champs reviennent à leur terrain sous-jacent. Les ouvriers restent sur le plateau ; une occupation ennemie les renvoie au donjon.
 
-Détruire une maison ne supprime pas son ouvrier. Détruire une caserne ne supprime pas ses soldats déjà recrutés.
+Détruire une maison supprime l’ouvrier qu’elle a créé, où qu’il se trouve. Tous les bâtiments détruits reviennent en fin de pioche. Détruire une caserne ne supprime pas ses soldats déjà recrutés.
 
 Un ouvrier capturé retourne au donjon, grisé jusqu’à son prochain tour. Occuper le donjon termine immédiatement la partie.
 

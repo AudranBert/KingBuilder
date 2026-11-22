@@ -1,5 +1,6 @@
 // Shared message keys; parameters use {0}, {1}, etc.
 export default {
+  "missionsView.distinctExplanation": "Different building families constructed. Variants count as one family; destruction does not erase construction history.",
   "messages.missionRewardAmount.gold": "+{0} gold",
   "messages.missionRewardAmount.material": "+{0} wood",
   "messages.missionRewardAmount.food": "+{0} wheat",
@@ -434,7 +435,7 @@ export default {
   "tradeView.buyingMissingResourcesBasePricePerEnemy": "Buying missing resources: base price {0} + {1} per enemy producer",
   "tradeView.bank": "Bank",
   "rulesView.1TheGoal": "1. The goal",
-  "rulesView.conquerTheEnemyKeepWithASurviving": "Conquer the enemy keep with a surviving army to win immediately. Otherwise, after {0} turns per player, the highest score wins: building points + mission points + {1} per flag + 1 per group of {2} gold.",
+  "rulesView.conquerTheEnemyKeepWithASurviving": "Conquer the enemy keep with a surviving army to win immediately. Otherwise, after {0} turns per player, the highest score wins: building points + mission points + {1} per flag + 1 per group of {2} gold. Tier 0 and 1 buildings score no points.",
   "rulesView.2SetUpTheBoard": "2. Set up the board",
   "rulesView.onTheBoardEachPlayerPlacesSetup": "On the board {0} × {1}, each player places {2} setup tile(s) on empty spaces, taking turns. With two players, Jade goes first. These placements do not count toward missions.",
   "rulesView.3TakeYourTurn": "3. Take your turn",
@@ -443,11 +444,11 @@ export default {
   "rulesView.placeATerrainTileTouchingTheBuilder": "Place a terrain tile touching the builder: it reveals spaces shared by both players. For {0} gold, you can also reveal one adjacent space of your chosen terrain. This uses the unit’s action.",
   "rulesView.toBuildPayTheCostAndPlace": "To build, pay the cost. At least one space of the building tile must be on the worker's space or share an edge with it, even if that space does not contain the building. The pattern must match the revealed terrain and cannot overlap a building. Mountains and rivers require a tunnel or bridge to cross. See the catalog for patterns and effects.",
   "rulesView.5ProduceAndProgress": "5. Produce and progress",
-  "rulesView.aHouseProvidesOneWorkerAssignIt": "Produce immediately gains 1 food on an empty plain, 1 material on an empty forest, or the output shown by your occupied production building. Each building produces once per turn, regardless of the number of workers. Workers with an unused action automatically produce at the end of the turn. Mills add +1 without stacking. A house costs 3 food and 3 materials; its worker appears on the house and becomes active next turn. Missions grant their displayed rewards: gold, wood, wheat, soldiers at the keep or points. Reward soldiers become active on their owner’s next turn. The bank lets you cover costs with gold.",
+  "rulesView.aHouseProvidesOneWorkerAssignIt": "Produce immediately gains 1 food on an empty plain, 1 material on an empty forest, or the output shown by your occupied production building. Each building produces once per turn, regardless of the number of workers. Workers with an unused action automatically produce at the end of the turn. Mills add +1 without stacking. A house costs 4 food, 4 materials and 1 gold; its worker appears on the house and becomes active next turn. Missions grant their displayed rewards: gold, wood, wheat, soldiers at the keep or points. Reward soldiers become active on their owner’s next turn. The bank lets you cover costs with gold.",
   "rulesView.rerollingTheMarketCostsGoldOncePer": "Rerolling the market costs {0} gold, once per turn. Recruited units become active on your next turn.",
   "rulesView.6FightAndConquer": "6. Fight and conquer",
-  "rulesView.groupYourSoldiersOrChooseANumber": "Group your soldiers or choose a number to split the army. Attack: number of soldiers. A tower or keep provides fixed strength 2, without a defensive bonus. Defending soldiers add their number. Their +1 bonus applies only without a building providing fixed strength: a tower with one soldier defends at 3. The stronger side keeps the difference; on a tie, no attacker can occupy the target.",
-  "rulesView.withASurvivorOccupyAFlagTo": "With a survivor, occupy a flag to capture it or an enemy building to destroy it. A worker also captures a neutral or enemy flag, or takes ownership of an enemy building, by entering its space if no enemy unit or garrison defends it. The building is preserved without resetting its quotas. Flags remain yours after leaving. Garrisons remain until enemy occupation. Captured workers return to the keep and become active next turn.",
+  "rulesView.groupYourSoldiersOrChooseANumber": "Group your soldiers or choose a number to split the army. Attack: number of soldiers. A tower or keep provides fixed strength 2, without a defensive bonus. Defending soldiers add their number. Their +1 bonus applies only without a building providing fixed strength: a tower with one soldier defends at 3. The stronger side keeps the difference; on a tie, no attacker can occupy the target. A tower costs 4 materials and 1 food and can only be built on a plain or forest. Recruiting a soldier costs 2 food.",
+  "rulesView.withASurvivorOccupyAFlagTo": "With a survivor, occupy a flag to capture it or an enemy building to destroy it. A worker also captures a neutral or enemy flag, or takes ownership of an enemy building, by entering its space if no enemy unit or garrison defends it. The building is preserved without resetting its quotas. Flags remain yours after leaving. Garrisons remain until enemy occupation. Captured workers return to the keep and become active next turn. Destroyed buildings return to the bottom of the deck. Destroying a house removes the worker it created, wherever that worker is.",
   "rulesView.7MoveThePieces": "7. Move the pieces",
   "rulesView.clickOrDragUnitsAndCardsR": "In Play mode, select a worker or army, then its destination. Inspect mode shows information. You can also drag units. R or the mouse wheel rotates a card; S mirrors it; Escape or right-click cancels selection. On touch screens, tap a card then a space, or drag its ⠿ handle.",
   "missionsView.of": "{0}: {1} of {2}",
@@ -494,5 +495,5 @@ export default {
   "settings.missions": "Missions",
   "settings.missionsInvalid": "The missions setting must be a boolean.",
   "rulesView.setupWithoutMissions": "On the board {0} × {1}, each player places {2} setup tile(s) on empty spaces, taking turns. With two players, Jade goes first.",
-  "rulesView.productionWithoutMissions": "Produce immediately gains 1 food on an empty plain, 1 material on an empty forest, or the output of your occupied production building. Each building produces once per turn. Workers with an unused action automatically produce at the end of the turn. Mills add +1 without stacking. A house costs 3 food and 3 materials; its worker becomes active next turn. Missions are disabled."
+  "rulesView.productionWithoutMissions": "Produce immediately gains 1 food on an empty plain, 1 material on an empty forest, or the output of your occupied production building. Each building produces once per turn. Workers with an unused action automatically produce at the end of the turn. Mills add +1 without stacking. A house costs 4 food, 4 materials and 1 gold; its worker becomes active next turn. Missions are disabled."
 };

@@ -1,9 +1,9 @@
 [
   {
     "id": "build-2",
-    "name": "Build 2 buildings",
+    "name": "Build 3 buildings",
     "metric": "built",
-    "target": 2,
+    "target": 3,
     "reward": {
       "food": 1,
       "material": 1
@@ -13,9 +13,9 @@
   },
   {
     "id": "build-4",
-    "name": "Build 4 buildings",
+    "name": "Build 6 buildings",
     "metric": "built",
-    "target": 4,
+    "target": 6,
     "reward": {
       "food": 2,
       "material": 2
@@ -25,9 +25,9 @@
   },
   {
     "id": "built-all-6",
-    "name": "Build 6 buildings",
+    "name": "Build 9 buildings",
     "metric": "built",
-    "target": 6,
+    "target": 9,
     "reward": {
       "food": 3,
       "material": 3

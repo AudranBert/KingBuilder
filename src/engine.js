@@ -482,6 +482,13 @@ export function destroyBuilding(g, x, y) {
   // Only the actual building cell is a military target, never an auxiliary tile.
   const position = key(x,y), cell = g.board[position], b = cell?.building;
   if (!b) return;
+  for (const { owner, id } of b.grantedWorkers || []) {
+    const player = g.players[owner];
+    player.units = player.units.filter(unit => unit.type !== "worker" || unit.id !== id);
+    player.workers = player.units.filter(unit => unit.type === "worker").length;
+    if (g.active === owner && g.selectedUnitId === id) g.selectedUnitId = null;
+  }
+  g.buildingDeck.push(b.type);
   delete cell.building;
   note(g, sourceMessage("messages.destroyed", [BUILDINGS[b.type].name]));
 }
@@ -789,7 +796,12 @@ export function build(
   if (["bridge", "great_bridge", "tunnel", "clearing"].includes(b.family || type))
     p.progress.landscaping = (p.progress.landscaping || 0) + 1;
   if (b.grantsWorker) {
-    for (let n = 0; n < b.grantsWorker; n++) addWorker(g, x, y);
+    const grantedWorkers = [];
+    for (let n = 0; n < b.grantsWorker; n++) {
+      const unit = addWorker(g, x, y);
+      grantedWorkers.push({ owner: g.active, id: unit.id });
+    }
+    g.board[key(x,y)].building.grantedWorkers = grantedWorkers;
   }
   if (b.onBuildUnit) spawnUnit(g, x, y, b.onBuildUnit);
   for (const [resource, amount] of Object.entries(b.onBuildGain || {}))
@@ -841,9 +853,10 @@ export function trainUnit(g, x, y, type) {
 }
 function addWorker(g, x, y) {
   const p = g.players[g.active];
-  spawnUnit(g, x, y, "worker");
+  const unit = spawnUnit(g, x, y, "worker");
   p.workers++;
   p.progress.recruited++;
+  return unit;
 }
 export function productionPreview(g, unit = actor(g), owner = g.active) {
   const cell = g.board[key(unit.x,unit.y)];

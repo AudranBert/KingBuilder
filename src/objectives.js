@@ -14,6 +14,10 @@ export function missionProgress(g, id, owner = g.active) {
   if (m.metric === "landscaping") return p.progress.landscaping || 0;
   if (m.metric === "revealed")
     return m.terrain ? p.progress.terrain[m.terrain] || 0 : p.revealed;
+  if (m.metric === "built-distinct")
+    return new Set(Object.entries(p.progress.built)
+      .filter(([, count]) => count > 0)
+      .map(([type]) => CONFIG.buildings[type]?.family || type)).size;
   if (m.metric === "built")
     return m.producerResource
       ? Object.entries(p.progress.built).reduce((total, [type, count]) =>

@@ -19,7 +19,7 @@ test("le marché initial exclut les tiers 2 et conserve chaque exemplaire config
 
 test("le premier remplacement après construction écarte le tier 2 sans le perdre", () => {
   const g = createGame();
-  g.players[0].resources.food = 3;
+  g.players[0].resources={food:4,material:4,gold:1};
   g.buildingMarket[0] = "house";
   g.buildingDeck = ["mill", "barracks", "farm_t", "bridge"];
   prepareBuilding(g, "house", 1, 6);
@@ -32,7 +32,7 @@ test("le premier remplacement après construction écarte le tier 2 sans le perd
   g.players[g.active].units[0].moves = 3;
   g.players[g.active].units[0].ended = false;
   g.players[g.active].units[0].acted = false;
-  g.players[1].resources.food=3;
+  g.players[1].resources={food:4,material:4,gold:1};
   g.buildingMarket[1] = "house";
   prepareBuilding(g, "house", 11, 6, 2);
   build(g, 1, 11, 6, 2);
@@ -44,7 +44,7 @@ test("dès le deuxième remplacement les tiers avancés sont autorisés", () => 
   for (const replacement of ["bridge", "farm_t", "barracks", "stable"]) {
     const g = createGame();
     g.buildingReplacements = 1;
-    g.players[0].resources.food = 3;
+    g.players[0].resources={food:4,material:4,gold:1};
     g.buildingMarket[0] = "house";
     g.buildingDeck.unshift(replacement);
     prepareBuilding(g, "house", 1, 6);

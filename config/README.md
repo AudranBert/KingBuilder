@@ -49,7 +49,7 @@ Chaque entrée contient `id`, `name`, `icon`, `startingAmount` et `points` (0 po
 - `worker` : `recruitment: "house"`, coût vide et 3 déplacements ; une action parmi explorer, construire ou produire. Les déplacements peuvent précéder et suivre l’action.
 - `soldier` : `recruitment: "building"`, coût de 2 nourritures et 3 déplacements ; armées et combat.
 
-Les maisons coûtent 3 nourritures et 3 matériaux. Leur ouvrier apparaît sur la maison, actif au tour suivant. Un ouvrier capturé revient au donjon et est actif à son prochain tour.
+Les maisons coûtent 4 blés, 4 bois et 1 or. Détruire une maison supprime l’ouvrier qu’elle a créé, même s’il s’est déplacé. Leur ouvrier apparaît sur la maison, actif au tour suivant. Un ouvrier capturé revient au donjon et est actif à son prochain tour.
 
 L’action Produire gagne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre ou la production du bâtiment occupé et possédé. Un bâtiment producteur peut être activé une seule fois par tour ; les ouvriers dont l’action reste disponible produisent automatiquement à la fin du tour. Les producteurs standards donnent 2 ressources. Les moulins ajoutent +1, sans cumul.
 
@@ -100,7 +100,7 @@ Les autres cases ne sont ni réservées ni attribuées au bâtiment. Plusieurs p
 Effets :
 
 - `produces` + `production` : ressource et quantité par action Produire.
-- `grantsWorker` : ouvriers ajoutés sur le bâtiment, actifs au prochain tour.
+- `grantsWorker` : ouvriers ajoutés sur le bâtiment, actifs au prochain tour, liés à cette construction et supprimés à sa destruction.
 - `onBuildUnit` : unité offerte sur la case du bâtiment, grisée jusqu’au prochain tour.
 - `trains` + `trainingLimit` : recrutements payants et quota par tour du propriétaire.
 - `unique` : limite à un bâtiment par joueur.
@@ -112,7 +112,7 @@ Effets :
 - `constructible: false` : bâtiment initial hors pioche (donjon).
 - `family` : variante d’un bâtiment de base, notamment pour les missions et bonus.
 
-La tour accepte tous les terrains révélés sans bâtiment, y compris un drapeau ou une annexe compatible. Sur un drapeau, sa garnison en prend le contrôle. Sa case devient praticable.
+La tour coûte 4 bois et 1 blé et accepte uniquement les plaines et forêts révélées sans bâtiment, y compris un drapeau ou une annexe compatible. Sur un drapeau, sa garnison en prend le contrôle. Sa case devient praticable.
 
 `deckSize` correspond à la pioche, actuellement 116. `weight` indique les exemplaires ; `maxFamilyCopies` limite une famille à 12 cartes, variantes comprises. Le donjon reste hors pioche.
 
@@ -136,3 +136,5 @@ Champs : `id`, `name`, `metric`, `target`, `family`, `difficulty`, `reward: {"go
 Chaque offre impose une contribution après son apparition : le seuil individuel est le maximum entre `target` et le compteur à l’apparition plus `requiredContribution`. Cela empêche les récompenses en cascade sans nouveau progrès. Une mission attribuée est remplacée par une mission du niveau suivant, jusqu’à `maxDifficulty`.
 
 Les noms historiques de certaines missions sont conservés comme identifiants de catalogue ; leur ressource est toujours déterminée par le champ `resource` actuel.
+
+Les bâtiments de niveau 0 et 1 valent 0 point. Tout bâtiment détruit revient en fin de pioche. La métrique de mission `built-distinct` compte les familles construites au moins une fois (variantes regroupées), aux paliers 2 / 4 / 6 ; `built` conserve le nombre total de constructions.

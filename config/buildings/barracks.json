@@ -12,7 +12,7 @@
     "layout": [
       "Bc"
     ],
-    "description": "Recruit one soldier for one wheat, once per turn. No worker required.",
+    "description": "Recruit one soldier for two wheat, once per turn. No worker required.",
     "pattern": "A plain building space beside an existing building, excluding bridges and tunnels.",
     "trains": [
       "soldier"
@@ -34,7 +34,7 @@
     "layout": [
       "Bp"
     ],
-    "description": "Recruit one soldier for one wheat, once per turn. No worker required.",
+    "description": "Recruit one soldier for two wheat, once per turn. No worker required.",
     "pattern": "One forest for the barracks and one plain for the courtyard.",
     "trains": [
       "soldier"

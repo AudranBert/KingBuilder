@@ -16,7 +16,7 @@
     ],
     "production": 2,
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true,
     "createsFields": true
   },
@@ -39,7 +39,7 @@
     "production": 2,
     "family": "farm",
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true,
     "createsFields": true
   },
@@ -61,7 +61,7 @@
     "production": 2,
     "family": "farm",
     "tier": 1,
-    "points": 1,
+    "points": 0,
     "traversable": true,
     "createsFields": true
   }

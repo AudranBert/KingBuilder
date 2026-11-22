@@ -80,7 +80,7 @@ test("glisser un second ouvrier sélectionné ne dépense pas les déplacements 
 
 test("les guides de placement respectent rotations, action, coût et terrains sans mutation", () => {
   const g = createGame();
-  g.players[0].resources.food=3;
+  g.players[0].resources={food:4,material:4,gold:1};
   g.buildingMarket = ["house"];
   prepareBuilding(g, "house", 1, 6);
   const choice = {kind: "building", index: 0, rotation: 0};
@@ -89,7 +89,7 @@ test("les guides de placement respectent rotations, action, coût et terrains sa
   assert.deepEqual(g, before);
   g.players[0].resources.material = 0;
   g.players[0].resources.gold = 0;
-  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /3 materials/);
+  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /4 materials/);
   g.players[0].resources.material = 2;
   g.board[key(1, 6)].terrain = "river";
   assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /incompatible terrain/);

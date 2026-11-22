@@ -116,6 +116,14 @@ export function validateGame(game) {
         );
         requireValid(b.missionId === undefined || (typeof b.missionId === "string" && b.missionId.length <= 100),
           "identifiant de construction incorrect.");
+      if (b.grantedWorkers !== undefined) {
+        requireValid(Array.isArray(b.grantedWorkers) &&
+          b.grantedWorkers.length === BUILDINGS[b.type].grantsWorker &&
+          new Set(b.grantedWorkers.map(link => `${link?.owner}:${link?.id}`)).size === b.grantedWorkers.length &&
+          b.grantedWorkers.every(link => record(link) && nonnegative(link.owner) && nonnegative(link.id) &&
+            game.players[link.owner]?.units.some(unit => unit.type === "worker" && unit.id === link.id)),
+        "ouvrier de maison incorrect.");
+      }
     }
     if (cell.flag !== undefined)
       requireValid(record(cell.flag) && (cell.flag.owner === null ||
