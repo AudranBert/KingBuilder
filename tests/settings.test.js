@@ -12,6 +12,7 @@ import { validateGame } from "../src/validation.js";
 
 test("les réglages de partie utilisent les nouvelles valeurs par défaut", () => {
   assert.deepEqual(gameSettings(), GAME_DEFAULTS);
+  assert.equal(GAME_DEFAULTS.boardSize, 11);
   const g = createGame(() => 0.5, "local", {});
   assert.equal(g.boardSize, GAME_DEFAULTS.boardSize);
   assert.equal(g.turnLimit, 25);

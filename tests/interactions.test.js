@@ -15,7 +15,7 @@ test("le bandeau explique les codes de placement sans analyser les phrases", () 
 });
 
 test("glisser le premier ouvrier suit un chemin de tpremier ouvriers cases et épuise ses déplacements", () => {
-  const g = createGame();
+  const g = createGame(undefined, 'local', { boardSize: 13 });
   g.board[key(1, 6)] = { terrain: "forest" };
   g.board[key(2, 6)] = { terrain: "plain" };
   g.board[key(3, 6)] = { terrain: "plain" };
@@ -37,7 +37,7 @@ test("glisser le premier ouvrier suit un chemin de tpremier ouvriers cases et é
 });
 test("un dépôt inaccessible ne déplace pas partiellement le premier ouvrier", () => {
   for (const terrain of ["mountain", "river", null]) {
-    const g = createGame();
+    const g = createGame(undefined, 'local', { boardSize: 13 });
     if (terrain) g.board[key(1, 6)] = { terrain };
     else delete g.board[key(1,6)];
     g.board[key(2, 6)] = { terrain: "plain" };
@@ -46,13 +46,13 @@ test("un dépôt inaccessible ne déplace pas partiellement le premier ouvrier",
     assert.throws(() => moveUnitTo(g, 2, 6));
     assert.deepEqual(g, before);
   }
-  const g = createGame();
+  const g = createGame(undefined, 'local', { boardSize: 13 });
   g.board[key(1, 6)] = { terrain: "plain" };
   g.players[g.active].units[0].ended = true;
   assert.throws(() => moveUnitTo(g, 1, 6));
 });
 test("glisser un second ouvrier sélectionné ne dépense pas les déplacements du premier ouvrier", () => {
-  const g = createGame();
+  const g = createGame(undefined, 'local', { boardSize: 13 });
   g.board[key(5, 5)] = {
     terrain: "plain",
     building: { type: "house", owner: 0 },
@@ -79,7 +79,7 @@ test("glisser un second ouvrier sélectionné ne dépense pas les déplacements 
 });
 
 test("les guides de placement respectent rotations, action, coût et terrains sans mutation", () => {
-  const g = createGame();
+  const g = createGame(undefined, 'local', { boardSize: 13 });
   g.players[0].resources={food:4,material:4,gold:1};
   g.buildingMarket = ["house"];
   prepareBuilding(g, "house", 1, 6);

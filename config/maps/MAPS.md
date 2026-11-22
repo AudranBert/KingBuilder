@@ -8,6 +8,11 @@ du catalogue. Pour ajouter une carte, créer son fichier puis ajouter son nom à
 - `maps/clearings.json` : Les clairières.
 - `maps/valley.json` : La vallée.
 - `maps/islands.json` : Îlot (identifiant stable `islands`).
+- `maps/scattered_lands.json` : Terres éparses.
+- `maps/patchwork.json` : Paysage en vrac.
+- `maps/borderlands.json` : Les confins.
+- `maps/broken_country.json` : Terres morcelées.
+- `maps/mosaic.json` : La mosaïque.
 
 Chaque carte a un `id` stable, un `name` et une `description` en français et anglais,
 une `legend` et une liste de `zones`.
@@ -23,6 +28,26 @@ blocage du chargement des fichiers modifiés par l’utilisateur.
 - Les clairières : deux paires de forêts pour amorcer la production de bois (9 cases).
 - Îlot : trois drapeaux, dont un sur une île centrale de deux cases entourée d’eau ; accès par un pont (10 cases).
 - La vallée : conserver la disposition de montagnes et de drapeaux éditée par l’utilisateur.
+- Terres éparses : cinq tuiles de terrain dispersées (14 cases) et cinq drapeaux symétriques séparés (19 cases au total).
+- Paysage en vrac : cinq tuiles de terrain dispersées (14 cases) et trois drapeaux en diagonale comme Îlot, séparés des tuiles (17 cases au total).
+- Les confins : trois tuiles sur les bords et une à l'intérieur (12 cases), avec cinq drapeaux symétriques (17 cases au total).
+- Terres morcelées : cinq tuiles dispersées, avec une longue rivière et un carré de forêt (17 cases), et cinq drapeaux symétriques (22 cases au total).
+- La mosaïque : quatre tuiles dispersées (13 cases) et trois drapeaux sur la diagonale opposée à Îlot (16 cases au total).
+- Ces cinq cartes dépassent la cible habituelle à la demande de l'utilisateur : quatre à cinq tuiles par carte et des drapeaux indépendants des tuiles.
+
+Ces cinq cartes imitent une pose aléatoire de véritables tuiles du catalogue,
+mais leurs dispositions sont fixes, asymétriques et identiques d'une partie à l'autre.
+
+Le format de référence de ces cinq cartes est 11 × 11. Chacune a des terrains
+sur au moins un bord ; les ancrages sur les bords conservent ce contact en 9 × 9
+et 13 × 13. Les nombres de tuiles et de cases préplacées restent inchangés.
+Les drapeaux restent symétriques entre les deux royaumes : deux paires opposées
+autour du centre sur Terres éparses, selon les emplacements annotés ; losange sur
+Les confins ; rectangle étroit et haut sur Terres morcelées. Les deux cartes à
+trois drapeaux utilisent des diagonales opposées : celle d'Îlot pour Paysage en vrac, l'autre pour La mosaïque. En 11 × 11, l'écart entre le nombre de
+cases de terrain à gauche et à droite (hors axe central et drapeaux) est de deux
+au maximum, sans imposer un miroir des terrains. Deux variantes 9 × 9 évitent
+les chevauchements sur Terres éparses et Les confins.
 
 ## Format
 

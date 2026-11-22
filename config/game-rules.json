@@ -1,5 +1,5 @@
 {
-  "boardSize": 13,
+  "boardSize": 11,
   "turnLimit": 25,
   "scoring": {
     "building": 1,

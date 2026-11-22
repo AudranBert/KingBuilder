@@ -97,7 +97,7 @@ test("configuration réelle : coûts, score et quota des casernes suivent les fi
  }else await writeFile(path.join(root,"config",names[i]+".json"),JSON.stringify(input[i]));
  }
  const engine=await import(pathToFileURL(path.join(root,"src/engine.js")));
- const g=engine.createGame();g.board["1,6"]={terrain:"plain"};g.buildingMarket[0]="house";engine.build(g,0,1,6,2);
+ const g=engine.createGame(undefined, 'local', {boardSize:13});g.board["1,6"]={terrain:"plain"};g.buildingMarket[0]="house";engine.build(g,0,1,6,2);
  assert.equal(g.players[0].resources.material,1);assert.equal(g.players[0].resources.food,0);assert.equal(engine.score(g,0).buildings,3);
  g.board["6,6"].flag.owner=0;assert.equal(engine.score(g,0).flags,7);
  engine.selectUnit(g,1);g.players[0].resources={food:10,material:10,gold:0};

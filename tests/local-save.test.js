@@ -17,7 +17,7 @@ test("local save restores full games, including setup, decks and the next turn",
     assert.deepEqual(new LocalSave(() => storage).resume(), game);
     const playing = createGame(Math.random, mode);
     save.start();
-    moveUnitTo(playing, 1, 6);
+    moveUnitTo(playing, 1, playing.players[0].home.y);
     endTurn(playing);
     save.save(playing);
     assert.deepEqual(new LocalSave(() => storage).resume(), playing);

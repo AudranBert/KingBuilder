@@ -11,7 +11,7 @@ import { armyControlsView, rulesView, tradeView, playersView } from "../src/ui/v
 import { createUIState, hasSelectedUnit } from "../src/ui/state.js";
 
 function game() {
-  const g = createGame(() => .42);
+  const g = createGame(() => .42, 'local', { boardSize: 13 });
   // A revealed arena for exercising military rules independently of tile draws.
   for (let y=1;y<6;y++) for (let x=1;x<11;x++) g.board[key(x,y)] = {terrain:"plain"};
   return g;
@@ -389,7 +389,7 @@ test("recrutement avec achat à la banque et quota indépendant de la constructi
 
 test("décompte : bâtiments à points et drapeaux après 50 tours individuels",()=>{
   const g=createGame();g.board["2,2"]={terrain:"plain",building:{type:"monument",owner:0}};
-  g.board["6,6"].flag.owner=0;
+  Object.values(g.board).find(cell => cell.flag).flag.owner=0;
   assert.equal(totalScore(g,0),BUILDINGS.monument.points+RULES.points.flag);
   for(let i=0;i<49;i++) endTurn(g);assert.equal(g.finished,false);
   endTurn(g);assert.equal(g.finished,true);assert.equal(g.round,25);

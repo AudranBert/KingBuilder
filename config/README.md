@@ -19,7 +19,7 @@ Modifier les JSON, puis lancer `npm run check:config` et `npm run build`. Commen
 
 ## Partie
 
-- `boardSize` : 13 par défaut, pour un centre exact et des objectifs symétriques.
+- `boardSize` : 11 par défaut, pour un centre exact et des objectifs symétriques.
 - `turnLimit` : 25 tours par joueur.
 - `players` : deux royaumes et leurs positions initiales relatives entre 0 et 1.
 - `startingWorkers` : deux ouvriers mobiles au donjon au départ.

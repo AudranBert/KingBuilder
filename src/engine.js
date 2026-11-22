@@ -272,8 +272,9 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
     }
   }
   for (const flag of selectedMap ? [] : RULES.flags) {
-    const x = Math.round((flag.x / (RULES.size - 1)) * (size - 1)),
-      y = Math.round((flag.y / (RULES.size - 1)) * (size - 1));
+    // Legacy flag coordinates use the original 13 × 13 reference board.
+    const x = Math.round((flag.x / 12) * (size - 1)),
+      y = Math.round((flag.y / 12) * (size - 1));
     board[key(x, y)] = { terrain: "plain", flag: { owner: null } };
   }
   const game = {

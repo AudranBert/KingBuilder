@@ -4,6 +4,57 @@ import { MAPS, mapCells } from "../src/maps.js";
 import { createGame, gameSettings, startOpening, openingError, placeOpeningTile } from "../src/engine.js";
 import { validateGame } from "../src/validation.js";
 
+test("les cartes dispersées conservent leurs tuiles séparées des drapeaux symétriques", () => {
+  const fiveFlagLayouts = new Set();
+  for (const [id, flagCount, tileCount, terrainCount] of [
+    ['scattered_lands', 5, 5, 14], ['patchwork', 3, 5, 14],
+    ['borderlands', 5, 4, 12], ['broken_country', 5, 5, 17], ['mosaic', 3, 4, 13],
+  ]) {
+    const map = MAPS.find(map => map.id === id);
+    const tiles = map.zones.filter(zone => !zone.rows.join('').includes('!'));
+    assert.equal(tiles.length, tileCount);
+    for (const size of [9, 11, 13]) {
+      const cells = mapCells(map, size);
+      const flags = new Set([...cells].filter(([, cell]) => cell.flag).map(([position]) => position));
+      assert.equal(flags.size, flagCount);
+      assert.equal(cells.size, terrainCount + flagCount);
+      if (size === 11) {
+        const terrainX = [...cells].filter(([, cell]) => !cell.flag).map(([position]) => Number(position.split(',')[0]));
+        const left = terrainX.filter(x => x < 5).length, right = terrainX.filter(x => x > 5).length;
+        assert.ok(Math.abs(left - right) <= 2, `${id} : répartition gauche/droite ${left}/${right}`);
+        assert.ok([...cells].some(([position, cell]) => !cell.flag && position.split(',').map(Number).some(n => n === 0 || n === 10)), `${id} : terrain sur un bord en 11 × 11`);
+        if (flagCount === 5) fiveFlagLayouts.add([...flags].sort().join(';'));
+      }
+      if (flagCount === 3) {
+        const isletFlags = new Set([...mapCells(MAPS.find(map => map.id === 'islands'), size)]
+          .filter(([, cell]) => cell.flag).map(([position]) => {
+            if (id !== 'mosaic') return position;
+            const [x, y] = position.split(',').map(Number);
+            return `${size - 1 - x},${y}`;
+          }));
+        assert.deepEqual(flags, isletFlags);
+      }
+      if (id === 'borderlands') {
+        const edgeTiles = tiles.filter(zone => [...mapCells({ ...map, variants: undefined, zones: [zone] }, size).keys()]
+          .some(position => position.split(',').map(Number).some(n => n === 0 || n === size - 1)));
+        assert.equal(edgeTiles.length, 3);
+      }
+      if (id === 'scattered_lands' && size === 11) {
+        assert.deepEqual(flags, new Set(['3,1', '6,3', '5,5', '4,7', '7,9']));
+      }
+      for (const position of flags) {
+        const [x, y] = position.split(',').map(Number);
+        assert.ok(flags.has(`${size - 1 - x},${size - 1 - y}`));
+        if (flagCount === 5 && id !== 'scattered_lands') {
+          assert.ok(flags.has(`${size - 1 - x},${y}`));
+          assert.ok(flags.has(`${x},${size - 1 - y}`));
+        }
+      }
+    }
+  }
+  assert.equal(fiveFlagLayouts.size, 3, 'les trois cartes à cinq drapeaux ont des dispositions distinctes');
+});
+
 test("la draft optionnelle se termine sur chaque carte sans modifier ses cases initiales", () => {
   for (const map of MAPS) for (const boardSize of [9, 11, 13]) for (const mode of ['solo', 'local']) for (const count of [1, 2]) {
     const game = createGame(() => .5, mode, { mapId: map.id, boardSize, openingTilesPerPlayer: count });

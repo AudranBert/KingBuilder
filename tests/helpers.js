@@ -1,8 +1,9 @@
 import { rotatePoint } from "../src/geometry.js";
 import { createGame, patternAt, key, BUILDINGS } from "../src/engine.js";
 // Tests of geometric placement need an arena without preplaced objectives.
-export function createSandboxGame(...args) {
-  const g=createGame(...args);
+export function createSandboxGame(rng, mode, settings = {}) {
+  // Fixed coordinates in placement scenarios use a 13 × 13 arena.
+  const g=createGame(rng, mode, { boardSize: 13, ...settings });
   for(const [pos,c] of Object.entries(g.board)) if(c.flag) delete g.board[pos];
   return g;
 }
