@@ -80,3 +80,16 @@ test('reprise : terminer une partie dans un onglet ne supprime pas celle d’un 
   client.accept(rooms.read(host.code, host.token));
   assert.equal(savedSession().code, other.code);
 });
+
+
+test('HTTP client preserves structured rule errors for localized UI feedback', async t => {
+  const issue = { code: 'terrainMismatch', required: ['plain'], actual: 'river', building: 'farm' };
+  t.mock.method(globalThis, 'fetch', async () => new Response(JSON.stringify({ error: 'opaque message', issue }), { status: 400 }));
+  const client = new OnlineClient(() => {}, () => {}); client.url = 'https://game.example';
+  await assert.rejects(client.request('/command'), error => {
+    assert.deepEqual(error.issue, issue);
+    assert.equal(error.code, 'terrainMismatch');
+    assert.equal(error.status, 400);
+    return true;
+  });
+});

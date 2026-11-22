@@ -2,15 +2,15 @@ import { prepareBuilding } from "./helpers.js";
 import { placementGuidance } from "../src/ui/interactions.js";
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createGame, key, selectUnit, endTurn, actor } from "../src/engine.js";
-import { dragFromCard, dragPreview, moveUnitTo, placementErrorText } from "../src/ui/interactions.js";
+import { createGame, key, selectUnit, endTurn, actor, moveUnitTo } from "../src/engine.js";
+import { dragFromCard, dragPreview, placementErrorText } from "../src/ui/interactions.js";
 import { createUIState } from "../src/ui/state.js";
 
-test("le bandeau garde seulement la cause du blocage et préfixe les erreurs", () => {
-  assert.equal(placementErrorText("Moulin : terrain incompatible, il faut plaine ou champs à la place de montagne. Bâtiment sur plaine ou champ, voisine d’un champ allié ; deux cases de cour sur plaine."),
+test("le bandeau explique les codes de placement sans analyser les phrases", () => {
+  assert.equal(placementErrorText({ code: "terrainMismatch", required: ["plain", "field"] }),
     "Cannot place: requires plain or fields here.");
-  assert.equal(placementErrorText("Le motif sort du plateau."), "Cannot place: the tile extends beyond the board.");
-  assert.equal(placementErrorText("Ressources insuffisantes : il manque 2 bois (or insuffisant)."),
+  assert.equal(placementErrorText({ code: "thePatternExtendsBeyondTheBoard" }), "Cannot place: the tile extends beyond the board.");
+  assert.equal(placementErrorText({ code: "insufficientResourcesMissingNotEnoughGold", params: ["2 wood"] }),
     "Cannot place: insufficient resources: missing 2 wood (not enough gold).");
 });
 
@@ -89,10 +89,10 @@ test("les guides de placement respectent rotations, action, coût et terrains sa
   assert.deepEqual(g, before);
   g.players[0].resources.material = 0;
   g.players[0].resources.gold = 0;
-  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /4 materials/);
+  assert.equal(dragPreview(g, choice, {x: 1, y: 6}).error.code, "insufficientResourcesMissingNotEnoughGold");
   g.players[0].resources.material = 2;
   g.board[key(1, 6)].terrain = "river";
-  assert.match(dragPreview(g, choice, {x: 1, y: 6}).error, /incompatible terrain/);
+  assert.equal(dragPreview(g, choice, {x: 1, y: 6}).error.code, "terrainMismatch");
   g.players[g.active].units[0].acted = true;
   assert.ok([...placementGuidance(g, choice).values()].every(result => result.error));
   g.players[g.active].units[0].acted = false;

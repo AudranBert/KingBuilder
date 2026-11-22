@@ -1,26 +1,19 @@
+import { ruleIssue, ruleIssueText, RuleError } from "./rule-errors.js";
 import { message as sourceMessage } from "./i18n.js";
 import { spawnUnit } from "./units.js";
 import { missionRewardText } from "./mission-rewards.js";
 import { MAPS, chooseMap, mapCells } from "./maps.js";
 import {
-  GOLD,
   MISSIONS,
   emptyProgress,
   initializeMissions,
   settleMissions,
   recordConquest,
-  buildingPayment,
-  costPayment,
-  rerollError,
 } from "./objectives.js";
 export {
-  GOLD,
   MISSIONS,
   missionProgress,
   missionTarget,
-  buildingPayment,
-  costPayment,
-  rerollError,
 } from "./objectives.js";
 import {
   key,
@@ -30,7 +23,8 @@ import {
   isRotation,
   inside as withinBoard,
 } from "./geometry.js";
-import { payCost } from "./economy.js";
+import { GOLD, payCost, buildingPayment, costPayment, rerollError, rerollIssue } from "./economy.js";
+export { GOLD, buildingPayment, costPayment, rerollError, rerollIssue } from "./economy.js";
 export { key } from "./geometry.js";
 import {
   CONFIG,
@@ -81,15 +75,15 @@ export function gameSettings(settings = {}) {
   if (result.mapId !== null && result.mapId !== "random" && !MAPS.some(map => map.id === result.mapId))
     throw Error("Carte inconnue.");
   if (!Number.isInteger(result.rounds) || result.rounds < 20 || result.rounds > 40)
-    throw Error(sourceMessage("messages.theNumberOfTurnsMustBeBetween"));
+    throw new RuleError(ruleIssue("messages.theNumberOfTurnsMustBeBetween"));
   if (!Number.isInteger(result.openingTilesPerPlayer) || result.openingTilesPerPlayer < 0 || result.openingTilesPerPlayer > 2)
-    throw Error(sourceMessage("messages.theNumberOfSetupTilesMustBe"));
+    throw new RuleError(ruleIssue("messages.theNumberOfSetupTilesMustBe"));
   if (!Number.isInteger(result.boardSize) || result.boardSize < 9 || result.boardSize > 13 || result.boardSize % 2 === 0)
-    throw Error(sourceMessage("messages.theBoardSizeMustBeBetween7"));
-  if (typeof result.missionsEnabled !== 'boolean') throw Error(sourceMessage("settings.missionsInvalid"));
+    throw new RuleError(ruleIssue("messages.theBoardSizeMustBeBetween7"));
+  if (typeof result.missionsEnabled !== 'boolean') throw new RuleError(ruleIssue("settings.missionsInvalid"));
   for (const [id, amount] of Object.entries(resources))
     if (!Object.hasOwn(GAME_DEFAULTS.resources, id) || !Number.isInteger(amount) || amount < 0 || amount > 10)
-      throw Error(sourceMessage("messages.startingResourcesMustBeBetween0And"));
+      throw new RuleError(ruleIssue("messages.startingResourcesMustBeBetween0And"));
   return result;
 }
 // Only the icon cell contains a building. Other pattern cells are placement conditions.
@@ -177,7 +171,7 @@ const shuffle = (a, rng) => {
 };
 export function createGame(rng = Math.random, mode = "local", settings = {}) {
   if (!["solo", "local"].includes(mode))
-    throw Error(sourceMessage("messages.gameModeUnavailable"));
+    throw new RuleError(ruleIssue("messages.gameModeUnavailable"));
   const options = gameSettings(settings ?? {}), size = options.boardSize;
   const tileDeck = shuffle(
     CONFIG.tiles.map((tile, id) => ({
@@ -202,7 +196,7 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
   for (let i = 0; i < RULES.markets.buildingSize; i++) {
     const index = buildingDeck.findIndex(id => BUILDINGS[id].tier === RULES.markets.initialMaxTier &&
       !initialFamilies.has(BUILDINGS[id].family || id));
-    if (index < 0) throw Error(sourceMessage("messages.notEnoughDifferentFamiliesForTheInitial"));
+    if (index < 0) throw new RuleError(ruleIssue("messages.notEnoughDifferentFamiliesForTheInitial"));
     initialFamilies.add(BUILDINGS[buildingDeck[index]].family || buildingDeck[index]);
     buildingMarket.push(...buildingDeck.splice(index, 1));
   }
@@ -318,7 +312,7 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
 // Shared draft before round one: J2, J1, J2, J1.
 export function startOpening(g) {
   if (g.opening || g.round !== 1 || g.active !== 0 || g.players.some(p => p.revealed))
-    throw Error(sourceMessage("messages.setupCanOnlyBeginBeforeTheGame"));
+    throw new RuleError(ruleIssue("messages.setupCanOnlyBeginBeforeTheGame"));
   const perPlayer = g.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer,
     totalPlacements = perPlayer * g.players.length;
   if (!totalPlacements) {
@@ -330,23 +324,29 @@ export function startOpening(g) {
     indexes = g.tileDeck.map((tile, i) => tile.cells.length >= 5 ? i : -1)
       .filter(i => i >= 0).slice(0, offerCount);
   if (indexes.length < offerCount)
-    throw Error(sourceMessage("messages.theDeckDoesNotContainLargeTiles", [offerCount]));
+    throw new RuleError(ruleIssue("messages.theDeckDoesNotContainLargeTiles", [offerCount]));
   const tiles = indexes.map(i => g.tileDeck[i]);
   for (const i of indexes.reverse()) g.tileDeck.splice(i, 1);
   g.opening = { tiles, step: 0, totalPlacements, perPlayer };
   g.active = g.players.length === 2 ? 1 : 0;
   note(g, sourceMessage("messages.setupTuileToPlacePerPlayer", [perPlayer, perPlayer === 1 ? "" : "s"]));
 }
-export function openingError(g, index, x, y, rotation = 0) {
-  if (!g.opening) return sourceMessage("messages.setupIsComplete");
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (!Number.isInteger(index) || !g.opening.tiles[index]) return sourceMessage("messages.chooseOneOfTheAvailableTiles");
+export function openingIssue(g, index, x, y, rotation = 0) {
+  if (!g.opening) return ruleIssue("messages.setupIsComplete");
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (!Number.isInteger(index) || !g.opening.tiles[index]) return ruleIssue("messages.chooseOneOfTheAvailableTiles");
   return tilePlacement(g, g.opening.tiles[index], x, y, rotation)
-    ? null : sourceMessage("messages.thePatternMustFitOnEmptySpaces");
+    ? null : ruleIssue("messages.thePatternMustFitOnEmptySpaces");
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function openingError(...args) {
+  const issue = openingIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function placeOpeningTile(g, index, x, y, rotation = 0) {
-  const error = openingError(g, index, x, y, rotation);
-  if (error) throw Error(error);
+  const error = openingIssue(g, index, x, y, rotation);
+  if (error) throw new RuleError(error);
   const cells = tilePlacement(g, g.opening.tiles[index], x, y, rotation);
   for (const c of cells) g.board[key(c.x, c.y)] = { terrain: c.terrain };
   g.opening.tiles.splice(index, 1);
@@ -379,8 +379,8 @@ export function walkable(cell) {
   );
 }
 function available(g) {
-  if (g.finished) throw Error(sourceMessage("messages.theGameIsOver"));
-  if (g.opening) throw Error(sourceMessage("messages.finishTerrainSetupFirst"));
+  if (g.finished) throw new RuleError(ruleIssue("messages.theGameIsOver"));
+  if (g.opening) throw new RuleError(ruleIssue("messages.finishTerrainSetupFirst"));
 }
 function note(g, text) {
   g.log.unshift(text);
@@ -391,7 +391,7 @@ export function actor(g) {
   const unit = g.selectedUnitId !== null && g.selectedUnitId !== undefined
     ? p.units.find(u => u.id === g.selectedUnitId)
     : p.units.find(u => u.type === "worker");
-  if (!unit) throw Error(sourceMessage("messages.unknownUnit"));
+  if (!unit) throw new RuleError(ruleIssue("messages.unknownUnit"));
   return {
     ...unit,
     ...(unit.type === "soldier" ? { count: selectedSoldiers(g).length, moves: Math.min(...selectedSoldiers(g).map(u => u.moves)), acted: selectedSoldiers(g).some(u => u.acted || u.ended) } : {}),
@@ -408,7 +408,7 @@ function updateActor(g, changes) {
 export function selectUnit(g, id) {
   available(g);
   if (id !== null && !g.players[g.active].units.some((u) => u.id === id))
-    throw Error(sourceMessage("messages.chooseOneOfYourUnits"));
+    throw new RuleError(ruleIssue("messages.chooseOneOfYourUnits"));
   g.selectedUnitId = id;
   g.armySelection = null;
 }
@@ -433,10 +433,10 @@ export function selectedSoldiers(g) {
 export function selectArmy(g, count) {
   available(g);
   const lead = g.players[g.active].units.find(u => u.id === g.selectedUnitId);
-  if (lead?.type !== "soldier") throw Error(sourceMessage("messages.chooseAnArmy"));
+  if (lead?.type !== "soldier") throw new RuleError(ruleIssue("messages.chooseAnArmy"));
   const ready = armyAt(g, g.active, lead.x, lead.y).filter(u => !u.acted && !u.ended)
     .sort((a,b) => b.moves-a.moves || a.id-b.id);
-  if (!Number.isInteger(count) || count < 1 || count > ready.length) throw Error(sourceMessage("messages.invalidArmySize"));
+  if (!Number.isInteger(count) || count < 1 || count > ready.length) throw new RuleError(ruleIssue("messages.invalidArmySize"));
   g.armySelection = ready.slice(0, count).map(u => u.id);
   g.selectedUnitId = g.armySelection[0];
 }
@@ -466,18 +466,24 @@ export function combatPreview(g, x, y) {
   return { attack, defense, defenders, garrison, attackerSurvivors: Math.min(selectedSoldiers(g).length, Math.max(0, attack-defense)),
     defenderSurvivors: Math.min(defenders + garrison, Math.max(0, defense-attack)), defenderOwner };
 }
-export function attackError(g, x, y) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+export function attackIssue(g, x, y) {
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   const unit = actor(g);
-  if (unit.type !== "soldier") return sourceMessage("messages.onlyAnArmyCanFightOrCapture");
-  if (unit.acted || unit.ended) return sourceMessage("messages.thisArmyHasAlreadyCompletedItsAction");
-  if (!inside(g,x,y) || distance(unit,{x,y}) !== 1) return sourceMessage("messages.theTargetMustBeAdjacentNotDiagonal");
+  if (unit.type !== "soldier") return ruleIssue("messages.onlyAnArmyCanFightOrCapture");
+  if (unit.acted || unit.ended) return ruleIssue("messages.thisArmyHasAlreadyCompletedItsAction");
+  if (!inside(g,x,y) || distance(unit,{x,y}) !== 1) return ruleIssue("messages.theTargetMustBeAdjacentNotDiagonal");
   const cell = g.board[key(x,y)];
-  if (!cell || !unitWalkable(g,cell,x,y)) return sourceMessage("messages.thisTargetIsUnreachable");
-  if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return sourceMessage("messages.thereIsNoEnemyTargetOrNeutral");
+  if (!cell || !unitWalkable(g,cell,x,y)) return ruleIssue("messages.thisTargetIsUnreachable");
+  if (!hostileSite(g,x,y) && !enemyAt(g,x,y)) return ruleIssue("messages.thereIsNoEnemyTargetOrNeutral");
   return null;
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function attackError(...args) {
+  const issue = attackIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function destroyBuilding(g, x, y) {
   // Only the actual building cell is a military target, never an auxiliary tile.
   const position = key(x,y), cell = g.board[position], b = cell?.building;
@@ -503,8 +509,8 @@ function returnBuilders(g, owner, x, y) {
   }
 }
 export function attack(g, x, y) {
-  const error = attackError(g,x,y);
-  if (error) throw Error(error);
+  const error = attackIssue(g,x,y);
+  if (error) throw new RuleError(error);
   const p = g.players[g.active], attackers = selectedSoldiers(g), result = combatPreview(g,x,y),
     cell = g.board[key(x,y)], b = cell.building;
   const defenderOwner = result.defenderOwner;
@@ -561,25 +567,31 @@ export function attackPaths(g) {
   }
   return paths;
 }
-export function moveError(g, x, y) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+export function moveIssue(g, x, y) {
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   const unit = actor(g);
   if (unit.moves < 1 || (unit.type === "soldier" && unit.acted) || unit.ended)
-    return sourceMessage("messages.thisUnitHasFinishedMoving");
+    return ruleIssue("messages.thisUnitHasFinishedMoving");
   if (!inside(g, x, y) || distance(unit, { x, y }) !== 1)
-    return sourceMessage("messages.chooseAnAdjacentSpaceNotDiagonal");
-  if (enemyAt(g, x, y)) return sourceMessage("messages.anEnemyPieceOccupiesThisSpaceUse");
-  if (siteBlocksMovement(g, x, y, unit)) return sourceMessage("messages.thisPositionMustBeOccupiedUsingA");
+    return ruleIssue("messages.chooseAnAdjacentSpaceNotDiagonal");
+  if (enemyAt(g, x, y)) return ruleIssue("messages.anEnemyPieceOccupiesThisSpaceUse");
+  if (siteBlocksMovement(g, x, y, unit)) return ruleIssue("messages.thisPositionMustBeOccupiedUsingA");
   if (g.board[key(x, y)] && !unitWalkable(g,g.board[key(x, y)],x,y))
-    return sourceMessage("messages.thisTerrainIsImpassable");
+    return ruleIssue("messages.thisTerrainIsImpassable");
   return null;
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function moveError(...args) {
+  const issue = moveIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function move(g, x, y) {
-  const error = moveError(g, x, y);
-  if (error) throw Error(error);
+  const error = moveIssue(g, x, y);
+  if (error) throw new RuleError(error);
   if (!g.board[key(x, y)]) {
-    if (actor(g).type === "soldier") throw Error(sourceMessage("messages.soldiersCannotExplore"));
+    if (actor(g).type === "soldier") throw new RuleError(ruleIssue("messages.soldiersCannotExplore"));
     return "explore";
   }
   if (actor(g).type === "soldier") {
@@ -638,23 +650,29 @@ function tilePlacement(g, tile, x, y, rotation = 0, anchor = 0) {
 export function placement(g, index, x, y, rotation = 0, anchor = 0) {
   return tilePlacement(g, g.tileMarket[index], x, y, rotation, anchor);
 }
-export function exploreError(g, index, x, y, rotation = 0, anchor = 0) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+export function exploreIssue(g, index, x, y, rotation = 0, anchor = 0) {
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   const unit = actor(g);
-  if (unit.type === "soldier") return sourceMessage("messages.soldiersCannotExplore");
-  if (unit.acted || unit.ended) return sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction");
-  if (g.board[key(x, y)]) return sourceMessage("messages.chooseAnUnexploredSpace");
+  if (unit.type === "soldier") return ruleIssue("messages.soldiersCannotExplore");
+  if (unit.acted || unit.ended) return ruleIssue("messages.thisUnitHasAlreadyCompletedItsAction");
+  if (g.board[key(x, y)]) return ruleIssue("messages.chooseAnUnexploredSpace");
   const cells = placement(g, index, x, y, rotation, anchor);
   if (!cells)
-    return sourceMessage("messages.thePatternMustFitOnEmptySpaces");
+    return ruleIssue("messages.thePatternMustFitOnEmptySpaces");
   if (!cells.some((c) => distance(unit, c) === RULES.placement.explorationContactDistance))
-    return sourceMessage("messages.oneSpaceOfTheTileMustBe", [RULES.placement.explorationContactDistance]);
+    return ruleIssue("messages.oneSpaceOfTheTileMustBe", [RULES.placement.explorationContactDistance]);
   return null;
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function exploreError(...args) {
+  const issue = exploreIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function explore(g, index, x, y, rotation = 0, anchor = 0) {
-  const error = exploreError(g, index, x, y, rotation, anchor);
-  if (error) throw Error(error);
+  const error = exploreIssue(g, index, x, y, rotation, anchor);
+  if (error) throw new RuleError(error);
   const p = actor(g),
     cells = placement(g, index, x, y, rotation, anchor);
   cells.forEach(
@@ -671,24 +689,30 @@ export function explore(g, index, x, y, rotation = 0, anchor = 0) {
   note(g, sourceMessage("messages.exploreSpaces", [p.name, cells.length]));
   awardMissions(g);
 }
-export function buyTerrainError(g, terrain, x, y) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+export function buyTerrainIssue(g, terrain, x, y) {
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   if (!["plain", "forest", "mountain", "river"].includes(terrain))
-    return sourceMessage("messages.chooseAnAvailableTerrain");
+    return ruleIssue("messages.chooseAnAvailableTerrain");
   const unit = actor(g);
-  if (unit.type === "soldier") return sourceMessage("messages.soldiersCannotExplore");
-  if (unit.acted || unit.ended) return sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction");
-  if (!inside(g, x, y) || g.board[key(x, y)]) return sourceMessage("messages.chooseAnUnexploredSpace");
+  if (unit.type === "soldier") return ruleIssue("messages.soldiersCannotExplore");
+  if (unit.acted || unit.ended) return ruleIssue("messages.thisUnitHasAlreadyCompletedItsAction");
+  if (!inside(g, x, y) || g.board[key(x, y)]) return ruleIssue("messages.chooseAnUnexploredSpace");
   if (!kingdomBonus(g,g.active,"remoteTerrain") && distance(unit, { x, y }) !== RULES.placement.explorationContactDistance)
-    return sourceMessage("messages.theSpaceMustBeAdjacentToThe");
+    return ruleIssue("messages.theSpaceMustBeAdjacentToThe");
   if (g.players[g.active].resources.gold < (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost))
-    return sourceMessage("messages.requiresGold", [(kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost)]);
+    return ruleIssue("messages.requiresGold", [(kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost)]);
   return null;
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function buyTerrainError(...args) {
+  const issue = buyTerrainIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function buyTerrain(g, terrain, x, y) {
-  const error = buyTerrainError(g, terrain, x, y);
-  if (error) throw Error(error);
+  const error = buyTerrainIssue(g, terrain, x, y);
+  if (error) throw new RuleError(error);
   const p = g.players[g.active];
   p.resources.gold -= (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost);
   g.board[key(x, y)] = { terrain };
@@ -698,7 +722,7 @@ export function buyTerrain(g, terrain, x, y) {
   note(g, sourceMessage("messages.buysASpaceOfForGold", [p.name, TERRAINS[terrain].name.toLowerCase(), (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost)]));
   awardMissions(g);
 }
-export function buildError(
+export function buildIssue(
   g,
   index,
   x,
@@ -710,58 +734,64 @@ export function buildError(
     b = BUILDINGS[type],
     p = g.players[g.active],
     unit = actor(g);
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   if (unit.acted || unit.ended)
-    return sourceMessage("messages.yourBuildingExplorationActionIsAlreadyComplete");
-  if (unit.type === "soldier") return sourceMessage("messages.soldiersCannotBuild");
-  if (!b) return sourceMessage("messages.chooseABuildingTile");
-  if (b.unique && (p.units.some(u => u.type === b.onBuildUnit) || Object.values(g.board).some(c => c.building?.owner === g.active && c.building.type === type))) return sourceMessage("messages.onlyOneEmissaryAndOneChancelleryPer");
-  if (b.constructible === false) return sourceMessage("messages.thisBuildingIsOnlyAvailableAtThe");
-  if (!isRotation(rotation)) return sourceMessage("messages.invalidBuildingOrientation");
+    return ruleIssue("messages.yourBuildingExplorationActionIsAlreadyComplete");
+  if (unit.type === "soldier") return ruleIssue("messages.soldiersCannotBuild");
+  if (!b) return ruleIssue("messages.chooseABuildingTile");
+  if (b.unique && (p.units.some(u => u.type === b.onBuildUnit) || Object.values(g.board).some(c => c.building?.owner === g.active && c.building.type === type))) return ruleIssue("messages.onlyOneEmissaryAndOneChancelleryPer");
+  if (b.constructible === false) return ruleIssue("messages.thisBuildingIsOnlyAvailableAtThe");
+  if (!isRotation(rotation)) return ruleIssue("messages.invalidBuildingOrientation");
   const cells = patternAt(type, x, y, rotation);
   if (b.toll) {
     const target = g.board[key(x,y)];
     const bridge = target?.building?.owner === g.active &&
       ['bridge','great_bridge'].includes(target.building.type);
-    if (target?.terrain === 'river' && !bridge) return `${b.name} : ${b.pattern}`;
+    if (target?.terrain === 'river' && !bridge) return { code: "patternMismatch", building: type };
   }
   for (const c of cells) {
-    if (!inside(g, c.x, c.y)) return sourceMessage("messages.thePatternExtendsBeyondTheBoard");
+    if (!inside(g, c.x, c.y)) return ruleIssue("messages.thePatternExtendsBeyondTheBoard");
     const target = g.board[key(c.x, c.y)];
-    if (!target) return sourceMessage("messages.allSpacesInThePatternMustBe");
+    if (!target) return ruleIssue("messages.allSpacesInThePatternMustBe");
     if (c.symbol !== 'B') {
-      if (!matchesTerrain(g,target,c.x,c.y,c.terrain)) return `${b.name} : ${b.pattern}`;
+      if (!matchesTerrain(g,target,c.x,c.y,c.terrain)) return { code: "patternMismatch", building: type };
       if (c.symbol === 'c') {
         const neighbour = buildingAt(g,c.x,c.y)?.building;
         const definition = BUILDINGS[neighbour?.type];
         if (!definition || ['bridge','tunnel'].includes(definition.family || neighbour.type) || definition.greatBridge)
-          return `${b.name} : ${b.pattern}`;
+          return { code: "patternMismatch", building: type };
       }
       continue;
     }
-    if (target.flag && type !== "outpost") return sourceMessage("messages.onlyATowerCanBeBuiltOn");
+    if (target.flag && type !== "outpost") return ruleIssue("messages.onlyATowerCanBeBuiltOn");
     if (target.building && !(b.toll && target.building.owner===g.active && ["bridge","great_bridge"].includes(target.building.type)))
-      return sourceMessage("messages.thePatternOverlapsABuildingSpaceOr");
+      return ruleIssue("messages.thePatternOverlapsABuildingSpaceOr");
     if (!matchesTerrain(g,target,c.x,c.y,c.terrain))
-      return sourceMessage("messages.incompatibleTerrainRequiresInsteadOf", [b.name, c.terrain.map(id => TERRAINS[id].name.toLowerCase()).join(sourceMessage("messages.or")), TERRAINS[target.terrain].name.toLowerCase(), b.pattern]);
-    if (enemyAt(g, c.x, c.y)) return sourceMessage("messages.anEnemyPieceOccupiesThePattern");
+      return { code: "terrainMismatch", building: type, required: [...c.terrain], actual: target.terrain, x: c.x, y: c.y };
+    if (enemyAt(g, c.x, c.y)) return ruleIssue("messages.anEnemyPieceOccupiesThePattern");
   }
   if (!cells.some(cell => distance(unit, cell) <= RULES.placement.constructionRange))
-    return sourceMessage("messages.placeTheTileWithinSpaceSOf", [RULES.placement.constructionRange]);
+    return ruleIssue("messages.placeTheTileWithinSpaceSOf", [RULES.placement.constructionRange]);
   if (b.adjacency?.some((rule) => !meetsAdjacency(g, rule, x, y, g.active)))
-    return `${b.name} : ${b.pattern}`;
+    return { code: "patternMismatch", building: type };
   if (
     !buildingPayment(g,index)?.affordable || (buildingPayment(g,index)?.gold > 0 && !allowGold)
   ) {
-    const missing = Object.entries(b.cost).flatMap(([id, n]) => {
+    const missing = Object.fromEntries(Object.entries(b.cost).flatMap(([id, n]) => {
       const held = Number.isFinite(p.resources[id]) ? p.resources[id] : 0;
-      return n > held ? [`${n - held} ${RESOURCES[id].toLowerCase()}`] : [];
-    });
-    return sourceMessage("messages.insufficientResourcesMissingNotEnoughGold", [missing.join(", ")]);
+      return n > held ? [[id, n - held]] : [];
+    }));
+    return ruleIssue("messages.insufficientResourcesMissingNotEnoughGold", [], { missing });
   }
   return null;
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function buildError(...args) {
+  const issue = buildIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function build(
   g,
   index,
@@ -771,19 +801,19 @@ export function build(
   { allowGold = false, expectedGold } = {},
 ) {
   available(g);
-  const error = buildError(g, index, x, y, rotation, { allowGold });
-  if (error) throw Error(error);
+  const error = buildIssue(g, index, x, y, rotation, { allowGold });
+  if (error) throw new RuleError(error);
   const type = g.buildingMarket[index],
     b = BUILDINGS[type],
     p = g.players[g.active];
   const payment = buildingPayment(g, index);
   if (expectedGold !== undefined && payment?.gold !== expectedGold)
-    throw Error(sourceMessage("messages.theGoldCostHasChangedPleaseConfirm"));
+    throw new RuleError(ruleIssue("messages.theGoldCostHasChangedPleaseConfirm"));
   if (
     payment?.gold &&
     (!allowGold || expectedGold !== payment.gold)
   )
-    throw Error(sourceMessage("messages.confirmTheResourcePurchaseFromTheBank"));
+    throw new RuleError(ruleIssue("messages.confirmTheResourcePurchaseFromTheBank"));
   payCost(p.resources, payment.resources);
 
   if (b.transformTo) g.board[key(x, y)].terrain = b.transformTo;
@@ -818,25 +848,31 @@ export function build(
   );
   awardMissions(g);
 }
-export function trainError(g, x, y, type) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+export function trainIssue(g, x, y, type) {
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   const b = g.board[key(x, y)]?.building,
     def = BUILDINGS[b?.type],
     unit = UNIT_DEFINITIONS[type];
   if (!b || b.owner !== g.active || !unit || ["king", "worker"].includes(type) || !def.trains?.includes(type))
-    return sourceMessage("messages.chooseOneOfYourBarracksAndAn");
+    return ruleIssue("messages.chooseOneOfYourBarracksAndAn");
   if (b.trainingRound === g.round && (b.trainedCount || 0) >= trainingCapacity(g,x,y))
-    return sourceMessage("messages.theseBarracksHaveAlreadyRecruitedThisTurn");
-  if (enemyAt(g, x, y)) return sourceMessage("messages.anEnemyPieceOccupiesTheBarracks");
+    return ruleIssue("messages.theseBarracksHaveAlreadyRecruitedThisTurn");
+  if (enemyAt(g, x, y)) return ruleIssue("messages.anEnemyPieceOccupiesTheBarracks");
   if (!costPayment(g, unit.cost)?.affordable)
-    return sourceMessage("messages.insufficientResourcesForThisUnit");
+    return ruleIssue("messages.insufficientResourcesForThisUnit");
   return null;
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function trainError(...args) {
+  const issue = trainIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function trainUnit(g, x, y, type) {
   available(g);
-  const error = trainError(g, x, y, type);
-  if (error) throw Error(error);
+  const error = trainIssue(g, x, y, type);
+  if (error) throw new RuleError(error);
   const p = g.players[g.active],
     def = UNIT_DEFINITIONS[type],
     b = g.board[key(x, y)].building;
@@ -867,20 +903,26 @@ export function productionPreview(g, unit = actor(g), owner = g.active) {
   const resource = ["plain","field"].includes(cell?.terrain) ? "food" : cell?.terrain === "forest" ? "material" : null;
   return resource ? {resource,amount:1} : null;
 }
-export function produceError(g) {
-  if (g.finished) return sourceMessage("messages.theGameIsOver");
-  if (g.opening) return sourceMessage("messages.finishTerrainSetupFirst");
+export function produceIssue(g) {
+  if (g.finished) return ruleIssue("messages.theGameIsOver");
+  if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   const unit = actor(g);
-  if (unit.type !== "worker") return sourceMessage("messages.onlyWorkersProduce");
-  if (unit.acted || unit.ended) return sourceMessage("messages.thisUnitHasAlreadyCompletedItsAction");
+  if (unit.type !== "worker") return ruleIssue("messages.onlyWorkersProduce");
+  if (unit.acted || unit.ended) return ruleIssue("messages.thisUnitHasAlreadyCompletedItsAction");
   const preview = productionPreview(g);
-  if (!preview) return sourceMessage("messages.noProductionHere");
-  if (preview.building?.productionRound === g.round) return sourceMessage("messages.productionUsed");
+  if (!preview) return ruleIssue("messages.noProductionHere");
+  if (preview.building?.productionRound === g.round) return ruleIssue("messages.productionUsed");
   return null;
 }
+// Text adapter for existing views and integrations; rules use structured issues.
+export function produceError(...args) {
+  const issue = produceIssue(...args);
+  return issue ? ruleIssueText(issue) : null;
+}
+
 export function produce(g) {
-  const error = produceError(g);
-  if (error) throw Error(error);
+  const error = produceIssue(g);
+  if (error) throw new RuleError(error);
   grantProduction(g, actor(g), productionPreview(g));
 }
 function grantProduction(g, unit, preview) {
@@ -1010,8 +1052,8 @@ function drawBuildingOffers(g, count) {
   return offers;
 }
 export function rerollMarket(g, kind) {
-  const error = rerollError(g, kind);
-  if (error) throw Error(error);
+  const error = rerollIssue(g, kind);
+  if (error) throw new RuleError(error);
   const market = kind === "terrain" ? g.tileMarket : g.buildingMarket,
     deck = kind === "terrain" ? g.tileDeck : g.buildingDeck;
   const fresh = kind === "building"
@@ -1025,4 +1067,14 @@ export function rerollMarket(g, kind) {
     g,
     sourceMessage("messages.rerollsTheMarketGold", [g.players[g.active].name, GOLD.rerollCost]),
   );
+}
+
+export function moveUnitTo(g, x, y) {
+  const unit = actor(g);
+  if (unit.x === x && unit.y === y) return;
+  const combat = attackPaths(g).get(key(x,y));
+  const path = combat || movementPaths(g).get(key(x, y));
+  if (!path) throw new RuleError(ruleIssue("messages.thisSpaceIsUnreachableForThisUnit"));
+  for (const step of path) move(g, step.x, step.y);
+  if (combat) attack(g,x,y);
 }

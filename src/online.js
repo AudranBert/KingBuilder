@@ -46,6 +46,8 @@ export class OnlineClient {
       if (!response.ok) {
         const error = Error(result.error || sourceMessage("messages.serverUnavailable"));
         error.status = response.status;
+        error.issue = result.issue;
+        if (result.issue) error.code = result.issue.code;
         throw error;
       }
       return result;

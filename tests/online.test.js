@@ -150,3 +150,54 @@ test('HTTP transport : health endpoint over TCP', async t => {
     } else throw error;
   }
 });
+
+
+test('all room responses hide mission decks without mutating the authoritative deck', () => {
+  const rooms = new Rooms(), host = rooms.create(settings), guest = rooms.join(host.code);
+  const assertHidden = state => {
+    assert.deepEqual(state.game.tileDeck, []);
+    assert.deepEqual(state.game.buildingDeck, []);
+    assert.deepEqual(state.game.missions.deck, []);
+    assert.ok(state.game.missions.market.length > 0);
+  };
+  assertHidden(host); assertHidden(guest);
+  const deck = structuredClone(rooms.rooms.get(host.code).game.missions.deck);
+  assert.ok(deck.length > 0);
+  assertHidden(rooms.read(host.code, guest.token));
+  assertHidden(rooms.profile(host.code, host.token, { nickname: 'Alice' }));
+  assert.deepEqual(rooms.rooms.get(host.code).game.missions.deck, deck);
+  assertHidden(rooms.lobby(host.code, host.token, { revision: 1 }));
+  assertHidden(rooms.lobby(host.code, host.token, { revision: 2, start: true }));
+  const room = rooms.rooms.get(host.code);
+  const next = room.game.missions.deck.find(id => id === 'build-4');
+  assert.ok(next);
+  // Completing a mission must still reveal the next offer from the private deck.
+  room.game.missions.market = ['build-2'];
+  room.game.missions.deck = [next];
+  room.game.missions.baselines = { 'build-2': [0, 0] };
+  room.game.players[0].progress.built.farm = 3;
+  const state = rooms.command(host.code, host.token, { id: 'claim', revision: 3, command: { type: 'endTurn', args: [] } });
+  assertHidden(state);
+  assert.deepEqual(state.game.missions.market, [next]);
+  assert.equal(room.game.missions.claimed[0].id, 'build-2');
+  assertHidden(rooms.resign(host.code, guest.token));
+});
+
+test('HTTP rule errors retain their codes and details instead of becoming storage failures', async () => {
+  const rooms = new Rooms(), server = createServer({ rooms });
+  const host = rooms.create(settings); rooms.join(host.code);
+  rooms.lobby(host.code, host.token, { revision: 0, start: true });
+  const game = rooms.rooms.get(host.code).game;
+  game.buildingMarket = ['outpost'];
+  game.board['1,6'] = { terrain: 'river' };
+  const response = await request(server, '/rooms/' + host.code + '/commands', {
+    method: 'POST', headers: { Authorization: 'Bearer ' + host.token },
+    body: JSON.stringify({ id: 'bad-terrain', revision: 1, command: { type: 'build', unit: game.players[0].units[0].id, args: [0,1,6] } }),
+  });
+  assert.equal(response.status, 400);
+  const body = await response.json();
+  assert.equal(body.issue.code, 'terrainMismatch');
+  assert.deepEqual(body.issue.required, ['plain','forest']);
+  assert.equal(body.issue.actual, 'river');
+  assert.equal(rooms.rooms.get(host.code).revision, 1);
+});

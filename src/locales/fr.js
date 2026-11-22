@@ -1,5 +1,6 @@
 // Shared message keys; parameters use {0}, {1}, etc.
 export default {
+  "messages.insufficientResources": "Ressources insuffisantes.",
   "missionsView.distinctExplanation": "Familles de bâtiments construites. Les variantes comptent comme une seule famille ; les destructions ne retirent pas les constructions passées.",
   "missions.built-distinct-6.name": "Construire 6 bâtiments différents",
   "missions.built-distinct-4.name": "Construire 4 bâtiments différents",

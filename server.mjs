@@ -37,6 +37,16 @@ http
       res.writeHead(404).end("Introuvable");
     }
   })
+  .on("error", (error) => {
+    if (error.code === "EADDRINUSE") {
+      console.error(
+        "Le port 4173 est déjà occupé. Si KingBuilder y tourne déjà, ouvrez http://127.0.0.1:4173/ et utilisez npm run build pour actualiser le site. Sinon, arrêtez le processus qui occupe ce port avant de relancer npm start.",
+      );
+    } else {
+      console.error("Impossible de démarrer KingBuilder :", error.message);
+    }
+    process.exitCode = 1;
+  })
   .listen(4173, "127.0.0.1", () =>
     console.log("KingBuilder : http://127.0.0.1:4173"),
   );

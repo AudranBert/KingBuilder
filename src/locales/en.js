@@ -1,5 +1,6 @@
 // Shared message keys; parameters use {0}, {1}, etc.
 export default {
+  "messages.insufficientResources": "Insufficient resources.",
   "missionsView.distinctExplanation": "Different building families constructed. Variants count as one family; destruction does not erase construction history.",
   "messages.missionRewardAmount.gold": "+{0} gold",
   "messages.missionRewardAmount.material": "+{0} wood",

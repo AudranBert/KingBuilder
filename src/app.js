@@ -1,3 +1,4 @@
+import { ruleIssueText } from "./rule-errors.js";
 import { missionRewardText } from "./mission-rewards.js";
 import { t, definitionText, translateMessage, kingdomName, getLanguage, setLanguage, restoreLanguage, translateDocument } from "./i18n.js";
 import { parseKey } from "./geometry.js";
@@ -16,10 +17,11 @@ import {
   MISSIONS,
   RESOURCE_DEFINITIONS,
   buildingPayment,
-  buildError,
+  buildIssue,
   rerollMarket as localRerollMarket,
-  rerollError,
+  rerollIssue,
   actor,
+  moveUnitTo as localMoveUnitTo,
   buildingAt,
   movementPaths,
   attackPaths,
@@ -35,7 +37,7 @@ import {
   key,
 } from "./engine.js";
 import { createUIState, hasSelectedUnit } from "./ui/state.js";
-import { dragFromCard, dragPreview, placementOrigin, moveUnitTo as localMoveUnitTo, placementGuidance, placementErrorText } from "./ui/interactions.js";
+import { dragFromCard, dragPreview, placementOrigin, placementGuidance, placementErrorText } from "./ui/interactions.js";
 import { piece } from "./ui/pieces.js";
 import { createBoard } from "./ui/board.js";
 import {
@@ -204,7 +206,7 @@ export function startGame({ initialGame = null } = {}) {
       return;
     }
     if (result?.error) {
-      $("#placement-help").innerHTML = resourceTextHTML(translateMessage(placementErrorText(result.error)));
+      $("#placement-help").innerHTML = resourceTextHTML(placementErrorText(result.error, true));
       return;
     }
     if (result && ui.drag) {
@@ -214,9 +216,9 @@ export function startGame({ initialGame = null } = {}) {
     if (["terrain", "building", "single-terrain"].includes(choice.kind)) {
       const options = [...placementGuidance(game, choice).values()];
       if (!options.some(option => !option.error)) {
-        const reasons = new Set(options.map(option => option.error));
+        const reasons = new Set(options.map(option => JSON.stringify(option.error)));
         $("#placement-help").innerHTML = resourceTextHTML(reasons.size === 1
-          ? translateMessage(placementErrorText(options[0].error))
+          ? placementErrorText(options[0].error, true)
           : t("app.cannotPlaceHereRotateOrChooseAnother"));
         return;
       }
@@ -239,6 +241,9 @@ export function startGame({ initialGame = null } = {}) {
       markup.set(node, value);
     }
   }
+  function toastError(error) {
+    toast(error.issue ? ruleIssueText(error.issue, true) : error.message);
+  }
   function toast(message) {
     $("#toast").innerHTML = resourceTextHTML(translateMessage(message));
     $("#toast").classList.add("visible");
@@ -257,7 +262,7 @@ export function startGame({ initialGame = null } = {}) {
       action();
       if (queuedCommand) {
         const command = queuedCommand;
-        online.send(command).then(() => { if (game.finished) showResults(); }).catch(error => toast(error.message)).finally(render);
+        online.send(command).then(() => { if (game.finished) showResults(); }).catch(error => toastError(error)).finally(render);
         render();
         return true;
       }
@@ -282,7 +287,7 @@ export function startGame({ initialGame = null } = {}) {
         game = before;
         render();
       }
-      toast(error.message);
+      toastError(error);
       return false;
     }
   }
@@ -312,11 +317,11 @@ export function startGame({ initialGame = null } = {}) {
     $("#tile-market").style.setProperty("--terrain-columns", opening ? 3 : RULES.markets.terrainSize);
     for (const kind of ["terrain", "building"]) {
       const button = $("#reroll-" + kind),
-        error = session ? session.rerollErrors[kind] : rerollError(game, kind);
+        error = session ? session.rerollErrors[kind] : rerollIssue(game, kind);
       button.innerHTML = `↻ ${GOLD.rerollCost} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)}`;
       button.disabled = Boolean(error) || ui.mode === 'inspect';
       button.title =
-        translateMessage(error) || t("app.replaceOffersForGold", [GOLD.rerollCost]);
+        ruleIssueText(error, true) || t("app.replaceOffersForGold", [GOLD.rerollCost]);
     }
     html("#barracks-list", barracksView(game, ui));
     html("#worker-list", workersView(game, ui));
@@ -424,11 +429,11 @@ export function startGame({ initialGame = null } = {}) {
     else render();
   }
   function requestBuild(pos, index, rotation) {
-    const error = buildError(game, index, pos.x, pos.y, rotation, {
+    const error = buildIssue(game, index, pos.x, pos.y, rotation, {
       allowGold: true,
     });
     if (error) {
-      toast(error);
+      toast(ruleIssueText(error, true));
       return;
     }
     const payment = buildingPayment(game, index);
@@ -665,7 +670,7 @@ export function startGame({ initialGame = null } = {}) {
       try {
         if (!game.finished && online.session.started) await online.resign();
         else online.stop();
-      } catch (error) { toast(error.message); return; }
+      } catch (error) { toastError(error); return; }
     }
     showMenu();
   });
@@ -731,7 +736,7 @@ export function startGame({ initialGame = null } = {}) {
     );
   function beginNewGame() {
     if (nextMode === 'online') {
-      online.connect(null, nextSettings).catch(error => toast(error.message));
+      online.connect(null, nextSettings).catch(error => toastError(error));
       return;
     }
     const created = act(
@@ -827,7 +832,7 @@ export function startGame({ initialGame = null } = {}) {
   }
   $("#settings-start").addEventListener("click", () => {
     collectSettings();
-    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast(t("app.settingsSaved"))).catch(error => toast(error.message));
+    if (online.session && !online.session.started) online.lobby(nextSettings).then(() => toast(t("app.settingsSaved"))).catch(error => toastError(error));
     else beginNewGame();
   });
   $(".close-results").addEventListener("click", () =>
@@ -923,7 +928,7 @@ export function startGame({ initialGame = null } = {}) {
   html(".rules-content", rulesView(game));
   $('#online-create').addEventListener('click', () => {
     $('#online-dialog').close();
-    online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toast(error.message));
+    online.connect(null, GAME_DEFAULTS, $('#nickname').value).catch(error => toastError(error));
   });
   let stopHealthCheck, resumeCheck = 0;
   function openOnlineDialog() {
@@ -952,7 +957,7 @@ export function startGame({ initialGame = null } = {}) {
   $('#online-close').addEventListener('click', () => $('#online-dialog').close());
   $('#lobby-start').addEventListener('click', () => {
     clearTimeout(lobbySaveTimer);
-    online.lobby(collectSettings(), true).catch(error => toast(error.message));
+    online.lobby(collectSettings(), true).catch(error => toastError(error));
   });
   for (const [id, link] of [['lobby-copy-link', true], ['lobby-copy-code', false]]) $( '#' + id).addEventListener('click', async () => {
     try {
@@ -965,9 +970,9 @@ export function startGame({ initialGame = null } = {}) {
     const code = $('#online-code').value.trim().toUpperCase();
     if (!/^[A-F0-9]{10}$/.test(code)) return toast(t("app.enterA10CharacterGameCode"));
     $('#online-dialog').close();
-    online.connect(code, undefined, $('#nickname').value).catch(error => toast(error.message));
+    online.connect(code, undefined, $('#nickname').value).catch(error => toastError(error));
   });
-  $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toast(error.message)); });
+  $('#online-resume').addEventListener('click', () => { $('#online-dialog').close(); online.resume().catch(error => toastError(error)); });
   if (globalThis.location?.hash?.startsWith('#join=')) { $('#online-code').value = globalThis.location.hash.slice(6); openOnlineDialog(); }
   function updateLanguageFlag() {
     $('#language-flag').src = new URL(`../assets/textures/interface/flag-${getLanguage()}.svg`, import.meta.url).href;

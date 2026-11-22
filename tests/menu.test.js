@@ -391,3 +391,24 @@ test('ouvrier : produire gagne immédiatement et conserve les déplacements et l
   assert.match(app.node('#selection').innerHTML,/Déplacements restants : 2/);
   app.clickCell(x,y-1);assert.match(app.node('#selection').innerHTML,/Déplacements restants : 0/);
 });
+
+
+test('solo and local games do not write automatic saves', t => {
+  const values = new Map();
+  const before = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: {
+    getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key),
+  } });
+  t.after(() => before ? Object.defineProperty(globalThis, 'localStorage', before) : delete globalThis.localStorage);
+  const app = mount(t);
+  for (const mode of ['solo', 'local']) {
+    app.start(mode);
+    const x = +app.king().dataset.x, y = +app.king().dataset.y;
+    app.clickCell(x, y); app.clickCell(x + 1, y);
+    app.node('#undo-action').click();
+    app.node('#end-turn').click();
+    app.node('#menu-button').click();
+    assert.equal(values.has('kingbuilder.localGame'), false);
+    assert.equal(app.node('#local-resume'), undefined);
+  }
+});

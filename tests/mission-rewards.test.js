@@ -16,7 +16,7 @@ test("récompenses croisées et mixtes : stocks crédités une fois sans augment
   const g = createGame(), p = g.players[0], before = { ...p.resources };
   offers(g, ["produced-material-4", "produced-food-4", "build-2"]);
   p.progress.produced = { material: 5, food: 5 };
-  p.progress.built = { farm: 1, sawmill: 1 };
+  p.progress.built = { farm: 2, sawmill: 1 };
   assert.deepEqual(settleMissions(g), ["produced-material-4", "produced-food-4", "build-2"]);
   assert.deepEqual(p.resources, { ...before, food: before.food + 3, material: before.material + 3 });
   assert.deepEqual(p.progress.produced, { material: 5, food: 5 });

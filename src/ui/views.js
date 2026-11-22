@@ -32,7 +32,7 @@ import {
   combatPreview,
   defenseAt,
 } from "../engine.js";
-import { costPayment, tradePrice } from "../objectives.js";
+import { costPayment, tradePrice } from "../economy.js";
 import { missionRewardText } from "../mission-rewards.js";
 import { key, parseKey } from "../geometry.js";
 import {

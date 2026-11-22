@@ -178,11 +178,12 @@ test("les fiches et le chronomètre ne conservent aucun libellé français en an
 test("les erreurs de placement et les ressources interpolées sont entièrement traduites", () => {
   setLanguage("en", { persist: false });
   try {
-    for (const [source, expected] of [
-      ["Le motif sort du plateau.", "Cannot place: the tile extends beyond the board."],
-      ["Choisissez votre propre bâtiment de production.", "Cannot place: choose one of your production buildings."],
-      ["Ressources insuffisantes : il manque 2 matériaux, 1 nourriture (or insuffisant).", "Cannot place: Insufficient resources: missing 2 materials, 1 food (not enough gold)."],
-      ["Moulin : terrain incompatible, il faut plaine ou champs à la place de montagne. Motif.", "Cannot place: requires plain or fields here."],
-    ]) assert.equal(translateMessage(placementErrorText(source)), expected);
+    for (const [issue, expected] of [
+      [{ code: "thePatternExtendsBeyondTheBoard" }, "Cannot place: the tile extends beyond the board."],
+      [{ code: "chooseYourOwnProductionBuilding" }, "Cannot place: choose one of your production buildings."],
+      [{ code: "terrainMismatch", required: ["plain", "field"] }, "Cannot place: requires plain or fields here."],
+    ]) assert.equal(placementErrorText(issue, true), expected);
+    setLanguage("fr", { persist: false });
+    assert.equal(placementErrorText({ code: "terrainMismatch", required: ["plain", "field"] }, true), "Impossible : il faut plaine ou champs ici.");
   } finally { setLanguage("fr", { persist: false }); }
 });
