@@ -2,7 +2,7 @@ import { createFixedGame as createGame } from "./helpers.js";
 import { harvestView } from "../src/ui/views.js";
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import { actor, selectUnit, move, explore, build, endTurn, produce, produceError, productionAmount, UNIT_DEFINITIONS, BUILDINGS, harvestPreview, totalScore } from "../src/engine.js";
+import { actor, exploreIssue, buildIssue, buyTerrainIssue, selectUnit, move, explore, build, endTurn, produce, produceError, productionAmount, UNIT_DEFINITIONS, BUILDINGS, harvestPreview, totalScore } from "../src/engine.js";
 import {applyCommand} from "../src/commands.js";
 import {validateGame} from "../src/validation.js";
 const setup = () => createGame(() => .42, "solo", {openingTilesPerPlayer:0,missionsEnabled:false,boardSize:11});
@@ -110,4 +110,65 @@ test("dernière fin de tour : production via commande avant score, sans toucher 
 
 test("les ouvriers restés au donjon ne produisent pas et l’interface décrit l’action", () => {
  const g=createGame(),before={...g.players[0].resources};assert.match(harvestView(g),/action/);endTurn(g);assert.deepEqual(g.players[0].resources,before);
+});
+
+
+test("placement : priorité à l'ouvrier sélectionné, repli sans sélection s'il est loin ou indisponible", () => {
+  for (const kind of ["terrain", "building", "single-terrain"]) {
+    for (const reason of ["ready", "far", "acted", "ended"]) {
+      const g = setup(), [selected, other] = g.players[0].units;
+      Object.assign(selected, { x: 5, y: 4 });
+      Object.assign(other, { x: 4, y: 5 });
+      selectUnit(g, selected.id);
+      if (reason === "far") Object.assign(selected, { x: 0, y: 5 });
+      if (reason === "acted") selected.acted = true;
+      if (reason === "ended") selected.ended = true;
+      g.tileMarket[0] = { cells: [{ x: 0, y: 0, terrain: "plain" }] };
+      g.buildingMarket[0] = "clearing";
+      if (kind === "building") g.board["5,5"] = { terrain: "forest" };
+      else delete g.board["5,5"];
+      const args = kind === "single-terrain" ? ["plain", 5, 5] : [0, 5, 5];
+      const issue = kind === "terrain" ? exploreIssue : kind === "building" ? buildIssue : buyTerrainIssue;
+      const before = structuredClone(g);
+      assert.equal(issue(g, ...args), null);
+      assert.deepEqual(g, before, "the preview must preserve selection and actions");
+      const type = kind === "terrain" ? "explore" : kind === "building" ? "build" : "buyTerrain";
+      const next = applyCommand(g, { type, unit: selected.id, args });
+      const chosen = reason === "ready" ? selected.id : other.id;
+      assert.equal(next.players[0].units[chosen].acted, true);
+      assert.deepEqual(next.players[0].units[chosen === selected.id ? other.id : selected.id], before.players[0].units[chosen === selected.id ? other.id : selected.id]);
+      assert.equal(next.selectedUnitId, reason === "ready" ? selected.id : null);
+      assert.equal(next.armySelection, null);
+      assert.deepEqual(g, before, "commands must preserve their source state");
+    }
+  }
+});
+
+test("construction : l'ouvrier disponible le plus proche du motif prend le relais", () => {
+  for (const selection of [0, 1, null]) {
+  const g = setup(), p = g.players[0], [selected, adjacent] = p.units;
+  Object.assign(selected, { x: 0, y: 5 });
+  Object.assign(adjacent, { x: 4, y: 5 });
+  const nearest = { ...adjacent, id: p.nextUnitId++, x: 5 };
+  p.units.push(nearest); p.workers++;
+  selectUnit(g, selection);
+  g.board["5,5"] = { terrain: "forest" };
+  g.buildingMarket[0] = "clearing";
+  build(g, 0, 5, 5);
+  assert.equal(nearest.acted, selection !== adjacent.id);
+  assert.equal(adjacent.acted, selection === adjacent.id);
+  assert.equal(selected.acted, false);
+  assert.equal(g.selectedUnitId, selection === adjacent.id ? adjacent.id : null);
+  }
+});
+
+test("placement impossible : aucun changement de sélection ni d'action", () => {
+  const g = setup();
+  selectUnit(g, 0);
+  g.players[0].units[1].acted = true;
+  g.tileMarket[0] = { cells: [{ x: 0, y: 0, terrain: "plain" }] };
+  delete g.board["5,5"];
+  const before = structuredClone(g);
+  assert.throws(() => explore(g, 0, 5, 5));
+  assert.deepEqual(g, before);
 });

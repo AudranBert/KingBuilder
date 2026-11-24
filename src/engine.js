@@ -670,10 +670,35 @@ function tilePlacement(g, tile, x, y, rotation = 0, anchor = 0) {
 export function placement(g, index, x, y, rotation = 0, anchor = 0) {
   return tilePlacement(g, g.tileMarket[index], x, y, rotation, anchor);
 }
+// Prefer the selected worker, then the nearest available worker to the tile.
+// Rule checks stay read-only; selection changes only after a successful action.
+function placementWorker(g, cells, inRange) {
+  const selected = actor(g);
+  if (selected.type !== "worker" || !cells?.length) return selected;
+  const range = unit => Math.min(...cells.map(cell => distance(unit, cell)));
+  const eligible = unit => unit.type === "worker" && !unit.acted && !unit.ended && inRange(unit, cells);
+  if (g.selectedUnitId != null && eligible(selected)) return selected;
+  const worker = g.players[g.active].units.filter(eligible)
+    .sort((a, b) => range(a) - range(b) || a.id - b.id)[0];
+  return worker ? { ...worker, name: UNIT_DEFINITIONS.worker.name + " " + (worker.id + 1), icon: UNIT_DEFINITIONS.worker.icon } : selected;
+}
+function explorationWorker(g, cells) {
+  return placementWorker(g, cells, (unit, targets) => targets.some(cell => distance(unit, cell) === RULES.placement.explorationContactDistance));
+}
+function constructionWorker(g, cells) {
+  return placementWorker(g, cells, (unit, targets) => targets.some(cell => distance(unit, cell) <= RULES.placement.constructionRange));
+}
+function terrainWorker(g, x, y) {
+  return placementWorker(g, [{ x, y }], unit => kingdomBonus(g, g.active, "remoteTerrain") || distance(unit, { x, y }) === RULES.placement.explorationContactDistance);
+}
+function usePlacementAction(g, unit) {
+  g.players[g.active].units.find(worker => worker.id === unit.id).acted = true;
+  if (g.selectedUnitId != null && g.selectedUnitId !== unit.id) selectUnit(g, null);
+}
 export function exploreIssue(g, index, x, y, rotation = 0, anchor = 0) {
   if (g.finished) return ruleIssue("messages.theGameIsOver");
   if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
-  const unit = actor(g);
+  const unit = explorationWorker(g, placement(g, index, x, y, rotation, anchor));
   if (unit.type === "soldier") return ruleIssue("messages.soldiersCannotExplore");
   if (unit.acted || unit.ended) return ruleIssue("messages.thisUnitHasAlreadyCompletedItsAction");
   if (g.board[key(x, y)]) return ruleIssue("messages.chooseAnUnexploredSpace");
@@ -687,7 +712,7 @@ export function exploreIssue(g, index, x, y, rotation = 0, anchor = 0) {
 export function explore(g, index, x, y, rotation = 0, anchor = 0) {
   const error = exploreIssue(g, index, x, y, rotation, anchor);
   if (error) throw new RuleError(error);
-  const p = actor(g),
+  const p = explorationWorker(g, placement(g, index, x, y, rotation, anchor)),
     cells = placement(g, index, x, y, rotation, anchor);
   cells.forEach(
     (c) => (g.board[key(c.x, c.y)] = { terrain: c.terrain }),
@@ -697,7 +722,7 @@ export function explore(g, index, x, y, rotation = 0, anchor = 0) {
     const counts = g.players[g.active].progress.terrain;
     counts[c.terrain] = (counts[c.terrain] || 0) + 1;
   }
-  updateActor(g, { acted: true });
+  usePlacementAction(g, p);
   if (g.tileDeck.length) g.tileMarket[index] = g.tileDeck.shift();
   else g.tileMarket.splice(index, 1);
   note(g, sourceMessage("messages.exploreSpaces", [p.name, cells.length]));
@@ -708,7 +733,7 @@ export function buyTerrainIssue(g, terrain, x, y) {
   if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   if (!["plain", "forest", "mountain", "river"].includes(terrain))
     return ruleIssue("messages.chooseAnAvailableTerrain");
-  const unit = actor(g);
+  const unit = terrainWorker(g, x, y);
   if (unit.type === "soldier") return ruleIssue("messages.soldiersCannotExplore");
   if (unit.acted || unit.ended) return ruleIssue("messages.thisUnitHasAlreadyCompletedItsAction");
   if (!inside(g, x, y) || g.board[key(x, y)]) return ruleIssue("messages.chooseAnUnexploredSpace");
@@ -721,12 +746,13 @@ export function buyTerrainIssue(g, terrain, x, y) {
 export function buyTerrain(g, terrain, x, y) {
   const error = buyTerrainIssue(g, terrain, x, y);
   if (error) throw new RuleError(error);
+  const unit = terrainWorker(g, x, y);
   const p = g.players[g.active];
   p.resources.gold -= (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost);
   g.board[key(x, y)] = { terrain };
   p.revealed++;
   p.progress.terrain[terrain] = (p.progress.terrain[terrain] || 0) + 1;
-  updateActor(g, { acted: true });
+  usePlacementAction(g, unit);
   note(g, sourceMessage("messages.buysASpaceOfForGold", [p.name, TERRAINS[terrain].name.toLowerCase(), (kingdomBonus(g,g.active,"remoteTerrain") ? 1 : RULES.trade.singleTerrainCost)]));
   awardMissions(g);
 }
@@ -741,7 +767,7 @@ export function buildIssue(
   const type = g.buildingMarket[index],
     b = BUILDINGS[type],
     p = g.players[g.active],
-    unit = actor(g);
+    unit = constructionWorker(g, b && patternAt(type, x, y, rotation));
   if (g.finished) return ruleIssue("messages.theGameIsOver");
   if (g.opening) return ruleIssue("messages.finishTerrainSetupFirst");
   if (unit.acted || unit.ended)
@@ -816,6 +842,7 @@ export function build(
     (!allowGold || expectedGold !== payment.gold)
   )
     throw new RuleError(ruleIssue("messages.confirmTheResourcePurchaseFromTheBank"));
+  const unit = constructionWorker(g, patternAt(type, x, y, rotation));
   payCost(p.resources, payment.resources);
 
   if (b.transformTo) g.board[key(x, y)].terrain = b.transformTo;
@@ -838,7 +865,7 @@ export function build(
   if (b.onBuildUnit) spawnUnit(g, x, y, b.onBuildUnit);
   for (const [resource, amount] of Object.entries(b.onBuildGain || {}))
     p.resources[resource] += amount;
-  updateActor(g, { acted: true });
+  usePlacementAction(g, unit);
   const replacement = drawBuildingOffers(g, 1);
   if (replacement.length) g.buildingMarket[index] = replacement[0];
   else g.buildingMarket.splice(index, 1);

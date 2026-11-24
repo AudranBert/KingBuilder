@@ -105,9 +105,10 @@ export function startGame({ initialGame = null } = {}) {
     if (changed) {
       const selected = game.selectedUnitId, army = game.armySelection;
       const selection = ui.unitSelection;
+      const placementDeselected = online.busy && selected !== null && result.game.selectedUnitId === null;
       const sameTurn = game.active === result.game.active && game.round === result.game.round && game.onlineCode === result.code;
       game = result.game;
-      if (sameTurn && game.active === result.player && selected !== null && game.players[game.active].units.some(u => u.id === selected)) {
+      if (sameTurn && !placementDeselected && game.active === result.player && selected !== null && game.players[game.active].units.some(u => u.id === selected)) {
         game.selectedUnitId = selected; game.armySelection = army;
       }
       game.onlineRevision = result.revision;
@@ -115,7 +116,7 @@ export function startGame({ initialGame = null } = {}) {
       undoState = null; pendingBuild = null;
       resetSelection({ gameSelection: false });
       Object.assign(ui, createUIState());
-      if (sameTurn && selection) ui.unitSelection = selection;
+      if (sameTurn && !placementDeselected && selection) ui.unitSelection = selection;
     }
     render();
     if (changed && game.finished && !inMenu) showResults();
