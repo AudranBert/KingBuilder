@@ -1,5 +1,6 @@
 // Shared message keys; parameters use {0}, {1}, etc.
 export default {
+  "four.notice": "Experimental mode · 4 players · Free-for-all. Losing your castle or resigning eliminates your kingdom. Last kingdom standing or highest score at the end wins.",
   "network.serverUnavailable": "The server is temporarily unavailable. Please try again shortly.",
   "network.timeout": "The server took too long to respond. Check your connection and try again.",
   "network.connectionLost": "Unable to reach the server. Check your Internet connection.",
@@ -10,7 +11,7 @@ export default {
 "multiplayer.four": "4 players · Experimental",
 "multiplayer.occupiedSeats": "Occupied seats cannot be removed.",
   "players.playingNow": "Playing now",
-"setup.randomOrder": "In multiplayer, starting positions and the first player are drawn randomly. Four-player turns proceed clockwise. Setup proceeds in reverse turn order.",
+
 "players.left": "Left",
 "players.right": "Right",
 "players.top": "Top",
@@ -18,11 +19,11 @@ export default {
   "four.turn": "{0}’s turn",
 "four.backendUpdate": "The multiplayer server needs to be updated to support 4 players.",
 "maps.four_kings.name": "4 kings",
-"four.combat": "With a survivor, occupy a flag to capture it. Capturing a castle eliminates its kingdom; the remaining players continue. Remaining buildings can still be attacked.",
+
   "four.local": "4 players · Local",
   "four.online": "4 players · Online",
   "four.experimental": "Experimental · Free-for-all",
-  "four.notice": "Experimental mode · 4 players · Free-for-all. Losing your castle or resigning eliminates your kingdom. Last kingdom standing or highest score at the end wins.",
+
   "four.create": "Create for 4 · Experimental",
   "four.lobby": "4 kings · Experimental · {0}/4 players",
   "four.waiting": "Open seat",
@@ -67,7 +68,7 @@ export default {
   "worker.actionUsed": "Action used",
   "worker.actionReady": "Action available",
   "worker.status": "Worker {0} · {1} moves · {2}",
-  "maps.setupWithDraft": "On this {0} × {0} board, terrain and flags are placed by the map. Players take turns placing {1} setup tile(s) each before turn one.",
+
   "maps.catalogue": "Maps",
   "maps.previewSize": "Preview size",
   "maps.previewLabel": "{0}, {1} × {1} board, {2} neutral flags",
@@ -75,7 +76,7 @@ export default {
   "maps.choose": "Starting map",
   "maps.random": "Random map",
   "maps.randomHelp": "A map will be drawn from the catalogue. Terrain and flags are already placed; you can add a setup draft.",
-  "maps.setup": "On this {0} × {0} board, terrain and flags are placed by the map. Play starts immediately. Explore the empty spaces with your tiles.",
+
   "language.switch": "Switch to French",
   "buildings.chancellery.name": "Chancellery",
   "buildings.chancellery.description": "+1 emissary; unique.",
@@ -466,23 +467,23 @@ export default {
   "armyControlsView.available": "{0} {1} · {2} available",
   "tradeView.buyingMissingResourcesBasePricePerEnemy": "Buying missing resources: base price {0} + {1} per enemy producer",
   "tradeView.bank": "Bank",
-  "rulesView.1TheGoal": "1. The goal",
-  "rulesView.conquerTheEnemyKeepWithASurviving": "Conquer the enemy keep with a surviving army to win immediately. Otherwise, after {0} turns per player, the highest score wins: building points + mission points + {1} per flag + 1 per group of {2} gold. Tier 0 and 1 buildings score no points.",
-  "rulesView.2SetUpTheBoard": "2. Set up the board",
-  "rulesView.onTheBoardEachPlayerPlacesSetup": "On the board {0} × {1}, each player places {2} setup tile(s) on empty spaces, taking turns. Setup proceeds in reverse turn order. These placements do not count toward missions.",
-  "rulesView.3TakeYourTurn": "3. Take your turn",
-  "rulesView.eachUnitHasMovesAlongSharedEdges": "Start with two workers. Each worker has {0} orthogonal moves and one action: explore, build or produce. Move before and after its action within its movement allowance. Soldiers fight. At the end of the turn, workers with an unused action automatically produce on their current space before play passes on.",
-  "rulesView.4ExploreAndBuild": "4. Explore and build",
-  "rulesView.placeATerrainTileTouchingTheBuilder": "Place a terrain tile touching the builder: it reveals spaces shared by both players. For {0} gold, you can also reveal one adjacent space of your chosen terrain. This uses the unit’s action.",
-  "rulesView.toBuildPayTheCostAndPlace": "To build, pay the cost. At least one space of the building tile must be on the worker's space or share an edge with it, even if that space does not contain the building. The pattern must match the revealed terrain and cannot overlap a building. Mountains and rivers require a tunnel or bridge to cross. See the catalog for patterns and effects.",
-  "rulesView.5ProduceAndProgress": "5. Produce and progress",
-  "rulesView.aHouseProvidesOneWorkerAssignIt": "Produce immediately gains 1 food on an empty plain, 1 material on an empty forest, or the output shown by your occupied production building. Each building produces once per turn, regardless of the number of workers. Workers with an unused action automatically produce at the end of the turn. Mills add +1 without stacking. A house costs 4 food, 4 materials and 1 gold; its worker appears on the house and becomes active next turn. Missions grant their displayed rewards: gold, wood, wheat, soldiers at the keep or points. Reward soldiers become active on their owner’s next turn. The bank lets you cover costs with gold.",
-  "rulesView.rerollingTheMarketCostsGoldOncePer": "Rerolling the market costs {0} gold, once per turn. Recruited units become active on your next turn.",
-  "rulesView.6FightAndConquer": "6. Fight and conquer",
-  "rulesView.groupYourSoldiersOrChooseANumber": "Group your soldiers or choose a number to split the army. Attack: number of soldiers. A tower or keep provides fixed strength 2, without a defensive bonus. Defending soldiers add their number. Their +1 bonus applies only without a building providing fixed strength: a tower with one soldier defends at 3. The stronger side keeps the difference; on a tie, no attacker can occupy the target. A tower costs 4 materials and 1 food and can only be built on a plain or forest. Recruiting a soldier costs 2 food.",
-  "rulesView.withASurvivorOccupyAFlagTo": "With a survivor, occupy a flag to capture it or an enemy building to destroy it. A worker also captures a neutral or enemy flag, or takes ownership of an enemy building, by entering its space if no enemy unit or garrison defends it. The building is preserved without resetting its quotas. Flags remain yours after leaving. Garrisons remain until enemy occupation. Captured workers return to the keep and become active next turn. Destroyed buildings return to the bottom of the deck. Destroying a house removes the worker it created, wherever that worker is.",
-  "rulesView.7MoveThePieces": "7. Move the pieces",
-  "rulesView.clickOrDragUnitsAndCardsR": "In Play mode, select a worker or army, then its destination. Inspect mode shows information. You can also drag units. R or the mouse wheel rotates a card; S mirrors it; Escape or right-click cancels selection. On touch screens, tap a card then a space, or drag its ⠿ handle.",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   "missionsView.of": "{0}: {1} of {2}",
   "missionsView.firstComeFirstServed": "{0} · first come, first served",
   "missionsView.difficultyOf": "Difficulty {0} of {1}",
@@ -526,6 +527,6 @@ export default {
   "army.defenseExplanation": "Defense of this space: {0} soldiers, garrison {1}, defensive bonus {2}.",
   "settings.missions": "Missions",
   "settings.missionsInvalid": "The missions setting must be a boolean.",
-  "rulesView.setupWithoutMissions": "On the board {0} × {1}, each player places {2} setup tile(s) on empty spaces, taking turns. With two players, Jade goes first.",
-  "rulesView.productionWithoutMissions": "Produce immediately gains 1 food on an empty plain, 1 material on an empty forest, or the output of your occupied production building. Each building produces once per turn. Workers with an unused action automatically produce at the end of the turn. Mills add +1 without stacking. A house costs 4 food, 4 materials and 1 gold; its worker becomes active next turn. Missions are disabled."
+
+
 };

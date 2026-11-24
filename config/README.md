@@ -138,3 +138,13 @@ Chaque offre impose une contribution après son apparition : le seuil individuel
 Les noms historiques de certaines missions sont conservés comme identifiants de catalogue ; leur ressource est toujours déterminée par le champ `resource` actuel.
 
 Les bâtiments de niveau 0 et 1 valent 0 point. Tout bâtiment détruit revient en fin de pioche. La métrique de mission `built-distinct` compte les familles construites au moins une fois (variantes regroupées), aux paliers 2 / 4 / 6 ; `built` conserve le nombre total de constructions.
+
+## Livret de règles
+
+- `rules/rules.fr.md` : règles en français.
+- `rules/rules.en.md` : règles en anglais.
+- Le livret présente le jeu de base en 1 contre 1. Il reste identique dans tous les modes et avec tous les réglages.
+- Utiliser `## Titre`, `- élément de liste` ou un paragraphe simple. Le HTML et les autres syntaxes Markdown ne sont pas interprétés.
+- Les variables `{{size}}`, `{{rounds}}` et `{{openingCount}}` reprennent les réglages par défaut, jamais ceux de la partie en cours.
+- Les variables `{{flagPoints}}`, `{{goldPerPoint}}`, `{{workerMoves}}`, `{{singleTerrainCost}}` et `{{rerollCost}}` reprennent les constantes du jeu.
+- Après modification, lancer `npm run build`, puis recharger le site.

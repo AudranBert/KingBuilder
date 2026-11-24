@@ -15,13 +15,13 @@ test("les ressources dans les descriptions utilisent leurs icônes sans interpr�
   try {
     for(const language of ['fr','en']) {
       setLanguage(language, {persist:false});
-      const prose=language==='fr' ? '1 or, 2 blé, 3 matériaux <script>' : '1 gold, 2 food, 3 materials <script>';
+      const prose=language==='fr' ? '1 or, 2 blé, 2 blés, 3 matériaux <script>' : '1 gold, 2 food, 3 materials <script>';
       const html=resourceTextHTML(prose);
       for(const icon of ['gold','wheat','wood']) assert.match(html,new RegExp(`resources/${icon}\\.svg`));
       assert.match(html,/&lt;script&gt;/);assert.doesNotMatch(html,/<script>/);
       assert.equal(resourceTextHTML(language==='fr' ? 'forêt ou plaine' : 'forest or plain'),language==='fr' ? 'forêt ou plaine' : 'forest or plain');
       const visibleText=html.replace(/<[^>]*>/g,'');
-      assert.doesNotMatch(visibleText, /\b(or|blé|matériaux|gold|food|materials)\b/);
+      assert.doesNotMatch(visibleText, /\b(or|blés?|matériaux|gold|food|materials)\b/);
       assert.match(buildingDetailsView('port'), /class="resource-symbol"[^>]*>.*resources\/gold\.svg/);
       assert.match(catalogueView(),/class="resource-symbol"/);
     }
@@ -120,7 +120,7 @@ test("l’anglais traduit l’interface sans modifier la partie ni les pseudos",
     assert.match(catalogueView(), /Recruit one soldier for two <span[^>]*aria-label="Food"[^>]*>.*wheat\.svg.*once per turn/);
     assert.match(catalogueView(), /losing your keep means defeat/);
     assert.match(buildingDetailsView("house"), /House/);
-    assert.match(rulesView(game), /7\. Move the pieces/);
+    assert.match(rulesView(game), /7\. Fight and conquer/);
     const type = Object.keys(BUILDINGS).find(id => BUILDINGS[id].trains);
     assert.doesNotMatch(trainingView(game, "0,0", { type }), /Choisissez|terminée|ressources/);
     assert.equal(translateMessage("Impossible : il faut plaine ici."), "Cannot place: requires plain here.");

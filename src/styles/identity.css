@@ -147,7 +147,9 @@ dialog input:focus-visible, dialog select:focus-visible {
 #online-code { text-transform: uppercase; }
 .dialog-actions { flex-wrap: wrap; }
 .dialog-actions button { min-height: 44px; }
-.rules-content p { line-height: 1.65; }
+.rules-content p, .rules-content li { line-height: 1.65; }
+.rules-content ul { margin: 0 0 12px; padding-left: 22px; }
+.rules-content li + li { margin-top: 5px; }
 .topbar nav #game-catalogue-button, .topbar nav #rules-button {
   display: inline-flex;
   align-items: center;

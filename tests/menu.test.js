@@ -229,7 +229,7 @@ test("menu : les curseurs configurent la nouvelle partie avant son lancement", (
   assert.equal(app.node("#game-settings-dialog").open, false);
   assert.match(app.node("#round").innerHTML, /20/);
   assert.equal(app.node("#opening-status").hidden, true);
-  assert.match(app.node(".rules-content").innerHTML, /disposés par la carte/);
+  assert.match(app.node(".rules-content").innerHTML, /Préparer le plateau/);
 });
 
 test("la molette pivote la carte survolée et garde le défilement ailleurs", (t) => {
@@ -371,7 +371,7 @@ test('une armée sans déplacement est grisée et un clic hors du pion la désé
   assert.match(app.cell(x + 1, y).className, /reachable/);
 });
 
-test('le réglage des missions retire réellement les objectifs et adapte les règles', t => {
+test('le réglage des missions retire les objectifs et conserve le livret fixe', t => {
   const app = mount(t);
   app.mode('solo').click();
   assert.equal(app.node('#setting-missions').checked, true);
@@ -380,7 +380,8 @@ test('le réglage des missions retire réellement les objectifs et adapte les r�
   assert.equal(app.node('#missions').hidden, true);
   assert.equal(app.node('#missions').innerHTML, '');
   app.node('#rules-button').click();
-  assert.match(app.node('.rules-content').innerHTML, /missions sont désactivées/);
+  assert.match(app.node('.rules-content').innerHTML, /Les missions sont optionnelles/);
+  assert.doesNotMatch(app.node('.rules-content').innerHTML, /missions sont désactivées/);
   app.node('#rules-dialog .close').click();
   app.node('#menu-button').click();
   app.mode('solo').click();

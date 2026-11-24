@@ -19,15 +19,17 @@ export function iconHTML(path, className = "asset-icon") {
 // stay as text; in English, the conjunction "or" must never become a gold icon.
 export function resourceTextHTML(value) {
   const aliases = getLanguage() === "fr"
-    ? { or: "gold", nourriture: "food", blé: "food", matériaux: "material", matériau: "material", bois: "material" }
-    : { gold: "gold", food: "food", wheat: "food", materials: "material", material: "material", wood: "material" };
+    ? { "points de puissance": "strength", "point de puissance": "strength", puissance: "strength", or: "gold", nourriture: "food", blé: "food", blés: "food", matériaux: "material", matériau: "material", bois: "material" }
+    : { strength: "strength", gold: "gold", food: "food", wheat: "food", materials: "material", material: "material", wood: "material" };
   const pattern = new RegExp(`(?<![\\p{L}\\p{N}_])(${Object.keys(aliases).join("|")})(?![\\p{L}\\p{N}_])`, "giu");
   const text = String(value ?? "");
   let html = "", offset = 0;
   for (const match of text.matchAll(pattern)) {
     const id = aliases[match[0].toLowerCase()];
     html += e(text.slice(offset, match.index));
-    html += `<span class="resource-symbol" role="img" aria-label="${e(t(`resources.${id}.name`))}" title="${e(t(`resources.${id}.name`))}">${iconHTML(RESOURCE_ICONS[id])}</span>`;
+    const label = id === "strength" ? match[0] : t(`resources.${id}.name`);
+    const icon = id === "strength" ? "assets/textures/interface/sword.svg" : RESOURCE_ICONS[id];
+    html += `<span class="resource-symbol" role="img" aria-label="${e(label)}" title="${e(label)}">${iconHTML(icon)}</span>`;
     offset = match.index + match[0].length;
   }
   return html + e(text.slice(offset));

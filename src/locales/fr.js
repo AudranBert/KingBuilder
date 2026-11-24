@@ -1,5 +1,6 @@
 // Shared message keys; parameters use {0}, {1}, etc.
 export default {
+  "four.notice": "Mode expérimental · 4 joueurs · Chacun pour soi. Un royaume est éliminé si son château est pris ou s’il abandonne. Dernier royaume en jeu ou meilleur score à la fin : victoire.",
   "network.serverUnavailable": "Le serveur est temporairement indisponible. Réessayez dans un instant.",
   "network.timeout": "Le serveur met trop de temps à répondre. Vérifiez votre connexion puis réessayez.",
   "network.connectionLost": "Impossible de joindre le serveur. Vérifiez votre connexion Internet.",
@@ -10,7 +11,7 @@ export default {
 "multiplayer.four": "4 joueurs · Expérimental",
 "multiplayer.occupiedSeats": "Impossible de retirer des places occupées.",
   "players.playingNow": "À son tour",
-"setup.randomOrder": "En multijoueur, les places et le premier joueur sont tirés au sort. À quatre, les tours suivent le sens des aiguilles d’une montre. La préparation se fait dans l’ordre inverse des tours.",
+
 "players.left": "Gauche",
 "players.right": "Droite",
 "players.top": "Haut",
@@ -18,11 +19,11 @@ export default {
   "four.turn": "Au tour de {0}",
 "four.backendUpdate": "Le serveur multijoueur doit être mis à jour pour accueillir 4 joueurs.",
 "maps.four_kings.name": "4 kings",
-"four.combat": "Avec un survivant, occupez un drapeau pour le capturer. Prendre un château élimine son royaume ; les autres joueurs continuent. Les bâtiments restants peuvent toujours être attaqués.",
+
   "four.local": "4 joueurs · Local",
   "four.online": "4 joueurs · En ligne",
   "four.experimental": "Expérimental · Chacun pour soi",
-  "four.notice": "Mode expérimental · 4 joueurs · Chacun pour soi. Un royaume est éliminé si son château est pris ou s’il abandonne. Dernier royaume en jeu ou meilleur score à la fin : victoire.",
+
   "four.create": "Créer à 4 · Expérimental",
   "four.lobby": "4 kings · Expérimental · {0}/4 joueurs",
   "four.waiting": "Place libre",
@@ -218,7 +219,7 @@ export default {
   "worker.actionUsed": "Action utilisée",
   "worker.actionReady": "Action disponible",
   "worker.status": "Ouvrier {0} · {1} déplacements · {2}",
-  "maps.setupWithDraft": "Sur ce plateau de {0} × {0}, les terrains et les drapeaux sont disposés par la carte. Chaque joueur place {1} tuile(s) de préparation avant le premier tour, en alternance.",
+
   "maps.catalogue": "Cartes",
   "maps.previewSize": "Taille de l’aperçu",
   "maps.previewLabel": "{0}, plateau de {1} × {1}, {2} drapeaux neutres",
@@ -226,7 +227,7 @@ export default {
   "maps.choose": "Carte de départ",
   "maps.random": "Carte aléatoire",
   "maps.randomHelp": "Une carte du catalogue sera tirée au sort. Terrains et drapeaux sont déjà disposés ; vous pouvez ajouter une draft de préparation.",
-  "maps.setup": "Sur ce plateau de {0} × {0}, les terrains et les drapeaux sont disposés par la carte. La partie commence directement. Explorez les espaces libres avec vos tuiles.",
+
   "language.switch": "Passer en anglais",
   "buildings.house.name": "Maison",
   "buildings.house.description": "+1 ouvrier, actif au prochain tour. Cet ouvrier disparaît si la maison est détruite.",
@@ -841,23 +842,23 @@ export default {
   "armyControlsView.available": "{0} {1} · {2} disponible(s)",
   "tradeView.buyingMissingResourcesBasePricePerEnemy": "Achat des ressources manquantes : prix de base {0} + {1} par producteur adverse",
   "tradeView.bank": "Banque",
-  "rulesView.1TheGoal": "1. Le but",
-  "rulesView.conquerTheEnemyKeepWithASurviving": "Conquérez le donjon adverse avec une armée survivante pour gagner immédiatement. Sinon, après {0} tours par joueur, le meilleur score gagne : points des bâtiments + points des missions + {1} par drapeau + 1 par groupe de {2} ors. Les bâtiments de niveau 0 et 1 ne rapportent aucun point.",
-  "rulesView.2SetUpTheBoard": "2. Préparer le plateau",
-  "rulesView.onTheBoardEachPlayerPlacesSetup": "Sur le plateau {0} × {1}, chacun place {2} tuile(s) de préparation sur des cases libres, en alternance. La préparation suit l’ordre inverse des tours. Ces poses ne comptent pas pour les missions.",
-  "rulesView.3TakeYourTurn": "3. Jouer son tour",
-  "rulesView.eachUnitHasMovesAlongSharedEdges": "Vous commencez avec deux ouvriers. Chaque ouvrier dispose de {0} déplacements par les bords et d’une action : explorer, construire ou produire. Déplacez-le avant et après son action, dans la limite de ses déplacements. Les soldats combattent. En fin de tour, les ouvriers qui ont encore leur action produisent automatiquement sur leur case, puis vous passez la main.",
-  "rulesView.4ExploreAndBuild": "4. Explorer et construire",
-  "rulesView.placeATerrainTileTouchingTheBuilder": "Posez une tuile terrain au contact du bâtisseur : elle révèle des cases communes aux deux joueurs. Pour {0} or, vous pouvez aussi révéler une seule case voisine du terrain choisi. Cela consomme l’action.",
-  "rulesView.toBuildPayTheCostAndPlace": "Pour construire, payez le coût. Au moins une case de la tuile bâtiment doit être sur la case de l’ouvrier ou partager un côté avec elle, même si cette case ne porte pas le bâtiment. Le motif doit respecter les terrains révélés et ne pas recouvrir un bâtiment. Montagnes et rivières nécessitent un tunnel ou un pont pour être traversées. Consultez le catalogue pour les motifs et effets.",
-  "rulesView.5ProduceAndProgress": "5. Produire et progresser",
-  "rulesView.aHouseProvidesOneWorkerAssignIt": "Produire donne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre, ou la production indiquée de votre bâtiment occupé. Chaque bâtiment produit une seule fois par tour, quel que soit le nombre d’ouvriers. Les ouvriers sans action utilisée produisent automatiquement en fin de tour. Les moulins ajoutent +1 sans cumul. Une maison coûte 4 blés, 4 bois et 1 or ; son ouvrier apparaît sur la maison et devient actif au prochain tour. Les missions donnent les récompenses affichées : or, bois, blé, soldats au donjon ou points. Les soldats offerts deviennent actifs au prochain tour du propriétaire. La banque permet de compléter les coûts en or.",
-  "rulesView.rerollingTheMarketCostsGoldOncePer": "Une relance du marché coûte {0} or, une fois par tour. Les unités recrutées deviennent actives à votre prochain tour.",
-  "rulesView.6FightAndConquer": "6. Combattre et conquérir",
-  "rulesView.groupYourSoldiersOrChooseANumber": "Regroupez vos soldats ou choisissez un effectif pour diviser l’armée. Attaque : nombre de soldats. Une tour ou un donjon apporte une force fixe de 2, sans bonus défensif. Les soldats en défense ajoutent leur effectif. Leur bonus de +1 s’applique uniquement sans bâtiment ayant une force fixe : une tour avec un soldat défend à 3. Le camp le plus fort conserve la différence ; à égalité, aucun attaquant ne peut occuper la cible. Une tour coûte 4 bois et 1 blé et se construit uniquement sur plaine ou forêt. Recruter un soldat coûte 2 blés.",
-  "rulesView.withASurvivorOccupyAFlagTo": "Avec un survivant, occupez un drapeau pour le capturer ou un bâtiment adverse pour le détruire. Un ouvrier capture aussi un drapeau neutre ou adverse, ou prend possession d’un bâtiment adverse, en entrant sur sa case si aucune unité adverse ni garnison ne la défend. Le bâtiment est conservé, sans réinitialiser ses quotas. Les drapeaux restent acquis après votre départ. Les garnisons restent jusqu’à une occupation ennemie. Un ouvrier capturé revient au donjon et sera actif au prochain tour. Les bâtiments détruits reviennent en fin de pioche. Détruire une maison supprime l’ouvrier qu’elle a créé, où qu’il se trouve.",
-  "rulesView.7MoveThePieces": "7. Manipuler les pièces",
-  "rulesView.clickOrDragUnitsAndCardsR": "En mode Jouer, sélectionnez un ouvrier ou une armée, puis sa destination. Le mode Inspecter affiche les informations. Vous pouvez aussi glisser une unité. R ou la molette pivote une carte ; S la retourne en miroir ; Échap ou clic droit annule la sélection. Au doigt, touchez une carte puis une case, ou glissez sa poignée ⠿.",
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   "missionsView.of": "{0} : {1} sur {2}",
   "missionsView.firstComeFirstServed": "{0} · premier arrivé, premier servi",
   "missionsView.difficultyOf": "Difficulté {0} sur {1}",
@@ -901,8 +902,8 @@ export default {
   "army.defenseExplanation": "Défense de la case : {0} soldats, garnison {1}, bonus défensif {2}.",
   "settings.missions": "Missions",
   "settings.missionsInvalid": "L’activation des missions doit être un booléen.",
-  "rulesView.setupWithoutMissions": "Sur le plateau {0} × {1}, chacun place {2} tuile(s) de préparation sur des cases libres, en alternance. À deux, Jade commence.",
-  "rulesView.productionWithoutMissions": "Produire donne immédiatement 1 nourriture sur une plaine libre, 1 matériau sur une forêt libre, ou la production indiquée de votre bâtiment occupé. Un bâtiment produit une fois par tour. Les ouvriers sans action utilisée produisent automatiquement en fin de tour. Les moulins ajoutent +1 sans cumul. Une maison coûte 4 blés, 4 bois et 1 or ; son ouvrier est actif au prochain tour. Les missions sont désactivées.",
+
+
   "maps.clearings.name": "Les clairières",
   "maps.scattered_lands.name": "Terres éparses",
   "maps.scattered_lands.description": "5 drapeaux et 5 tuiles de terrain préplacées.",

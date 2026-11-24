@@ -1,3 +1,4 @@
+import { renderRules } from "../rulebook.js";
 import { t, definitionText, translateMessage, kingdomName, getLanguage } from "../i18n.js";
 import { iconHTML, resourceTextHTML } from "./html.js";
 import { piece, playerColor } from "./pieces.js";
@@ -285,29 +286,17 @@ export function armyControlsView(g) {
 export function tradeView(g, owner = g.active) {
   return `<span title="${t("tradeView.buyingMissingResourcesBasePricePerEnemy", [RULES.trade.basePrice, RULES.trade.producerSurcharge])}"><strong>${t("tradeView.bank")}</strong> · ${tradePrice(g,"food",owner)} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.food.icon)} · ${tradePrice(g,"material",owner)} ${iconHTML(RESOURCE_DEFINITIONS.gold.icon)} → ${iconHTML(RESOURCE_DEFINITIONS.material.icon)}</span>`;
 }
-export function rulesView(g) {
-  const ruleText = (key, values) => resourceTextHTML(t(key, values));
-  const size = g?.boardSize ?? GAME_DEFAULTS.boardSize,
-    rounds = g?.turnLimit ?? GAME_DEFAULTS.rounds,
-    openingCount = g?.openingTilesPerPlayer ?? GAME_DEFAULTS.openingTilesPerPlayer;
-  return `<h3>${ruleText("rulesView.1TheGoal")}</h3>
-  <p>${g?.players.length === 4 ? ruleText("four.notice") : ruleText("rulesView.conquerTheEnemyKeepWithASurviving", [rounds, RULES.points.flag, RULES.points.goldPerPoint])}</p>
-  <h3>${ruleText("rulesView.2SetUpTheBoard")}</h3>
-  <p>${g?.mapId ? t(openingCount ? "maps.setupWithDraft" : "maps.setup", [size, openingCount]) : t(g?.missionsEnabled === false ? "rulesView.setupWithoutMissions" : "rulesView.onTheBoardEachPlayerPlacesSetup", [size, size, openingCount])}</p>
-  ${g?.mode === "solo" ? "" : `<p>${ruleText("setup.randomOrder")}</p>`}
-  <h3>${ruleText("rulesView.3TakeYourTurn")}</h3>
-  <p>${ruleText("rulesView.eachUnitHasMovesAlongSharedEdges", [UNIT_DEFINITIONS.worker.moves])}</p>
-  <h3>${ruleText("rulesView.4ExploreAndBuild")}</h3>
-  <p>${ruleText("rulesView.placeATerrainTileTouchingTheBuilder", [RULES.trade.singleTerrainCost])}</p>
-  <p>${ruleText("rulesView.toBuildPayTheCostAndPlace")}</p>
-  <h3>${ruleText("rulesView.5ProduceAndProgress")}</h3>
-  <p>${ruleText(g?.missionsEnabled === false ? "rulesView.productionWithoutMissions" : "rulesView.aHouseProvidesOneWorkerAssignIt")}</p>
-  <p>${ruleText("rulesView.rerollingTheMarketCostsGoldOncePer", [GOLD.rerollCost])}</p>
-  <h3>${ruleText("rulesView.6FightAndConquer")}</h3>
-  <p>${ruleText("rulesView.groupYourSoldiersOrChooseANumber")}</p>
-  <p>${g?.players.length === 4 ? ruleText("four.combat") : ruleText("rulesView.withASurvivorOccupyAFlagTo")}</p>
-  <h3>${ruleText("rulesView.7MoveThePieces")}</h3>
-  <p>${ruleText("rulesView.clickOrDragUnitsAndCardsR")}</p>`;
+export function rulesView() {
+  return renderRules(getLanguage(), {
+    size: GAME_DEFAULTS.boardSize,
+    rounds: GAME_DEFAULTS.rounds,
+    openingCount: GAME_DEFAULTS.openingTilesPerPlayer,
+    flagPoints: RULES.points.flag,
+    goldPerPoint: RULES.points.goldPerPoint,
+    workerMoves: UNIT_DEFINITIONS.worker.moves,
+    singleTerrainCost: RULES.trade.singleTerrainCost,
+    rerollCost: GOLD.rerollCost,
+  });
 }
 
 export function missionsView(g) {
