@@ -205,7 +205,7 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
   );
   const buildingMarket = [];
   const initialFamilies = new Set();
-  for (let i = 0; i < RULES.markets.buildingSize; i++) {
+  for (let i = 0; i < RULES.markets.initialBuildingSize; i++) {
     const index = buildingDeck.findIndex(id => BUILDINGS[id].tier === RULES.markets.initialMaxTier &&
       !initialFamilies.has(BUILDINGS[id].family || id));
     if (index < 0) throw new RuleError(ruleIssue("messages.notEnoughDifferentFamiliesForTheInitial"));
@@ -304,6 +304,7 @@ export function createGame(rng = Math.random, mode = "local", settings = {}) {
     buildingDeck,
     tileMarket: tileDeck.splice(0, RULES.markets.terrainSize),
     buildingMarket,
+    buildingDiscard: [],
     buildingReplacements: 0,
     turnOrder,
     active: firstPlayer,
@@ -867,8 +868,8 @@ export function build(
     p.resources[resource] += amount;
   usePlacementAction(g, unit);
   const replacement = drawBuildingOffers(g, 1);
-  if (replacement.length) g.buildingMarket[index] = replacement[0];
-  else g.buildingMarket.splice(index, 1);
+  g.buildingMarket.splice(index, 1);
+  g.buildingMarket.unshift(...replacement);
   note(
     g,
     b.transformTo
@@ -1011,7 +1012,10 @@ export function endTurn(g) {
     );
     return;
   }
-  if (lastPlayer) g.round++;
+  if (lastPlayer) {
+    g.round++;
+    advanceBuildingMarket(g);
+  }
   g.active = nextActive;
   g.selectedUnitId = null;
   g.armySelection = null;
@@ -1070,6 +1074,14 @@ function awardMissions(g, owner = g.active) {
     for (const [type, amount] of Object.entries(MISSIONS[id].reward))
       note(g, sourceMessage("messages.missionReward", [g.players[owner].name, MISSIONS[id].name,
         missionRewardText({ [type]: amount }, sourceMessage)]));
+}
+function advanceBuildingMarket(g) {
+  if (!g.buildingDeck.length) return;
+  const offers = drawBuildingOffers(g, 1);
+  if (!offers.length) return;
+  g.buildingMarket.unshift(...offers);
+  if (g.buildingMarket.length > RULES.markets.buildingSize)
+    (g.buildingDiscard ??= []).push(g.buildingMarket.pop());
 }
 function drawBuildingOffers(g, count) {
   g.buildingReplacements = (g.buildingReplacements ?? RULES.markets.advancedFromReplacement) + 1;

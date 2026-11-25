@@ -452,6 +452,7 @@ export default {
   "buildingMarketView.clickToSeePlacementsDragToBuild": "Click to see placements · Drag to build",
   "buildingMarketView.viewDetailsFor": "View details for {0}",
   "buildingMarketView.i": "i",
+  "buildingMarketView.flowRules": "New cards enter at the top. After all players have taken a turn, one card enters; above 5 cards, the bottom card is discarded.",
   "buildingMarketView.theBuildingDeckIsEmpty": "The building deck is empty.",
   "buildingStars.star": "{0} star{1}",
   "buildingDetailsView.effect": "Effect:",

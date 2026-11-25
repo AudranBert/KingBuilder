@@ -32,6 +32,13 @@ Renouveler les tuiles terrain proposées coûte {{rerollCost}} or, une fois par 
 
 Construire : payez le coût et posez une tuile bâtiment sur la case de l’ouvrier ou à côté.
 Vous devez respecter le terrain du motif. Le bâtiment doit être posé sur une case vide.
+
+Le marché commence avec 3 cartes bâtiment :
+
+- Après une construction, les cartes au-dessus de la carte achetée descendent pour combler sa place. Une nouvelle carte arrive en haut.
+- Après un tour complet de tous les joueurs, ajoutez une carte en haut et décalez les autres vers le bas.
+- Le marché contient au maximum 5 cartes. Lorsqu'une 6e arrive, défaussez celle du bas.
+
 Bâtiments spécifiques :
 
 - Le pont et le tunnel permettent de traverser l’eau et la montagne, respectivement.

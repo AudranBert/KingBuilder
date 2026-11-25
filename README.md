@@ -45,7 +45,8 @@ English is the source language. Edit names, descriptions, placement patterns and
 - Cinq drapeaux neutres sont préplacés et déjà révélés : un au centre, quatre autour du centre.
 - Les joueurs révèlent des tuiles de terrain depuis un marché commun de quatre offres. Les terrains restent utilisables par les deux joueurs.
 - Les empreintes des bâtiments et leurs terrains requis forment le puzzle. Tous les éléments du motif doivent être révélés et respecter les terrains. Les annexes compatibles peuvent se chevaucher ; seules les cases occupées par un bâtiment lui-même bloquent une autre construction. L’entrée doit être à une case maximum du bâtisseur, sans diagonale.
-- Le marché initial propose quatre familles différentes de bâtiments à une étoile. La maison appartient au niveau deux étoiles et arrive après le déblocage des bâtiments avancés.
+- Le marché initial propose trois familles différentes de bâtiments à une étoile. La maison appartient au niveau deux étoiles et arrive après le déblocage des bâtiments avancés.
+- Après une construction, les cartes au-dessus de la carte achetée descendent pour combler sa place et une nouvelle carte arrive en haut. Après un tour complet de tous les joueurs, une carte supplémentaire arrive en haut ; au-delà de cinq cartes, celle du bas est défaussée. Les cartes défaussées restent à part de la pioche.
 - Niveaux : 0 étoile pour défrichement, pont et tunnel ; 1 étoile pour les fermes, scieries, carrières, mines et pêcheurs ; 2 étoiles pour les ports et tous les autres bâtiments.
 - Les montagnes et les rivières sont infranchissables, sauf sur une case rendue praticable par un bâtiment (tunnel, pont, tour ou producteur). Les joueurs doivent préserver leurs accès.
 - Seuls les bâtiments, leurs annexes et les drapeaux contrôlés portent des contours de propriété. Les terrains explorés n’appartiennent à personne.

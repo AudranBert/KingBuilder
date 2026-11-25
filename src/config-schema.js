@@ -174,8 +174,10 @@ export function compileConfiguration(
   integer(gameConfig.scoring.flag, "game-rules.json.scoring.flag");
   integer(gameConfig.startingWorkers, "game-rules.json.startingWorkers");
   object(gameConfig.markets, "game-rules.json.markets");
-  for (const field of ["terrainSize", "buildingSize", "advancedFromReplacement"])
+  for (const field of ["terrainSize", "buildingSize", "initialBuildingSize", "advancedFromReplacement"])
     integer(gameConfig.markets[field], `game-rules.json.markets.${field}`, 1);
+  if (gameConfig.markets.initialBuildingSize > gameConfig.markets.buildingSize)
+    fail("game-rules.json.markets.initialBuildingSize", "le marché initial dépasse la taille maximale.");
   integer(gameConfig.markets.initialMaxTier, "game-rules.json.markets.initialMaxTier");
   object(gameConfig.placement, "game-rules.json.placement");
   integer(gameConfig.placement.constructionRange, "game-rules.json.placement.constructionRange");
@@ -393,7 +395,7 @@ export function compileConfiguration(
   );
   if (!buildingPool.length) fail("buildings", "la pioche doit contenir un bâtiment constructible.");
   if (new Set(buildingPool.filter(id => buildings[id].tier === gameConfig.markets.initialMaxTier)
-    .map(id => buildings[id].family || id)).size < gameConfig.markets.buildingSize)
+    .map(id => buildings[id].family || id)).size < gameConfig.markets.initialBuildingSize)
     fail("buildings", "pas assez de familles différentes du niveau initial.");
   if (tileConfig.deckSize < gameConfig.markets.terrainSize)
     fail("game-rules.json.markets.terrainSize", "le marché dépasse la pioche.");

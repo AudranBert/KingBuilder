@@ -189,7 +189,8 @@ export function validateGame(game) {
       Array.isArray(game.buildingMarket) &&
       game.buildingMarket.length <= RULES.markets.buildingSize &&
       Array.isArray(game.buildingDeck) &&
-      [...game.buildingMarket, ...game.buildingDeck].every(
+      (game.buildingDiscard === undefined || Array.isArray(game.buildingDiscard)) &&
+      [...game.buildingMarket, ...game.buildingDeck, ...(game.buildingDiscard ?? [])].every(
         (id) => typeof id === "string",
       ),
     "marché incorrect.",

@@ -10,6 +10,7 @@
   "markets": {
     "terrainSize": 4,
     "buildingSize": 5,
+    "initialBuildingSize": 3,
     "initialMaxTier": 1,
     "advancedFromReplacement": 2
   },

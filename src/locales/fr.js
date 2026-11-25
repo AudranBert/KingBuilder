@@ -827,6 +827,7 @@ export default {
   "buildingMarketView.clickToSeePlacementsDragToBuild": "Cliquer pour les placements · Glisser pour construire",
   "buildingMarketView.viewDetailsFor": "Voir les détails de {0}",
   "buildingMarketView.i": "i",
+  "buildingMarketView.flowRules": "Les nouvelles cartes arrivent en haut. Après un tour complet de tous les joueurs, une carte arrive ; au-delà de 5, celle du bas est défaussée.",
   "buildingMarketView.theBuildingDeckIsEmpty": "La pioche de bâtiments est épuisée.",
   "buildingStars.star": "{0} étoile{1}",
   "buildingDetailsView.effect": "Effet :",

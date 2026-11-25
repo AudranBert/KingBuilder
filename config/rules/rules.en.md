@@ -32,6 +32,13 @@ Replacing the available terrain tiles costs {{rerollCost}} gold, once per turn.
 
 Build: pay the cost and place a building tile on the worker’s space or next to it.
 Match the terrain shown in the pattern. The building must be placed on an empty space.
+
+The market starts with 3 building cards:
+
+- After building, cards above the purchased card move down to fill its space. A new card enters at the top.
+- After all players have taken a turn, add a card at the top and move the others down.
+- The market holds at most 5 cards. When a 6th card enters, discard the bottom card.
+
 Special buildings:
 
 - Bridges and tunnels let you cross water and mountains, respectively.

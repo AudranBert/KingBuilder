@@ -19,7 +19,7 @@ test('4 kings: custom map, four side starts, identities and complete rounds', ()
   for (const [position, cell] of cells) assert.deepEqual(game.board[position], cell);
   assert.doesNotThrow(() => validateGame(game));
   assert.match(playersView(game), /sapphire/); assert.match(playersView(game), /ruby/);
-  assert.match(rulesView(game), /limin/); assert.match(catalogueView(), /4 kings/);
+  assert.equal(rulesView(game), rulesView()); assert.match(catalogueView(), /4 kings/);
   for (const active of [1,2,3,0]) { endTurn(game); assert.equal(game.active, active); }
   assert.equal(game.round, 2);
   while (!game.finished) endTurn(game);
