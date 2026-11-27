@@ -10,7 +10,7 @@
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
     "pattern": "Three plains in a line; building space at one end.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Bpp"
     ],
@@ -31,7 +31,7 @@
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
     "pattern": "Three plains in an L; building space at one end.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Bp",
       ".p"

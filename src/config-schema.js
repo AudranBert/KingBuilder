@@ -93,7 +93,7 @@ function weighted(items, path, deckSize) {
   integer(deckSize, `${path}.deckSize`, 1);
   const pool = [];
   for (const [id, item] of Object.entries(items)) {
-    integer(item.weight, `${path}.${id}.weight`, 1);
+    integer(item.weight, `${path}.${id}.weight`, 0);
     if (item.weight > deckSize)
       fail(path, "un poids ne peut pas dépasser la taille de la pioche.");
     for (let i = 0; i < item.weight; i++) pool.push(id);

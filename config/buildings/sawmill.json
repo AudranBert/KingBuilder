@@ -10,7 +10,7 @@
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
     "pattern": "Three forests in a line; building space at one end.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Bff"
     ],
@@ -30,7 +30,7 @@
     "produces": "material",
     "description": "+2 wood per turn with a worker.",
     "pattern": "Three forests in a line; building space in the middle.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "fBf"
     ],

@@ -34,7 +34,7 @@
     "produces": "food",
     "description": "+3 wheat per turn with a worker.",
     "pattern": "Five plains in an L; building space at the corner.",
-    "weight": 1,
+    "weight": 0,
     "layout": [
       "Bppp",
       "p..."

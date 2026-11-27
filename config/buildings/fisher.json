@@ -10,7 +10,7 @@
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
     "pattern": "Three water spaces in a line; building space in the middle.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "rBr"
     ],
@@ -30,7 +30,7 @@
     "produces": "food",
     "description": "+2 wheat per turn with a worker.",
     "pattern": "One plain building space followed by two water spaces in a line.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Brr"
     ],

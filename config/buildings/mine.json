@@ -10,7 +10,7 @@
     "produces": "gold",
     "description": "+1 gold per turn with a worker.",
     "pattern": "One plain building space followed by three mountains in a line.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Bmmm"
     ],
@@ -30,7 +30,7 @@
     "produces": "gold",
     "description": "+1 gold per turn with a worker.",
     "pattern": "A square of four spaces: one plain building space and three mountains.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Bm",
       "mm"

@@ -10,7 +10,7 @@
     "produces": "material",
     "description": "+3 wood per turn with a worker.",
     "pattern": "Five spaces in a block: a plain building space, two mountains and two forests.",
-    "weight": 1,
+    "weight": 0,
     "layout": [
       "Bmm",
       ".ff"

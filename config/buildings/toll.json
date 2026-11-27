@@ -19,7 +19,7 @@
       ".",
       "c"
     ],
-    "weight": 2,
+    "weight": 1,
     "points": 0,
     "produces": "gold",
     "production": 1,
@@ -46,7 +46,7 @@
       "B",
       "!p"
     ],
-    "weight": 1,
+    "weight": 0,
     "points": 0,
     "produces": "gold",
     "production": 1,

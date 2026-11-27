@@ -11,7 +11,7 @@
     "terrain": "plain",
     "description": "+1 worker, active next turn. This worker disappears if the house is destroyed.",
     "pattern": "One plain next to an existing building, excluding bridges and tunnels.",
-    "weight": 3,
+    "weight": 1,
     "layout": [
       "Bc"
     ],
@@ -31,7 +31,7 @@
     "terrain": "plain",
     "description": "+1 worker, active next turn. This worker disappears if the house is destroyed.",
     "pattern": "One plain next to water.",
-    "weight": 2,
+    "weight": 1,
     "layout": [
       "Br"
     ],

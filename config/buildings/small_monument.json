@@ -13,7 +13,7 @@
     "layout": [
       "Bm"
     ],
-    "weight": 2,
+    "weight": 1,
     "points": 2
   },
   {
@@ -30,7 +30,7 @@
     "layout": [
       "Br"
     ],
-    "weight": 2,
+    "weight": 1,
     "points": 2,
     "family": "small_monument"
   }

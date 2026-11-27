@@ -33,7 +33,7 @@
     "produces": "material",
     "description": "+3 wood per turn with a worker.",
     "pattern": "Five forests in a T.",
-    "weight": 1,
+    "weight": 0,
     "layout": [
       "fBf",
       ".f.",

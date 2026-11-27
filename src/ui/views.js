@@ -72,6 +72,7 @@ function mapsCatalogueView(size) {
 export function catalogueView({ tier = "all", tileSize = "all", terrain = "all", tileSort = "size", mapSize = GAME_DEFAULTS.boardSize } = {}) {
   const families = new Map();
   for (const b of Object.values(BUILDINGS)) {
+    if (b.constructible !== false && b.weight === 0) continue;
     const id = b.family || b.id;
     if (!families.has(id)) families.set(id, []);
     families.get(id).push(b);

@@ -34,7 +34,7 @@
       "Br",
       ".l"
     ],
-    "weight": 1,
+    "weight": 0,
     "points": 6,
     "traversable": true,
     "greatBridge": true,
